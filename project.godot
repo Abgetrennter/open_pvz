@@ -11,8 +11,16 @@ config_version=5
 [application]
 
 config/name="open_PVZ"
+run/main_scene="uid://b8xj7k4m3n5q6"
 config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
+
+[autoload]
+
+EventBus="*res://autoload/EventBus.gd"
+TriggerRegistry="*res://autoload/TriggerRegistry.gd"
+EffectRegistry="*res://autoload/EffectRegistry.gd"
+GameState="*res://autoload/GameState.gd"
 
 [physics]
 

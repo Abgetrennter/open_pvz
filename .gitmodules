@@ -1,0 +1,3 @@
+[submodule "vendor/PVZ-Godot-Dream"]
+	path = vendor/PVZ-Godot-Dream
+	url = https://github.com/hsk-dream/PVZ-Godot-Dream.git
