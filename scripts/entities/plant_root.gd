@@ -15,6 +15,7 @@ func _ready() -> void:
 	entity_kind = &"plant"
 	team = &"plant"
 	super()
+	entity_state["status"] = "alive"
 	if health_component != null:
 		health_component.damaged.connect(_on_health_changed)
 		health_component.died.connect(_on_died)
@@ -46,4 +47,5 @@ func _on_health_changed(_amount: int) -> void:
 
 
 func _on_died() -> void:
+	entity_state["status"] = "dead"
 	queue_free()

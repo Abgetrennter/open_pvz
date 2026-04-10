@@ -55,6 +55,9 @@ func launch(direction: Vector2, speed: float, source_node: Node = null, on_hit =
 			team = StringName(source_team)
 		else:
 			team = &"neutral"
+		var source_lane: Variant = source_node.get("lane_id")
+		if source_lane is int:
+			assign_lane(source_lane)
 	else:
 		team = &"neutral"
 	if movement_component != null:

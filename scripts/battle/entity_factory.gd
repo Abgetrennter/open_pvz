@@ -24,6 +24,7 @@ func create_plant(position: Vector2):
 func create_zombie(position: Vector2):
 	var zombie: Variant = ZombieRootRef.new()
 	zombie.position = position
+	zombie.add_child(_make_movement_component())
 	zombie.add_child(_make_health_component(120))
 	zombie.add_child(_make_passive_hitbox(Vector2(44.0, 60.0)))
 	return zombie
