@@ -34,7 +34,6 @@ func create_projectile(position: Vector2):
 	var projectile: Variant = ProjectileRootRef.new()
 	projectile.position = position
 	projectile.add_child(_make_projectile_hitbox(10.0))
-	projectile.add_child(_make_movement_component())
 	return projectile
 
 

@@ -35,8 +35,8 @@ func bind_battle_root(node: Node) -> void:
 
 func _build_ui() -> void:
 	_panel = PanelContainer.new()
-	_panel.position = Vector2(12.0, 12.0)
 	_panel.size = Vector2(320.0, 232.0)
+	_panel.position = _panel_position()
 	add_child(_panel)
 
 	var margin := MarginContainer.new()
@@ -71,6 +71,7 @@ func _refresh_text() -> void:
 	if _summary_label == null:
 		return
 
+	_panel.position = _panel_position()
 	_summary_label.text = _build_summary_text()
 	_events_label.text = _build_events_text()
 	_effects_label.text = _build_effects_text()
@@ -138,3 +139,8 @@ func _build_effects_text() -> String:
 			String(entry.get("event_name", "")),
 		])
 	return "\n".join(lines)
+
+
+func _panel_position() -> Vector2:
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	return Vector2(maxf(12.0, viewport_size.x - _panel.size.x - 16.0), 12.0)

@@ -1,0 +1,35 @@
+extends "res://scripts/projectile/movement/projectile_movement_base.gd"
+class_name ProjectileMovementTrack
+
+var direction := Vector2.RIGHT
+var speed := 0.0
+var turn_rate := 6.0
+var target_node: Node2D = null
+
+
+func configure_movement(params: Dictionary) -> void:
+	super(params)
+	var direction_value: Variant = params.get("direction", Vector2.RIGHT)
+	if direction_value is Vector2:
+		direction = direction_value.normalized()
+	else:
+		direction = Vector2.RIGHT
+	speed = float(params.get("speed", 0.0))
+	turn_rate = float(params.get("turn_rate", 6.0))
+	var target_value: Variant = params.get("target_node", null)
+	target_node = target_value as Node2D
+
+
+func physics_process_projectile_move(delta: float) -> bool:
+	if projectile == null:
+		return false
+
+	if is_instance_valid(target_node):
+		var to_target: Vector2 = target_node.global_position - projectile.global_position
+		if to_target.length_squared() > 0.001:
+			var desired_direction: Vector2 = to_target.normalized()
+			var weight: float = clamp(turn_rate * delta, 0.0, 1.0)
+			direction = direction.slerp(desired_direction, weight).normalized()
+
+	projectile.position += direction * speed * delta
+	return true
