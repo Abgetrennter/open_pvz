@@ -36,13 +36,16 @@ func _process(delta: float) -> void:
 
 
 func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = null) -> Node:
-	var projectile: Variant = _entity_factory.create_projectile(context.position)
-
 	var direction := Vector2.RIGHT
 	var direction_value: Variant = params.get("direction", Vector2.RIGHT)
 	if direction_value is Vector2:
 		direction = direction_value
 
+	var spawn_position: Vector2 = context.position
+	if context.source_node != null and context.source_node is Node2D:
+		spawn_position = context.source_node.global_position + direction.normalized() * 34.0
+
+	var projectile: Variant = _entity_factory.create_projectile(spawn_position)
 	var speed := float(params.get("speed", 300.0))
 	var damage := int(params.get("damage", 10))
 	projectile.launch(direction, speed, context.source_node, on_hit_effect, damage)

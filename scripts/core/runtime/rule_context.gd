@@ -26,9 +26,11 @@ func duplicate_deep() -> Variant:
 
 static func from_event_data(event_name_value: StringName, event_data, owner_entity: Node = null) -> Variant:
 	var context: Variant = RuleContextRef.new()
+	var source_node: Node = event_data.core.get("source_node", null)
+	var target_node: Node = event_data.core.get("target_node", null)
 	context.event_name = event_name_value
-	context.source_node = event_data.core.get("source_node", owner_entity)
-	context.target_node = event_data.core.get("target_node", null)
+	context.source_node = owner_entity if source_node == null else source_node
+	context.target_node = target_node
 	context.core = event_data.core.duplicate(true)
 	context.runtime = event_data.runtime.duplicate(true)
 	if owner_entity != null and owner_entity.has_method("get_entity_state"):
