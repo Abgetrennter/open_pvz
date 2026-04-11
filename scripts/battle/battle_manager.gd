@@ -1,6 +1,8 @@
 extends Node2D
 class_name BattleManager
 
+signal validation_completed(status: StringName)
+
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const BattleScenarioRef = preload("res://scripts/battle/battle_scenario.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
@@ -19,6 +21,13 @@ const LANE_Y := {
 @export var playfield_size := Vector2(960.0, 540.0)
 @export var scenario: Resource = null
 @export var allow_restart_input := true
+@export var show_debug_overlay := true
+@export var auto_quit_on_validation := false
+@export var auto_quit_delay := 0.2
+@export var print_validation_report := false
+@export_file("*.tres") var scenario_override_path := ""
+@export var enable_runtime_snapshot_logging := false
+@export var runtime_snapshot_interval_frames := 10
 
 var _tick_accumulator := 0.0
 var _entity_factory: Variant = EntityFactoryRef.new()
@@ -28,14 +37,19 @@ var _validation_started_at := 0.0
 var _validation_deadline := 0.0
 var _validation_rule_states: Array[Dictionary] = []
 var _validation_counts: Dictionary = {}
+var _auto_quit_timer := -1.0
+var _validation_reported := false
+var _runtime_frame_counter := 0
 
 
 func _ready() -> void:
+	_apply_runtime_options()
 	_entity_root = _ensure_entity_root()
 	if not EventBus.event_pushed.is_connected(_on_validation_event):
 		EventBus.event_pushed.connect(_on_validation_event)
 	queue_redraw()
-	_spawn_debug_overlay()
+	if show_debug_overlay:
+		_spawn_debug_overlay()
 	reset_battle()
 
 
@@ -46,6 +60,7 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	GameState.advance_time(delta)
 	_update_validation_state()
+	_process_auto_quit(delta)
 	_tick_accumulator += delta
 
 	while _tick_accumulator >= tick_interval:
@@ -53,6 +68,17 @@ func _process(delta: float) -> void:
 		var tick_event: Variant = EventDataRef.create()
 		tick_event.core["game_time"] = GameState.current_time
 		EventBus.push_event(&"game.tick", tick_event)
+
+
+func _physics_process(_delta: float) -> void:
+	if not enable_runtime_snapshot_logging:
+		return
+	_runtime_frame_counter += 1
+	if runtime_snapshot_interval_frames <= 0:
+		runtime_snapshot_interval_frames = 1
+	if _runtime_frame_counter % runtime_snapshot_interval_frames != 0:
+		return
+	_record_runtime_snapshot()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -67,6 +93,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func reset_battle() -> void:
 	_tick_accumulator = 0.0
+	_runtime_frame_counter = 0
 	_clear_runtime_entities()
 	GameState.begin_battle(self)
 	EventBus.clear()
@@ -216,12 +243,22 @@ func _build_projectile_movement_params(context, params: Dictionary, spawn_positi
 		&"parabola":
 			var parabola_target: Node2D = _resolve_projectile_target_node(context)
 			var travel_duration := float(params.get("travel_duration", _estimate_parabola_duration(spawn_position, parabola_target, speed)))
+			var impact_radius := float(params.get("impact_radius", 34.0))
 			movement_params["start_position"] = spawn_position
 			movement_params["target_node"] = parabola_target
 			movement_params["target_position"] = _resolve_projectile_target_position(context, params, spawn_position, direction, speed, travel_duration, parabola_target)
 			movement_params["travel_duration"] = travel_duration
 			movement_params["arc_height"] = float(params.get("arc_height", 72.0))
-			movement_params["impact_radius"] = float(params.get("impact_radius", 34.0))
+			movement_params["impact_radius"] = impact_radius
+			movement_params["collision_padding"] = float(params.get("collision_padding", 14.0))
+			movement_params["lead_time_scale"] = float(params.get("lead_time_scale", 1.0))
+			movement_params["dynamic_target_adjustment"] = float(
+				params.get(
+					"dynamic_target_adjustment",
+					maxf(impact_radius * 1.5, _estimate_target_tracking_budget(parabola_target, travel_duration))
+				)
+			)
+			movement_params["dynamic_target_axis"] = StringName(params.get("dynamic_target_axis", &"x"))
 		&"track":
 			movement_params["target_node"] = _resolve_projectile_target_node(context)
 			movement_params["turn_rate"] = float(params.get("turn_rate", 6.0))
@@ -245,7 +282,7 @@ func _resolve_projectile_target_position(
 		return explicit_target
 
 	if target_node != null:
-		return _predict_target_position(target_node, travel_duration, speed, params)
+		return _predict_target_position(spawn_position, target_node, travel_duration, speed, params)
 
 	var distance := float(params.get("distance", 280.0))
 	return spawn_position + direction.normalized() * distance
@@ -297,12 +334,23 @@ func _estimate_parabola_duration(spawn_position: Vector2, target_node: Node2D, s
 	return max(0.35, distance / max(speed, 1.0))
 
 
-func _predict_target_position(target_node: Node2D, travel_duration: float, _projectile_speed: float, params: Dictionary) -> Vector2:
+func _predict_target_position(
+	spawn_position: Vector2,
+	target_node: Node2D,
+	travel_duration: float,
+	projectile_speed: float,
+	params: Dictionary
+) -> Vector2:
 	var current_position: Vector2 = target_node.global_position
 	var lead_time_scale := float(params.get("lead_time_scale", 1.0))
-	var max_lead_distance := float(params.get("max_lead_distance", 120.0))
+	var max_lead_distance := float(params.get("max_lead_distance", max(120.0, projectile_speed * travel_duration * 1.5)))
+	var lead_iterations := maxi(1, int(params.get("lead_iterations", 3)))
 	var velocity: Vector2 = _estimate_entity_velocity(target_node)
-	var predicted_offset := velocity * travel_duration * lead_time_scale
+	var predicted_position := current_position
+	for _iteration in range(lead_iterations):
+		var intercept_time := maxf(spawn_position.distance_to(predicted_position) / maxf(projectile_speed, 1.0), 0.0)
+		predicted_position = current_position + velocity * intercept_time * lead_time_scale
+	var predicted_offset := predicted_position - current_position
 	if predicted_offset.length() > max_lead_distance:
 		predicted_offset = predicted_offset.normalized() * max_lead_distance
 	return current_position + predicted_offset
@@ -322,6 +370,12 @@ func _estimate_entity_velocity(node: Node2D) -> Vector2:
 		if move_speed_value is float or move_speed_value is int:
 			return Vector2.LEFT * float(move_speed_value)
 	return Vector2.ZERO
+
+
+func _estimate_target_tracking_budget(target_node: Node2D, travel_duration: float) -> float:
+	if target_node == null:
+		return 0.0
+	return _estimate_entity_velocity(target_node).length() * travel_duration * 1.25
 
 
 func get_runtime_entities() -> Array:
@@ -376,6 +430,15 @@ func get_validation_summary_lines(limit: int = 3) -> PackedStringArray:
 		lines.append("All scenario checks satisfied.")
 	elif shown == 0 and _validation_status == &"failed":
 		lines.append("Window expired before checks completed.")
+	return lines
+
+
+func get_unsatisfied_validation_descriptions() -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	for rule_state in _validation_rule_states:
+		if bool(rule_state.get("satisfied", false)):
+			continue
+		lines.append(String(rule_state.get("description", "")))
 	return lines
 
 
@@ -467,6 +530,8 @@ func _reset_validation() -> void:
 	_validation_deadline = GameState.current_time + (0.0 if active_scenario == null else float(active_scenario.validation_time_limit))
 	_validation_rule_states.clear()
 	_validation_counts.clear()
+	_auto_quit_timer = -1.0
+	_validation_reported = false
 	if active_scenario == null:
 		return
 
@@ -518,12 +583,12 @@ func _event_matches_rule(event_data: Variant, rule_state: Dictionary) -> bool:
 
 func _refresh_validation_status() -> void:
 	if _validation_rule_states.is_empty():
-		_validation_status = &"passed"
+		_set_validation_status(&"passed")
 		return
 	for rule_state in _validation_rule_states:
 		if not bool(rule_state.get("satisfied", false)):
 			return
-	_validation_status = &"passed"
+	_set_validation_status(&"passed")
 
 
 func _update_validation_state() -> void:
@@ -535,7 +600,84 @@ func _update_validation_state() -> void:
 		return
 	_refresh_validation_status()
 	if _validation_status != &"passed":
-		_validation_status = &"failed"
+		_set_validation_status(&"failed")
+
+
+func _set_validation_status(next_status: StringName) -> void:
+	if _validation_status == next_status:
+		return
+	_validation_status = next_status
+	if next_status == &"passed" or next_status == &"failed":
+		_report_validation_result()
+		validation_completed.emit(next_status)
+		if auto_quit_on_validation:
+			_auto_quit_timer = maxf(auto_quit_delay, 0.0)
+
+
+func _report_validation_result() -> void:
+	if _validation_reported:
+		return
+	if not print_validation_report and not auto_quit_on_validation:
+		return
+	_validation_reported = true
+
+	var status_label := "PASSED" if _validation_status == &"passed" else "FAILED"
+	var active_scenario = _resolve_scenario()
+	var scenario_label := "unknown"
+	if active_scenario != null:
+		scenario_label = "%s (%s)" % [active_scenario.display_name, String(active_scenario.scenario_id)]
+
+	print("[Validation] %s %s" % [status_label, scenario_label])
+	for line in get_validation_summary_lines(12):
+		print("[Validation] %s" % line)
+
+
+func _process_auto_quit(delta: float) -> void:
+	if _auto_quit_timer < 0.0:
+		return
+	_auto_quit_timer -= delta
+	if _auto_quit_timer > 0.0:
+		return
+	_auto_quit_timer = -1.0
+	get_tree().quit(0 if _validation_status == &"passed" else 1)
+
+
+func _apply_runtime_options() -> void:
+	for raw_arg in OS.get_cmdline_user_args():
+		var arg := String(raw_arg)
+		if arg == "--validation-auto-quit":
+			auto_quit_on_validation = true
+			continue
+		if arg == "--validation-print-report":
+			print_validation_report = true
+			continue
+		if arg == "--validation-no-overlay":
+			show_debug_overlay = false
+			continue
+		if arg == "--runtime-snapshot-log":
+			enable_runtime_snapshot_logging = true
+			continue
+		if arg.begins_with("--runtime-snapshot-interval="):
+			runtime_snapshot_interval_frames = maxi(1, int(arg.trim_prefix("--runtime-snapshot-interval=")))
+			continue
+		if arg.begins_with("--validation-scenario="):
+			scenario_override_path = arg.trim_prefix("--validation-scenario=")
+			continue
+
+	if scenario_override_path.is_empty():
+		return
+	var loaded_scenario: Resource = load(scenario_override_path)
+	if loaded_scenario != null and loaded_scenario.get_script() == BattleScenarioRef:
+		scenario = loaded_scenario
+		return
+	push_warning("Failed to load validation scenario override: %s" % scenario_override_path)
+
+
+func _record_runtime_snapshot() -> void:
+	if not DebugService.has_method("record_runtime_snapshot"):
+		return
+	var scenario_name := get_scenario_name()
+	DebugService.record_runtime_snapshot(_runtime_frame_counter, GameState.current_time, scenario_name, get_runtime_entities())
 
 
 func _draw() -> void:

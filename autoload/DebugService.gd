@@ -3,13 +3,16 @@ extends Node
 const MAX_EVENTS := 128
 const MAX_EFFECTS := 128
 const MAX_TRIGGERS := 128
+const MAX_RUNTIME_SNAPSHOTS := 128
 
 var enable_event_logging := true
 var enable_effect_logging := true
 var enable_trigger_logging := true
+var enable_runtime_snapshot_logging := true
 var event_log: Array[Dictionary] = []
 var effect_log: Array[Dictionary] = []
 var trigger_log: Array[Dictionary] = []
+var runtime_snapshot_log: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -32,12 +35,14 @@ func _on_event_pushed(event_name: StringName, event_data: Variant) -> void:
 	})
 	if event_log.size() > MAX_EVENTS:
 		event_log.pop_back()
+	_print_event_trace(event_name, event_data)
 
 
 func clear_logs() -> void:
 	event_log.clear()
 	effect_log.clear()
 	trigger_log.clear()
+	runtime_snapshot_log.clear()
 
 
 func record_trigger_execution(trigger_id: StringName, owner_entity: Node, event_name: StringName, depth: int, fired: bool) -> void:
@@ -73,6 +78,31 @@ func record_effect_execution(effect_id: StringName, context: Variant, depth: int
 		effect_log.pop_back()
 
 
+func record_runtime_snapshot(frame_index: int, battle_time: float, scenario_name: String, entities: Array) -> void:
+	if not enable_runtime_snapshot_logging:
+		return
+
+	var lines: PackedStringArray = PackedStringArray()
+	for entity in entities:
+		if entity == null:
+			continue
+		lines.append(_runtime_entity_line(entity))
+
+	var snapshot := {
+		"frame": frame_index,
+		"time": battle_time,
+		"scenario": scenario_name,
+		"lines": lines,
+	}
+	runtime_snapshot_log.push_front(snapshot)
+	if runtime_snapshot_log.size() > MAX_RUNTIME_SNAPSHOTS:
+		runtime_snapshot_log.pop_back()
+
+	print("[RuntimeSnapshot] frame=%d time=%.2f scenario=%s entities=%d" % [frame_index, battle_time, scenario_name, lines.size()])
+	for line in lines:
+		print("[RuntimeSnapshot] %s" % line)
+
+
 func snapshot_entity(entity: Node) -> Dictionary:
 	if entity == null:
 		return {}
@@ -88,9 +118,42 @@ func snapshot_entity(entity: Node) -> Dictionary:
 	return snapshot
 
 
+func _runtime_entity_line(entity: Node) -> String:
+	var entity_name := _debug_entity_name(entity)
+	if not entity.has_method("get_debug_snapshot"):
+		return entity_name
+
+	var snapshot: Dictionary = entity.call("get_debug_snapshot")
+	var values: Dictionary = snapshot.get("values", {})
+	var position: Vector2 = snapshot.get("position", Vector2.ZERO)
+	return "%s lane=%s status=%s pos=(%.1f, %.1f) health=%d/%d values=%s" % [
+		entity_name,
+		str(snapshot.get("lane_id", -1)),
+		String(snapshot.get("status", "")),
+		position.x,
+		position.y,
+		int(snapshot.get("health", 0)),
+		int(snapshot.get("max_health", 0)),
+		str(values),
+	]
+
+
 func _debug_entity_name(entity: Node) -> String:
 	if entity == null:
 		return "<null>"
 	if entity.has_method("get_debug_name"):
 		return str(entity.call("get_debug_name"))
 	return entity.name
+
+
+func _print_event_trace(event_name: StringName, event_data: Variant) -> void:
+	if event_name not in [&"projectile.spawned", &"projectile.hit", &"projectile.expired", &"entity.damaged", &"entity.died"]:
+		return
+	print("[EventTrace] %s src=%s tgt=%s value=%s tags=%s core=%s" % [
+		String(event_name),
+		_debug_entity_name(event_data.core.get("source_node", null)),
+		_debug_entity_name(event_data.core.get("target_node", null)),
+		str(event_data.core.get("value", null)),
+		str(event_data.core.get("tags", PackedStringArray())),
+		str(event_data.core),
+	])

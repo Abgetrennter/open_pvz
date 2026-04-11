@@ -7,3 +7,5 @@
 script = ExtResource("1_battle")
 scenario = ExtResource("2_scenario")
 allow_restart_input = true
+enable_runtime_snapshot_logging = true
+runtime_snapshot_interval_frames = 12

@@ -20,9 +20,10 @@ func configure_movement(params: Dictionary) -> void:
 	target_node = target_value as Node2D
 
 
-func physics_process_projectile_move(delta: float) -> bool:
+func physics_process_projectile_move(delta: float):
 	if projectile == null:
-		return false
+		return _build_move_result(Vector2.ZERO, Vector2.ZERO, false, &"missing_projectile")
+	var previous_position: Vector2 = projectile.global_position
 
 	if is_instance_valid(target_node):
 		var to_target: Vector2 = target_node.global_position - projectile.global_position
@@ -37,4 +38,4 @@ func physics_process_projectile_move(delta: float) -> bool:
 		projectile.call("set_state_value", &"speed", speed)
 		projectile.call("set_state_value", &"tracking_target", -1 if target_node == null or not target_node.has_method("get_entity_id") else int(target_node.call("get_entity_id")))
 		projectile.call("sync_runtime_state")
-	return true
+	return _build_move_result(previous_position, projectile.global_position, true)

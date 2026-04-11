@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="BattleSpawnEntry_parabola"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 1
+x_position = 140.0
+params = {
+"arc_height": 220.0,
+"damage": 20,
+"impact_radius": 36.0,
+"interval": 1.2,
+"movement_mode": &"parabola",
+"speed": 220.0,
+"travel_duration": 2.5
+}
+
+[sub_resource type="Resource" id="BattleSpawnEntry_far_zombie"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+lane_id = 1
+x_position = 790.0
+
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_parabola_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"parabola_spawn"
+description = "parabola projectile spawn"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"parabola"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_parabola_hit"]
+script = ExtResource("3_rule")
+rule_id = &"parabola_hit"
+description = "far-range parabola projectile hit"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"parabola"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_projectile_damage"]
+script = ExtResource("3_rule")
+rule_id = &"projectile_damage"
+description = "projectile damage event"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("projectile")
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"parabola_long_range_validation"
+display_name = "Parabola Long Range Validation"
+description = "A focused automation scenario for long-range parabola targeting. It verifies that a slow-moving distant zombie is still hit by the projectile when the arc completes."
+goals = PackedStringArray("Spawn a long-range parabola projectile against a distant moving zombie.", "Verify projectile.spawned, projectile.hit, and entity.damaged all occur in the same run.", "Use this scenario for automated tuning of lead prediction and terminal hit behavior.")
+validation_time_limit = 7.5
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_parabola_spawn"), SubResource("BattleValidationRule_parabola_hit"), SubResource("BattleValidationRule_projectile_damage")]
+spawns = [SubResource("BattleSpawnEntry_parabola"), SubResource("BattleSpawnEntry_far_zombie")]

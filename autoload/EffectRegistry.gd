@@ -51,8 +51,14 @@ func _register_builtin_strategies() -> void:
 		var result: Variant = EffectResultRef.new()
 		var target := _resolve_target(context, params)
 		var amount := int(params.get("amount", 10))
+		var damage_tags := PackedStringArray(context.core.get("tags", PackedStringArray()))
+		if not damage_tags.has("effect"):
+			damage_tags.append("effect")
+		var event_tag := String(context.event_name)
+		if not event_tag.is_empty() and not damage_tags.has(event_tag):
+			damage_tags.append(event_tag)
 		if target != null and target.has_method("take_damage"):
-			target.call("take_damage", amount, context.source_node, PackedStringArray(["effect", String(context.event_name)]), {
+			target.call("take_damage", amount, context.source_node, damage_tags, {
 				"depth": int(context.runtime.get("depth", context.depth)) + 1,
 				"chain_id": context.chain_id,
 				"origin_event_name": context.event_name,
