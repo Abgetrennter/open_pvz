@@ -302,7 +302,7 @@ func _find_nearest_enemy(source_node: Node) -> Node2D:
 
 	var source_team: Variant = source_node.get("team")
 	var source_lane: Variant = source_node.get("lane_id")
-	var source_position: Vector2 = (source_node as Node2D).global_position
+	var source_position: Vector2 = _node_ground_position(source_node as Node2D)
 	var best_candidate: Node2D = null
 	var best_distance := INF
 
@@ -319,7 +319,7 @@ func _find_nearest_enemy(source_node: Node) -> Node2D:
 			continue
 
 		var candidate := child as Node2D
-		var distance := source_position.distance_to(candidate.global_position)
+		var distance := source_position.distance_to(_node_ground_position(candidate))
 		if distance < best_distance:
 			best_distance = distance
 			best_candidate = candidate
@@ -330,7 +330,7 @@ func _find_nearest_enemy(source_node: Node) -> Node2D:
 func _estimate_parabola_duration(spawn_position: Vector2, target_node: Node2D, speed: float) -> float:
 	if target_node == null:
 		return max(0.35, 360.0 / max(speed, 1.0))
-	var distance := spawn_position.distance_to(target_node.global_position)
+	var distance := spawn_position.distance_to(_node_ground_position(target_node))
 	return max(0.35, distance / max(speed, 1.0))
 
 
@@ -341,7 +341,7 @@ func _predict_target_position(
 	projectile_speed: float,
 	params: Dictionary
 ) -> Vector2:
-	var current_position: Vector2 = target_node.global_position
+	var current_position: Vector2 = _node_ground_position(target_node)
 	var lead_time_scale := float(params.get("lead_time_scale", 1.0))
 	var max_lead_distance := float(params.get("max_lead_distance", max(120.0, projectile_speed * travel_duration * 1.5)))
 	var lead_iterations := maxi(1, int(params.get("lead_iterations", 3)))
@@ -370,6 +370,14 @@ func _estimate_entity_velocity(node: Node2D) -> Vector2:
 		if move_speed_value is float or move_speed_value is int:
 			return Vector2.LEFT * float(move_speed_value)
 	return Vector2.ZERO
+
+
+func _node_ground_position(node: Node2D) -> Vector2:
+	if node == null:
+		return Vector2.ZERO
+	if node.has_method("get_ground_position"):
+		return Vector2(node.call("get_ground_position"))
+	return node.global_position
 
 
 func _estimate_target_tracking_budget(target_node: Node2D, travel_duration: float) -> float:

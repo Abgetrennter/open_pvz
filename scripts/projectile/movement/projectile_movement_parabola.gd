@@ -23,27 +23,28 @@ func configure_movement(params: Dictionary) -> void:
 	travel_duration = max(float(params.get("travel_duration", 0.6)), 0.01)
 	arc_height = float(params.get("arc_height", 72.0))
 	elapsed_time = 0.0
-	if projectile != null:
-		projectile.position = start_position
+	_apply_projectile_motion_state(start_position, 0.0)
 
 
 func physics_process_projectile_move(delta: float):
 	if projectile == null:
-		return _build_move_result(Vector2.ZERO, Vector2.ZERO, false, &"missing_projectile")
-	var previous_position: Vector2 = projectile.global_position
+		return _build_move_result(Vector2.ZERO, Vector2.ZERO, 0.0, 0.0, false, &"missing_projectile")
+	var previous_position: Vector2 = _projectile_ground_position()
+	var previous_height := _projectile_height()
 
 	elapsed_time += delta
 	_update_target_position()
 	var progress: float = clamp(elapsed_time / travel_duration, 0.0, 1.0)
 	var base_position: Vector2 = start_position.lerp(target_position, progress)
-	var arc_offset := -4.0 * arc_height * progress * (1.0 - progress)
-	projectile.position = base_position + Vector2(0.0, arc_offset)
+	var current_height := 4.0 * arc_height * progress * (1.0 - progress)
+	_apply_projectile_motion_state(base_position, current_height)
 	if projectile.has_method("set_state_value"):
 		projectile.call("set_state_value", &"travel_progress", progress)
 		projectile.call("set_state_value", &"speed", start_position.distance_to(target_position) / travel_duration)
 		projectile.call("set_state_value", &"target_position", target_position)
+		projectile.call("set_state_value", &"height", current_height)
 		projectile.call("sync_runtime_state")
-	return _build_move_result(previous_position, projectile.global_position, progress < 1.0, &"movement_complete")
+	return _build_move_result(previous_position, base_position, previous_height, current_height, progress < 1.0, &"movement_complete")
 
 
 func _update_target_position() -> void:
@@ -52,7 +53,7 @@ func _update_target_position() -> void:
 	if target_node.has_method("is_combat_active") and not target_node.call("is_combat_active"):
 		return
 
-	var live_target_position: Vector2 = target_node.global_position
+	var live_target_position: Vector2 = _node_ground_position(target_node)
 	var remaining_time := maxf(travel_duration - elapsed_time, 0.0)
 	var live_offset := _estimate_target_velocity() * remaining_time * _lead_time_scale
 	match _dynamic_target_axis:

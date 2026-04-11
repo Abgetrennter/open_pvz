@@ -57,6 +57,18 @@ func is_combat_active() -> bool:
 	return true
 
 
+func get_ground_position() -> Vector2:
+	return global_position
+
+
+func get_height() -> float:
+	return 0.0
+
+
+func get_hit_height_range() -> Vector2:
+	return Vector2(0.0, 24.0)
+
+
 func get_debug_name() -> String:
 	return "%s#%d" % [String(entity_kind), entity_id]
 

@@ -33,12 +33,17 @@ var _impact_radius := 20.0
 var _collision_padding := 10.0
 var _hit_strategy: StringName = &"overlap"
 var _terminal_hit_strategy: StringName = &"impact_hitbox"
+var _ground_position := Vector2.ZERO
+var _height := 0.0
+var _max_hit_height := 24.0
 
 
 func _ready() -> void:
 	entity_kind = &"projectile"
 	super()
 	set_status(&"flying")
+	_ground_position = global_position
+	_apply_projected_transform()
 	movement_component = get_node_or_null("MovementComponent")
 	_enforce_single_movement_component(movement_component)
 	if hitbox_component != null:
@@ -55,8 +60,10 @@ func _physics_process(delta: float) -> void:
 		move_result = movement_component.physics_process_projectile_move(delta)
 	if move_result == null:
 		move_result = ProjectileMoveResultRef.new()
-		move_result.previous_position = global_position
-		move_result.current_position = global_position
+		move_result.previous_position = _ground_position
+		move_result.current_position = _ground_position
+		move_result.previous_height = _height
+		move_result.current_height = _height
 		move_result.still_active = true
 
 	if not _consumed:
@@ -104,7 +111,10 @@ func launch(
 	else:
 		team = &"neutral"
 	_ensure_movement_component(StringName(movement_params.get("move_mode", &"linear")))
-	var debug_target_position: Variant = global_position
+	_ground_position = global_position
+	_height = 0.0
+	_apply_projected_transform()
+	var debug_target_position: Variant = _ground_position
 	var debug_target_node: Variant = null
 	if movement_component != null:
 		var full_movement_params: Dictionary = movement_params.duplicate(true)
@@ -116,8 +126,8 @@ func launch(
 		_collision_padding = float(full_movement_params.get("collision_padding", 10.0))
 		_hit_strategy = StringName(full_movement_params.get("hit_strategy", _default_hit_strategy_for_mode(_move_mode)))
 		_terminal_hit_strategy = StringName(full_movement_params.get("terminal_hit_strategy", _terminal_strategy_for_hit_strategy(_hit_strategy)))
-		full_movement_params["start_position"] = global_position
-		debug_target_position = full_movement_params.get("target_position", global_position)
+		full_movement_params["start_position"] = _ground_position
+		debug_target_position = full_movement_params.get("target_position", _ground_position)
 		debug_target_node = full_movement_params.get("target_node", null)
 		movement_component.configure_movement(full_movement_params)
 		queue_redraw()
@@ -130,6 +140,9 @@ func launch(
 	set_state_value(&"collision_padding", _collision_padding)
 	set_state_value(&"hit_strategy", _hit_strategy)
 	set_state_value(&"terminal_hit_strategy", _terminal_hit_strategy)
+	set_state_value(&"ground_position", _ground_position)
+	set_state_value(&"height", _height)
+	set_state_value(&"max_hit_height", _max_hit_height)
 	set_state_value(&"target_position", debug_target_position)
 	set_state_value(&"target_id", -1 if debug_target_node == null or not debug_target_node.has_method("get_entity_id") else int(debug_target_node.call("get_entity_id")))
 	sync_runtime_state()
@@ -176,6 +189,8 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 func _on_hitbox_overlap(target: Node) -> void:
 	if not _allows_overlap_hit():
 		return
+	if not _matches_height_range(target, _height, _height):
+		return
 	_on_hit(target, &"overlap")
 
 
@@ -208,7 +223,12 @@ func _find_hit_target_from_move_result(move_result) -> Node:
 		return null
 	match _hit_strategy:
 		&"swept_segment", &"swept_segment_and_terminal_hitbox", &"swept_segment_and_terminal_radius":
-			return _find_segment_hit_target(Vector2(move_result.previous_position), Vector2(move_result.current_position))
+			return _find_segment_hit_target(
+				Vector2(move_result.previous_position),
+				Vector2(move_result.current_position),
+				float(move_result.previous_height),
+				float(move_result.current_height)
+			)
 		_:
 			return null
 
@@ -236,7 +256,7 @@ func _find_terminal_hit_target() -> Node:
 		var candidate_node := candidate as Node2D
 		if _matches_terminal_hit_target(candidate_node):
 			return candidate_node
-		var distance := global_position.distance_to(candidate_node.global_position)
+		var distance := _ground_position.distance_to(_candidate_ground_position(candidate_node))
 		if distance > _impact_radius:
 			continue
 		if distance < best_distance:
@@ -246,7 +266,7 @@ func _find_terminal_hit_target() -> Node:
 	return best_target
 
 
-func _find_segment_hit_target(start_position: Vector2, end_position: Vector2) -> Node:
+func _find_segment_hit_target(start_position: Vector2, end_position: Vector2, previous_height: float, current_height: float) -> Node:
 	if start_position == end_position:
 		return null
 	var battle := GameState.current_battle
@@ -267,15 +287,17 @@ func _find_segment_hit_target(start_position: Vector2, end_position: Vector2) ->
 		if candidate.has_method("is_combat_active") and not candidate.call("is_combat_active"):
 			continue
 		var candidate_node := candidate as Node2D
+		if not _matches_height_range(candidate_node, previous_height, current_height):
+			continue
 		var candidate_hitbox := candidate_node.get_node_or_null("HitboxComponent")
 		var intersects := false
 		if candidate_hitbox != null and candidate_hitbox.has_method("intersects_world_segment"):
 			intersects = bool(candidate_hitbox.call("intersects_world_segment", start_position, end_position, _collision_padding))
 		else:
-			intersects = _segment_distance_squared(start_position, end_position, candidate_node.global_position) <= _impact_radius * _impact_radius
+			intersects = _segment_distance_squared(start_position, end_position, _candidate_ground_position(candidate_node)) <= _impact_radius * _impact_radius
 		if not intersects:
 			continue
-		var score := start_position.distance_squared_to(candidate_node.global_position)
+		var score := start_position.distance_squared_to(_candidate_ground_position(candidate_node))
 		if score < best_score:
 			best_score = score
 			best_target = candidate_node
@@ -283,16 +305,18 @@ func _find_segment_hit_target(start_position: Vector2, end_position: Vector2) ->
 
 
 func _matches_terminal_hit_target(candidate_node: Node2D) -> bool:
+	if not _matches_height_range(candidate_node, _height, _height):
+		return false
 	match _terminal_hit_strategy:
 		&"impact_hitbox":
 			var candidate_hitbox := candidate_node.get_node_or_null("HitboxComponent")
 			if candidate_hitbox != null and candidate_hitbox.has_method("contains_world_point"):
-				return bool(candidate_hitbox.call("contains_world_point", global_position, maxf(_impact_radius, _collision_padding)))
-			return global_position.distance_to(candidate_node.global_position) <= _impact_radius
+				return bool(candidate_hitbox.call("contains_world_point", _ground_position, maxf(_impact_radius, _collision_padding)))
+			return _ground_position.distance_to(_candidate_ground_position(candidate_node)) <= _impact_radius
 		&"impact_radius":
-			return global_position.distance_to(candidate_node.global_position) <= _impact_radius
+			return _ground_position.distance_to(_candidate_ground_position(candidate_node)) <= _impact_radius
 		_:
-			return global_position.distance_to(candidate_node.global_position) <= _impact_radius
+			return _ground_position.distance_to(_candidate_ground_position(candidate_node)) <= _impact_radius
 
 
 func _default_hit_strategy_for_mode(move_mode: StringName) -> StringName:
@@ -345,6 +369,9 @@ func _emit_spawn_event() -> void:
 func _draw() -> void:
 	var body_color := _projectile_color()
 	var radius := 8.0 if _move_mode != &"parabola" else 10.0
+	if _height > 0.0:
+		var shadow_size := maxf(4.0, radius - _height * 0.02)
+		draw_circle(Vector2(0.0, _height), shadow_size, Color(0.0, 0.0, 0.0, 0.18))
 	draw_circle(Vector2.ZERO, radius, body_color)
 	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 12, PROJECTILE_OUTLINE_COLOR, 2.0)
 	if _move_mode == &"track":
@@ -377,6 +404,51 @@ func _movement_script_for_mode(move_mode: StringName):
 			return ProjectileMovementTrackRef
 		_:
 			return ProjectileMovementLinearRef
+
+
+func get_ground_position() -> Vector2:
+	return _ground_position
+
+
+func get_height() -> float:
+	return _height
+
+
+func get_hit_height_range() -> Vector2:
+	return Vector2(0.0, _max_hit_height)
+
+
+func set_projected_motion_state(ground_position: Vector2, height: float) -> void:
+	_ground_position = ground_position
+	_height = maxf(height, 0.0)
+	_apply_projected_transform()
+	set_state_value(&"ground_position", _ground_position)
+	set_state_value(&"height", _height)
+	set_state_value(&"projected_position", global_position)
+	queue_redraw()
+
+
+func _apply_projected_transform() -> void:
+	global_position = _ground_position + Vector2(0.0, -_height)
+
+
+func _candidate_ground_position(candidate: Node2D) -> Vector2:
+	if candidate.has_method("get_ground_position"):
+		return Vector2(candidate.call("get_ground_position"))
+	return candidate.global_position
+
+
+func _matches_height_range(candidate: Node, previous_height: float, current_height: float) -> bool:
+	var min_hit_height := 0.0
+	var max_hit_height := 24.0
+	if candidate != null and candidate.has_method("get_hit_height_range"):
+		var hit_range: Variant = candidate.call("get_hit_height_range")
+		if hit_range is Vector2:
+			min_hit_height = hit_range.x
+			max_hit_height = hit_range.y
+	var segment_min_height := minf(previous_height, current_height)
+	var segment_max_height := maxf(previous_height, current_height)
+	return segment_max_height >= min_hit_height and segment_min_height <= max_hit_height
 
 
 func _projectile_color() -> Color:
