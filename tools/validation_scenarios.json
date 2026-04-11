@@ -8,5 +8,15 @@
     "id": "parabola_long_range_validation",
     "scenario": "res://scenes/validation/parabola_long_range_validation.tres",
     "description": "Covers long-range parabola hit behavior."
+  },
+  {
+    "id": "height_hit_validation",
+    "scenario": "res://scenes/validation/height_hit_validation.tres",
+    "description": "Validates that hit height bands block low projectiles while allowing elevated projectiles to resolve against elevated targets."
+  },
+  {
+    "id": "lane_isolation_validation",
+    "scenario": "res://scenes/validation/lane_isolation_validation.tres",
+    "description": "Validates that crossing projected paths do not cause off-lane interception during parabola flight."
   }
 ]
