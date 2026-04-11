@@ -16,7 +16,29 @@ func duplicate_deep() -> Variant:
 	return copy
 
 
-static func create(source_node: Node = null, target_node: Node = null, value: Variant = null, tags: PackedStringArray = PackedStringArray()) -> Variant:
+func ensure_runtime_defaults(event_name: StringName) -> void:
+	runtime["event_name"] = event_name
+	runtime["event_id"] = str(runtime.get("event_id", "%s-%d" % [str(Time.get_ticks_usec()), randi()]))
+	runtime["chain_id"] = str(runtime.get("chain_id", runtime["event_id"]))
+	runtime["depth"] = max(1, int(runtime.get("depth", 1)))
+	runtime["timestamp"] = float(runtime.get("timestamp", GameState.current_time))
+
+
+func get_depth() -> int:
+	return int(runtime.get("depth", 1))
+
+
+func get_chain_id() -> String:
+	return str(runtime.get("chain_id", ""))
+
+
+static func create(
+	source_node: Node = null,
+	target_node: Node = null,
+	value: Variant = null,
+	tags: PackedStringArray = PackedStringArray(),
+	runtime_overrides: Dictionary = {}
+) -> Variant:
 	var event_data: Variant = EventDataRef.new()
 	event_data.core = {
 		"source_node": source_node,
@@ -27,10 +49,11 @@ static func create(source_node: Node = null, target_node: Node = null, value: Va
 		"tags": tags,
 	}
 	event_data.runtime = {
-		"event_id": str(Time.get_ticks_usec()),
 		"depth": 1,
 		"timestamp": GameState.current_time,
 	}
+	for key: Variant in runtime_overrides.keys():
+		event_data.runtime[key] = runtime_overrides[key]
 	return event_data
 
 

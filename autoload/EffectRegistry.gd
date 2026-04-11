@@ -52,7 +52,11 @@ func _register_builtin_strategies() -> void:
 		var target := _resolve_target(context, params)
 		var amount := int(params.get("amount", 10))
 		if target != null and target.has_method("take_damage"):
-			target.call("take_damage", amount, context.source_node, PackedStringArray(["effect"]))
+			target.call("take_damage", amount, context.source_node, PackedStringArray(["effect", String(context.event_name)]), {
+				"depth": int(context.runtime.get("depth", context.depth)) + 1,
+				"chain_id": context.chain_id,
+				"origin_event_name": context.event_name,
+			})
 		else:
 			result.success = false
 			result.notes.append("Damage target missing or invalid.")
@@ -73,13 +77,21 @@ func _register_builtin_strategies() -> void:
 
 	register_strategy(&"explode", func(context, params: Dictionary, _node) -> Variant:
 		var result: Variant = EffectResultRef.new()
-		var target := _resolve_target(context, params)
+		var targets: Array = _resolve_targets(context, params)
 		var amount := int(params.get("amount", 15))
-		if target != null and target.has_method("take_damage"):
-			target.call("take_damage", amount, context.source_node, PackedStringArray(["explode"]))
-		else:
+		if targets.is_empty():
 			result.success = false
-			result.notes.append("Explosion target missing or invalid.")
+			result.notes.append("Explosion targets missing or invalid.")
+			return result
+
+		for target in targets:
+			if target == null or not target.has_method("take_damage"):
+				continue
+			target.call("take_damage", amount, context.source_node, PackedStringArray(["explode", String(context.event_name)]), {
+				"depth": int(context.runtime.get("depth", context.depth)) + 1,
+				"chain_id": context.chain_id,
+				"origin_event_name": context.event_name,
+			})
 		return result
 	)
 
@@ -89,7 +101,52 @@ func _resolve_target(context, params: Dictionary) -> Node:
 	match target_mode:
 		&"source":
 			return context.source_node
+		&"owner":
+			return context.owner_entity
 		&"context_target":
 			return context.target_node
+		&"event_source":
+			return context.core.get("source_node", context.source_node)
+		&"event_target":
+			return context.core.get("target_node", context.target_node)
 		_:
 			return context.target_node
+
+
+func _resolve_targets(context, params: Dictionary) -> Array:
+	var target_mode := StringName(params.get("target_mode", &"context_target"))
+	if target_mode != &"enemies_in_radius":
+		var single_target := _resolve_target(context, params)
+		return [] if single_target == null else [single_target]
+
+	if GameState.current_battle == null:
+		return []
+
+	var center: Vector2 = context.position
+	var radius := float(params.get("radius", 96.0))
+	var source_team: StringName = &"neutral"
+	if context.owner_entity != null and context.owner_entity.has_method("get"):
+		source_team = context.owner_entity.get("team")
+	elif context.source_node != null and context.source_node.has_method("get"):
+		source_team = context.source_node.get("team")
+	var lane_filter: Variant = params.get("lane_id", null)
+	var targets: Array = []
+
+	for child in GameState.current_battle.get_children():
+		if child == null:
+			continue
+		if not child.has_method("take_damage"):
+			continue
+		if not (child is Node2D):
+			continue
+		if child == context.owner_entity:
+			continue
+		if child.get("team") == source_team:
+			continue
+		if lane_filter is int and child.get("lane_id") != lane_filter:
+			continue
+		var candidate := child as Node2D
+		if candidate.global_position.distance_to(center) <= radius:
+			targets.append(child)
+
+	return targets

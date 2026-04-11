@@ -26,7 +26,9 @@ func _ready() -> void:
 	entity_kind = &"zombie"
 	team = &"zombie"
 	super()
-	entity_state["status"] = "alive"
+	set_status(&"alive")
+	set_state_value(&"attack_damage", attack_damage)
+	set_state_value(&"move_speed", move_speed)
 	if health_component != null:
 		health_component.damaged.connect(_on_health_changed)
 		health_component.died.connect(_on_died)
@@ -46,10 +48,15 @@ func _physics_process(delta: float) -> void:
 	if _attack_target != null:
 		if movement_component != null:
 			movement_component.velocity = Vector2.ZERO
+		set_state_value(&"velocity", Vector2.ZERO)
+		set_state_value(&"speed", 0.0)
+		sync_runtime_state()
+		set_state_value(&"attack_target_id", _debug_target_id())
 		_try_attack()
 	elif movement_component != null:
 		movement_component.velocity = Vector2.LEFT * move_speed
 		movement_component.physics_process_movement(self, delta)
+		set_state_value(&"attack_target_id", -1)
 
 
 func _process(delta: float) -> void:
@@ -65,11 +72,16 @@ func _process(delta: float) -> void:
 		queue_free()
 
 
-func take_damage(amount: int, source_node: Node = null, tags: PackedStringArray = PackedStringArray()) -> void:
+func take_damage(
+	amount: int,
+	source_node: Node = null,
+	tags: PackedStringArray = PackedStringArray(),
+	runtime_overrides: Dictionary = {}
+) -> void:
 	if _is_dying:
 		return
 	if health_component != null:
-		health_component.take_damage(amount, source_node, tags)
+		health_component.take_damage(amount, source_node, tags, runtime_overrides)
 
 
 func _draw() -> void:
@@ -97,13 +109,14 @@ func _on_died() -> void:
 		return
 	_is_dying = true
 	_death_elapsed = 0.0
-	entity_state["status"] = "dying"
+	set_status(&"dying")
 	_attack_target = null
 	if movement_component != null:
 		movement_component.velocity = Vector2.ZERO
 	if hitbox_component != null:
 		hitbox_component.set_deferred("monitorable", false)
 		hitbox_component.set_deferred("monitoring", false)
+	sync_runtime_state()
 	queue_redraw()
 
 
@@ -157,3 +170,9 @@ func _try_attack() -> void:
 
 func is_combat_active() -> bool:
 	return not _is_dying
+
+
+func _debug_target_id() -> int:
+	if _attack_target != null and _attack_target.has_method("get_entity_id"):
+		return int(_attack_target.call("get_entity_id"))
+	return -1

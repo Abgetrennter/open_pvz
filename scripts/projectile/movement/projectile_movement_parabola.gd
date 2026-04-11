@@ -28,4 +28,8 @@ func physics_process_projectile_move(delta: float) -> bool:
 	var base_position: Vector2 = start_position.lerp(target_position, progress)
 	var arc_offset := -4.0 * arc_height * progress * (1.0 - progress)
 	projectile.position = base_position + Vector2(0.0, arc_offset)
+	if projectile.has_method("set_state_value"):
+		projectile.call("set_state_value", &"travel_progress", progress)
+		projectile.call("set_state_value", &"speed", start_position.distance_to(target_position) / travel_duration)
+		projectile.call("sync_runtime_state")
 	return progress < 1.0

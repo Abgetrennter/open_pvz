@@ -12,6 +12,10 @@ func _ready() -> void:
 		subscribe_all()
 
 
+func _exit_tree() -> void:
+	clear_triggers()
+
+
 func bind_triggers(instances: Array) -> void:
 	clear_triggers()
 	trigger_instances = instances

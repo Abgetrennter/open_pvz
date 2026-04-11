@@ -27,11 +27,15 @@ var _launch_speed := 0.0
 var _spawn_event_emitted := false
 var _consumed := false
 var _move_mode: StringName = &"linear"
+var _runtime_overrides: Dictionary = {}
 
 
 func _ready() -> void:
 	entity_kind = &"projectile"
 	super()
+	set_status(&"flying")
+	movement_component = get_node_or_null("MovementComponent")
+	_enforce_single_movement_component(movement_component)
 	if hitbox_component != null:
 		hitbox_component.hit.connect(_on_hit)
 	if owner_entity != null and not _spawn_event_emitted:
@@ -51,10 +55,19 @@ func _physics_process(delta: float) -> void:
 		_expire()
 
 
-func launch(direction: Vector2, speed: float, source_node: Node = null, on_hit = null, projectile_damage: int = 10, movement_params: Dictionary = {}) -> void:
+func launch(
+	direction: Vector2,
+	speed: float,
+	source_node: Node = null,
+	on_hit = null,
+	projectile_damage: int = 10,
+	movement_params: Dictionary = {},
+	runtime_overrides: Dictionary = {}
+) -> void:
 	owner_entity = source_node
 	on_hit_effect = on_hit
 	damage = projectile_damage
+	_runtime_overrides = runtime_overrides.duplicate(true)
 	_launch_direction = direction
 	_launch_speed = speed
 	if source_node != null:
@@ -80,6 +93,10 @@ func launch(direction: Vector2, speed: float, source_node: Node = null, on_hit =
 		full_movement_params["start_position"] = global_position
 		movement_component.configure_movement(full_movement_params)
 		queue_redraw()
+	set_state_value(&"damage", damage)
+	set_state_value(&"move_mode", _move_mode)
+	set_state_value(&"owner_id", -1 if owner_entity == null or not owner_entity.has_method("get_entity_id") else int(owner_entity.call("get_entity_id")))
+	sync_runtime_state()
 	if is_inside_tree() and not _spawn_event_emitted:
 		_emit_spawn_event()
 
@@ -93,8 +110,9 @@ func _on_hit(target: Node) -> void:
 		return
 	_consumed = true
 
-	var hit_event = EventDataRef.create(owner_entity, target, damage, PackedStringArray(["projectile"]))
-	hit_event.runtime["depth"] = 2
+	var hit_runtime := _runtime_overrides.duplicate(true)
+	hit_runtime["depth"] = int(hit_runtime.get("depth", 1)) + 1
+	var hit_event = EventDataRef.create(owner_entity, target, damage, PackedStringArray(["projectile"]), hit_runtime)
 	EventBus.push_event(&"projectile.hit", hit_event)
 
 	if on_hit_effect != null:
@@ -103,22 +121,33 @@ func _on_hit(target: Node) -> void:
 		context.target_node = target
 		EffectExecutorRef.execute_node(on_hit_effect, context)
 	elif target != null and target.has_method("take_damage"):
-		target.call("take_damage", damage, owner_entity, PackedStringArray(["projectile"]))
+		target.call("take_damage", damage, owner_entity, PackedStringArray(["projectile"]), {
+			"depth": int(hit_event.runtime.get("depth", 1)) + 1,
+			"chain_id": str(hit_event.runtime.get("chain_id", "")),
+			"origin_event_name": &"projectile.hit",
+		})
 
+	set_status(&"consumed")
+	sync_runtime_state()
 	queue_free()
 
 
 func _expire() -> void:
 	_consumed = true
-	var expired_event = EventDataRef.create(owner_entity, self, 0, PackedStringArray(["projectile", "expired"]))
-	expired_event.runtime["depth"] = 1
+	set_status(&"expired")
+	sync_runtime_state()
+	var expired_runtime := _runtime_overrides.duplicate(true)
+	expired_runtime["depth"] = int(expired_runtime.get("depth", 1)) + 1
+	var expired_event = EventDataRef.create(owner_entity, self, 0, PackedStringArray(["projectile", "expired"]), expired_runtime)
 	EventBus.push_event(&"projectile.expired", expired_event)
 	queue_free()
 
 
 func _emit_spawn_event() -> void:
 	_spawn_event_emitted = true
-	var spawned_event = EventDataRef.create(owner_entity, self, damage, PackedStringArray(["projectile"]))
+	var spawned_runtime := _runtime_overrides.duplicate(true)
+	spawned_runtime["depth"] = int(spawned_runtime.get("depth", 1)) + 1
+	var spawned_event = EventDataRef.create(owner_entity, self, damage, PackedStringArray(["projectile"]), spawned_runtime)
 	EventBus.push_event(&"projectile.spawned", spawned_event)
 
 
@@ -135,15 +164,18 @@ func _draw() -> void:
 
 func _ensure_movement_component(move_mode: StringName) -> void:
 	var desired_script = _movement_script_for_mode(move_mode)
-	if movement_component != null and movement_component.get_script() == desired_script:
+	_enforce_single_movement_component(movement_component)
+	if movement_component != null and movement_component.get_script() == desired_script and _movement_component_count() == 1:
 		return
 
 	if movement_component != null:
+		remove_child(movement_component)
 		movement_component.queue_free()
 
 	movement_component = desired_script.new()
 	movement_component.name = "MovementComponent"
 	add_child(movement_component)
+	_enforce_single_movement_component(movement_component)
 
 
 func _movement_script_for_mode(move_mode: StringName):
@@ -164,3 +196,39 @@ func _projectile_color() -> Color:
 			return PROJECTILE_COLOR_PARABOLA
 		_:
 			return PROJECTILE_COLOR_LINEAR
+
+
+func _movement_component_count() -> int:
+	return _collect_movement_components().size()
+
+
+func _collect_movement_components() -> Array:
+	var components: Array = []
+	for child in get_children():
+		if child == null:
+			continue
+		if child.name != "MovementComponent":
+			continue
+		if not child.has_method("physics_process_projectile_move"):
+			continue
+		components.append(child)
+	return components
+
+
+func _enforce_single_movement_component(preferred_component = null) -> void:
+	var components: Array = _collect_movement_components()
+	if components.is_empty():
+		movement_component = null
+		return
+
+	var kept_component = preferred_component
+	if kept_component == null or not components.has(kept_component):
+		kept_component = components.back()
+
+	for component in components:
+		if component == kept_component:
+			continue
+		remove_child(component)
+		component.queue_free()
+
+	movement_component = kept_component

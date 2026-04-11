@@ -32,4 +32,9 @@ func physics_process_projectile_move(delta: float) -> bool:
 			direction = direction.slerp(desired_direction, weight).normalized()
 
 	projectile.position += direction * speed * delta
+	if projectile.has_method("set_state_value"):
+		projectile.call("set_state_value", &"velocity", direction * speed)
+		projectile.call("set_state_value", &"speed", speed)
+		projectile.call("set_state_value", &"tracking_target", -1 if target_node == null or not target_node.has_method("get_entity_id") else int(target_node.call("get_entity_id")))
+		projectile.call("sync_runtime_state")
 	return true

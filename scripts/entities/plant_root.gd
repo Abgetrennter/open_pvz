@@ -15,16 +15,22 @@ func _ready() -> void:
 	entity_kind = &"plant"
 	team = &"plant"
 	super()
-	entity_state["status"] = "alive"
+	set_status(&"alive")
+	set_state_value(&"can_fire", true)
 	if health_component != null:
 		health_component.damaged.connect(_on_health_changed)
 		health_component.died.connect(_on_died)
 	queue_redraw()
 
 
-func take_damage(amount: int, source_node: Node = null, tags: PackedStringArray = PackedStringArray()) -> void:
+func take_damage(
+	amount: int,
+	source_node: Node = null,
+	tags: PackedStringArray = PackedStringArray(),
+	runtime_overrides: Dictionary = {}
+) -> void:
 	if health_component != null:
-		health_component.take_damage(amount, source_node, tags)
+		health_component.take_damage(amount, source_node, tags, runtime_overrides)
 
 
 func _draw() -> void:
@@ -47,5 +53,6 @@ func _on_health_changed(_amount: int) -> void:
 
 
 func _on_died() -> void:
-	entity_state["status"] = "dead"
+	set_status(&"dead")
+	sync_runtime_state()
 	queue_free()

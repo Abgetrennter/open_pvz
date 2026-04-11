@@ -19,4 +19,8 @@ func physics_process_projectile_move(delta: float) -> bool:
 	if projectile == null:
 		return false
 	projectile.position += direction * speed * delta
+	if projectile.has_method("set_state_value"):
+		projectile.call("set_state_value", &"velocity", direction * speed)
+		projectile.call("set_state_value", &"speed", speed)
+		projectile.call("sync_runtime_state")
 	return true

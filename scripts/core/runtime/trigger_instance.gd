@@ -31,7 +31,9 @@ func should_trigger(incoming_event_name: StringName, event_data) -> bool:
 
 func execute(incoming_event_name: StringName, event_data) -> Array:
 	var results: Array = []
-	if not should_trigger(incoming_event_name, event_data):
+	var fired := should_trigger(incoming_event_name, event_data)
+	DebugService.record_trigger_execution(def_id, owner_entity, incoming_event_name, int(event_data.runtime.get("depth", 1)), fired)
+	if not fired:
 		return results
 
 	last_triggered_time = GameState.current_time

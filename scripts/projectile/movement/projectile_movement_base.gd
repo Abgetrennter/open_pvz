@@ -15,4 +15,6 @@ func configure_movement(params: Dictionary) -> void:
 
 
 func physics_process_projectile_move(_delta: float) -> bool:
+	if projectile != null and projectile.has_method("sync_runtime_state"):
+		projectile.call("sync_runtime_state")
 	return true

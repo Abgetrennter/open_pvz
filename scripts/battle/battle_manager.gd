@@ -20,15 +20,14 @@ var _entity_factory: Variant = EntityFactoryRef.new()
 
 
 func _ready() -> void:
-	GameState.current_battle = self
+	GameState.begin_battle(self)
 	queue_redraw()
 	_spawn_debug_overlay()
 	_spawn_debug_demo()
 
 
 func _exit_tree() -> void:
-	if GameState.current_battle == self:
-		GameState.current_battle = null
+	GameState.end_battle(self)
 
 
 func _process(delta: float) -> void:
@@ -56,7 +55,11 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 	var speed := float(params.get("speed", 300.0))
 	var damage := int(params.get("damage", 10))
 	var movement_params: Dictionary = _build_projectile_movement_params(context, params, spawn_position, direction, speed)
-	projectile.launch(direction, speed, context.source_node, on_hit_effect, damage, movement_params)
+	projectile.launch(direction, speed, context.source_node, on_hit_effect, damage, movement_params, {
+		"depth": int(context.runtime.get("depth", context.depth)),
+		"chain_id": context.chain_id,
+		"origin_event_name": context.event_name,
+	})
 	add_child(projectile)
 	return projectile
 
@@ -89,6 +92,7 @@ func _spawn_demo_zombie(lane_id: int, x_position: float) -> void:
 	var zombie: Variant = _entity_factory.create_zombie(Vector2(x_position, _lane_y(lane_id)))
 	zombie.assign_lane(lane_id)
 	add_child(zombie)
+	_bind_zombie_runtime(zombie)
 
 
 func _bind_shooter_trigger(plant: Node, interval: float, damage: int, speed: float, effect_overrides: Dictionary = {}) -> void:
@@ -113,8 +117,36 @@ func _bind_shooter_trigger(plant: Node, interval: float, damage: int, speed: flo
 	trigger.condition_values = {"interval": interval}
 	trigger.effect_roots = [root_effect]
 
-	if plant.get("trigger_component") != null:
-		plant.get("trigger_component").bind_triggers([trigger])
+	var trigger_component: Variant = plant.get_node_or_null("TriggerComponent")
+	if trigger_component != null:
+		trigger_component.bind_triggers([trigger])
+
+
+func _bind_zombie_runtime(zombie: Node) -> void:
+	var retaliation_effect: Variant = EffectNodeRef.new(&"damage", {
+		"amount": 4,
+		"target_mode": &"event_source",
+	})
+	var retaliation_trigger: Variant = TriggerInstanceRef.new()
+	retaliation_trigger.def_id = &"when_damaged"
+	retaliation_trigger.event_name = &"entity.damaged"
+	retaliation_trigger.condition_values = {"min_damage": 1}
+	retaliation_trigger.effect_roots = [retaliation_effect]
+
+	var death_effect: Variant = EffectNodeRef.new(&"explode", {
+		"amount": 10,
+		"target_mode": &"enemies_in_radius",
+		"radius": 110.0,
+	})
+	var death_trigger: Variant = TriggerInstanceRef.new()
+	death_trigger.def_id = &"on_death"
+	death_trigger.event_name = &"entity.died"
+	death_trigger.effect_roots = [death_effect]
+
+	var trigger_component: Variant = zombie.get_node_or_null("TriggerComponent")
+	if trigger_component == null:
+		return
+	trigger_component.bind_triggers([retaliation_trigger, death_trigger])
 
 
 func _spawn_debug_overlay() -> void:
