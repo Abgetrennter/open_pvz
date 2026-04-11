@@ -24,6 +24,7 @@ func physics_process_projectile_move(delta: float):
 	if projectile == null:
 		return _build_move_result(Vector2.ZERO, Vector2.ZERO, 0.0, 0.0, false, &"missing_projectile")
 	var previous_position: Vector2 = _projectile_ground_position()
+	var previous_height := _projectile_height()
 
 	if is_instance_valid(target_node):
 		var to_target: Vector2 = _node_ground_position(target_node) - previous_position
@@ -33,10 +34,10 @@ func physics_process_projectile_move(delta: float):
 			direction = direction.slerp(desired_direction, weight).normalized()
 
 	var current_position := previous_position + direction * speed * delta
-	_apply_projectile_motion_state(current_position, 0.0)
+	_apply_projectile_motion_state(current_position, flight_height)
 	if projectile.has_method("set_state_value"):
 		projectile.call("set_state_value", &"velocity", direction * speed)
 		projectile.call("set_state_value", &"speed", speed)
 		projectile.call("set_state_value", &"tracking_target", -1 if target_node == null or not target_node.has_method("get_entity_id") else int(target_node.call("get_entity_id")))
 		projectile.call("sync_runtime_state")
-	return _build_move_result(previous_position, current_position, 0.0, 0.0, true)
+	return _build_move_result(previous_position, current_position, previous_height, flight_height, true)

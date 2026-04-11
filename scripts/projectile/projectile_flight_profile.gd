@@ -4,6 +4,7 @@ class_name ProjectileFlightProfile
 @export var profile_id: StringName = &"flat"
 @export var move_mode: StringName = &"linear"
 @export var height_strategy: StringName = &"flat"
+@export var flight_height := 0.0
 @export var peak_height := 72.0
 @export var projection_scale := 1.0
 @export var max_hit_height := 24.0

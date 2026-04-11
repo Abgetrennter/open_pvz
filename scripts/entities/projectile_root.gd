@@ -37,6 +37,7 @@ var _ground_position := Vector2.ZERO
 var _height := 0.0
 var _max_hit_height := 24.0
 var _projection_scale := 1.0
+var _flight_profile_id: StringName = StringName()
 
 
 func _ready() -> void:
@@ -127,6 +128,7 @@ func launch(
 		_collision_padding = float(full_movement_params.get("collision_padding", 10.0))
 		_max_hit_height = float(full_movement_params.get("max_hit_height", 24.0))
 		_projection_scale = float(full_movement_params.get("projection_scale", 1.0))
+		_flight_profile_id = StringName(full_movement_params.get("profile_id", StringName()))
 		var configured_hit_strategy := StringName(full_movement_params.get("hit_strategy", StringName()))
 		_hit_strategy = configured_hit_strategy if configured_hit_strategy != StringName() else _default_hit_strategy_for_mode(_move_mode)
 		var configured_terminal_strategy := StringName(full_movement_params.get("terminal_hit_strategy", StringName()))
@@ -149,6 +151,7 @@ func launch(
 	set_state_value(&"height", _height)
 	set_state_value(&"max_hit_height", _max_hit_height)
 	set_state_value(&"projection_scale", _projection_scale)
+	set_state_value(&"profile_id", _flight_profile_id)
 	set_state_value(&"target_position", debug_target_position)
 	set_state_value(&"target_id", -1 if debug_target_node == null or not debug_target_node.has_method("get_entity_id") else int(debug_target_node.call("get_entity_id")))
 	sync_runtime_state()
@@ -169,6 +172,7 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 	hit_runtime["depth"] = int(hit_runtime.get("depth", 1)) + 1
 	var hit_event = EventDataRef.create(owner_entity, target, damage, PackedStringArray(["projectile"]), hit_runtime)
 	hit_event.core["move_mode"] = _move_mode
+	hit_event.core["profile_id"] = _flight_profile_id
 	if terminal_reason != StringName():
 		hit_event.core["terminal_reason"] = terminal_reason
 	set_state_value(&"terminal_reason", terminal_reason)
@@ -208,6 +212,7 @@ func _expire(terminal_reason: StringName = StringName()) -> void:
 	expired_runtime["depth"] = int(expired_runtime.get("depth", 1)) + 1
 	var expired_event = EventDataRef.create(owner_entity, self, 0, PackedStringArray(["projectile", "expired"]), expired_runtime)
 	expired_event.core["move_mode"] = _move_mode
+	expired_event.core["profile_id"] = _flight_profile_id
 	if terminal_reason != StringName():
 		expired_event.core["terminal_reason"] = terminal_reason
 	set_state_value(&"terminal_reason", terminal_reason)
@@ -369,6 +374,7 @@ func _emit_spawn_event() -> void:
 	spawned_runtime["depth"] = int(spawned_runtime.get("depth", 1)) + 1
 	var spawned_event = EventDataRef.create(owner_entity, self, damage, PackedStringArray(["projectile"]), spawned_runtime)
 	spawned_event.core["move_mode"] = _move_mode
+	spawned_event.core["profile_id"] = _flight_profile_id
 	EventBus.push_event(&"projectile.spawned", spawned_event)
 
 

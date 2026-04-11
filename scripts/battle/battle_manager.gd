@@ -300,8 +300,10 @@ func _build_projectile_movement_params(context, params: Dictionary, spawn_positi
 
 func _movement_params_from_flight_profile(flight_profile: Resource) -> Dictionary:
 	return {
+		"profile_id": StringName(flight_profile.get("profile_id")),
 		"move_mode": StringName(flight_profile.get("move_mode")),
 		"height_strategy": StringName(flight_profile.get("height_strategy")),
+		"flight_height": float(flight_profile.get("flight_height")),
 		"arc_height": float(flight_profile.get("peak_height")),
 		"projection_scale": float(flight_profile.get("projection_scale")),
 		"max_hit_height": float(flight_profile.get("max_hit_height")),
@@ -490,7 +492,10 @@ func get_validation_summary_lines(limit: int = 3) -> PackedStringArray:
 	for rule_state in _validation_rule_states:
 		if bool(rule_state.get("satisfied", false)):
 			continue
-		lines.append("Need %s" % String(rule_state.get("description", "")))
+		if bool(rule_state.get("exceeded", false)):
+			lines.append("Exceeded %s" % String(rule_state.get("description", "")))
+		else:
+			lines.append("Need %s" % String(rule_state.get("description", "")))
 		shown += 1
 		if shown >= limit:
 			break
@@ -507,7 +512,10 @@ func get_unsatisfied_validation_descriptions() -> PackedStringArray:
 	for rule_state in _validation_rule_states:
 		if bool(rule_state.get("satisfied", false)):
 			continue
-		lines.append(String(rule_state.get("description", "")))
+		if bool(rule_state.get("exceeded", false)):
+			lines.append("Exceeded %s" % String(rule_state.get("description", "")))
+		else:
+			lines.append(String(rule_state.get("description", "")))
 	return lines
 
 
@@ -530,12 +538,12 @@ func _build_default_scenario():
 	fallback.validation_time_limit = 8.0
 	fallback.validation_rules = [
 		_make_validation_rule(&"tick", "at least one game tick event", &"game.tick"),
-		_make_validation_rule(&"linear_spawn", "linear projectile spawn", &"projectile.spawned", 1, PackedStringArray(["projectile"]), {"move_mode": &"linear"}),
-		_make_validation_rule(&"track_spawn", "track projectile spawn", &"projectile.spawned", 1, PackedStringArray(["projectile"]), {"move_mode": &"track"}),
-		_make_validation_rule(&"parabola_hit", "parabola projectile hit", &"projectile.hit", 1, PackedStringArray(["projectile"]), {"move_mode": &"parabola"}),
-		_make_validation_rule(&"projectile_damage", "projectile damage event", &"entity.damaged", 1, PackedStringArray(["projectile"])),
+		_make_validation_rule(&"linear_spawn", "linear projectile spawn", &"projectile.spawned", 1, -1, PackedStringArray(["projectile"]), {"move_mode": &"linear"}),
+		_make_validation_rule(&"track_spawn", "track projectile spawn", &"projectile.spawned", 1, -1, PackedStringArray(["projectile"]), {"move_mode": &"track"}),
+		_make_validation_rule(&"parabola_hit", "parabola projectile hit", &"projectile.hit", 1, -1, PackedStringArray(["projectile"]), {"move_mode": &"parabola"}),
+		_make_validation_rule(&"projectile_damage", "projectile damage event", &"entity.damaged", 1, -1, PackedStringArray(["projectile"])),
 		_make_validation_rule(&"death_chain", "at least one death event", &"entity.died"),
-		_make_validation_rule(&"explode_damage", "death-triggered explosion damage", &"entity.damaged", 1, PackedStringArray(["explode", "entity.died"])),
+		_make_validation_rule(&"explode_damage", "death-triggered explosion damage", &"entity.damaged", 1, -1, PackedStringArray(["explode", "entity.died"])),
 	]
 	fallback.spawns = [
 		_make_spawn_entry(&"plant", 0, 160.0, {"interval": 1.4, "damage": 20, "speed": 220.0}),
@@ -562,6 +570,7 @@ func _make_validation_rule(
 	description: String,
 	event_name: StringName,
 	min_count: int = 1,
+	max_count: int = -1,
 	required_tags: PackedStringArray = PackedStringArray(),
 	required_core_values: Dictionary = {}
 ):
@@ -570,6 +579,7 @@ func _make_validation_rule(
 	rule.description = description
 	rule.event_name = event_name
 	rule.min_count = min_count
+	rule.max_count = max_count
 	rule.required_tags = required_tags
 	rule.required_core_values = required_core_values.duplicate(true)
 	return rule
@@ -607,15 +617,18 @@ func _reset_validation() -> void:
 	for validation_rule in active_scenario.validation_rules:
 		if validation_rule == null or validation_rule.get_script() != BattleValidationRuleRef:
 			continue
+		var initial_count := 0
 		_validation_rule_states.append({
 			"rule_id": validation_rule.rule_id,
 			"description": validation_rule.description,
 			"event_name": validation_rule.event_name,
 			"min_count": validation_rule.min_count,
+			"max_count": validation_rule.max_count,
 			"required_tags": validation_rule.required_tags,
 			"required_core_values": validation_rule.required_core_values.duplicate(true),
-			"count": 0,
-			"satisfied": false,
+			"count": initial_count,
+			"satisfied": _is_rule_satisfied(initial_count, validation_rule.min_count, validation_rule.max_count),
+			"exceeded": _is_rule_exceeded(initial_count, validation_rule.max_count),
 		})
 
 
@@ -631,8 +644,16 @@ func _on_validation_event(event_name: StringName, event_data: Variant) -> void:
 		if not _event_matches_rule(event_data, rule_state):
 			continue
 		rule_state["count"] = int(rule_state.get("count", 0)) + 1
-		rule_state["satisfied"] = int(rule_state["count"]) >= int(rule_state.get("min_count", 1))
+		rule_state["exceeded"] = _is_rule_exceeded(int(rule_state["count"]), int(rule_state.get("max_count", -1)))
+		rule_state["satisfied"] = _is_rule_satisfied(
+			int(rule_state["count"]),
+			int(rule_state.get("min_count", 1)),
+			int(rule_state.get("max_count", -1))
+		)
 		_validation_counts[rule_state["rule_id"]] = rule_state["count"]
+		if bool(rule_state.get("exceeded", false)):
+			_set_validation_status(&"failed")
+			return
 
 	_refresh_validation_status()
 
@@ -655,8 +676,13 @@ func _refresh_validation_status() -> void:
 		_set_validation_status(&"passed")
 		return
 	for rule_state in _validation_rule_states:
+		if bool(rule_state.get("exceeded", false)):
+			_set_validation_status(&"failed")
+			return
 		if not bool(rule_state.get("satisfied", false)):
 			return
+	if _has_deadline_confirmed_rules():
+		return
 	_set_validation_status(&"passed")
 
 
@@ -667,7 +693,9 @@ func _update_validation_state() -> void:
 		return
 	if GameState.current_time <= _validation_deadline:
 		return
-	_refresh_validation_status()
+	if _all_validation_rules_satisfied():
+		_set_validation_status(&"passed")
+		return
 	if _validation_status != &"passed":
 		_set_validation_status(&"failed")
 
@@ -802,8 +830,10 @@ func _build_validation_report() -> Dictionary:
 			"description": String(rule_state.get("description", "")),
 			"event_name": String(rule_state.get("event_name", "")),
 			"min_count": int(rule_state.get("min_count", 0)),
+			"max_count": int(rule_state.get("max_count", -1)),
 			"count": int(rule_state.get("count", 0)),
 			"satisfied": bool(rule_state.get("satisfied", false)),
+			"exceeded": bool(rule_state.get("exceeded", false)),
 			"required_tags": Array(PackedStringArray(rule_state.get("required_tags", PackedStringArray()))),
 			"required_core_values": rule_state.get("required_core_values", {}).duplicate(true),
 		})
@@ -825,6 +855,36 @@ func _build_validation_report() -> Dictionary:
 		"runtime_snapshot_interval_frames": runtime_snapshot_interval_frames,
 		"rules": validation_rules,
 	}
+
+
+func _all_validation_rules_satisfied() -> bool:
+	if _validation_rule_states.is_empty():
+		return true
+	for rule_state in _validation_rule_states:
+		if bool(rule_state.get("exceeded", false)):
+			return false
+		if not bool(rule_state.get("satisfied", false)):
+			return false
+	return true
+
+
+func _has_deadline_confirmed_rules() -> bool:
+	for rule_state in _validation_rule_states:
+		if int(rule_state.get("max_count", -1)) >= 0:
+			return true
+	return false
+
+
+func _is_rule_satisfied(count: int, min_count: int, max_count: int) -> bool:
+	if count < min_count:
+		return false
+	if max_count >= 0 and count > max_count:
+		return false
+	return true
+
+
+func _is_rule_exceeded(count: int, max_count: int) -> bool:
+	return max_count >= 0 and count > max_count
 
 
 func _resolved_output_dir_path() -> String:

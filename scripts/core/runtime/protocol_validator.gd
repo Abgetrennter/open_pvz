@@ -118,6 +118,8 @@ static func validate_projectile_flight_profile(profile: Resource) -> Array[Strin
 
 	if float(profile.projection_scale) <= 0.0:
 		errors.append("ProjectileFlightProfile.projection_scale must be greater than zero.")
+	if float(profile.flight_height) < 0.0:
+		errors.append("ProjectileFlightProfile.flight_height must be >= 0.")
 	if float(profile.peak_height) < 0.0:
 		errors.append("ProjectileFlightProfile.peak_height must be >= 0.")
 	if float(profile.max_hit_height) < 0.0:
@@ -317,8 +319,12 @@ static func _validate_battle_validation_rule(validation_rule: Resource, scenario
 		errors.append("BattleScenario %s contains a validation rule without rule_id." % String(scenario_id))
 	if StringName(validation_rule.event_name) == StringName():
 		errors.append("BattleScenario %s validation rule %s must define event_name." % [String(scenario_id), String(validation_rule.rule_id)])
-	if int(validation_rule.min_count) <= 0:
-		errors.append("BattleScenario %s validation rule %s min_count must be > 0." % [String(scenario_id), String(validation_rule.rule_id)])
+	if int(validation_rule.min_count) < 0:
+		errors.append("BattleScenario %s validation rule %s min_count must be >= 0." % [String(scenario_id), String(validation_rule.rule_id)])
+	if int(validation_rule.max_count) < -1:
+		errors.append("BattleScenario %s validation rule %s max_count must be >= -1." % [String(scenario_id), String(validation_rule.rule_id)])
+	if int(validation_rule.max_count) >= 0 and int(validation_rule.max_count) < int(validation_rule.min_count):
+		errors.append("BattleScenario %s validation rule %s max_count must be >= min_count when bounded." % [String(scenario_id), String(validation_rule.rule_id)])
 	return errors
 
 

@@ -5,6 +5,7 @@ const ProjectileMoveResultRef = preload("res://scripts/projectile/projectile_mov
 
 var projectile: Node2D = null
 var move_mode: StringName = &"linear"
+var flight_height := 0.0
 
 
 func _ready() -> void:
@@ -14,6 +15,7 @@ func _ready() -> void:
 
 func configure_movement(params: Dictionary) -> void:
 	move_mode = StringName(params.get("move_mode", &"linear"))
+	flight_height = float(params.get("flight_height", 0.0))
 
 
 func physics_process_projectile_move(_delta: float):

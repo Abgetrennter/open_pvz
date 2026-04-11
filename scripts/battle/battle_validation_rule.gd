@@ -5,5 +5,6 @@ class_name BattleValidationRule
 @export_multiline var description := ""
 @export var event_name: StringName = StringName()
 @export var min_count := 1
+@export var max_count := -1
 @export var required_tags: PackedStringArray = PackedStringArray()
 @export var required_core_values: Dictionary = {}

@@ -1,0 +1,100 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_ground_height"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/air_unit_high.tres" id="5_air_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="6_linear_ground"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_air.tres" id="7_linear_air"]
+
+[sub_resource type="Resource" id="Spawn_low_ground_plant"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 0
+x_position = 160.0
+hit_height_band = ExtResource("4_ground_height")
+projectile_flight_profile = ExtResource("6_linear_ground")
+params = {
+"damage": 20,
+"interval": 1.2,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_air_plant"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 0
+x_position = 250.0
+hit_height_band = ExtResource("4_ground_height")
+projectile_flight_profile = ExtResource("7_linear_air")
+params = {
+"damage": 20,
+"interval": 1.6,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_air_target"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+lane_id = 0
+x_position = 620.0
+hit_height_band = ExtResource("5_air_height")
+params = {
+"move_speed": 45.0
+}
+
+[sub_resource type="Resource" id="Rule_low_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"low_spawn"
+description = "ground projectile profile should spawn"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_ground"
+}
+
+[sub_resource type="Resource" id="Rule_low_hit_blocked"]
+script = ExtResource("3_rule")
+rule_id = &"low_hit_blocked"
+description = "ground projectile should not hit high target"
+event_name = &"projectile.hit"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_ground",
+"target_kind": &"zombie"
+}
+
+[sub_resource type="Resource" id="Rule_air_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"air_spawn"
+description = "air projectile profile should spawn"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_air"
+}
+
+[sub_resource type="Resource" id="Rule_air_hit"]
+script = ExtResource("3_rule")
+rule_id = &"air_hit"
+description = "air projectile should hit high target"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_air",
+"target_kind": &"zombie",
+"target_lane": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"height_hit_validation"
+display_name = "Height Hit Validation"
+description = "Validates that ground projectiles cannot hit elevated targets while elevated projectiles can hit the same target under the shared height rules."
+goals = PackedStringArray("Verify bounded validation rules can express forbidden hits.", "Verify hit height ranges block low projectiles from elevated targets.", "Verify elevated flat projectiles can still resolve hits on elevated targets.")
+validation_time_limit = 5.5
+validation_rules = [SubResource("Rule_low_spawn"), SubResource("Rule_low_hit_blocked"), SubResource("Rule_air_spawn"), SubResource("Rule_air_hit")]
+spawns = [SubResource("Spawn_low_ground_plant"), SubResource("Spawn_air_plant"), SubResource("Spawn_air_target")]
