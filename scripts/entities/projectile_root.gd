@@ -120,6 +120,7 @@ func _on_hit(target: Node) -> void:
 	var hit_runtime := _runtime_overrides.duplicate(true)
 	hit_runtime["depth"] = int(hit_runtime.get("depth", 1)) + 1
 	var hit_event = EventDataRef.create(owner_entity, target, damage, PackedStringArray(["projectile"]), hit_runtime)
+	hit_event.core["move_mode"] = _move_mode
 	EventBus.push_event(&"projectile.hit", hit_event)
 
 	if on_hit_effect != null:
@@ -146,6 +147,7 @@ func _expire() -> void:
 	var expired_runtime := _runtime_overrides.duplicate(true)
 	expired_runtime["depth"] = int(expired_runtime.get("depth", 1)) + 1
 	var expired_event = EventDataRef.create(owner_entity, self, 0, PackedStringArray(["projectile", "expired"]), expired_runtime)
+	expired_event.core["move_mode"] = _move_mode
 	EventBus.push_event(&"projectile.expired", expired_event)
 	queue_free()
 
@@ -184,6 +186,7 @@ func _emit_spawn_event() -> void:
 	var spawned_runtime := _runtime_overrides.duplicate(true)
 	spawned_runtime["depth"] = int(spawned_runtime.get("depth", 1)) + 1
 	var spawned_event = EventDataRef.create(owner_entity, self, damage, PackedStringArray(["projectile"]), spawned_runtime)
+	spawned_event.core["move_mode"] = _move_mode
 	EventBus.push_event(&"projectile.spawned", spawned_event)
 
 

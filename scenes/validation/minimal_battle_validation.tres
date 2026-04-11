@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
 
 [sub_resource type="Resource" id="BattleSpawnEntry_linear"]
 script = ExtResource("2_spawn")
@@ -59,10 +60,68 @@ entity_kind = &"zombie"
 lane_id = 1
 x_position = 520.0
 
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_linear_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"linear_spawn"
+description = "linear projectile spawn"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"linear"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_track_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"track_spawn"
+description = "track projectile spawn"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"track"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_parabola_hit"]
+script = ExtResource("3_rule")
+rule_id = &"parabola_hit"
+description = "parabola projectile hit"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"parabola"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_projectile_damage"]
+script = ExtResource("3_rule")
+rule_id = &"projectile_damage"
+description = "projectile damage event"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("projectile")
+
+[sub_resource type="Resource" id="BattleValidationRule_death_chain"]
+script = ExtResource("3_rule")
+rule_id = &"death_chain"
+description = "at least one death event"
+event_name = &"entity.died"
+
+[sub_resource type="Resource" id="BattleValidationRule_explode_damage"]
+script = ExtResource("3_rule")
+rule_id = &"explode_damage"
+description = "death-triggered explosion damage"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode", "entity.died")
+
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"minimal_battle_validation"
 display_name = "Minimal Battle Validation"
 description = "A deterministic validation battle for the engine backbone. It exercises tick triggers, effect execution, three projectile movement modes, damage callbacks, and death explosions on the same runtime."
 goals = PackedStringArray("Observe a full event chain from game.tick to projectile.hit to entity.damaged.", "Verify linear, track, and parabola projectile movement across two lanes.", "Verify when_damaged and on_death triggers reuse the same EventBus, Context, and EffectExecutor.", "Press R to reset the battle and rerun the same validation sequence.")
+validation_time_limit = 8.0
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_linear_spawn"), SubResource("BattleValidationRule_track_spawn"), SubResource("BattleValidationRule_parabola_hit"), SubResource("BattleValidationRule_projectile_damage"), SubResource("BattleValidationRule_death_chain"), SubResource("BattleValidationRule_explode_damage")]
 spawns = [SubResource("BattleSpawnEntry_linear"), SubResource("BattleSpawnEntry_track"), SubResource("BattleSpawnEntry_parabola"), SubResource("BattleSpawnEntry_zombie_a"), SubResource("BattleSpawnEntry_zombie_b"), SubResource("BattleSpawnEntry_zombie_c")]

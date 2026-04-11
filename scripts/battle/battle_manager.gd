@@ -4,6 +4,7 @@ class_name BattleManager
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const BattleScenarioRef = preload("res://scripts/battle/battle_scenario.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
+const BattleValidationRuleRef = preload("res://scripts/battle/battle_validation_rule.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
@@ -22,10 +23,17 @@ const LANE_Y := {
 var _tick_accumulator := 0.0
 var _entity_factory: Variant = EntityFactoryRef.new()
 var _entity_root: Node2D = null
+var _validation_status: StringName = &"pending"
+var _validation_started_at := 0.0
+var _validation_deadline := 0.0
+var _validation_rule_states: Array[Dictionary] = []
+var _validation_counts: Dictionary = {}
 
 
 func _ready() -> void:
 	_entity_root = _ensure_entity_root()
+	if not EventBus.event_pushed.is_connected(_on_validation_event):
+		EventBus.event_pushed.connect(_on_validation_event)
 	queue_redraw()
 	_spawn_debug_overlay()
 	reset_battle()
@@ -37,6 +45,7 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	GameState.advance_time(delta)
+	_update_validation_state()
 	_tick_accumulator += delta
 
 	while _tick_accumulator >= tick_interval:
@@ -63,6 +72,7 @@ func reset_battle() -> void:
 	EventBus.clear()
 	if DebugService.has_method("clear_logs"):
 		DebugService.clear_logs()
+	_reset_validation()
 	_spawn_scenario()
 
 
@@ -341,6 +351,34 @@ func get_scenario_description() -> String:
 	return active_scenario.description
 
 
+func get_validation_status() -> String:
+	return String(_validation_status)
+
+
+func get_validation_summary_lines(limit: int = 3) -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	var status_text := String(_validation_status).to_upper()
+	var remaining_time := maxf(_validation_deadline - GameState.current_time, 0.0)
+	lines.append("Validation %s" % status_text)
+	if _validation_status == &"pending":
+		lines.append("Window %.1fs" % remaining_time)
+
+	var shown := 0
+	for rule_state in _validation_rule_states:
+		if bool(rule_state.get("satisfied", false)):
+			continue
+		lines.append("Need %s" % String(rule_state.get("description", "")))
+		shown += 1
+		if shown >= limit:
+			break
+
+	if shown == 0 and _validation_status == &"passed":
+		lines.append("All scenario checks satisfied.")
+	elif shown == 0 and _validation_status == &"failed":
+		lines.append("Window expired before checks completed.")
+	return lines
+
+
 func _resolve_scenario():
 	if scenario != null and scenario.get_script() == BattleScenarioRef:
 		return scenario
@@ -357,6 +395,16 @@ func _build_default_scenario():
 		"Verify linear, track, and parabola projectile motion in two lanes.",
 		"Verify when_damaged and on_death triggers reuse the same runtime backbone.",
 	])
+	fallback.validation_time_limit = 8.0
+	fallback.validation_rules = [
+		_make_validation_rule(&"tick", "at least one game tick event", &"game.tick"),
+		_make_validation_rule(&"linear_spawn", "linear projectile spawn", &"projectile.spawned", 1, PackedStringArray(["projectile"]), {"move_mode": &"linear"}),
+		_make_validation_rule(&"track_spawn", "track projectile spawn", &"projectile.spawned", 1, PackedStringArray(["projectile"]), {"move_mode": &"track"}),
+		_make_validation_rule(&"parabola_hit", "parabola projectile hit", &"projectile.hit", 1, PackedStringArray(["projectile"]), {"move_mode": &"parabola"}),
+		_make_validation_rule(&"projectile_damage", "projectile damage event", &"entity.damaged", 1, PackedStringArray(["projectile"])),
+		_make_validation_rule(&"death_chain", "at least one death event", &"entity.died"),
+		_make_validation_rule(&"explode_damage", "death-triggered explosion damage", &"entity.damaged", 1, PackedStringArray(["explode", "entity.died"])),
+	]
 	fallback.spawns = [
 		_make_spawn_entry(&"plant", 0, 160.0, {"interval": 1.4, "damage": 20, "speed": 220.0}),
 		_make_spawn_entry(&"plant", 0, 250.0, {"interval": 2.1, "damage": 15, "speed": 210.0, "movement_mode": &"track", "turn_rate": 5.5}),
@@ -377,6 +425,24 @@ func _make_spawn_entry(entity_kind: StringName, lane_id: int, x_position: float,
 	return entry
 
 
+func _make_validation_rule(
+	rule_id: StringName,
+	description: String,
+	event_name: StringName,
+	min_count: int = 1,
+	required_tags: PackedStringArray = PackedStringArray(),
+	required_core_values: Dictionary = {}
+):
+	var rule = BattleValidationRuleRef.new()
+	rule.rule_id = rule_id
+	rule.description = description
+	rule.event_name = event_name
+	rule.min_count = min_count
+	rule.required_tags = required_tags
+	rule.required_core_values = required_core_values.duplicate(true)
+	return rule
+
+
 func _ensure_entity_root() -> Node2D:
 	var root := get_node_or_null("RuntimeEntities") as Node2D
 	if root == null:
@@ -392,6 +458,84 @@ func _clear_runtime_entities() -> void:
 	for child in _entity_root.get_children():
 		_entity_root.remove_child(child)
 		child.queue_free()
+
+
+func _reset_validation() -> void:
+	_validation_status = &"pending"
+	_validation_started_at = GameState.current_time
+	var active_scenario = _resolve_scenario()
+	_validation_deadline = GameState.current_time + (0.0 if active_scenario == null else float(active_scenario.validation_time_limit))
+	_validation_rule_states.clear()
+	_validation_counts.clear()
+	if active_scenario == null:
+		return
+
+	for validation_rule in active_scenario.validation_rules:
+		if validation_rule == null or validation_rule.get_script() != BattleValidationRuleRef:
+			continue
+		_validation_rule_states.append({
+			"rule_id": validation_rule.rule_id,
+			"description": validation_rule.description,
+			"event_name": validation_rule.event_name,
+			"min_count": validation_rule.min_count,
+			"required_tags": validation_rule.required_tags,
+			"required_core_values": validation_rule.required_core_values.duplicate(true),
+			"count": 0,
+			"satisfied": false,
+		})
+
+
+func _on_validation_event(event_name: StringName, event_data: Variant) -> void:
+	if _validation_status != &"pending":
+		return
+	if _validation_rule_states.is_empty():
+		return
+
+	for rule_state in _validation_rule_states:
+		if rule_state["event_name"] != event_name:
+			continue
+		if not _event_matches_rule(event_data, rule_state):
+			continue
+		rule_state["count"] = int(rule_state.get("count", 0)) + 1
+		rule_state["satisfied"] = int(rule_state["count"]) >= int(rule_state.get("min_count", 1))
+		_validation_counts[rule_state["rule_id"]] = rule_state["count"]
+
+	_refresh_validation_status()
+
+
+func _event_matches_rule(event_data: Variant, rule_state: Dictionary) -> bool:
+	var event_tags := PackedStringArray(event_data.core.get("tags", PackedStringArray()))
+	for required_tag in PackedStringArray(rule_state.get("required_tags", PackedStringArray())):
+		if not event_tags.has(required_tag):
+			return false
+
+	var required_core_values: Dictionary = rule_state.get("required_core_values", {})
+	for key: Variant in required_core_values.keys():
+		if event_data.core.get(key, null) != required_core_values[key]:
+			return false
+	return true
+
+
+func _refresh_validation_status() -> void:
+	if _validation_rule_states.is_empty():
+		_validation_status = &"passed"
+		return
+	for rule_state in _validation_rule_states:
+		if not bool(rule_state.get("satisfied", false)):
+			return
+	_validation_status = &"passed"
+
+
+func _update_validation_state() -> void:
+	if _validation_status != &"pending":
+		return
+	if _validation_deadline <= 0.0:
+		return
+	if GameState.current_time <= _validation_deadline:
+		return
+	_refresh_validation_status()
+	if _validation_status != &"passed":
+		_validation_status = &"failed"
 
 
 func _draw() -> void:

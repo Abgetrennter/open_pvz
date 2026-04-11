@@ -91,6 +91,10 @@ func _build_summary_text() -> String:
 	if battle_root != null and battle_root.has_method("get_scenario_name"):
 		lines.append("Scenario %s" % String(battle_root.call("get_scenario_name")))
 	lines.append("Time %.1f" % GameState.current_time)
+	if battle_root != null and battle_root.has_method("get_validation_summary_lines"):
+		var validation_lines: PackedStringArray = battle_root.call("get_validation_summary_lines", 2)
+		for validation_line in validation_lines:
+			lines.append(validation_line)
 	if battle_root != null and battle_root.has_method("get_scenario_goals"):
 		var goals: PackedStringArray = battle_root.call("get_scenario_goals")
 		for goal_index in range(mini(goals.size(), 2)):
