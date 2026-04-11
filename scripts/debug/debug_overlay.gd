@@ -88,14 +88,24 @@ func _refresh_text() -> void:
 
 func _build_summary_text() -> String:
 	var lines: PackedStringArray = PackedStringArray()
+	if battle_root != null and battle_root.has_method("get_scenario_name"):
+		lines.append("Scenario %s" % String(battle_root.call("get_scenario_name")))
 	lines.append("Time %.1f" % GameState.current_time)
+	if battle_root != null and battle_root.has_method("get_scenario_goals"):
+		var goals: PackedStringArray = battle_root.call("get_scenario_goals")
+		for goal_index in range(mini(goals.size(), 2)):
+			lines.append("Goal %s" % goals[goal_index])
+	lines.append("Reset R")
 	lines.append("Entities")
 
 	if battle_root == null:
 		lines.append("  <no battle>")
 		return "\n".join(lines)
 
-	for child in battle_root.get_children():
+	var entities: Array = battle_root.get_children()
+	if battle_root.has_method("get_runtime_entities"):
+		entities = battle_root.call("get_runtime_entities")
+	for child in entities:
 		if not child.has_method("get_debug_name"):
 			continue
 		lines.append("  %s" % _entity_line(child))

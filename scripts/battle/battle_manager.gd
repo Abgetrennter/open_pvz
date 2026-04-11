@@ -2,6 +2,8 @@ extends Node2D
 class_name BattleManager
 
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
+const BattleScenarioRef = preload("res://scripts/battle/battle_scenario.gd")
+const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
@@ -14,16 +16,19 @@ const LANE_Y := {
 
 @export var tick_interval := 0.25
 @export var playfield_size := Vector2(960.0, 540.0)
+@export var scenario: Resource = null
+@export var allow_restart_input := true
 
 var _tick_accumulator := 0.0
 var _entity_factory: Variant = EntityFactoryRef.new()
+var _entity_root: Node2D = null
 
 
 func _ready() -> void:
-	GameState.begin_battle(self)
+	_entity_root = _ensure_entity_root()
 	queue_redraw()
 	_spawn_debug_overlay()
-	_spawn_debug_demo()
+	reset_battle()
 
 
 func _exit_tree() -> void:
@@ -39,6 +44,26 @@ func _process(delta: float) -> void:
 		var tick_event: Variant = EventDataRef.create()
 		tick_event.core["game_time"] = GameState.current_time
 		EventBus.push_event(&"game.tick", tick_event)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not allow_restart_input:
+		return
+	if not (event is InputEventKey):
+		return
+	var key_event := event as InputEventKey
+	if key_event.pressed and not key_event.echo and key_event.keycode == KEY_R:
+		reset_battle()
+
+
+func reset_battle() -> void:
+	_tick_accumulator = 0.0
+	_clear_runtime_entities()
+	GameState.begin_battle(self)
+	EventBus.clear()
+	if DebugService.has_method("clear_logs"):
+		DebugService.clear_logs()
+	_spawn_scenario()
 
 
 func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = null) -> Node:
@@ -60,39 +85,55 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 		"chain_id": context.chain_id,
 		"origin_event_name": context.event_name,
 	})
-	add_child(projectile)
+	_entity_root.add_child(projectile)
 	return projectile
 
 
-func _spawn_debug_demo() -> void:
-	_spawn_demo_plant(0, 160.0, 1.4, 20, 220.0)
-	_spawn_demo_plant(0, 250.0, 2.1, 15, 210.0, {
-		"movement_mode": &"track",
-		"turn_rate": 5.5,
-	})
-	_spawn_demo_plant(1, 160.0, 1.6, 20, 220.0, {
-		"movement_mode": &"parabola",
-		"arc_height": 180.0,
-		"travel_duration": 1.4,
-	})
-
-	_spawn_demo_zombie(0, 460.0)
-	_spawn_demo_zombie(0, 650.0)
-	_spawn_demo_zombie(1, 520.0)
+func _spawn_scenario() -> void:
+	var active_scenario = _resolve_scenario()
+	if active_scenario == null:
+		return
+	for spawn_entry in active_scenario.spawns:
+		_spawn_entry(spawn_entry)
 
 
-func _spawn_demo_plant(lane_id: int, x_position: float, interval: float, damage: int, speed: float, effect_overrides: Dictionary = {}) -> void:
-	var plant: Variant = _entity_factory.create_plant(Vector2(x_position, _lane_y(lane_id)))
-	plant.assign_lane(lane_id)
-	add_child(plant)
-	_bind_shooter_trigger(plant, interval, damage, speed, effect_overrides)
+func _spawn_entry(spawn_entry) -> void:
+	if spawn_entry == null:
+		return
 
+	var entry_kind: StringName = spawn_entry.entity_kind
+	var lane_id: int = spawn_entry.lane_id
+	var x_position: float = spawn_entry.x_position
+	var params: Dictionary = spawn_entry.params
 
-func _spawn_demo_zombie(lane_id: int, x_position: float) -> void:
-	var zombie: Variant = _entity_factory.create_zombie(Vector2(x_position, _lane_y(lane_id)))
-	zombie.assign_lane(lane_id)
-	add_child(zombie)
-	_bind_zombie_runtime(zombie)
+	match entry_kind:
+		&"plant":
+			var interval := float(params.get("interval", 1.5))
+			var damage := int(params.get("damage", 20))
+			var speed := float(params.get("speed", 220.0))
+			var effect_overrides: Dictionary = {}
+			if params.has("effect_overrides"):
+				effect_overrides = params["effect_overrides"].duplicate(true)
+			if effect_overrides.is_empty():
+				for key: Variant in params.keys():
+					if key in ["interval", "damage", "speed", "effect_overrides"]:
+						continue
+					effect_overrides[key] = params[key]
+			var plant: Variant = _entity_factory.create_plant(Vector2(x_position, _lane_y(lane_id)))
+			plant.assign_lane(lane_id)
+			_entity_root.add_child(plant)
+			_bind_shooter_trigger(plant, interval, damage, speed, effect_overrides)
+		&"zombie":
+			var zombie: Variant = _entity_factory.create_zombie(Vector2(x_position, _lane_y(lane_id)))
+			zombie.assign_lane(lane_id)
+			if params.has("move_speed"):
+				zombie.move_speed = float(params.get("move_speed", zombie.move_speed))
+			if params.has("attack_damage"):
+				zombie.attack_damage = int(params.get("attack_damage", zombie.attack_damage))
+			_entity_root.add_child(zombie)
+			_bind_zombie_runtime(zombie)
+		_:
+			push_warning("Unsupported spawn entry kind: %s" % [String(entry_kind)])
 
 
 func _bind_shooter_trigger(plant: Node, interval: float, damage: int, speed: float, effect_overrides: Dictionary = {}) -> void:
@@ -163,10 +204,14 @@ func _build_projectile_movement_params(context, params: Dictionary, spawn_positi
 
 	match move_mode:
 		&"parabola":
+			var parabola_target: Node2D = _resolve_projectile_target_node(context)
+			var travel_duration := float(params.get("travel_duration", _estimate_parabola_duration(spawn_position, parabola_target, speed)))
 			movement_params["start_position"] = spawn_position
-			movement_params["target_position"] = _resolve_projectile_target_position(context, params, spawn_position, direction)
-			movement_params["travel_duration"] = float(params.get("travel_duration", max(0.35, 360.0 / max(speed, 1.0))))
+			movement_params["target_node"] = parabola_target
+			movement_params["target_position"] = _resolve_projectile_target_position(context, params, spawn_position, direction, speed, travel_duration, parabola_target)
+			movement_params["travel_duration"] = travel_duration
 			movement_params["arc_height"] = float(params.get("arc_height", 72.0))
+			movement_params["impact_radius"] = float(params.get("impact_radius", 34.0))
 		&"track":
 			movement_params["target_node"] = _resolve_projectile_target_node(context)
 			movement_params["turn_rate"] = float(params.get("turn_rate", 6.0))
@@ -176,14 +221,21 @@ func _build_projectile_movement_params(context, params: Dictionary, spawn_positi
 	return movement_params
 
 
-func _resolve_projectile_target_position(context, params: Dictionary, spawn_position: Vector2, direction: Vector2) -> Vector2:
+func _resolve_projectile_target_position(
+	context,
+	params: Dictionary,
+	spawn_position: Vector2,
+	direction: Vector2,
+	speed: float,
+	travel_duration: float,
+	target_node: Node2D = null
+) -> Vector2:
 	var explicit_target: Variant = params.get("target_position", null)
 	if explicit_target is Vector2:
 		return explicit_target
 
-	var target_node: Node2D = _resolve_projectile_target_node(context)
 	if target_node != null:
-		return target_node.global_position
+		return _predict_target_position(target_node, travel_duration, speed, params)
 
 	var distance := float(params.get("distance", 280.0))
 	return spawn_position + direction.normalized() * distance
@@ -207,7 +259,7 @@ func _find_nearest_enemy(source_node: Node) -> Node2D:
 	var best_candidate: Node2D = null
 	var best_distance := INF
 
-	for child in get_children():
+	for child in get_runtime_entities():
 		if child == null or child == source_node:
 			continue
 		if not child.has_method("take_damage"):
@@ -226,6 +278,120 @@ func _find_nearest_enemy(source_node: Node) -> Node2D:
 			best_candidate = candidate
 
 	return best_candidate
+
+
+func _estimate_parabola_duration(spawn_position: Vector2, target_node: Node2D, speed: float) -> float:
+	if target_node == null:
+		return max(0.35, 360.0 / max(speed, 1.0))
+	var distance := spawn_position.distance_to(target_node.global_position)
+	return max(0.35, distance / max(speed, 1.0))
+
+
+func _predict_target_position(target_node: Node2D, travel_duration: float, _projectile_speed: float, params: Dictionary) -> Vector2:
+	var current_position: Vector2 = target_node.global_position
+	var lead_time_scale := float(params.get("lead_time_scale", 1.0))
+	var max_lead_distance := float(params.get("max_lead_distance", 120.0))
+	var velocity: Vector2 = _estimate_entity_velocity(target_node)
+	var predicted_offset := velocity * travel_duration * lead_time_scale
+	if predicted_offset.length() > max_lead_distance:
+		predicted_offset = predicted_offset.normalized() * max_lead_distance
+	return current_position + predicted_offset
+
+
+func _estimate_entity_velocity(node: Node2D) -> Vector2:
+	if node == null:
+		return Vector2.ZERO
+	if node.has_method("get_entity_state"):
+		var snapshot: Dictionary = node.call("get_entity_state")
+		var values: Dictionary = snapshot.get("values", {})
+		var velocity_value: Variant = values.get("velocity", Vector2.ZERO)
+		if velocity_value is Vector2:
+			return velocity_value
+	if node.has_method("get") and node.get("team") == &"zombie" and node.has_method("is_combat_active") and node.call("is_combat_active"):
+		var move_speed_value: Variant = node.get("move_speed")
+		if move_speed_value is float or move_speed_value is int:
+			return Vector2.LEFT * float(move_speed_value)
+	return Vector2.ZERO
+
+
+func get_runtime_entities() -> Array:
+	if _entity_root == null:
+		return []
+	return _entity_root.get_children()
+
+
+func get_scenario_name() -> String:
+	var active_scenario = _resolve_scenario()
+	if active_scenario == null:
+		return "No Scenario"
+	return active_scenario.display_name
+
+
+func get_scenario_goals() -> PackedStringArray:
+	var active_scenario = _resolve_scenario()
+	if active_scenario == null:
+		return PackedStringArray()
+	return active_scenario.goals
+
+
+func get_scenario_description() -> String:
+	var active_scenario = _resolve_scenario()
+	if active_scenario == null:
+		return ""
+	return active_scenario.description
+
+
+func _resolve_scenario():
+	if scenario != null and scenario.get_script() == BattleScenarioRef:
+		return scenario
+	return _build_default_scenario()
+
+
+func _build_default_scenario():
+	var fallback = BattleScenarioRef.new()
+	fallback.scenario_id = &"fallback_minimal_validation"
+	fallback.display_name = "Fallback Minimal Battle Validation"
+	fallback.description = "Fallback scenario used when no scene resource is assigned."
+	fallback.goals = PackedStringArray([
+		"Observe a full event chain from game.tick to projectile.hit to entity.damaged.",
+		"Verify linear, track, and parabola projectile motion in two lanes.",
+		"Verify when_damaged and on_death triggers reuse the same runtime backbone.",
+	])
+	fallback.spawns = [
+		_make_spawn_entry(&"plant", 0, 160.0, {"interval": 1.4, "damage": 20, "speed": 220.0}),
+		_make_spawn_entry(&"plant", 0, 250.0, {"interval": 2.1, "damage": 15, "speed": 210.0, "movement_mode": &"track", "turn_rate": 5.5}),
+		_make_spawn_entry(&"plant", 1, 160.0, {"interval": 1.6, "damage": 20, "speed": 220.0, "movement_mode": &"parabola", "arc_height": 180.0, "travel_duration": 1.4}),
+		_make_spawn_entry(&"zombie", 0, 460.0, {}),
+		_make_spawn_entry(&"zombie", 0, 650.0, {}),
+		_make_spawn_entry(&"zombie", 1, 520.0, {}),
+	]
+	return fallback
+
+
+func _make_spawn_entry(entity_kind: StringName, lane_id: int, x_position: float, params: Dictionary):
+	var entry = BattleSpawnEntryRef.new()
+	entry.entity_kind = entity_kind
+	entry.lane_id = lane_id
+	entry.x_position = x_position
+	entry.params = params.duplicate(true)
+	return entry
+
+
+func _ensure_entity_root() -> Node2D:
+	var root := get_node_or_null("RuntimeEntities") as Node2D
+	if root == null:
+		root = Node2D.new()
+		root.name = "RuntimeEntities"
+		add_child(root)
+	return root
+
+
+func _clear_runtime_entities() -> void:
+	if _entity_root == null:
+		return
+	for child in _entity_root.get_children():
+		_entity_root.remove_child(child)
+		child.queue_free()
 
 
 func _draw() -> void:

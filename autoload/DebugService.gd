@@ -34,6 +34,12 @@ func _on_event_pushed(event_name: StringName, event_data: Variant) -> void:
 		event_log.pop_back()
 
 
+func clear_logs() -> void:
+	event_log.clear()
+	effect_log.clear()
+	trigger_log.clear()
+
+
 func record_trigger_execution(trigger_id: StringName, owner_entity: Node, event_name: StringName, depth: int, fired: bool) -> void:
 	if not enable_trigger_logging:
 		return

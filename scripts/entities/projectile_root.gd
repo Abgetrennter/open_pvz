@@ -28,6 +28,7 @@ var _spawn_event_emitted := false
 var _consumed := false
 var _move_mode: StringName = &"linear"
 var _runtime_overrides: Dictionary = {}
+var _impact_radius := 20.0
 
 
 func _ready() -> void:
@@ -48,6 +49,11 @@ func _physics_process(delta: float) -> void:
 	if movement_component != null:
 		var still_active: bool = movement_component.physics_process_projectile_move(delta)
 		if not still_active and not _consumed:
+			if _move_mode == &"parabola":
+				var landing_target: Node = _find_terminal_hit_target()
+				if landing_target != null:
+					_on_hit(landing_target)
+					return
 			_expire()
 			return
 
@@ -90,6 +96,7 @@ func launch(
 		full_movement_params["speed"] = _launch_speed
 		full_movement_params["move_mode"] = StringName(full_movement_params.get("move_mode", &"linear"))
 		_move_mode = full_movement_params["move_mode"]
+		_impact_radius = float(full_movement_params.get("impact_radius", 20.0))
 		full_movement_params["start_position"] = global_position
 		movement_component.configure_movement(full_movement_params)
 		queue_redraw()
@@ -141,6 +148,35 @@ func _expire() -> void:
 	var expired_event = EventDataRef.create(owner_entity, self, 0, PackedStringArray(["projectile", "expired"]), expired_runtime)
 	EventBus.push_event(&"projectile.expired", expired_event)
 	queue_free()
+
+
+func _find_terminal_hit_target() -> Node:
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("get_runtime_entities"):
+		return null
+
+	var best_target: Node2D = null
+	var best_distance := INF
+	for candidate in battle.call("get_runtime_entities"):
+		if candidate == null or candidate == self or candidate == owner_entity:
+			continue
+		if not candidate.has_method("take_damage"):
+			continue
+		if not (candidate is Node2D):
+			continue
+		if candidate.has_method("get") and candidate.get("team") == team:
+			continue
+		if candidate.has_method("is_combat_active") and not candidate.call("is_combat_active"):
+			continue
+		var candidate_node := candidate as Node2D
+		var distance := global_position.distance_to(candidate_node.global_position)
+		if distance > _impact_radius:
+			continue
+		if distance < best_distance:
+			best_distance = distance
+			best_target = candidate_node
+
+	return best_target
 
 
 func _emit_spawn_event() -> void:
