@@ -18,5 +18,15 @@
     "id": "lane_isolation_validation",
     "scenario": "res://scenes/validation/lane_isolation_validation.tres",
     "description": "Validates that crossing projected paths do not cause off-lane interception during parabola flight."
+  },
+  {
+    "id": "swept_segment_validation",
+    "scenario": "res://scenes/validation/swept_segment_validation.tres",
+    "description": "Validates that high-speed linear projectiles still register hits through swept-segment collision instead of skipping through targets."
+  },
+  {
+    "id": "terminal_explode_validation",
+    "scenario": "res://scenes/validation/terminal_explode_validation.tres",
+    "description": "Validates that terminal-hit projectiles can drive explode-tagged area damage at their impact point."
   }
 ]

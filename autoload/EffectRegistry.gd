@@ -67,7 +67,7 @@ func _register_builtin_defs() -> void:
 		"name": "speed",
 		"type": "float",
 		"min": 1.0,
-		"max": 2000.0,
+		"max": 12000.0,
 		"default": 300.0,
 	}, {
 		"name": "direction",

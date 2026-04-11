@@ -1,0 +1,74 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_ground_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_fast_swept.tres" id="5_fast_profile"]
+
+[sub_resource type="Resource" id="Spawn_fast_plant"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 0
+x_position = 160.0
+hit_height_band = ExtResource("4_ground_height")
+projectile_flight_profile = ExtResource("5_fast_profile")
+params = {
+"damage": 20,
+"interval": 0.25,
+"speed": 10000.0
+}
+
+[sub_resource type="Resource" id="Spawn_stationary_target"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+lane_id = 0
+x_position = 320.0
+hit_height_band = ExtResource("4_ground_height")
+params = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"fast_spawn"
+description = "high-speed swept projectile profile should spawn"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_fast_swept"
+}
+
+[sub_resource type="Resource" id="Rule_hit"]
+script = ExtResource("3_rule")
+rule_id = &"fast_swept_hit"
+description = "high-speed swept projectile should still hit the target it crosses in a single frame"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_fast_swept",
+"target_kind": &"zombie",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_no_expire"]
+script = ExtResource("3_rule")
+rule_id = &"fast_no_expire"
+description = "high-speed swept projectile should not miss and expire before the validation window ends"
+event_name = &"projectile.expired"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("projectile", "expired")
+required_core_values = {
+"profile_id": &"linear_fast_swept"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"swept_segment_validation"
+display_name = "Swept Segment Validation"
+description = "Validates that a very fast linear projectile still lands a hit when it crosses the target hitbox within a single physics step."
+goals = PackedStringArray("Verify high-speed linear shots still resolve hits through swept-segment collision.", "Verify the projectile hits the in-lane target instead of silently expiring.", "Keep the validation focused on phase-one hit reliability rather than template work.")
+validation_time_limit = 1.0
+validation_rules = [SubResource("Rule_spawn"), SubResource("Rule_hit"), SubResource("Rule_no_expire")]
+spawns = [SubResource("Spawn_fast_plant"), SubResource("Spawn_stationary_target")]
