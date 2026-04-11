@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"zombie_lane_dummy"
+entity_kind = &"zombie"
+display_name = "Lane Dummy Zombie"
+max_health = 40
+hitbox_size = Vector2(44, 60)
+hit_height_band = ExtResource("2_height")
+default_params = {
+"move_speed": 0.0
+}

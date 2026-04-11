@@ -28,5 +28,10 @@
     "id": "terminal_explode_validation",
     "scenario": "res://scenes/validation/terminal_explode_validation.tres",
     "description": "Validates that terminal-hit projectiles can drive explode-tagged area damage at their impact point."
+  },
+  {
+    "id": "template_instantiation_validation",
+    "scenario": "res://scenes/validation/template_instantiation_validation.tres",
+    "description": "Validates that BattleScenario spawn entries can instantiate entities from EntityTemplate resources and preserve template identity through runtime events."
   }
 ]

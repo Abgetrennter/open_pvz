@@ -45,6 +45,8 @@ static func create(
 		"target_node": target_node,
 		"source_id": _extract_entity_id(source_node),
 		"target_id": _extract_entity_id(target_node),
+		"source_template_id": _extract_template_id(source_node),
+		"target_template_id": _extract_template_id(target_node),
 		"source_kind": _extract_entity_kind(source_node),
 		"target_kind": _extract_entity_kind(target_node),
 		"source_lane": _extract_lane_id(source_node),
@@ -79,6 +81,17 @@ static func _extract_entity_kind(node: Node) -> StringName:
 		return kind_value
 	if kind_value is String:
 		return StringName(kind_value)
+	return StringName()
+
+
+static func _extract_template_id(node: Node) -> StringName:
+	if node == null:
+		return StringName()
+	var template_value: Variant = node.get("template_id")
+	if template_value is StringName:
+		return template_value
+	if template_value is String:
+		return StringName(template_value)
 	return StringName()
 
 

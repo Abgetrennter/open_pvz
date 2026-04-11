@@ -1,0 +1,73 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/templates/plant_basic_shooter.tres" id="4_plant_template"]
+[ext_resource type="Resource" path="res://data/combat/templates/zombie_lane_dummy.tres" id="5_zombie_template"]
+
+[sub_resource type="Resource" id="Spawn_template_plant"]
+script = ExtResource("2_spawn")
+entity_template = ExtResource("4_plant_template")
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_template_zombie"]
+script = ExtResource("2_spawn")
+entity_template = ExtResource("5_zombie_template")
+lane_id = 0
+x_position = 500.0
+
+[sub_resource type="Resource" id="Rule_template_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"template_spawn"
+description = "template-instantiated plant should spawn projectiles with its template id and default profile"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_ground",
+"source_template_id": &"plant_basic_shooter"
+}
+
+[sub_resource type="Resource" id="Rule_template_hit"]
+script = ExtResource("3_rule")
+rule_id = &"template_hit"
+description = "template-instantiated zombie should receive hits with its template id on the event payload"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"source_template_id": &"plant_basic_shooter",
+"target_template_id": &"zombie_lane_dummy",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_template_damage"]
+script = ExtResource("3_rule")
+rule_id = &"template_damage"
+description = "template-instantiated zombie should take damage from the template-instantiated plant"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_basic_shooter",
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+
+[sub_resource type="Resource" id="Rule_template_death"]
+script = ExtResource("3_rule")
+rule_id = &"template_death"
+description = "template-instantiated zombie should die on the template-defined health budget rather than the factory fallback health"
+event_name = &"entity.died"
+required_core_values = {
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"template_instantiation_validation"
+display_name = "Template Instantiation Validation"
+description = "Validates that BattleScenario spawn entries can instantiate entities from EntityTemplate resources and carry template identity through runtime events."
+goals = PackedStringArray("Verify BattleSpawnEntry can reference EntityTemplate directly.", "Verify template default params and projectile profile feed the spawn chain without entry-local duplication.", "Verify template identity and template-defined health budget survive into runtime behavior.")
+validation_time_limit = 2.5
+validation_rules = [SubResource("Rule_template_spawn"), SubResource("Rule_template_hit"), SubResource("Rule_template_damage"), SubResource("Rule_template_death")]
+spawns = [SubResource("Spawn_template_plant"), SubResource("Spawn_template_zombie")]

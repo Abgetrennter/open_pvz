@@ -158,10 +158,19 @@ func _spawn_entry(spawn_entry) -> void:
 		_report_protocol_issues(spawn_errors, &"battle_spawn_entry")
 		return
 
-	var entry_kind: StringName = spawn_entry.entity_kind
+	var spawn_resolution: Dictionary = _entity_factory.instantiate_spawn_entry(
+		spawn_entry,
+		Vector2(spawn_entry.x_position, _lane_y(spawn_entry.lane_id))
+	)
+	if spawn_resolution.is_empty():
+		return
+
+	var entry_kind: StringName = spawn_resolution.get("entity_kind", &"entity")
 	var lane_id: int = spawn_entry.lane_id
-	var x_position: float = spawn_entry.x_position
-	var params: Dictionary = spawn_entry.params
+	var params: Dictionary = spawn_resolution.get("params", {})
+	var hit_height_band: Resource = spawn_resolution.get("hit_height_band", null)
+	var projectile_flight_profile: Resource = spawn_resolution.get("projectile_flight_profile", null)
+	var entity: Variant = spawn_resolution.get("entity", null)
 
 	match entry_kind:
 		&"plant":
@@ -176,9 +185,9 @@ func _spawn_entry(spawn_entry) -> void:
 					if SPAWN_ENTRY_RESERVED_PARAMS.has(key):
 						continue
 					effect_overrides[key] = params[key]
-			var plant: Variant = _entity_factory.create_plant(Vector2(x_position, _lane_y(lane_id)))
+			var plant: Variant = entity
 			plant.assign_lane(lane_id)
-			_apply_spawn_height_band(plant, spawn_entry.hit_height_band)
+			_apply_spawn_height_band(plant, hit_height_band)
 			_entity_root.add_child(plant)
 			_bind_shooter_trigger(
 				plant,
@@ -186,17 +195,13 @@ func _spawn_entry(spawn_entry) -> void:
 				damage,
 				speed,
 				effect_overrides,
-				spawn_entry.projectile_flight_profile,
+				projectile_flight_profile,
 				params
 			)
 		&"zombie":
-			var zombie: Variant = _entity_factory.create_zombie(Vector2(x_position, _lane_y(lane_id)))
+			var zombie: Variant = entity
 			zombie.assign_lane(lane_id)
-			_apply_spawn_height_band(zombie, spawn_entry.hit_height_band)
-			if params.has("move_speed"):
-				zombie.move_speed = float(params.get("move_speed", zombie.move_speed))
-			if params.has("attack_damage"):
-				zombie.attack_damage = int(params.get("attack_damage", zombie.attack_damage))
+			_apply_spawn_height_band(zombie, hit_height_band)
 			_entity_root.add_child(zombie)
 			_bind_zombie_runtime(zombie)
 		_:

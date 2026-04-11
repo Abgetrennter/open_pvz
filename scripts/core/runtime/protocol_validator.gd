@@ -137,6 +137,31 @@ static func validate_projectile_flight_profile(profile: Resource) -> Array[Strin
 	return errors
 
 
+static func validate_entity_template(entity_template: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if entity_template == null:
+		errors.append("EntityTemplate is null.")
+		return errors
+	if StringName(entity_template.template_id) == StringName():
+		errors.append("EntityTemplate.template_id must not be empty.")
+	var entity_kind := String(entity_template.entity_kind)
+	if entity_kind not in ["plant", "zombie"]:
+		errors.append("EntityTemplate.entity_kind must be plant or zombie.")
+	if entity_template.hit_height_band != null:
+		for error in validate_height_band(entity_template.hit_height_band):
+			errors.append("EntityTemplate hit_height_band: %s" % error)
+	if entity_template.projectile_flight_profile != null:
+		for error in validate_projectile_flight_profile(entity_template.projectile_flight_profile):
+			errors.append("EntityTemplate projectile_flight_profile: %s" % error)
+	if not (entity_template.default_params is Dictionary):
+		errors.append("EntityTemplate.default_params must be a Dictionary.")
+	if int(entity_template.max_health) != -1 and int(entity_template.max_health) <= 0:
+		errors.append("EntityTemplate.max_health must be -1 or greater than zero.")
+	if entity_template.hitbox_size != Vector2.ZERO and (entity_template.hitbox_size.x <= 0.0 or entity_template.hitbox_size.y <= 0.0):
+		errors.append("EntityTemplate.hitbox_size must be zero or a positive size.")
+	return errors
+
+
 static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 	var errors: Array[String] = []
 	if scenario == null:
@@ -165,6 +190,11 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 		scope = "%s in scenario %s" % [scope, String(scenario_id)]
 
 	var entity_kind := String(spawn_entry.entity_kind)
+	if spawn_entry.entity_template != null:
+		for error in validate_entity_template(spawn_entry.entity_template):
+			errors.append("%s entity_template: %s" % [scope, error])
+		if spawn_entry.entity_template != null and StringName(spawn_entry.entity_template.get("entity_kind")) != StringName():
+			entity_kind = String(spawn_entry.entity_template.get("entity_kind"))
 	if entity_kind not in ["plant", "zombie"]:
 		errors.append("%s.entity_kind must be plant or zombie." % scope)
 	if int(spawn_entry.lane_id) < 0:
