@@ -1,0 +1,3207 @@
+{
+	"config": {
+		"enable_effect_logging": true,
+		"enable_event_logging": true,
+		"enable_protocol_logging": true,
+		"enable_runtime_snapshot_logging": true,
+		"enable_trigger_logging": true
+	},
+	"effect_log": [
+		{
+			"chain_id": "7833711-326494315",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#1",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "7833711-326494315",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "7336891-2467242048",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#3",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "7336891-2467242048",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "zombie#5"
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "zombie#5"
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#2",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "zombie#6"
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "zombie#6"
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#5"
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#5"
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#1",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#3",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "zombie#6"
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "zombie#6"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 0,
+			"effect_id": "explode",
+			"event_name": "entity.died",
+			"notes": [
+				"Explosion targets missing or invalid."
+			],
+			"source": "plant#1",
+			"success": false,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#2",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#1",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#3",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "zombie#6"
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "zombie#6"
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#1",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#2",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#3",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#1",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "zombie#6"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "zombie#6"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "projectile.hit",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "damage",
+			"event_name": "entity.damaged",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "zombie#4"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#3",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#3",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#2",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#2",
+			"success": true,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 1,
+			"effect_id": "damage",
+			"event_name": "game.tick",
+			"notes": [
+				"Damage target missing or invalid."
+			],
+			"source": "plant#1",
+			"success": false,
+			"target": "<null>"
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 0,
+			"effect_id": "spawn_projectile",
+			"event_name": "game.tick",
+			"notes": [],
+			"source": "plant#1",
+			"success": true,
+			"target": "<null>"
+		}
+	],
+	"event_log": [
+		{
+			"chain_id": "7833711-326494315",
+			"depth": 2,
+			"event_id": "7834062-1363852887",
+			"event_name": "projectile.spawned",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#21",
+			"value": 20
+		},
+		{
+			"chain_id": "7833711-326494315",
+			"depth": 1,
+			"event_id": "7833711-326494315",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "7633578-4120544595",
+			"depth": 1,
+			"event_id": "7633578-4120544595",
+			"event_name": "entity.damaged",
+			"source": "zombie#6",
+			"tags": [
+				"bite"
+			],
+			"target": "plant#3",
+			"value": 10
+		},
+		{
+			"chain_id": "7585355-2840294859",
+			"depth": 1,
+			"event_id": "7585355-2840294859",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "7371381-2258264448",
+			"depth": 1,
+			"event_id": "7371381-2258264448",
+			"event_name": "entity.damaged",
+			"source": "zombie#5",
+			"tags": [
+				"bite"
+			],
+			"target": "plant#2",
+			"value": 10
+		},
+		{
+			"chain_id": "7336891-2467242048",
+			"depth": 2,
+			"event_id": "7337335-1691544774",
+			"event_name": "projectile.spawned",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#20",
+			"value": 20
+		},
+		{
+			"chain_id": "7336891-2467242048",
+			"depth": 1,
+			"event_id": "7336891-2467242048",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 4,
+			"event_id": "7102551-1966210664",
+			"event_name": "entity.damaged",
+			"source": "plant#2",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#2",
+			"value": 4
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 3,
+			"event_id": "7102444-3675541239",
+			"event_name": "entity.damaged",
+			"source": "plant#2",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#5",
+			"value": 15
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 2,
+			"event_id": "7102318-1213558902",
+			"event_name": "projectile.hit",
+			"source": "plant#2",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#5",
+			"value": 15
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 2,
+			"event_id": "7088990-2393838826",
+			"event_name": "projectile.spawned",
+			"source": "plant#2",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#19",
+			"value": 15
+		},
+		{
+			"chain_id": "7088673-147859346",
+			"depth": 1,
+			"event_id": "7088673-147859346",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 4,
+			"event_id": "6985344-1606620610",
+			"event_name": "entity.damaged",
+			"source": "plant#3",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#3",
+			"value": 4
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 3,
+			"event_id": "6985210-2564796458",
+			"event_name": "entity.damaged",
+			"source": "plant#3",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#6",
+			"value": 20
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 2,
+			"event_id": "6985028-4195710567",
+			"event_name": "projectile.hit",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#6",
+			"value": 20
+		},
+		{
+			"chain_id": "6833214-3578038430",
+			"depth": 1,
+			"event_id": "6833214-3578038430",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 4,
+			"event_id": "6702497-1148656032",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#1",
+			"value": 4
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 3,
+			"event_id": "6702358-1216628649",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#5",
+			"value": 20
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 2,
+			"event_id": "6702168-2749841000",
+			"event_name": "projectile.hit",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#5",
+			"value": 20
+		},
+		{
+			"chain_id": "6633084-1425603102",
+			"depth": 1,
+			"event_id": "6633084-1425603102",
+			"event_name": "entity.damaged",
+			"source": "zombie#6",
+			"tags": [
+				"bite"
+			],
+			"target": "plant#3",
+			"value": 10
+		},
+		{
+			"chain_id": "6584904-1858387987",
+			"depth": 1,
+			"event_id": "6584904-1858387987",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "6370886-1126560167",
+			"depth": 1,
+			"event_id": "6370886-1126560167",
+			"event_name": "entity.damaged",
+			"source": "zombie#5",
+			"tags": [
+				"bite"
+			],
+			"target": "plant#2",
+			"value": 10
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 2,
+			"event_id": "6336768-3539434804",
+			"event_name": "projectile.spawned",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#18",
+			"value": 20
+		},
+		{
+			"chain_id": "6336427-891046448",
+			"depth": 1,
+			"event_id": "6336427-891046448",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "6088347-2378966109",
+			"depth": 1,
+			"event_id": "6088347-2378966109",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "5832729-2283291623",
+			"depth": 1,
+			"event_id": "5832729-2283291623",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "5632608-4245863066",
+			"depth": 1,
+			"event_id": "5632608-4245863066",
+			"event_name": "entity.damaged",
+			"source": "zombie#6",
+			"tags": [
+				"bite"
+			],
+			"target": "plant#3",
+			"value": 10
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 2,
+			"event_id": "5584766-1983476968",
+			"event_name": "projectile.spawned",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#17",
+			"value": 20
+		},
+		{
+			"chain_id": "5584314-4223843005",
+			"depth": 1,
+			"event_id": "5584314-4223843005",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "5335892-2719593649",
+			"depth": 1,
+			"event_id": "5335892-2719593649",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 4,
+			"event_id": "5232816-2673327152",
+			"event_name": "entity.damaged",
+			"source": "plant#3",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#3",
+			"value": 4
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 3,
+			"event_id": "5232652-774112307",
+			"event_name": "entity.damaged",
+			"source": "plant#3",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#6",
+			"value": 20
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 2,
+			"event_id": "5232462-1390079498",
+			"event_name": "projectile.hit",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#6",
+			"value": 20
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 4,
+			"event_id": "5205404-3935952975",
+			"event_name": "entity.died",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"death"
+			],
+			"target": "zombie#4",
+			"value": 0
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 4,
+			"event_id": "5205277-1391652188",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#1",
+			"value": 4
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 3,
+			"event_id": "5205151-3241915238",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#4",
+			"value": 20
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 2,
+			"event_id": "5204930-1164313074",
+			"event_name": "projectile.hit",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#4",
+			"value": 20
+		},
+		{
+			"chain_id": "5088080-4091738611",
+			"depth": 1,
+			"event_id": "5088080-4091738611",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "4921904-2685220355",
+			"depth": 1,
+			"event_id": "4921904-2685220355",
+			"event_name": "entity.damaged",
+			"source": "zombie#4",
+			"tags": [
+				"bite"
+			],
+			"target": "plant#2",
+			"value": 10
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 4,
+			"event_id": "4853218-2679380410",
+			"event_name": "entity.damaged",
+			"source": "plant#2",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#2",
+			"value": 4
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 3,
+			"event_id": "4853107-2194002826",
+			"event_name": "entity.damaged",
+			"source": "plant#2",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#4",
+			"value": 15
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 2,
+			"event_id": "4852983-14837170",
+			"event_name": "projectile.hit",
+			"source": "plant#2",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#4",
+			"value": 15
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 2,
+			"event_id": "4832960-3011840983",
+			"event_name": "projectile.spawned",
+			"source": "plant#2",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#16",
+			"value": 15
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 2,
+			"event_id": "4832611-1856681791",
+			"event_name": "projectile.spawned",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#15",
+			"value": 20
+		},
+		{
+			"chain_id": "4832250-951423713",
+			"depth": 1,
+			"event_id": "4832250-951423713",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "4583909-1627528256",
+			"depth": 1,
+			"event_id": "4583909-1627528256",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "4335460-1480070300",
+			"depth": 1,
+			"event_id": "4335460-1480070300",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "4087443-2945324133",
+			"depth": 1,
+			"event_id": "4087443-2945324133",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "3921422-3898879848",
+			"depth": 1,
+			"event_id": "3921422-3898879848",
+			"event_name": "entity.damaged",
+			"source": "zombie#4",
+			"tags": [
+				"bite"
+			],
+			"target": "plant#2",
+			"value": 10
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 2,
+			"event_id": "3839181-1940516975",
+			"event_name": "projectile.spawned",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#14",
+			"value": 20
+		},
+		{
+			"chain_id": "3838652-4003560380",
+			"depth": 1,
+			"event_id": "3838652-4003560380",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 4,
+			"event_id": "3700960-2122050318",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#1",
+			"value": 4
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 3,
+			"event_id": "3700834-1039618617",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#4",
+			"value": 20
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 2,
+			"event_id": "3700640-3978137145",
+			"event_name": "projectile.hit",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#4",
+			"value": 20
+		},
+		{
+			"chain_id": "3583448-3819288241",
+			"depth": 1,
+			"event_id": "3583448-3819288241",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 4,
+			"event_id": "3487484-741556690",
+			"event_name": "entity.damaged",
+			"source": "plant#3",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#3",
+			"value": 4
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 3,
+			"event_id": "3487338-3388838713",
+			"event_name": "entity.damaged",
+			"source": "plant#3",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#6",
+			"value": 20
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 2,
+			"event_id": "3487174-2427749223",
+			"event_name": "projectile.hit",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#6",
+			"value": 20
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 2,
+			"event_id": "3335377-153385764",
+			"event_name": "projectile.spawned",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#13",
+			"value": 20
+		},
+		{
+			"chain_id": "3335012-3303975553",
+			"depth": 1,
+			"event_id": "3335012-3303975553",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "3086983-1565953721",
+			"depth": 1,
+			"event_id": "3086983-1565953721",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "2920950-1040256778",
+			"depth": 1,
+			"event_id": "2920950-1040256778",
+			"event_name": "entity.damaged",
+			"source": "zombie#4",
+			"tags": [
+				"bite"
+			],
+			"target": "plant#2",
+			"value": 10
+		},
+		{
+			"chain_id": "2838308-587106333",
+			"depth": 1,
+			"event_id": "2838308-587106333",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 4,
+			"event_id": "2617957-3571854023",
+			"event_name": "entity.damaged",
+			"source": "plant#2",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#2",
+			"value": 4
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 3,
+			"event_id": "2617756-745603143",
+			"event_name": "entity.damaged",
+			"source": "plant#2",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#4",
+			"value": 15
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 2,
+			"event_id": "2617499-3817964683",
+			"event_name": "projectile.hit",
+			"source": "plant#2",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#4",
+			"value": 15
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 2,
+			"event_id": "2583740-1520166202",
+			"event_name": "projectile.spawned",
+			"source": "plant#2",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#12",
+			"value": 15
+		},
+		{
+			"chain_id": "2583166-1571204202",
+			"depth": 1,
+			"event_id": "2583166-1571204202",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 4,
+			"event_id": "2355449-1301591300",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#1",
+			"value": 4
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 3,
+			"event_id": "2355331-3950712275",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#4",
+			"value": 20
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 2,
+			"event_id": "2355138-885148388",
+			"event_name": "projectile.hit",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#4",
+			"value": 20
+		},
+		{
+			"chain_id": "2334541-1720930607",
+			"depth": 1,
+			"event_id": "2334541-1720930607",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 2,
+			"event_id": "2087050-1418877341",
+			"event_name": "projectile.spawned",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#11",
+			"value": 20
+		},
+		{
+			"chain_id": "2086508-435916958",
+			"depth": 1,
+			"event_id": "2086508-435916958",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 2,
+			"event_id": "1838001-3550676346",
+			"event_name": "projectile.spawned",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#10",
+			"value": 20
+		},
+		{
+			"chain_id": "1837627-3511422767",
+			"depth": 1,
+			"event_id": "1837627-3511422767",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 4,
+			"event_id": "1734639-3356292544",
+			"event_name": "entity.damaged",
+			"source": "plant#3",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#3",
+			"value": 4
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 3,
+			"event_id": "1734462-1456609527",
+			"event_name": "entity.damaged",
+			"source": "plant#3",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#6",
+			"value": 20
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 2,
+			"event_id": "1734217-3116674926",
+			"event_name": "projectile.hit",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#6",
+			"value": 20
+		},
+		{
+			"chain_id": "1582455-1844208476",
+			"depth": 1,
+			"event_id": "1582455-1844208476",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "1334018-647013114",
+			"depth": 1,
+			"event_id": "1334018-647013114",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 4,
+			"event_id": "1154977-1226807611",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#1",
+			"value": 4
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 3,
+			"event_id": "1154850-2317971134",
+			"event_name": "entity.damaged",
+			"source": "plant#1",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#4",
+			"value": 20
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 2,
+			"event_id": "1154615-553198437",
+			"event_name": "projectile.hit",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#4",
+			"value": 20
+		},
+		{
+			"chain_id": "1086245-2177432110",
+			"depth": 1,
+			"event_id": "1086245-2177432110",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "837855-2604207489",
+			"depth": 1,
+			"event_id": "837855-2604207489",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 4,
+			"event_id": "837551-313479039",
+			"event_name": "entity.damaged",
+			"source": "plant#2",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit",
+				"entity.damaged"
+			],
+			"target": "plant#2",
+			"value": 4
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 3,
+			"event_id": "837426-4246629614",
+			"event_name": "entity.damaged",
+			"source": "plant#2",
+			"tags": [
+				"projectile",
+				"effect",
+				"projectile.hit"
+			],
+			"target": "zombie#4",
+			"value": 15
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 2,
+			"event_id": "837211-3856558948",
+			"event_name": "projectile.hit",
+			"source": "plant#2",
+			"tags": [
+				"projectile"
+			],
+			"target": "zombie#4",
+			"value": 15
+		},
+		{
+			"chain_id": "588965-350978740",
+			"depth": 1,
+			"event_id": "588965-350978740",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 2,
+			"event_id": "327647-3831515907",
+			"event_name": "projectile.spawned",
+			"source": "plant#3",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#9",
+			"value": 20
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 2,
+			"event_id": "327305-3821187522",
+			"event_name": "projectile.spawned",
+			"source": "plant#2",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#8",
+			"value": 15
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 2,
+			"event_id": "326940-3767550755",
+			"event_name": "projectile.spawned",
+			"source": "plant#1",
+			"tags": [
+				"projectile"
+			],
+			"target": "projectile#7",
+			"value": 20
+		},
+		{
+			"chain_id": "326551-4098111924",
+			"depth": 1,
+			"event_id": "326551-4098111924",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		}
+	],
+	"protocol_log": [],
+	"runtime_snapshot_log": [
+		{
+			"frame": 480,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=80/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 100, \"health_ratio\": 0.8, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=34/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 34, \"max_health\": 100, \"health_ratio\": 0.34, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=54/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 54, \"max_health\": 100, \"health_ratio\": 0.54, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=40/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 40, \"max_health\": 120, \"health_ratio\": 0.33333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#20 lane=1 status=flying pos=(205.4, 140.4) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (205.3505, 320.0), &\"height\": 179.591836734694, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (205.3505, 140.4082), &\"travel_progress\": 0.52380952380952, &\"speed\": 15.4779488699777 }",
+				"projectile#21 lane=0 status=flying pos=(245.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (245.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (245.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 7.99401699999995
+		},
+		{
+			"frame": 468,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=80/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 100, \"health_ratio\": 0.8, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=34/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 34, \"max_health\": 100, \"health_ratio\": 0.34, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=54/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 54, \"max_health\": 100, \"health_ratio\": 0.54, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=40/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 40, \"max_health\": 120, \"health_ratio\": 0.33333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#20 lane=1 status=flying pos=(202.3, 150.2) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (202.2549, 320.0), &\"height\": 169.795918367347, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (202.2549, 150.2041), &\"travel_progress\": 0.38095238095238, &\"speed\": 15.4779488699777 }",
+				"projectile#21 lane=0 status=flying pos=(201.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (201.3333, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (201.3333, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 7.79979699999994
+		},
+		{
+			"frame": 456,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=80/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 100, \"health_ratio\": 0.8, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=34/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 34, \"max_health\": 100, \"health_ratio\": 0.34, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=54/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 54, \"max_health\": 100, \"health_ratio\": 0.54, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=40/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 40, \"max_health\": 120, \"health_ratio\": 0.33333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#20 lane=1 status=flying pos=(199.2, 189.4) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (199.1593, 320.0), &\"height\": 130.612244897959, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (199.1593, 189.3878), &\"travel_progress\": 0.23809523809524, &\"speed\": 15.4779488699777 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 7.59981299999994
+		},
+		{
+			"frame": 444,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=80/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 100, \"health_ratio\": 0.8, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=34/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 34, \"max_health\": 100, \"health_ratio\": 0.34, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=64/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 64, \"max_health\": 100, \"health_ratio\": 0.64, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=40/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 40, \"max_health\": 120, \"health_ratio\": 0.33333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#20 lane=1 status=flying pos=(196.1, 258.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (196.0637, 320.0), &\"height\": 62.0408163265306, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (196.0637, 257.9592), &\"travel_progress\": 0.0952380952381, &\"speed\": 15.4779488699777 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 7.39971699999994
+		},
+		{
+			"frame": 432,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=80/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 100, \"health_ratio\": 0.8, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=44/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 44, \"max_health\": 100, \"health_ratio\": 0.44, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=64/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 64, \"max_health\": 100, \"health_ratio\": 0.64, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=40/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 40, \"max_health\": 120, \"health_ratio\": 0.33333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 7.19961699999994
+		},
+		{
+			"frame": 420,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=80/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 100, \"health_ratio\": 0.8, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=48/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 48, \"max_health\": 100, \"health_ratio\": 0.48, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=64/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 64, \"max_health\": 100, \"health_ratio\": 0.64, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=40/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 40, \"max_health\": 120, \"health_ratio\": 0.33333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 6.99951699999995
+		},
+		{
+			"frame": 408,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=80/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 100, \"health_ratio\": 0.8, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=48/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 48, \"max_health\": 100, \"health_ratio\": 0.48, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=68/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 68, \"max_health\": 100, \"health_ratio\": 0.68, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#17 lane=1 status=flying pos=(213.9, 265.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (213.8634, 320.0), &\"height\": 54.9999999999998, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (213.8634, 265.0), &\"travel_progress\": 0.91666666666667, &\"speed\": 15.4779488699777 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 6.79941699999995
+		},
+		{
+			"frame": 396,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=84/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 84, \"max_health\": 100, \"health_ratio\": 0.84, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=48/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 48, \"max_health\": 100, \"health_ratio\": 0.48, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=68/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 68, \"max_health\": 100, \"health_ratio\": 0.68, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#17 lane=1 status=flying pos=(210.8, 194.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (210.7678, 320.0), &\"height\": 126.020408163265, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (210.7678, 193.9796), &\"travel_progress\": 0.77380952380952, &\"speed\": 15.4779488699777 }",
+				"projectile#18 lane=0 status=flying pos=(267.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (267.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (267.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 6.59931699999995
+		},
+		{
+			"frame": 384,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=84/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 84, \"max_health\": 100, \"health_ratio\": 0.84, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=48/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 48, \"max_health\": 100, \"health_ratio\": 0.48, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=78/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 78, \"max_health\": 100, \"health_ratio\": 0.78, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(305.3, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#17 lane=1 status=flying pos=(207.7, 152.3) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (207.6722, 320.0), &\"height\": 167.65306122449, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (207.6722, 152.3469), &\"travel_progress\": 0.63095238095238, &\"speed\": 15.4779488699777 }",
+				"projectile#18 lane=0 status=flying pos=(223.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (223.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (223.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 6.39921699999995
+		},
+		{
+			"frame": 372,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=84/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 84, \"max_health\": 100, \"health_ratio\": 0.84, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=58/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 58, \"max_health\": 100, \"health_ratio\": 0.58, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=78/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 78, \"max_health\": 100, \"health_ratio\": 0.78, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(309.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#17 lane=1 status=flying pos=(204.6, 140.1) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (204.5766, 320.0), &\"height\": 179.897959183673, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (204.5766, 140.102), &\"travel_progress\": 0.48809523809524, &\"speed\": 15.4779488699777 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 6.19911699999996
+		},
+		{
+			"frame": 360,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=84/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 84, \"max_health\": 100, \"health_ratio\": 0.84, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=58/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 58, \"max_health\": 100, \"health_ratio\": 0.58, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=78/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 78, \"max_health\": 100, \"health_ratio\": 0.78, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(320.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#17 lane=1 status=flying pos=(201.5, 157.2) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (201.481, 320.0), &\"height\": 162.755102040816, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (201.481, 157.2449), &\"travel_progress\": 0.3452380952381, &\"speed\": 15.4779488699777 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 5.99901699999996
+		},
+		{
+			"frame": 348,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=84/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 84, \"max_health\": 100, \"health_ratio\": 0.84, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=58/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 58, \"max_health\": 100, \"health_ratio\": 0.58, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=78/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 78, \"max_health\": 100, \"health_ratio\": 0.78, &\"can_fire\": true }",
+				"zombie#5 lane=0 status=alive pos=(331.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#17 lane=1 status=flying pos=(198.4, 203.8) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (198.3854, 320.0), &\"height\": 116.224489795918, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (198.3854, 203.7755), &\"travel_progress\": 0.20238095238095, &\"speed\": 15.4779488699777 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 5.79891699999996
+		},
+		{
+			"frame": 336,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=84/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 84, \"max_health\": 100, \"health_ratio\": 0.84, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=58/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 58, \"max_health\": 100, \"health_ratio\": 0.58, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=78/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 78, \"max_health\": 100, \"health_ratio\": 0.78, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=dying pos=(305.1, 228.7) health=0/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 0, \"max_health\": 120, \"health_ratio\": 0.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(342.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(215.7, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 3 }",
+				"projectile#17 lane=1 status=flying pos=(195.3, 279.7) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (195.2898, 320.0), &\"height\": 40.3061224489796, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (215.6691, 320.0), &\"target_id\": 6, &\"projected_position\": (195.2898, 279.6939), &\"travel_progress\": 0.05952380952381, &\"speed\": 15.4779488699777 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 5.59881699999996
+		},
+		{
+			"frame": 324,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=84/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 84, \"max_health\": 100, \"health_ratio\": 0.84, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=58/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 58, \"max_health\": 100, \"health_ratio\": 0.58, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=dying pos=(305.1, 225.1) health=0/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 0, \"max_health\": 120, \"health_ratio\": 0.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(353.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(223.9, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 5.39871699999997
+		},
+		{
+			"frame": 312,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=84/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 84, \"max_health\": 100, \"health_ratio\": 0.84, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=58/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 58, \"max_health\": 100, \"health_ratio\": 0.58, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=dying pos=(305.1, 221.5) health=0/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 0, \"max_health\": 120, \"health_ratio\": 0.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(364.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(234.9, 320.0) health=60/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 60, \"max_health\": 120, \"health_ratio\": 0.5, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 5.19861699999997
+		},
+		{
+			"frame": 300,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=58/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 58, \"max_health\": 100, \"health_ratio\": 0.58, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=15/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 15, \"max_health\": 120, \"health_ratio\": 0.125, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(375.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(245.9, 320.0) health=80/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 120, \"health_ratio\": 0.66666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#14 lane=1 status=flying pos=(239.7, 244.5) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (239.7384, 320.0), &\"height\": 75.5102040816324, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (245.9193, 320.0), &\"target_id\": 6, &\"projected_position\": (239.7384, 244.4898), &\"travel_progress\": 0.88095238095238, &\"speed\": 37.085211617606 }",
+				"projectile#15 lane=0 status=flying pos=(245.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (245.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (245.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 4.99851699999997
+		},
+		{
+			"frame": 288,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=68/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 68, \"max_health\": 100, \"health_ratio\": 0.68, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=15/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 15, \"max_health\": 120, \"health_ratio\": 0.125, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(386.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(256.9, 320.0) health=80/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 120, \"health_ratio\": 0.66666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#14 lane=1 status=flying pos=(240.4, 180.8) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (240.4405, 320.0), &\"height\": 139.183673469387, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (256.9193, 320.0), &\"target_id\": 6, &\"projected_position\": (240.4405, 180.8163), &\"travel_progress\": 0.73809523809524, &\"speed\": 44.942387172154 }",
+				"projectile#15 lane=0 status=flying pos=(201.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (201.3333, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (201.3333, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 4.79841699999998
+		},
+		{
+			"frame": 276,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=72/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 72, \"max_health\": 100, \"health_ratio\": 0.72, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=30/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 30, \"max_health\": 120, \"health_ratio\": 0.25, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(397.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(267.9, 320.0) health=80/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 120, \"health_ratio\": 0.66666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#14 lane=1 status=flying pos=(238.0, 146.5) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (237.9995, 320.0), &\"height\": 173.469387755102, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (267.9192, 320.0), &\"target_id\": 6, &\"projected_position\": (237.9995, 146.5306), &\"travel_progress\": 0.5952380952381, &\"speed\": 52.7994428362165 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 4.59831699999998
+		},
+		{
+			"frame": 264,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=72/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 72, \"max_health\": 100, \"health_ratio\": 0.72, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=30/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 30, \"max_health\": 120, \"health_ratio\": 0.25, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(408.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(278.9, 320.0) health=80/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 120, \"health_ratio\": 0.66666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#14 lane=1 status=flying pos=(232.4, 141.6) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (232.4158, 320.0), &\"height\": 178.367346938776, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (278.9191, 320.0), &\"target_id\": 6, &\"projected_position\": (232.4158, 141.6327), &\"travel_progress\": 0.45238095238095, &\"speed\": 60.656498500279 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 4.39821699999998
+		},
+		{
+			"frame": 252,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=72/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 72, \"max_health\": 100, \"health_ratio\": 0.72, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=30/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 30, \"max_health\": 120, \"health_ratio\": 0.25, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(419.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(289.9, 320.0) health=80/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 120, \"health_ratio\": 0.66666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#14 lane=1 status=flying pos=(223.7, 166.1) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (223.6892, 320.0), &\"height\": 153.877551020408, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (289.919, 320.0), &\"target_id\": 6, &\"projected_position\": (223.6892, 166.1225), &\"travel_progress\": 0.30952380952381, &\"speed\": 68.5135541643415 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 4.19811699999998
+		},
+		{
+			"frame": 240,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=72/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 72, \"max_health\": 100, \"health_ratio\": 0.72, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=30/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 30, \"max_health\": 120, \"health_ratio\": 0.25, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(430.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(300.9, 320.0) health=80/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 120, \"health_ratio\": 0.66666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#14 lane=1 status=flying pos=(211.8, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (211.8198, 320.0), &\"height\": 100.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (300.9189, 320.0), &\"target_id\": 6, &\"projected_position\": (211.8198, 220.0), &\"travel_progress\": 0.16666666666667, &\"speed\": 76.370609828404 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 3.99801699999999
+		},
+		{
+			"frame": 228,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=88/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 88, \"max_health\": 100, \"health_ratio\": 0.88, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=82/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 82, \"max_health\": 100, \"health_ratio\": 0.82, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=30/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 30, \"max_health\": 120, \"health_ratio\": 0.25, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(441.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(311.9, 320.0) health=80/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 120, \"health_ratio\": 0.66666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#14 lane=1 status=flying pos=(196.8, 303.3) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (196.8076, 320.0), &\"height\": 16.734693877551, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (311.9187, 320.0), &\"target_id\": 6, &\"projected_position\": (196.8076, 303.2653), &\"travel_progress\": 0.02380952380952, &\"speed\": 84.2276654924665 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 3.79791899999999
+		},
+		{
+			"frame": 216,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=82/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 82, \"max_health\": 100, \"health_ratio\": 0.82, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=50/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 50, \"max_health\": 120, \"health_ratio\": 0.41666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(452.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(322.9, 320.0) health=80/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 80, \"max_health\": 120, \"health_ratio\": 0.66666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#13 lane=0 status=flying pos=(267.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (267.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (267.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 3.59781699999999
+		},
+		{
+			"frame": 204,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=82/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 82, \"max_health\": 100, \"health_ratio\": 0.82, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=50/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 50, \"max_health\": 120, \"health_ratio\": 0.41666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(463.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(333.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#11 lane=1 status=flying pos=(332.3, 311.5) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (332.2528, 320.0), &\"height\": 8.46938775510201, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (333.9185, 320.0), &\"target_id\": 6, &\"projected_position\": (332.2528, 311.5306), &\"travel_progress\": 0.98809523809524, &\"speed\": 99.9417768205915 }",
+				"projectile#13 lane=0 status=flying pos=(223.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (223.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (223.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 3.39771699999999
+		},
+		{
+			"frame": 192,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=82/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 82, \"max_health\": 100, \"health_ratio\": 0.82, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=50/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 50, \"max_health\": 120, \"health_ratio\": 0.41666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(474.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(344.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#11 lane=1 status=flying pos=(321.6, 225.8) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (321.562, 320.0), &\"height\": 94.1836734693875, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (344.9184, 320.0), &\"target_id\": 6, &\"projected_position\": (321.562, 225.8163), &\"travel_progress\": 0.8452380952381, &\"speed\": 107.798832484654 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 3.19761799999999
+		},
+		{
+			"frame": 180,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=82/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 82, \"max_health\": 100, \"health_ratio\": 0.82, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(305.1, 220.0) health=50/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 50, \"max_health\": 120, \"health_ratio\": 0.41666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (0.0, 0.0), &\"speed\": 0.0, &\"attack_target_id\": 2 }",
+				"zombie#5 lane=0 status=alive pos=(485.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(355.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#11 lane=1 status=flying pos=(307.7, 169.5) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (307.7283, 320.0), &\"height\": 150.510204081632, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (355.9182, 320.0), &\"target_id\": 6, &\"projected_position\": (307.7283, 169.4898), &\"travel_progress\": 0.70238095238095, &\"speed\": 115.655888148717 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 2.99751699999999
+		},
+		{
+			"frame": 168,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(306.9, 220.0) health=50/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 50, \"max_health\": 120, \"health_ratio\": 0.41666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(496.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(366.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#11 lane=1 status=flying pos=(290.8, 142.6) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (290.7518, 320.0), &\"height\": 177.448979591837, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (366.9181, 320.0), &\"target_id\": 6, &\"projected_position\": (290.7518, 142.551), &\"travel_progress\": 0.55952380952381, &\"speed\": 123.512943812779 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 2.79741899999999
+		},
+		{
+			"frame": 156,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(317.9, 220.0) health=50/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 50, \"max_health\": 120, \"health_ratio\": 0.41666666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(507.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(377.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#11 lane=1 status=flying pos=(270.6, 145.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (270.6325, 320.0), &\"height\": 175.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (377.918, 320.0), &\"target_id\": 6, &\"projected_position\": (270.6325, 145.0), &\"travel_progress\": 0.41666666666667, &\"speed\": 131.369999476842 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 2.59731899999999
+		},
+		{
+			"frame": 144,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=92/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 92, \"max_health\": 100, \"health_ratio\": 0.92, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(328.9, 220.0) health=65/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 65, \"max_health\": 120, \"health_ratio\": 0.54166666666667, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(518.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(388.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#11 lane=1 status=flying pos=(247.4, 176.8) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (247.3704, 320.0), &\"height\": 143.163265306122, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (388.9179, 320.0), &\"target_id\": 6, &\"projected_position\": (247.3704, 176.8367), &\"travel_progress\": 0.27380952380952, &\"speed\": 139.227055140904 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 2.39721899999999
+		},
+		{
+			"frame": 132,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(339.9, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(529.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(399.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#10 lane=0 status=flying pos=(289.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (289.3333, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (289.3333, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }",
+				"projectile#11 lane=1 status=flying pos=(221.0, 238.1) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (220.9654, 320.0), &\"height\": 81.9387755102041, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (399.9178, 320.0), &\"target_id\": 6, &\"projected_position\": (220.9654, 238.0612), &\"travel_progress\": 0.13095238095238, &\"speed\": 147.084110804967 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 2.19711799999999
+		},
+		{
+			"frame": 120,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(350.9, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(540.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(410.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#10 lane=0 status=flying pos=(245.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (245.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (245.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 1.99701699999999
+		},
+		{
+			"frame": 108,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(361.9, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(551.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(421.9, 320.0) health=100/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 120, \"health_ratio\": 0.83333333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#10 lane=0 status=flying pos=(201.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (201.3333, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (201.3333, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 1.79691699999999
+		},
+		{
+			"frame": 96,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(372.9, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(562.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(432.9, 320.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#9 lane=1 status=flying pos=(421.5, 287.3) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (421.5404, 320.0), &\"height\": 32.6530612244897, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (432.9174, 320.0), &\"target_id\": 6, &\"projected_position\": (421.5404, 287.3469), &\"travel_progress\": 0.95238095238095, &\"speed\": 170.655277797154 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 1.596817
+		},
+		{
+			"frame": 84,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(383.9, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(573.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(443.9, 320.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#9 lane=1 status=flying pos=(396.3, 209.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (396.314, 320.0), &\"height\": 111.020408163265, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (443.9173, 320.0), &\"target_id\": 6, &\"projected_position\": (396.314, 208.9796), &\"travel_progress\": 0.80952380952381, &\"speed\": 178.512333461217 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 1.396719
+		},
+		{
+			"frame": 72,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(394.9, 220.0) health=85/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 85, \"max_health\": 120, \"health_ratio\": 0.70833333333333, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(584.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(454.9, 320.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#9 lane=1 status=flying pos=(367.9, 160.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (367.9448, 320.0), &\"height\": 160.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (454.9171, 320.0), &\"target_id\": 6, &\"projected_position\": (367.9448, 160.0), &\"travel_progress\": 0.66666666666667, &\"speed\": 186.369389125279 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 1.196617
+		},
+		{
+			"frame": 60,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(405.9, 220.0) health=105/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 105, \"max_health\": 120, \"health_ratio\": 0.875, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(595.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(465.9, 320.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#7 lane=0 status=flying pos=(355.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (355.3331, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (355.3331, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }",
+				"projectile#9 lane=1 status=flying pos=(336.4, 140.4) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (336.4327, 320.0), &\"height\": 179.591836734694, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (465.917, 320.0), &\"target_id\": 6, &\"projected_position\": (336.4327, 140.4082), &\"travel_progress\": 0.52380952380952, &\"speed\": 194.226444789342 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 0.996517000000001
+		},
+		{
+			"frame": 48,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=96/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 96, \"max_health\": 100, \"health_ratio\": 0.96, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(416.9, 220.0) health=105/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 105, \"max_health\": 120, \"health_ratio\": 0.875, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(606.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(476.9, 320.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#7 lane=0 status=flying pos=(311.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (311.3333, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (311.3333, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }",
+				"projectile#9 lane=1 status=flying pos=(301.8, 150.2) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (301.7779, 320.0), &\"height\": 169.795918367347, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (476.9169, 320.0), &\"target_id\": 6, &\"projected_position\": (301.7779, 150.2041), &\"travel_progress\": 0.38095238095238, &\"speed\": 202.083500453404 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 0.796417
+		},
+		{
+			"frame": 36,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(427.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(617.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(487.9, 320.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#7 lane=0 status=flying pos=(267.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (267.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (267.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }",
+				"projectile#8 lane=0 status=flying pos=(354.0, 220.0) health=0/0 values={ &\"damage\": 15, &\"move_mode\": &\"track\", &\"owner_id\": 2, &\"launch_speed\": 210.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (354.0, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (284.0, 220.0), &\"target_id\": 4, &\"projected_position\": (354.0, 220.0), &\"velocity\": (210.0, 0.0), &\"speed\": 210.0, &\"tracking_target\": 4 }",
+				"projectile#9 lane=1 status=flying pos=(264.0, 189.4) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (263.9802, 320.0), &\"height\": 130.612244897959, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (487.9168, 320.0), &\"target_id\": 6, &\"projected_position\": (263.9802, 189.3878), &\"travel_progress\": 0.23809523809524, &\"speed\": 209.940556117467 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 0.596319
+		},
+		{
+			"frame": 24,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(438.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(628.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(498.9, 320.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"projectile#7 lane=0 status=flying pos=(223.3, 220.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"linear\", &\"owner_id\": 1, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (223.3334, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (194.0, 220.0), &\"target_id\": -1, &\"projected_position\": (223.3334, 220.0), &\"velocity\": (220.0, 0.0), &\"speed\": 220.0 }",
+				"projectile#8 lane=0 status=flying pos=(312.0, 220.0) health=0/0 values={ &\"damage\": 15, &\"move_mode\": &\"track\", &\"owner_id\": 2, &\"launch_speed\": 210.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"swept_segment\", &\"terminal_hit_strategy\": &\"none\", &\"ground_position\": (312.0, 220.0), &\"height\": 0.0, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (284.0, 220.0), &\"target_id\": 4, &\"projected_position\": (312.0, 220.0), &\"velocity\": (210.0, 0.0), &\"speed\": 210.0, &\"tracking_target\": 4 }",
+				"projectile#9 lane=1 status=flying pos=(223.0, 258.0) health=0/0 values={ &\"damage\": 20, &\"move_mode\": &\"parabola\", &\"owner_id\": 3, &\"launch_speed\": 220.0, &\"launch_direction\": (1.0, 0.0), &\"impact_radius\": 20.0, &\"collision_padding\": 10.0, &\"hit_strategy\": &\"terminal_hitbox\", &\"terminal_hit_strategy\": &\"impact_hitbox\", &\"ground_position\": (223.0397, 320.0), &\"height\": 62.0408163265306, &\"max_hit_height\": 24.0, &\"projection_scale\": 1.0, &\"target_position\": (498.9167, 320.0), &\"target_id\": 6, &\"projected_position\": (223.0397, 257.9592), &\"travel_progress\": 0.0952380952381, &\"speed\": 217.797611781529 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 0.399652333333333
+		},
+		{
+			"frame": 12,
+			"lines": [
+				"plant#1 lane=0 status=alive pos=(160.0, 220.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"plant#2 lane=0 status=alive pos=(250.0, 220.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"plant#3 lane=1 status=alive pos=(160.0, 320.0) health=100/100 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 100, \"max_health\": 100, \"health_ratio\": 1.0, &\"can_fire\": true }",
+				"zombie#4 lane=0 status=alive pos=(449.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#5 lane=0 status=alive pos=(639.9, 220.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }",
+				"zombie#6 lane=1 status=alive pos=(509.9, 320.0) health=120/120 values={ &\"hit_height_range\": (0.0, 24.0), \"health\": 120, \"max_health\": 120, \"health_ratio\": 1.0, &\"attack_damage\": 10, &\"move_speed\": 55.0, &\"velocity\": (-55.0, 0.0), &\"speed\": 55.0, &\"attack_target_id\": -1 }"
+			],
+			"scenario": "Minimal Battle Validation",
+			"time": 0.197552333333333
+		}
+	],
+	"trigger_log": [
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": true,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": true,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": true,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": true,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.died",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "on_death"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.died",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "on_death"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.died",
+			"fired": true,
+			"owner": "zombie#4",
+			"trigger_id": "on_death"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": true,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": true,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": true,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 4,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": true,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 3,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": true,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#6",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#5",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "entity.damaged",
+			"fired": false,
+			"owner": "zombie#4",
+			"trigger_id": "when_damaged"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#3",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#2",
+			"trigger_id": "periodically"
+		},
+		{
+			"depth": 1,
+			"event_name": "game.tick",
+			"fired": false,
+			"owner": "plant#1",
+			"trigger_id": "periodically"
+		}
+	]
+}

@@ -52,5 +52,12 @@ After major changes:
 
 - Headless startup:
   - `& 'E:\SDK\Godot\Godot_v4.6.1-stable_win64_console.exe' --headless --path 'E:\Code\open_pvz' --quit-after 3`
+- Minimal validation:
+  - `& 'E:\Code\open_pvz\tools\run_validation.ps1' -Scenario 'res://scenes/validation/minimal_battle_validation.tres'`
 - Long-range parabola validation:
   - `& 'E:\Code\open_pvz\tools\run_validation.ps1'`
+- Batch validation:
+  - `& 'E:\Code\open_pvz\tools\run_all_validations.ps1'`
+- Validation artifacts:
+  - single-run reports go to `E:\Code\open_pvz\artifacts\validation\<timestamp>_<run_label>\`
+  - batch summaries go to `E:\Code\open_pvz\artifacts\validation\batch_<timestamp>\`

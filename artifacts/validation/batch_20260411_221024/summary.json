@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-04-11T22:10:33",
+  "manifest": "E:\\Code\\open_pvz\\tools\\validation_scenarios.json",
+  "batch_dir": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024",
+  "total": 2,
+  "passed": 2,
+  "failed": 0,
+  "results": [
+    {
+      "Scenario": "res://scenes/validation/minimal_battle_validation.tres",
+      "RunLabel": "minimal_battle_validation",
+      "RunDir": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024\\20260411_221024_minimal_battle_validation",
+      "ConsoleLog": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024\\20260411_221024_minimal_battle_validation\\godot.log",
+      "ReportPath": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024\\20260411_221024_minimal_battle_validation\\validation_report.json",
+      "DebugLogPath": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024\\20260411_221024_minimal_battle_validation\\debug_logs.json",
+      "Status": "passed",
+      "ExitCode": 0
+    },
+    {
+      "Scenario": "res://scenes/validation/parabola_long_range_validation.tres",
+      "RunLabel": "parabola_long_range_validation",
+      "RunDir": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024\\20260411_221030_parabola_long_range_validation",
+      "ConsoleLog": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024\\20260411_221030_parabola_long_range_validation\\godot.log",
+      "ReportPath": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024\\20260411_221030_parabola_long_range_validation\\validation_report.json",
+      "DebugLogPath": "E:\\Code\\open_pvz\\artifacts\\\\validation\\batch_20260411_221024\\20260411_221030_parabola_long_range_validation\\debug_logs.json",
+      "Status": "passed",
+      "ExitCode": 0
+    }
+  ]
+}

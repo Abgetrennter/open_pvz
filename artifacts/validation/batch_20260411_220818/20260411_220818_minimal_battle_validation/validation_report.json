@@ -1,0 +1,130 @@
+{
+	"counts": {
+		"death_chain": 1,
+		"linear_spawn": 6,
+		"parabola_hit": 4,
+		"projectile_damage": 26,
+		"tick": 31,
+		"track_spawn": 4
+	},
+	"description": "A deterministic validation battle for the engine backbone. It exercises tick triggers, effect execution, three projectile movement modes, damage callbacks, and death explosions on the same runtime.",
+	"display_name": "Minimal Battle Validation",
+	"finished_at": 8.00321951851846,
+	"goals": [
+		"Observe a full event chain from game.tick to projectile.hit to entity.damaged.",
+		"Verify linear, track, and parabola projectile movement across two lanes.",
+		"Verify when_damaged and on_death triggers reuse the same EventBus, Context, and EffectExecutor.",
+		"Press R to reset the battle and rerun the same validation sequence."
+	],
+	"rules": [
+		{
+			"count": 31,
+			"description": "at least one game tick event",
+			"event_name": "game.tick",
+			"min_count": 1,
+			"required_core_values": {
+
+			},
+			"required_tags": [],
+			"rule_id": "tick",
+			"satisfied": true
+		},
+		{
+			"count": 6,
+			"description": "linear projectile spawn",
+			"event_name": "projectile.spawned",
+			"min_count": 1,
+			"required_core_values": {
+				"move_mode": "linear"
+			},
+			"required_tags": [
+				"projectile"
+			],
+			"rule_id": "linear_spawn",
+			"satisfied": true
+		},
+		{
+			"count": 4,
+			"description": "track projectile spawn",
+			"event_name": "projectile.spawned",
+			"min_count": 1,
+			"required_core_values": {
+				"move_mode": "track"
+			},
+			"required_tags": [
+				"projectile"
+			],
+			"rule_id": "track_spawn",
+			"satisfied": true
+		},
+		{
+			"count": 4,
+			"description": "parabola projectile hit",
+			"event_name": "projectile.hit",
+			"min_count": 1,
+			"required_core_values": {
+				"move_mode": "parabola"
+			},
+			"required_tags": [
+				"projectile"
+			],
+			"rule_id": "parabola_hit",
+			"satisfied": true
+		},
+		{
+			"count": 26,
+			"description": "projectile damage event",
+			"event_name": "entity.damaged",
+			"min_count": 1,
+			"required_core_values": {
+
+			},
+			"required_tags": [
+				"projectile"
+			],
+			"rule_id": "projectile_damage",
+			"satisfied": true
+		},
+		{
+			"count": 1,
+			"description": "at least one death event",
+			"event_name": "entity.died",
+			"min_count": 1,
+			"required_core_values": {
+
+			},
+			"required_tags": [],
+			"rule_id": "death_chain",
+			"satisfied": true
+		},
+		{
+			"count": 0,
+			"description": "death-triggered explosion damage",
+			"event_name": "entity.damaged",
+			"min_count": 1,
+			"required_core_values": {
+
+			},
+			"required_tags": [
+				"explode",
+				"entity.died"
+			],
+			"rule_id": "explode_damage",
+			"satisfied": false
+		}
+	],
+	"run_label": "minimal_battle_validation",
+	"runtime_snapshot_enabled": true,
+	"runtime_snapshot_interval_frames": 12,
+	"scenario_id": "minimal_battle_validation",
+	"started_at": 0.0,
+	"status": "failed",
+	"summary_lines": [
+		"Validation FAILED",
+		"Need death-triggered explosion damage"
+	],
+	"unsatisfied_rules": [
+		"death-triggered explosion damage"
+	],
+	"validation_time_limit": 8.0
+}

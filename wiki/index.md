@@ -11,7 +11,8 @@
 1. [项目定位与总体架构](01-overview/00-核心架构总览.md)
 2. [核心设计哲学](01-overview/01-核心设计哲学.md)
 3. [系统架构](01-overview/02-系统架构.md)
-4. [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
+4. [Open PVZ 系统版图与规划分层](01-overview/34-Open PVZ 系统版图与规划分层.md)
+5. [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
 
 这四篇负责回答最重要的问题：
 
@@ -47,6 +48,7 @@ wiki/
 - [项目定位与总体架构](01-overview/00-核心架构总览.md)
 - [核心设计哲学](01-overview/01-核心设计哲学.md)
 - [系统架构](01-overview/02-系统架构.md)
+- [Open PVZ 系统版图与规划分层](01-overview/34-Open PVZ 系统版图与规划分层.md)
 - [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
 
 ### B. 协议与运行时层
@@ -89,6 +91,7 @@ wiki/
 ### 如果你要梳理项目方向
 
 - [项目定位与总体架构](01-overview/00-核心架构总览.md)
+- [Open PVZ 系统版图与规划分层](01-overview/34-Open PVZ 系统版图与规划分层.md)
 - [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
 
 ### 如果你要开始搭运行时
@@ -109,6 +112,7 @@ wiki/
 
 ### 如果你要看后续扩展边界
 
+- [Open PVZ 系统版图与规划分层](01-overview/34-Open PVZ 系统版图与规划分层.md)
 - [开发路线图](04-roadmap-reference/26-开发路线图.md)
 - [扩展与数据包](04-roadmap-reference/11-扩展性与社区生态.md)
 - [外部项目调研：PVZ-Godot-Dream](04-roadmap-reference/24-外部项目调研-PVZ-Godot-Dream.md)

@@ -4,15 +4,18 @@ const MAX_EVENTS := 128
 const MAX_EFFECTS := 128
 const MAX_TRIGGERS := 128
 const MAX_RUNTIME_SNAPSHOTS := 128
+const MAX_PROTOCOL_ISSUES := 64
 
 var enable_event_logging := true
 var enable_effect_logging := true
 var enable_trigger_logging := true
 var enable_runtime_snapshot_logging := true
+var enable_protocol_logging := true
 var event_log: Array[Dictionary] = []
 var effect_log: Array[Dictionary] = []
 var trigger_log: Array[Dictionary] = []
 var runtime_snapshot_log: Array[Dictionary] = []
+var protocol_log: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -43,6 +46,37 @@ func clear_logs() -> void:
 	effect_log.clear()
 	trigger_log.clear()
 	runtime_snapshot_log.clear()
+	protocol_log.clear()
+
+
+func build_export_payload() -> Dictionary:
+	return {
+		"config": {
+			"enable_event_logging": enable_event_logging,
+			"enable_effect_logging": enable_effect_logging,
+			"enable_trigger_logging": enable_trigger_logging,
+			"enable_runtime_snapshot_logging": enable_runtime_snapshot_logging,
+			"enable_protocol_logging": enable_protocol_logging,
+		},
+		"event_log": _json_safe(event_log),
+		"effect_log": _json_safe(effect_log),
+		"trigger_log": _json_safe(trigger_log),
+		"runtime_snapshot_log": _json_safe(runtime_snapshot_log),
+		"protocol_log": _json_safe(protocol_log),
+	}
+
+
+func record_protocol_issue(scope: StringName, message: String, severity: StringName = &"warning") -> void:
+	if not enable_protocol_logging:
+		return
+	protocol_log.push_front({
+		"scope": scope,
+		"message": message,
+		"severity": severity,
+	})
+	if protocol_log.size() > MAX_PROTOCOL_ISSUES:
+		protocol_log.pop_back()
+	print("[Protocol][%s][%s] %s" % [String(severity).to_upper(), String(scope), message])
 
 
 func record_trigger_execution(trigger_id: StringName, owner_entity: Node, event_name: StringName, depth: int, fired: bool) -> void:
@@ -157,3 +191,26 @@ func _print_event_trace(event_name: StringName, event_data: Variant) -> void:
 		str(event_data.core.get("tags", PackedStringArray())),
 		str(event_data.core),
 	])
+
+
+func _json_safe(value: Variant) -> Variant:
+	if value is Dictionary:
+		var converted: Dictionary = {}
+		for key: Variant in value.keys():
+			converted[str(key)] = _json_safe(value[key])
+		return converted
+	if value is Array:
+		var converted_array: Array = []
+		for item in value:
+			converted_array.append(_json_safe(item))
+		return converted_array
+	if value is PackedStringArray:
+		return Array(value)
+	if value is StringName:
+		return String(value)
+	if value is Vector2:
+		return {
+			"x": value.x,
+			"y": value.y,
+		}
+	return value

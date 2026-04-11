@@ -1,6 +1,7 @@
 extends Node
 
 const TriggerDefRef = preload("res://scripts/core/defs/trigger_def.gd")
+const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 
 var _trigger_defs: Dictionary = {}
 var _trigger_strategies: Dictionary = {}
@@ -13,6 +14,13 @@ func _ready() -> void:
 
 func register_def(trigger_def) -> void:
 	if trigger_def == null or trigger_def.trigger_id == StringName():
+		return
+	var errors: Array[String] = ProtocolValidatorRef.validate_trigger_def(trigger_def)
+	if not errors.is_empty():
+		for error in errors:
+			push_warning(error)
+			if DebugService.has_method("record_protocol_issue"):
+				DebugService.record_protocol_issue(&"trigger_def", error, &"error")
 		return
 	_trigger_defs[trigger_def.trigger_id] = trigger_def
 
@@ -53,6 +61,7 @@ func _register_builtin_defs() -> void:
 	periodically.weight = 100
 	periodically.max_bound_effects = 1
 	periodically.condition_params = periodically_params
+	periodically.allow_extra_conditions = false
 	register_def(periodically)
 
 	var when_damaged = TriggerDefRef.new()
@@ -67,6 +76,7 @@ func _register_builtin_defs() -> void:
 	when_damaged.weight = 60
 	when_damaged.max_bound_effects = 1
 	when_damaged.condition_params = when_damaged_params
+	when_damaged.allow_extra_conditions = false
 	register_def(when_damaged)
 
 	var on_death = TriggerDefRef.new()
@@ -74,6 +84,7 @@ func _register_builtin_defs() -> void:
 	on_death.event_name = &"entity.died"
 	on_death.weight = 30
 	on_death.max_bound_effects = 1
+	on_death.allow_extra_conditions = false
 	register_def(on_death)
 
 

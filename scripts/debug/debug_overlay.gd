@@ -95,6 +95,12 @@ func _build_summary_text() -> String:
 		var validation_lines: PackedStringArray = battle_root.call("get_validation_summary_lines", 2)
 		for validation_line in validation_lines:
 			lines.append(validation_line)
+	if not DebugService.protocol_log.is_empty():
+		var protocol_entry: Dictionary = DebugService.protocol_log[0]
+		var protocol_message := String(protocol_entry.get("message", ""))
+		if protocol_message.length() > 52:
+			protocol_message = protocol_message.substr(0, 49) + "..."
+		lines.append("Protocol %s" % protocol_message)
 	if battle_root != null and battle_root.has_method("get_scenario_goals"):
 		var goals: PackedStringArray = battle_root.call("get_scenario_goals")
 		for goal_index in range(mini(goals.size(), 2)):

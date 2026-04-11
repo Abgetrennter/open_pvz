@@ -1,0 +1,6 @@
+[ValidationBatch] Total: 2
+[ValidationBatch] Passed: 2
+[ValidationBatch] Failed: 0
+[ValidationBatch] BatchDir: E:\Code\open_pvz\artifacts\\validation\batch_20260411_221024
+[ValidationBatch] minimal_battle_validation: PASSED
+[ValidationBatch] parabola_long_range_validation: PASSED

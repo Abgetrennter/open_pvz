@@ -1,0 +1,12 @@
+[
+  {
+    "id": "minimal_battle_validation",
+    "scenario": "res://scenes/validation/minimal_battle_validation.tres",
+    "description": "Covers the minimum engine backbone validation scenario."
+  },
+  {
+    "id": "parabola_long_range_validation",
+    "scenario": "res://scenes/validation/parabola_long_range_validation.tres",
+    "description": "Covers long-range parabola hit behavior."
+  }
+]

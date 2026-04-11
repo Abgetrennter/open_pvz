@@ -10,6 +10,7 @@ const BattleValidationRuleRef = preload("res://scripts/battle/battle_validation_
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
+const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
 const DebugOverlayRef = preload("res://scripts/debug/debug_overlay.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
@@ -28,6 +29,8 @@ const LANE_Y := {
 @export var auto_quit_delay := 0.2
 @export var print_validation_report := false
 @export_file("*.tres") var scenario_override_path := ""
+@export_dir var validation_output_dir := ""
+@export var validation_run_label := ""
 @export var enable_runtime_snapshot_logging := false
 @export var runtime_snapshot_interval_frames := 10
 
@@ -132,12 +135,19 @@ func _spawn_scenario() -> void:
 	var active_scenario = _resolve_scenario()
 	if active_scenario == null:
 		return
+	_report_protocol_issues(ProtocolValidatorRef.validate_battle_scenario(active_scenario), &"battle_scenario")
 	for spawn_entry in active_scenario.spawns:
 		_spawn_entry(spawn_entry)
 
 
 func _spawn_entry(spawn_entry) -> void:
 	if spawn_entry == null:
+		return
+	var active_scenario = _resolve_scenario()
+	var scenario_id: StringName = StringName() if active_scenario == null else active_scenario.scenario_id
+	var spawn_errors: Array[String] = ProtocolValidatorRef.validate_battle_spawn_entry(spawn_entry, scenario_id)
+	if not spawn_errors.is_empty():
+		_report_protocol_issues(spawn_errors, &"battle_spawn_entry")
 		return
 
 	var entry_kind: StringName = spawn_entry.entity_kind
@@ -249,6 +259,11 @@ func _spawn_debug_overlay() -> void:
 func _build_projectile_movement_params(context, params: Dictionary, spawn_position: Vector2, direction: Vector2, speed: float) -> Dictionary:
 	var movement_params: Dictionary = {}
 	var flight_profile: Resource = params.get("flight_profile", null)
+	if flight_profile != null:
+		var flight_errors: Array[String] = ProtocolValidatorRef.validate_projectile_flight_profile(flight_profile)
+		if not flight_errors.is_empty():
+			_report_protocol_issues(flight_errors, &"projectile_flight_profile")
+			flight_profile = null
 	if flight_profile != null and flight_profile.get_script() == ProjectileFlightProfileRef:
 		movement_params = _movement_params_from_flight_profile(flight_profile)
 	var movement_mode_default: Variant = movement_params.get("move_mode", &"linear")
@@ -420,7 +435,13 @@ func _estimate_target_tracking_budget(target_node: Node2D, travel_duration: floa
 
 
 func _apply_spawn_height_band(entity: Node, height_band: Resource) -> void:
-	if height_band == null or height_band.get_script() != HeightBandRef:
+	if height_band == null:
+		return
+	var height_errors: Array[String] = ProtocolValidatorRef.validate_height_band(height_band)
+	if not height_errors.is_empty():
+		_report_protocol_issues(height_errors, &"height_band")
+		return
+	if height_band.get_script() != HeightBandRef:
 		return
 	if entity.has_method("apply_height_band"):
 		entity.call("apply_height_band", height_band)
@@ -665,7 +686,7 @@ func _set_validation_status(next_status: StringName) -> void:
 func _report_validation_result() -> void:
 	if _validation_reported:
 		return
-	if not print_validation_report and not auto_quit_on_validation:
+	if not print_validation_report and not auto_quit_on_validation and validation_output_dir.is_empty():
 		return
 	_validation_reported = true
 
@@ -675,9 +696,12 @@ func _report_validation_result() -> void:
 	if active_scenario != null:
 		scenario_label = "%s (%s)" % [active_scenario.display_name, String(active_scenario.scenario_id)]
 
-	print("[Validation] %s %s" % [status_label, scenario_label])
-	for line in get_validation_summary_lines(12):
-		print("[Validation] %s" % line)
+	if print_validation_report or auto_quit_on_validation:
+		print("[Validation] %s %s" % [status_label, scenario_label])
+		for line in get_validation_summary_lines(12):
+			print("[Validation] %s" % line)
+
+	_export_validation_artifacts()
 
 
 func _process_auto_quit(delta: float) -> void:
@@ -711,6 +735,12 @@ func _apply_runtime_options() -> void:
 		if arg.begins_with("--validation-scenario="):
 			scenario_override_path = arg.trim_prefix("--validation-scenario=")
 			continue
+		if arg.begins_with("--validation-output-dir="):
+			validation_output_dir = arg.trim_prefix("--validation-output-dir=")
+			continue
+		if arg.begins_with("--validation-run-label="):
+			validation_run_label = arg.trim_prefix("--validation-run-label=")
+			continue
 
 	if scenario_override_path.is_empty():
 		return
@@ -726,6 +756,101 @@ func _record_runtime_snapshot() -> void:
 		return
 	var scenario_name := get_scenario_name()
 	DebugService.record_runtime_snapshot(_runtime_frame_counter, GameState.current_time, scenario_name, get_runtime_entities())
+
+
+func _report_protocol_issues(errors: Array[String], scope: StringName) -> void:
+	for error in errors:
+		push_warning(error)
+		if DebugService.has_method("record_protocol_issue"):
+			DebugService.record_protocol_issue(scope, error, &"error")
+
+
+func _export_validation_artifacts() -> void:
+	if validation_output_dir.is_empty():
+		return
+	var output_dir_path := _resolved_output_dir_path()
+	if output_dir_path.is_empty():
+		return
+
+	var mkdir_error := DirAccess.make_dir_recursive_absolute(output_dir_path)
+	if mkdir_error != OK:
+		push_warning("Failed to create validation output directory: %s (error %d)" % [output_dir_path, mkdir_error])
+		return
+
+	var report_path := output_dir_path.path_join("validation_report.json")
+	var summary_path := output_dir_path.path_join("validation_summary.txt")
+	var debug_log_path := output_dir_path.path_join("debug_logs.json")
+
+	var report: Dictionary = _build_validation_report()
+	var summary_text := "\n".join(get_validation_summary_lines(12)) + "\n"
+	var debug_payload: Dictionary = {}
+	if DebugService.has_method("build_export_payload"):
+		debug_payload = DebugService.build_export_payload()
+
+	_write_json_file(report_path, report)
+	_write_text_file(summary_path, summary_text)
+	_write_json_file(debug_log_path, debug_payload)
+	print("[Validation] Artifacts exported to %s" % output_dir_path)
+
+
+func _build_validation_report() -> Dictionary:
+	var active_scenario = _resolve_scenario()
+	var validation_rules: Array[Dictionary] = []
+	for rule_state in _validation_rule_states:
+		validation_rules.append({
+			"rule_id": String(rule_state.get("rule_id", "")),
+			"description": String(rule_state.get("description", "")),
+			"event_name": String(rule_state.get("event_name", "")),
+			"min_count": int(rule_state.get("min_count", 0)),
+			"count": int(rule_state.get("count", 0)),
+			"satisfied": bool(rule_state.get("satisfied", false)),
+			"required_tags": Array(PackedStringArray(rule_state.get("required_tags", PackedStringArray()))),
+			"required_core_values": rule_state.get("required_core_values", {}).duplicate(true),
+		})
+
+	return {
+		"scenario_id": "" if active_scenario == null else String(active_scenario.scenario_id),
+		"display_name": "" if active_scenario == null else String(active_scenario.display_name),
+		"description": "" if active_scenario == null else String(active_scenario.description),
+		"goals": [] if active_scenario == null else Array(active_scenario.goals),
+		"status": String(_validation_status),
+		"summary_lines": Array(get_validation_summary_lines(12)),
+		"unsatisfied_rules": Array(get_unsatisfied_validation_descriptions()),
+		"validation_time_limit": 0.0 if active_scenario == null else float(active_scenario.validation_time_limit),
+		"started_at": _validation_started_at,
+		"finished_at": GameState.current_time,
+		"counts": _validation_counts.duplicate(true),
+		"run_label": validation_run_label,
+		"runtime_snapshot_enabled": enable_runtime_snapshot_logging,
+		"runtime_snapshot_interval_frames": runtime_snapshot_interval_frames,
+		"rules": validation_rules,
+	}
+
+
+func _resolved_output_dir_path() -> String:
+	if validation_output_dir.is_empty():
+		return ""
+	if validation_output_dir.begins_with("res://") or validation_output_dir.begins_with("user://"):
+		return ProjectSettings.globalize_path(validation_output_dir)
+	return validation_output_dir
+
+
+func _write_json_file(path: String, payload: Variant) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_warning("Failed to open validation artifact for writing: %s" % path)
+		return
+	file.store_string(JSON.stringify(payload, "\t"))
+	file.close()
+
+
+func _write_text_file(path: String, contents: String) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_warning("Failed to open validation summary for writing: %s" % path)
+		return
+	file.store_string(contents)
+	file.close()
 
 
 func _draw() -> void:

@@ -1,0 +1,84 @@
+{
+	"counts": {
+		"parabola_hit": 1,
+		"parabola_spawn": 3,
+		"projectile_damage": 1,
+		"tick": 11
+	},
+	"description": "A focused automation scenario for long-range parabola targeting. It verifies that a slow-moving distant zombie is still hit by the projectile when the arc completes.",
+	"display_name": "Parabola Long Range Validation",
+	"finished_at": 2.76197699999998,
+	"goals": [
+		"Spawn a long-range parabola projectile against a distant moving zombie.",
+		"Verify projectile.spawned, projectile.hit, and entity.damaged all occur in the same run.",
+		"Use this scenario for automated tuning of lead prediction and terminal hit behavior."
+	],
+	"rules": [
+		{
+			"count": 11,
+			"description": "at least one game tick event",
+			"event_name": "game.tick",
+			"min_count": 1,
+			"required_core_values": {
+
+			},
+			"required_tags": [],
+			"rule_id": "tick",
+			"satisfied": true
+		},
+		{
+			"count": 3,
+			"description": "parabola projectile spawn",
+			"event_name": "projectile.spawned",
+			"min_count": 1,
+			"required_core_values": {
+				"move_mode": "parabola"
+			},
+			"required_tags": [
+				"projectile"
+			],
+			"rule_id": "parabola_spawn",
+			"satisfied": true
+		},
+		{
+			"count": 1,
+			"description": "far-range parabola projectile hit",
+			"event_name": "projectile.hit",
+			"min_count": 1,
+			"required_core_values": {
+				"move_mode": "parabola"
+			},
+			"required_tags": [
+				"projectile"
+			],
+			"rule_id": "parabola_hit",
+			"satisfied": true
+		},
+		{
+			"count": 1,
+			"description": "projectile damage event",
+			"event_name": "entity.damaged",
+			"min_count": 1,
+			"required_core_values": {
+
+			},
+			"required_tags": [
+				"projectile"
+			],
+			"rule_id": "projectile_damage",
+			"satisfied": true
+		}
+	],
+	"run_label": "parabola_long_range_validation",
+	"runtime_snapshot_enabled": true,
+	"runtime_snapshot_interval_frames": 12,
+	"scenario_id": "parabola_long_range_validation",
+	"started_at": 0.0,
+	"status": "passed",
+	"summary_lines": [
+		"Validation PASSED",
+		"All scenario checks satisfied."
+	],
+	"unsatisfied_rules": [],
+	"validation_time_limit": 7.5
+}
