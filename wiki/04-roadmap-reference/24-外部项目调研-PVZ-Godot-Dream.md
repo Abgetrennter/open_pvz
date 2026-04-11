@@ -28,7 +28,7 @@
 
 ### 1. 许可证限制很强
 
-它的 [LICENSE](../vendor/PVZ-Godot-Dream/LICENSE) 是自定义的 `Custom Non-Commercial License`，明确禁止商业使用，包括：
+它的 [LICENSE](../../vendor/PVZ-Godot-Dream/LICENSE) 是自定义的 `Custom Non-Commercial License`，明确禁止商业使用，包括：
 
 - 商业公司或组织内部使用
 - 销售、收费分发
@@ -41,7 +41,7 @@
 
 ### 2. 它的目标是“高质量复刻原版 PVZ”，不是规则引擎
 
-[README](../vendor/PVZ-Godot-Dream/README.md) 直接写明项目目标是“对原版 PVZ 进行高质量复刻（完美还原）”，并且“除僵王和部分小游戏外已经基本实现所有原版内容”。
+[README](../../vendor/PVZ-Godot-Dream/README.md) 直接写明项目目标是“对原版 PVZ 进行高质量复刻（完美还原）”，并且“除僵王和部分小游戏外已经基本实现所有原版内容”。
 
 这和当前项目方向有根本差异：
 
@@ -59,10 +59,10 @@
 
 并且存在大量面向具体原版单位或特例的脚本，例如：
 
-- [component_attack_bullet_three_pea.gd](../vendor/PVZ-Godot-Dream/scripts/character/components/attack_behavior_component/component_attack_bullet_three_pea.gd)
-- [component_attack_bullet_corn.gd](../vendor/PVZ-Godot-Dream/scripts/character/components/attack_behavior_component/component_attack_bullet_corn.gd)
-- [component_attack_zombie_ladder.gd](../vendor/PVZ-Godot-Dream/scripts/character/components/attack_behavior_component/component_attack_zombie_ladder.gd)
-- [bullet_registry.gd](../vendor/PVZ-Godot-Dream/scripts/autoload/global/bullet_registry.gd)
+- [component_attack_bullet_three_pea.gd](../../vendor/PVZ-Godot-Dream/scripts/character/components/attack_behavior_component/component_attack_bullet_three_pea.gd)
+- [component_attack_bullet_corn.gd](../../vendor/PVZ-Godot-Dream/scripts/character/components/attack_behavior_component/component_attack_bullet_corn.gd)
+- [component_attack_zombie_ladder.gd](../../vendor/PVZ-Godot-Dream/scripts/character/components/attack_behavior_component/component_attack_zombie_ladder.gd)
+- [bullet_registry.gd](../../vendor/PVZ-Godot-Dream/scripts/autoload/global/bullet_registry.gd)
 
 这说明它的抽象更像：
 
@@ -74,7 +74,7 @@
 
 ### 4. 数据驱动有，但不是你要的那种数据驱动
 
-[level_data.gd](../vendor/PVZ-Godot-Dream/scripts/resources/level/level_data.gd) 说明它对关卡、卡槽、刷怪、罐子模式等做了资源化。
+[level_data.gd](../../vendor/PVZ-Godot-Dream/scripts/resources/level/level_data.gd) 说明它对关卡、卡槽、刷怪、罐子模式等做了资源化。
 
 但它的资源化重点是：
 
@@ -118,7 +118,7 @@
 
 ### 6. GitHub 版本缺少版权相关资产
 
-[README](../vendor/PVZ-Godot-Dream/README.md) 和 [docs/开发相关.md](../vendor/PVZ-Godot-Dream/docs/%E5%BC%80%E5%8F%91%E7%9B%B8%E5%85%B3.md) 都说明：
+[README](../../vendor/PVZ-Godot-Dream/README.md) 和 [docs/开发相关.md](../../vendor/PVZ-Godot-Dream/docs/开发相关.md) 都说明：
 
 - 原版相关资源因为版权原因被删除
 - 完整项目资源需要额外获取
@@ -134,7 +134,7 @@
 
 ### 1. 事件总线实现可以借鉴
 
-[event_bus.gd](../vendor/PVZ-Godot-Dream/scripts/autoload/event_bus.gd) 做了这些事情：
+[event_bus.gd](../../vendor/PVZ-Godot-Dream/scripts/autoload/event_bus.gd) 做了这些事情：
 
 - 动态事件名
 - 订阅 / 退订
@@ -151,7 +151,7 @@
 
 ### 2. 子弹与移动组件拆分值得借鉴
 
-[子弹说明文档](../vendor/PVZ-Godot-Dream/docs/%E5%AD%90%E5%BC%B9%E8%AF%B4%E6%98%8E%E6%96%87%E6%A1%A3.md) 和相关脚本表明它对子弹系统拆得比较清楚：
+[子弹说明文档](../../vendor/PVZ-Godot-Dream/docs/子弹说明文档.md) 和相关脚本表明它对子弹系统拆得比较清楚：
 
 - `Bullet000Base`
 - `Bullet000NormBase`
@@ -166,7 +166,7 @@
 
 ### 3. 角色“本体 + 组件”拆法可作为 Godot 工程经验
 
-[character_000_base.gd](../vendor/PVZ-Godot-Dream/scripts/character/character_000_base.gd) 与 [docs/开发相关.md](../vendor/PVZ-Godot-Dream/docs/%E5%BC%80%E5%8F%91%E7%9B%B8%E5%85%B3.md) 体现了一个很明确的原则：
+[character_000_base.gd](../../vendor/PVZ-Godot-Dream/scripts/character/character_000_base.gd) 与 [docs/开发相关.md](../../vendor/PVZ-Godot-Dream/docs/开发相关.md) 体现了一个很明确的原则：
 
 - 根节点管基础属性与强耦合逻辑
 - 其余行为交给组件
@@ -175,7 +175,7 @@
 
 ### 4. 主战斗场景的“管理器拆分”可以参考边界
 
-[main_game_manager.gd](../vendor/PVZ-Godot-Dream/scripts/manager/main_game_manager.gd) 展示了一个完整大场景如何拆成多个 manager。
+[main_game_manager.gd](../../vendor/PVZ-Godot-Dream/scripts/manager/main_game_manager.gd) 展示了一个完整大场景如何拆成多个 manager。
 
 虽然它对你来说偏重，但可以帮助你反向确定边界：
 
@@ -250,3 +250,6 @@
 对 `Open PVZ` 来说，更合适的策略是：
 
 > 保留 `PVZ-Godot-Dream` 作为参考子模块，借鉴其 Godot 工程经验和局部运行时实现，但不要把当前项目直接建立在它的代码主干之上。
+
+
+

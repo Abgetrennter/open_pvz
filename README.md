@@ -150,6 +150,12 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 ```text
 plans/   原始设计稿与整合稿
 wiki/    收敛后的结构化设计文档
+├── index.md
+├── 01-overview/
+├── 02-runtime-protocol/
+├── 03-content-validation/
+├── 04-roadmap-reference/
+└── 05-governance/
 vendor/  外部参考实现子模块
 ```
 
@@ -157,8 +163,8 @@ vendor/  外部参考实现子模块
 
 1. [plans/pvz_like_engine_design_doc_v_1.md](plans/pvz_like_engine_design_doc_v_1.md)
 2. [wiki/index.md](wiki/index.md)
-3. [wiki/00-核心架构总览.md](wiki/00-核心架构总览.md)
-4. [wiki/23-当前阶段与实现路线.md](wiki/23-当前阶段与实现路线.md)
+3. [wiki/01-overview/00-核心架构总览.md](wiki/01-overview/00-核心架构总览.md)
+4. [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)
 
 ## 参考实现
 

@@ -9,13 +9,15 @@
 
 Before doing substantial coding or "vibe coding" in this repo, read these docs first:
 
-1. `wiki/23-当前阶段与实现路线.md`
-2. `wiki/26-开发路线图.md`
-3. `wiki/27-项目开发方法论.md`
-4. `wiki/28-Wiki审查与规范化建议.md`
-5. `wiki/29-文档规范与维护约定.md`
+1. `wiki/01-overview/23-当前阶段与实现路线.md`
+2. `wiki/04-roadmap-reference/26-开发路线图.md`
+3. `wiki/05-governance/27-项目开发方法论.md`
+4. `wiki/05-governance/28-Wiki审查与规范化建议.md`
+5. `wiki/05-governance/29-文档规范与维护约定.md`
 
-`wiki/27-项目开发方法论.md` is the default process guide for this repository. `wiki/28-Wiki审查与规范化建议.md` and `wiki/29-文档规范与维护约定.md` define the expected wiki structure and maintenance rules. If there is any ambiguity about how to proceed, use these as the governing workflow and documentation documents.
+If you are orienting manually, start from `wiki/index.md`. The wiki is physically organized by layer under `01-overview`, `02-runtime-protocol`, `03-content-validation`, `04-roadmap-reference`, and `05-governance`.
+
+`wiki/05-governance/27-项目开发方法论.md` is the default process guide for this repository. `wiki/05-governance/28-Wiki审查与规范化建议.md` and `wiki/05-governance/29-文档规范与维护约定.md` define the expected wiki structure and maintenance rules. If there is any ambiguity about how to proceed, use these as the governing workflow and documentation documents.
 
 ## Working Rules
 
