@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ProjectileFlightProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/projectile/projectile_flight_profile.gd" id="1_flight"]
+
+[resource]
+script = ExtResource("1_flight")
+profile_id = &"parabola_long_arc"
+move_mode = &"parabola"
+height_strategy = &"arc"
+peak_height = 220.0
+projection_scale = 1.0
+max_hit_height = 24.0
+hit_strategy = &"terminal_hitbox"
+terminal_hit_strategy = &"impact_hitbox"
+impact_radius = 36.0
+collision_padding = 14.0
+travel_duration = 2.5
+lead_time_scale = 1.0
+dynamic_target_axis = &"x"

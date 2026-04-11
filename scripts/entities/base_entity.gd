@@ -9,6 +9,7 @@ const EntityStateRef = preload("res://scripts/core/runtime/entity_state.gd")
 var entity_id := -1
 var template_id: StringName = StringName()
 var entity_state: Variant = EntityStateRef.new()
+var _hit_height_range := Vector2(0.0, 24.0)
 
 
 func _ready() -> void:
@@ -66,7 +67,20 @@ func get_height() -> float:
 
 
 func get_hit_height_range() -> Vector2:
-	return Vector2(0.0, 24.0)
+	return _hit_height_range
+
+
+func set_hit_height_range(min_height: float, max_height: float) -> void:
+	_hit_height_range = Vector2(min_height, maxf(max_height, min_height))
+	set_state_value(&"hit_height_range", _hit_height_range)
+	_sync_entity_state()
+
+
+func apply_height_band(height_band: Resource) -> void:
+	if height_band == null:
+		return
+	if height_band.has_method("get") and height_band.get("min_height") != null and height_band.get("max_height") != null:
+		set_hit_height_range(float(height_band.get("min_height")), float(height_band.get("max_height")))
 
 
 func get_debug_name() -> String:

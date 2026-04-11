@@ -36,6 +36,7 @@ var _terminal_hit_strategy: StringName = &"impact_hitbox"
 var _ground_position := Vector2.ZERO
 var _height := 0.0
 var _max_hit_height := 24.0
+var _projection_scale := 1.0
 
 
 func _ready() -> void:
@@ -124,8 +125,12 @@ func launch(
 		_move_mode = full_movement_params["move_mode"]
 		_impact_radius = float(full_movement_params.get("impact_radius", 20.0))
 		_collision_padding = float(full_movement_params.get("collision_padding", 10.0))
-		_hit_strategy = StringName(full_movement_params.get("hit_strategy", _default_hit_strategy_for_mode(_move_mode)))
-		_terminal_hit_strategy = StringName(full_movement_params.get("terminal_hit_strategy", _terminal_strategy_for_hit_strategy(_hit_strategy)))
+		_max_hit_height = float(full_movement_params.get("max_hit_height", 24.0))
+		_projection_scale = float(full_movement_params.get("projection_scale", 1.0))
+		var configured_hit_strategy := StringName(full_movement_params.get("hit_strategy", StringName()))
+		_hit_strategy = configured_hit_strategy if configured_hit_strategy != StringName() else _default_hit_strategy_for_mode(_move_mode)
+		var configured_terminal_strategy := StringName(full_movement_params.get("terminal_hit_strategy", StringName()))
+		_terminal_hit_strategy = configured_terminal_strategy if configured_terminal_strategy != StringName() else _terminal_strategy_for_hit_strategy(_hit_strategy)
 		full_movement_params["start_position"] = _ground_position
 		debug_target_position = full_movement_params.get("target_position", _ground_position)
 		debug_target_node = full_movement_params.get("target_node", null)
@@ -143,6 +148,7 @@ func launch(
 	set_state_value(&"ground_position", _ground_position)
 	set_state_value(&"height", _height)
 	set_state_value(&"max_hit_height", _max_hit_height)
+	set_state_value(&"projection_scale", _projection_scale)
 	set_state_value(&"target_position", debug_target_position)
 	set_state_value(&"target_id", -1 if debug_target_node == null or not debug_target_node.has_method("get_entity_id") else int(debug_target_node.call("get_entity_id")))
 	sync_runtime_state()
@@ -429,7 +435,7 @@ func set_projected_motion_state(ground_position: Vector2, height: float) -> void
 
 
 func _apply_projected_transform() -> void:
-	global_position = _ground_position + Vector2(0.0, -_height)
+	global_position = _ground_position + Vector2(0.0, -_height * _projection_scale)
 
 
 func _candidate_ground_position(candidate: Node2D) -> Vector2:

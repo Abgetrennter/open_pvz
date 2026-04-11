@@ -1,14 +1,18 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
 [ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/parabola_long_arc.tres" id="5_profile"]
 
 [sub_resource type="Resource" id="BattleSpawnEntry_parabola"]
 script = ExtResource("2_spawn")
 entity_kind = &"plant"
 lane_id = 1
 x_position = 140.0
+hit_height_band = ExtResource("4_height")
+projectile_flight_profile = ExtResource("5_profile")
 params = {
 "arc_height": 220.0,
 "damage": 20,
@@ -24,6 +28,7 @@ script = ExtResource("2_spawn")
 entity_kind = &"zombie"
 lane_id = 1
 x_position = 790.0
+hit_height_band = ExtResource("4_height")
 
 [sub_resource type="Resource" id="BattleValidationRule_tick"]
 script = ExtResource("3_rule")

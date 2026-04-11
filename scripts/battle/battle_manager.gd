@@ -7,10 +7,12 @@ const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const BattleScenarioRef = preload("res://scripts/battle/battle_scenario.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
 const BattleValidationRuleRef = preload("res://scripts/battle/battle_validation_rule.gd")
+const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
 const DebugOverlayRef = preload("res://scripts/debug/debug_overlay.gd")
+const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 
 const LANE_Y := {
 	0: 220.0,
@@ -158,11 +160,13 @@ func _spawn_entry(spawn_entry) -> void:
 					effect_overrides[key] = params[key]
 			var plant: Variant = _entity_factory.create_plant(Vector2(x_position, _lane_y(lane_id)))
 			plant.assign_lane(lane_id)
+			_apply_spawn_height_band(plant, spawn_entry.hit_height_band)
 			_entity_root.add_child(plant)
-			_bind_shooter_trigger(plant, interval, damage, speed, effect_overrides)
+			_bind_shooter_trigger(plant, interval, damage, speed, effect_overrides, spawn_entry.projectile_flight_profile)
 		&"zombie":
 			var zombie: Variant = _entity_factory.create_zombie(Vector2(x_position, _lane_y(lane_id)))
 			zombie.assign_lane(lane_id)
+			_apply_spawn_height_band(zombie, spawn_entry.hit_height_band)
 			if params.has("move_speed"):
 				zombie.move_speed = float(params.get("move_speed", zombie.move_speed))
 			if params.has("attack_damage"):
@@ -173,7 +177,14 @@ func _spawn_entry(spawn_entry) -> void:
 			push_warning("Unsupported spawn entry kind: %s" % [String(entry_kind)])
 
 
-func _bind_shooter_trigger(plant: Node, interval: float, damage: int, speed: float, effect_overrides: Dictionary = {}) -> void:
+func _bind_shooter_trigger(
+	plant: Node,
+	interval: float,
+	damage: int,
+	speed: float,
+	effect_overrides: Dictionary = {},
+	projectile_flight_profile: Resource = null
+) -> void:
 	var on_hit: Variant = EffectNodeRef.new(&"damage", {
 		"amount": damage,
 		"target_mode": &"context_target",
@@ -183,6 +194,8 @@ func _bind_shooter_trigger(plant: Node, interval: float, damage: int, speed: flo
 		"direction": Vector2.RIGHT,
 		"damage": damage,
 	}
+	if projectile_flight_profile != null and projectile_flight_profile.get_script() == ProjectileFlightProfileRef:
+		root_params["flight_profile"] = projectile_flight_profile
 	for key: Variant in effect_overrides.keys():
 		root_params[key] = effect_overrides[key]
 	var root_effect: Variant = EffectNodeRef.new(&"spawn_projectile", root_params, {
@@ -234,31 +247,33 @@ func _spawn_debug_overlay() -> void:
 
 
 func _build_projectile_movement_params(context, params: Dictionary, spawn_position: Vector2, direction: Vector2, speed: float) -> Dictionary:
-	var movement_params: Dictionary = {
-		"move_mode": StringName(params.get("movement_mode", &"linear")),
-	}
+	var movement_params: Dictionary = {}
+	var flight_profile: Resource = params.get("flight_profile", null)
+	if flight_profile != null and flight_profile.get_script() == ProjectileFlightProfileRef:
+		movement_params = _movement_params_from_flight_profile(flight_profile)
+	var movement_mode_default: Variant = movement_params.get("move_mode", &"linear")
+	movement_params["move_mode"] = StringName(params.get("movement_mode", movement_mode_default))
 	var move_mode: StringName = movement_params["move_mode"]
 
 	match move_mode:
 		&"parabola":
 			var parabola_target: Node2D = _resolve_projectile_target_node(context)
-			var travel_duration := float(params.get("travel_duration", _estimate_parabola_duration(spawn_position, parabola_target, speed)))
-			var impact_radius := float(params.get("impact_radius", 34.0))
+			var configured_travel_duration := float(movement_params.get("travel_duration", -1.0))
+			var default_travel_duration := _estimate_parabola_duration(spawn_position, parabola_target, speed) if configured_travel_duration <= 0.0 else configured_travel_duration
+			var travel_duration := float(params.get("travel_duration", default_travel_duration))
+			var impact_radius := float(params.get("impact_radius", movement_params.get("impact_radius", 34.0)))
 			movement_params["start_position"] = spawn_position
 			movement_params["target_node"] = parabola_target
 			movement_params["target_position"] = _resolve_projectile_target_position(context, params, spawn_position, direction, speed, travel_duration, parabola_target)
 			movement_params["travel_duration"] = travel_duration
-			movement_params["arc_height"] = float(params.get("arc_height", 72.0))
+			movement_params["arc_height"] = float(params.get("arc_height", movement_params.get("arc_height", 72.0)))
 			movement_params["impact_radius"] = impact_radius
-			movement_params["collision_padding"] = float(params.get("collision_padding", 14.0))
-			movement_params["lead_time_scale"] = float(params.get("lead_time_scale", 1.0))
-			movement_params["dynamic_target_adjustment"] = float(
-				params.get(
-					"dynamic_target_adjustment",
-					maxf(impact_radius * 1.5, _estimate_target_tracking_budget(parabola_target, travel_duration))
-				)
-			)
-			movement_params["dynamic_target_axis"] = StringName(params.get("dynamic_target_axis", &"x"))
+			movement_params["collision_padding"] = float(params.get("collision_padding", movement_params.get("collision_padding", 14.0)))
+			movement_params["lead_time_scale"] = float(params.get("lead_time_scale", movement_params.get("lead_time_scale", 1.0)))
+			var configured_dynamic_adjustment := float(movement_params.get("dynamic_target_adjustment", -1.0))
+			var default_dynamic_adjustment := maxf(impact_radius * 1.5, _estimate_target_tracking_budget(parabola_target, travel_duration)) if configured_dynamic_adjustment < 0.0 else configured_dynamic_adjustment
+			movement_params["dynamic_target_adjustment"] = float(params.get("dynamic_target_adjustment", default_dynamic_adjustment))
+			movement_params["dynamic_target_axis"] = StringName(params.get("dynamic_target_axis", movement_params.get("dynamic_target_axis", &"x")))
 		&"track":
 			movement_params["target_node"] = _resolve_projectile_target_node(context)
 			movement_params["turn_rate"] = float(params.get("turn_rate", 6.0))
@@ -266,6 +281,24 @@ func _build_projectile_movement_params(context, params: Dictionary, spawn_positi
 			pass
 
 	return movement_params
+
+
+func _movement_params_from_flight_profile(flight_profile: Resource) -> Dictionary:
+	return {
+		"move_mode": StringName(flight_profile.get("move_mode")),
+		"height_strategy": StringName(flight_profile.get("height_strategy")),
+		"arc_height": float(flight_profile.get("peak_height")),
+		"projection_scale": float(flight_profile.get("projection_scale")),
+		"max_hit_height": float(flight_profile.get("max_hit_height")),
+		"hit_strategy": StringName(flight_profile.get("hit_strategy")),
+		"terminal_hit_strategy": StringName(flight_profile.get("terminal_hit_strategy")),
+		"impact_radius": float(flight_profile.get("impact_radius")),
+		"collision_padding": float(flight_profile.get("collision_padding")),
+		"travel_duration": float(flight_profile.get("travel_duration")),
+		"lead_time_scale": float(flight_profile.get("lead_time_scale")),
+		"dynamic_target_adjustment": float(flight_profile.get("dynamic_target_adjustment")),
+		"dynamic_target_axis": StringName(flight_profile.get("dynamic_target_axis")),
+	}
 
 
 func _resolve_projectile_target_position(
@@ -384,6 +417,13 @@ func _estimate_target_tracking_budget(target_node: Node2D, travel_duration: floa
 	if target_node == null:
 		return 0.0
 	return _estimate_entity_velocity(target_node).length() * travel_duration * 1.25
+
+
+func _apply_spawn_height_band(entity: Node, height_band: Resource) -> void:
+	if height_band == null or height_band.get_script() != HeightBandRef:
+		return
+	if entity.has_method("apply_height_band"):
+		entity.call("apply_height_band", height_band)
 
 
 func get_runtime_entities() -> Array:
