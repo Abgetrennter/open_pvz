@@ -294,41 +294,49 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	if scenario_id != StringName():
 		scope = "%s in scenario %s" % [scope, String(scenario_id)]
 
+	var resolved_template = _resolve_spawn_entry_template(spawn_entry)
 	var entity_kind := String(spawn_entry.entity_kind)
-	if spawn_entry.entity_template != null:
-		for error in validate_entity_template(spawn_entry.entity_template):
+	if StringName(spawn_entry.get("entity_template_id")) != StringName() and resolved_template == null:
+		errors.append("%s.entity_template_id must resolve through SceneRegistry." % scope)
+	if resolved_template != null:
+		for error in validate_entity_template(resolved_template):
 			errors.append("%s entity_template: %s" % [scope, error])
-		if spawn_entry.entity_template != null and StringName(spawn_entry.entity_template.get("entity_kind")) != StringName():
-			entity_kind = String(spawn_entry.entity_template.get("entity_kind"))
+		if StringName(resolved_template.get("entity_kind")) != StringName():
+			entity_kind = String(resolved_template.get("entity_kind"))
 	if entity_kind not in ["plant", "zombie"]:
 		errors.append("%s.entity_kind must be plant or zombie." % scope)
 	if int(spawn_entry.lane_id) < 0:
 		errors.append("%s.lane_id must be >= 0." % scope)
 
-	if spawn_entry.hit_height_band != null:
-		for error in validate_height_band(spawn_entry.hit_height_band):
+	var hit_height_band_override: Resource = _resolve_spawn_hit_height_band_override(spawn_entry)
+	if hit_height_band_override != null:
+		for error in validate_height_band(hit_height_band_override):
 			errors.append("%s hit_height_band: %s" % [scope, error])
 
-	if spawn_entry.projectile_flight_profile != null:
-		for error in validate_projectile_flight_profile(spawn_entry.projectile_flight_profile):
+	var projectile_profile_override: Resource = _resolve_spawn_projectile_profile_override(spawn_entry)
+	if projectile_profile_override != null:
+		for error in validate_projectile_flight_profile(projectile_profile_override):
 			errors.append("%s projectile_flight_profile: %s" % [scope, error])
-	var projectile_template = _resolve_projectile_template(spawn_entry, spawn_entry.entity_template)
+	var spawn_overrides := _resolve_spawn_overrides(spawn_entry)
+	if not (spawn_overrides is Dictionary):
+		errors.append("%s.spawn_overrides must be a Dictionary." % scope)
+	var projectile_template = _resolve_projectile_template(spawn_entry, resolved_template)
 	if projectile_template != null:
 		for error in validate_projectile_template(projectile_template):
 			errors.append("%s projectile_template: %s" % [scope, error])
 
 	errors.append_array(_validate_entity_runtime_params(
 		entity_kind,
-		_merge_spawn_params(spawn_entry, spawn_entry.entity_template),
+		_merge_spawn_params(spawn_entry, resolved_template),
 		"%s params" % scope
 	))
-	if spawn_entry.entity_template != null:
-		var merged_params := _merge_spawn_params(spawn_entry, spawn_entry.entity_template)
-		var resolved_profile: Resource = _resolve_projectile_flight_profile(spawn_entry, spawn_entry.entity_template, projectile_template)
-		if _entity_template_trigger_bindings(spawn_entry.entity_template).is_empty():
+	if resolved_template != null:
+		var merged_params := _merge_spawn_params(spawn_entry, resolved_template)
+		var resolved_profile: Resource = _resolve_projectile_flight_profile(spawn_entry, resolved_template, projectile_template)
+		if _entity_template_trigger_bindings(resolved_template).is_empty():
 			errors.append_array(_validate_template_runtime_behavior(
 			StringName(entity_kind),
-			spawn_entry.entity_template,
+			resolved_template,
 			merged_params,
 			resolved_profile,
 			projectile_template,
@@ -336,7 +344,7 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 			))
 		errors.append_array(_validate_trigger_bindings_runtime(
 			StringName(entity_kind),
-			spawn_entry.entity_template,
+			resolved_template,
 			merged_params,
 			resolved_profile,
 			projectile_template,
@@ -680,10 +688,22 @@ static func _merge_spawn_params(spawn_entry: Resource, entity_template = null) -
 	if spawn_params is Dictionary:
 		for key: Variant in spawn_params.keys():
 			resolved_params[key] = spawn_params[key]
+	var explicit_overrides: Variant = spawn_entry.get("spawn_overrides")
+	if explicit_overrides is Dictionary:
+		for key: Variant in explicit_overrides.keys():
+			resolved_params[key] = explicit_overrides[key]
+	if spawn_entry.get("projectile_template_override") is ProjectileTemplateRef:
+		resolved_params["projectile_template"] = spawn_entry.get("projectile_template_override")
+	if spawn_entry.get("projectile_flight_profile_override") != null:
+		resolved_params["flight_profile"] = spawn_entry.get("projectile_flight_profile_override")
 	return resolved_params
 
 
 static func _resolve_projectile_template(spawn_entry: Resource, entity_template = null):
+	if spawn_entry != null and spawn_entry.get("projectile_template_override") is ProjectileTemplateRef:
+		return spawn_entry.get("projectile_template_override")
+	if spawn_entry != null and spawn_entry.get("spawn_overrides") is Dictionary and spawn_entry.get("spawn_overrides").get("projectile_template", null) is ProjectileTemplateRef:
+		return spawn_entry.get("spawn_overrides").get("projectile_template")
 	if spawn_entry != null and spawn_entry.get("params") is Dictionary and spawn_entry.get("params").get("projectile_template", null) is ProjectileTemplateRef:
 		return spawn_entry.get("params").get("projectile_template")
 	if entity_template != null and entity_template.get("projectile_template") is ProjectileTemplateRef:
@@ -692,14 +712,58 @@ static func _resolve_projectile_template(spawn_entry: Resource, entity_template 
 
 
 static func _resolve_projectile_flight_profile(spawn_entry: Resource, entity_template = null, projectile_template = null) -> Resource:
+	if spawn_entry != null and spawn_entry.get("projectile_flight_profile_override") != null:
+		return spawn_entry.get("projectile_flight_profile_override")
 	if spawn_entry != null and spawn_entry.get("projectile_flight_profile") != null:
 		return spawn_entry.get("projectile_flight_profile")
+	if spawn_entry != null and spawn_entry.get("spawn_overrides") is Dictionary and spawn_entry.get("spawn_overrides").get("flight_profile", null) != null:
+		return spawn_entry.get("spawn_overrides").get("flight_profile")
 	if spawn_entry != null and spawn_entry.get("params") is Dictionary and spawn_entry.get("params").get("flight_profile", null) != null:
 		return spawn_entry.get("params").get("flight_profile")
 	if projectile_template is ProjectileTemplateRef and projectile_template.flight_profile != null:
 		return projectile_template.flight_profile
 	if entity_template != null:
 		return entity_template.get("projectile_flight_profile")
+	return null
+
+
+static func _resolve_spawn_hit_height_band_override(spawn_entry: Resource) -> Resource:
+	if spawn_entry == null:
+		return null
+	if spawn_entry.get("hit_height_band_override") != null:
+		return spawn_entry.get("hit_height_band_override")
+	return spawn_entry.get("hit_height_band")
+
+
+static func _resolve_spawn_projectile_profile_override(spawn_entry: Resource) -> Resource:
+	if spawn_entry == null:
+		return null
+	if spawn_entry.get("projectile_flight_profile_override") != null:
+		return spawn_entry.get("projectile_flight_profile_override")
+	return spawn_entry.get("projectile_flight_profile")
+
+
+static func _resolve_spawn_overrides(spawn_entry: Resource) -> Dictionary:
+	if spawn_entry == null:
+		return {}
+	var resolved: Dictionary = {}
+	if spawn_entry.get("params") is Dictionary:
+		resolved = spawn_entry.get("params").duplicate(true)
+	if spawn_entry.get("spawn_overrides") is Dictionary:
+		for key: Variant in spawn_entry.get("spawn_overrides").keys():
+			resolved[key] = spawn_entry.get("spawn_overrides")[key]
+	return resolved
+
+
+static func _resolve_spawn_entry_template(spawn_entry: Resource):
+	if spawn_entry == null:
+		return null
+	var direct_template = spawn_entry.get("entity_template")
+	if direct_template != null:
+		return direct_template
+	var template_id := StringName(spawn_entry.get("entity_template_id"))
+	if template_id != StringName() and SceneRegistry.has_entity_template(template_id):
+		return SceneRegistry.get_entity_template(template_id)
 	return null
 
 

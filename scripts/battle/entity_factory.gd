@@ -140,11 +140,16 @@ func build_runtime_triggers(
 
 
 func _resolve_template(spawn_entry: Resource):
-	if spawn_entry == null or spawn_entry.get("entity_template") == null:
+	if spawn_entry == null:
 		return null
-	var entity_template = spawn_entry.get("entity_template")
-	if entity_template != null and entity_template.get_script() == EntityTemplateRef:
-		return entity_template
+	var direct_template = spawn_entry.get("entity_template")
+	if direct_template != null and direct_template.get_script() == EntityTemplateRef:
+		return direct_template
+	var template_id := StringName(spawn_entry.get("entity_template_id"))
+	if template_id != StringName() and SceneRegistry.has_entity_template(template_id):
+		var registered_template = SceneRegistry.get_entity_template(template_id)
+		if registered_template != null and registered_template.get_script() == EntityTemplateRef:
+			return registered_template
 	return null
 
 
@@ -158,15 +163,16 @@ func _resolve_params(spawn_entry: Resource, entity_template = null) -> Dictionar
 	var resolved_params: Dictionary = {}
 	if entity_template != null and entity_template.default_params is Dictionary:
 		resolved_params = entity_template.default_params.duplicate(true)
-	var spawn_params: Variant = spawn_entry.get("params")
-	if spawn_params is Dictionary:
-		for key: Variant in spawn_params.keys():
-			resolved_params[key] = spawn_params[key]
+	for key: Variant in _resolve_spawn_overrides(spawn_entry).keys():
+		resolved_params[key] = _resolve_spawn_overrides(spawn_entry)[key]
 	return resolved_params
 
 
 func _resolve_hit_height_band(spawn_entry: Resource, entity_template = null) -> Resource:
-	var spawn_height_band: Variant = spawn_entry.get("hit_height_band")
+	var spawn_height_band: Variant = spawn_entry.get("hit_height_band_override")
+	if spawn_height_band != null:
+		return spawn_height_band
+	spawn_height_band = spawn_entry.get("hit_height_band")
 	if spawn_height_band != null:
 		return spawn_height_band
 	if entity_template != null:
@@ -175,13 +181,17 @@ func _resolve_hit_height_band(spawn_entry: Resource, entity_template = null) -> 
 
 
 func _resolve_projectile_flight_profile(spawn_entry: Resource, entity_template = null, projectile_template = null) -> Resource:
-	var spawn_profile: Variant = spawn_entry.get("projectile_flight_profile")
+	var spawn_profile: Variant = spawn_entry.get("projectile_flight_profile_override")
 	if spawn_profile != null:
 		return spawn_profile
-	if spawn_entry.get("params") is Dictionary and spawn_entry.get("params").get("flight_profile", null) != null:
-		return spawn_entry.get("params").get("flight_profile")
-	if spawn_entry.get("params") is Dictionary and spawn_entry.get("params").get("projectile_template", null) is ProjectileTemplateRef:
-		var spawn_projectile_template = spawn_entry.get("params").get("projectile_template")
+	spawn_profile = spawn_entry.get("projectile_flight_profile")
+	if spawn_profile != null:
+		return spawn_profile
+	var spawn_overrides := _resolve_spawn_overrides(spawn_entry)
+	if spawn_overrides.get("flight_profile", null) != null:
+		return spawn_overrides.get("flight_profile")
+	if spawn_overrides.get("projectile_template", null) is ProjectileTemplateRef:
+		var spawn_projectile_template = spawn_overrides.get("projectile_template")
 		if spawn_projectile_template.flight_profile != null:
 			return spawn_projectile_template.flight_profile
 	if projectile_template is ProjectileTemplateRef and projectile_template.flight_profile != null:
@@ -198,12 +208,33 @@ func _resolve_projectile_flight_profile(spawn_entry: Resource, entity_template =
 func _resolve_projectile_template(spawn_entry: Resource, entity_template = null):
 	if spawn_entry == null:
 		return null
-	var spawn_params: Variant = spawn_entry.get("params")
-	if spawn_params is Dictionary and spawn_params.get("projectile_template", null) is ProjectileTemplateRef:
-		return spawn_params.get("projectile_template")
+	var direct_override: Variant = spawn_entry.get("projectile_template_override")
+	if direct_override is ProjectileTemplateRef:
+		return direct_override
+	var spawn_overrides := _resolve_spawn_overrides(spawn_entry)
+	if spawn_overrides.get("projectile_template", null) is ProjectileTemplateRef:
+		return spawn_overrides.get("projectile_template")
 	if entity_template is EntityTemplateRef and entity_template.projectile_template is ProjectileTemplateRef:
 		return entity_template.projectile_template
 	return null
+
+
+func _resolve_spawn_overrides(spawn_entry: Resource) -> Dictionary:
+	if spawn_entry == null:
+		return {}
+	var resolved: Dictionary = {}
+	var legacy_params: Variant = spawn_entry.get("params")
+	if legacy_params is Dictionary:
+		resolved = legacy_params.duplicate(true)
+	var explicit_overrides: Variant = spawn_entry.get("spawn_overrides")
+	if explicit_overrides is Dictionary:
+		for key: Variant in explicit_overrides.keys():
+			resolved[key] = explicit_overrides[key]
+	if spawn_entry.get("projectile_template_override") is ProjectileTemplateRef:
+		resolved["projectile_template"] = spawn_entry.get("projectile_template_override")
+	if spawn_entry.get("projectile_flight_profile_override") != null:
+		resolved["flight_profile"] = spawn_entry.get("projectile_flight_profile_override")
+	return resolved
 
 
 func _instantiate_root(entity_kind: StringName, template = null):
@@ -541,6 +572,9 @@ func _build_effect_node_from_binding(
 		return EffectNodeRef.new(effect_id, effect_params, {
 			&"on_hit": _build_binding_on_hit_effect_node(binding, params),
 		})
+	for key: Variant in params.keys():
+		if effect_params.has(key):
+			effect_params[key] = params[key]
 	return _build_simple_effect_node(effect_id, effect_params)
 
 
@@ -552,13 +586,22 @@ func _merge_projectile_binding_params(
 	binding_projectile_template
 ) -> Dictionary:
 	var merged: Dictionary = {}
-	var resolved_projectile_template = binding_projectile_template if binding_projectile_template is ProjectileTemplateRef else template_projectile_template
+	var resolved_projectile_template = null
+	if params.get("projectile_template", null) is ProjectileTemplateRef:
+		resolved_projectile_template = params.get("projectile_template")
+	elif binding_projectile_template is ProjectileTemplateRef:
+		resolved_projectile_template = binding_projectile_template
+	else:
+		resolved_projectile_template = template_projectile_template
 	if resolved_projectile_template is ProjectileTemplateRef and resolved_projectile_template.default_params is Dictionary:
 		merged = resolved_projectile_template.default_params.duplicate(true)
+	for key: Variant in params.keys():
+		if _is_spawn_projectile_override_key(key):
+			merged[key] = params[key]
 	for key: Variant in effect_params.keys():
 		merged[key] = effect_params[key]
 	for key: Variant in params.keys():
-		if not merged.has(key):
+		if effect_params.has(key) or _is_spawn_projectile_override_key(key):
 			merged[key] = params[key]
 	if resolved_projectile_template is ProjectileTemplateRef:
 		merged["projectile_template"] = resolved_projectile_template
@@ -571,14 +614,42 @@ func _merge_projectile_binding_params(
 	return merged
 
 
+func _is_spawn_projectile_override_key(key: Variant) -> bool:
+	return str(key) in [
+		"projectile_template",
+		"flight_profile",
+		"movement_mode",
+		"travel_duration",
+		"arc_height",
+		"impact_radius",
+		"collision_padding",
+		"lead_time_scale",
+		"dynamic_target_adjustment",
+		"dynamic_target_axis",
+		"max_lead_distance",
+		"lead_iterations",
+		"target_position",
+		"distance",
+		"lifetime",
+		"hitbox_radius",
+	]
+
+
 func _build_binding_on_hit_effect_node(binding, params: Dictionary):
 	var effect_id := StringName(binding.on_hit_effect_id)
 	var effect_params: Dictionary = binding.on_hit_effect_params.duplicate(true)
+	var override_on_hit_params: Dictionary = {}
+	if params.get("on_hit_effect_params", null) is Dictionary:
+		override_on_hit_params = params.get("on_hit_effect_params").duplicate(true)
+		for key: Variant in override_on_hit_params.keys():
+			effect_params[key] = override_on_hit_params[key]
 	if effect_id == StringName():
 		effect_id = &"damage"
 		if not effect_params.has("target_mode"):
 			effect_params["target_mode"] = &"context_target"
-	if not effect_params.has("amount"):
+	if params.has("damage") and not override_on_hit_params.has("amount"):
+		effect_params["amount"] = params.get("damage")
+	elif not effect_params.has("amount"):
 		effect_params["amount"] = params.get("damage", binding.effect_params.get("damage", 10))
 	return EffectNodeRef.new(effect_id, effect_params)
 

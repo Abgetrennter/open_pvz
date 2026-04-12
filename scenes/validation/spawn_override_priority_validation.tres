@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/track_bomb.tres" id="4_projectile_template"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/parabola_arc.tres" id="5_profile_override"]
+
+[sub_resource type="Resource" id="Spawn_override_plant"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 9,
+"interval": 0.4,
+"speed": 180.0
+}
+projectile_template_override = ExtResource("4_projectile_template")
+projectile_flight_profile_override = ExtResource("5_profile_override")
+
+[sub_resource type="Resource" id="Spawn_override_zombie"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 500.0
+
+[sub_resource type="Resource" id="Rule_override_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"override_spawn"
+description = "spawn entry should resolve entity_template_id through SceneRegistry and let scenario overrides replace template projectile defaults"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"parabola",
+"profile_id": &"parabola_arc",
+"source_template_id": &"plant_basic_shooter",
+"target_template_id": &"track_bomb"
+}
+
+[sub_resource type="Resource" id="Rule_override_damage"]
+script = ExtResource("3_rule")
+rule_id = &"override_damage"
+description = "spawn_overrides damage should win over template and binding defaults"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_basic_shooter",
+"target_template_id": &"zombie_lane_dummy",
+"value": 9
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"spawn_override_priority_validation"
+display_name = "Spawn Override Priority Validation"
+description = "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides take precedence over template projectile defaults for the instantiated scenario."
+goals = PackedStringArray("Verify BattleSpawnEntry can reference templates by entity_template_id.", "Verify projectile template overrides can replace template default projectile content.", "Verify flight profile and damage overrides from the scene win over template defaults.")
+validation_time_limit = 2.5
+validation_rules = [SubResource("Rule_override_spawn"), SubResource("Rule_override_damage")]
+spawns = [SubResource("Spawn_override_plant"), SubResource("Spawn_override_zombie")]

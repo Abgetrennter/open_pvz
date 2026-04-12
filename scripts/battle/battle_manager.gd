@@ -22,6 +22,7 @@ const LANE_Y := {
 @export var tick_interval := 0.25
 @export var playfield_size := Vector2(960.0, 540.0)
 @export var scenario: Resource = null
+@export var scenario_registry_id: StringName = StringName()
 @export var allow_restart_input := true
 @export var show_debug_overlay := true
 @export var auto_quit_on_validation := false
@@ -153,7 +154,7 @@ func _spawn_entry(spawn_entry) -> void:
 
 	var spawn_resolution: Dictionary = _entity_factory.instantiate_spawn_entry(
 		spawn_entry,
-		Vector2(spawn_entry.x_position, _lane_y(spawn_entry.lane_id))
+		_build_spawn_entry_position(spawn_entry)
 	)
 	if spawn_resolution.is_empty():
 		return
@@ -478,6 +479,10 @@ func get_unsatisfied_validation_descriptions() -> PackedStringArray:
 func _resolve_scenario():
 	if scenario != null and scenario.get_script() == BattleScenarioRef:
 		return scenario
+	if scenario_registry_id != StringName() and SceneRegistry.has_validation_scenario(scenario_registry_id):
+		var registered_scenario = SceneRegistry.get_validation_scenario(scenario_registry_id)
+		if registered_scenario != null and registered_scenario.get_script() == BattleScenarioRef:
+			return registered_scenario
 	return _build_default_scenario()
 
 
@@ -517,8 +522,12 @@ func _make_spawn_entry(entity_kind: StringName, lane_id: int, x_position: float,
 	entry.entity_kind = entity_kind
 	entry.lane_id = lane_id
 	entry.x_position = x_position
-	entry.params = params.duplicate(true)
+	entry.spawn_overrides = params.duplicate(true)
 	return entry
+
+
+func _build_spawn_entry_position(spawn_entry: Resource) -> Vector2:
+	return Vector2(float(spawn_entry.get("x_position")), _lane_y(int(spawn_entry.get("lane_id"))))
 
 
 func _make_validation_rule(
@@ -718,6 +727,9 @@ func _apply_runtime_options() -> void:
 			continue
 		if arg.begins_with("--validation-scenario="):
 			scenario_override_path = arg.trim_prefix("--validation-scenario=")
+			continue
+		if arg.begins_with("--validation-scenario-id="):
+			scenario_registry_id = StringName(arg.trim_prefix("--validation-scenario-id="))
 			continue
 		if arg.begins_with("--validation-output-dir="):
 			validation_output_dir = arg.trim_prefix("--validation-output-dir=")
