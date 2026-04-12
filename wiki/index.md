@@ -74,6 +74,8 @@ wiki/
 - [开发路线图](04-roadmap-reference/26-开发路线图.md)
 - [外部项目调研：PVZ-Godot-Dream](04-roadmap-reference/24-外部项目调研-PVZ-Godot-Dream.md)
 - [参考实现迁移策略](04-roadmap-reference/25-参考实现迁移策略.md)
+- [PVZ-Godot-Dream 代码索引](04-roadmap-reference/pvz-godot-dream/00-代码索引总表.md)
+- **[PVZ-Godot-Dream 代码索引子 Wiki](04-roadmap-reference/pvz-godot-dream/00-代码索引总表.md)** — 面向 AI Agent 的快速查找索引
 
 ### E. 开发治理与规范
 
@@ -117,6 +119,7 @@ wiki/
 - [扩展与数据包](04-roadmap-reference/11-扩展性与社区生态.md)
 - [外部项目调研：PVZ-Godot-Dream](04-roadmap-reference/24-外部项目调研-PVZ-Godot-Dream.md)
 - [参考实现迁移策略](04-roadmap-reference/25-参考实现迁移策略.md)
+- [PVZ-Godot-Dream 代码索引](04-roadmap-reference/pvz-godot-dream/00-代码索引总表.md)
 
 ### 如果你要规范项目开发方式
 
