@@ -31,12 +31,77 @@ params = {
 "speed": 220.0
 }
 
+[sub_resource type="Resource" id="Spawn_invalid_effect_param"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 0
+x_position = 240.0
+hit_height_band = ExtResource("4_ground_height")
+params = {
+"damage": 10,
+"ghost_speed": 999.0,
+"interval": 0.5,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_invalid_trigger_condition"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 1
+x_position = 240.0
+hit_height_band = ExtResource("4_ground_height")
+params = {
+"damage": 10,
+"interval": "fast",
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_unknown_on_hit_effect"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 0
+x_position = 320.0
+hit_height_band = ExtResource("4_ground_height")
+params = {
+"damage": 10,
+"interval": 0.5,
+"on_hit_effect_id": &"void_burst",
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_invalid_on_hit_params_shape"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 1
+x_position = 320.0
+hit_height_band = ExtResource("4_ground_height")
+params = {
+"damage": 10,
+"interval": 0.5,
+"on_hit_effect_id": &"damage",
+"on_hit_effect_params": "not_a_dictionary",
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_invalid_effect_overrides_shape"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 0
+x_position = 400.0
+hit_height_band = ExtResource("4_ground_height")
+params = {
+"damage": 10,
+"effect_overrides": 7,
+"interval": 0.5,
+"speed": 220.0
+}
+
 [sub_resource type="Resource" id="Rule_protocol_issues"]
 script = ExtResource("3_rule")
 rule_id = &"protocol_issues"
 description = "invalid spawn entries should be rejected through protocol issues before runtime behavior binds"
 event_name = &"protocol.issue"
-min_count = 2
+min_count = 7
 required_core_values = {
 "scope": &"battle_spawn_entry"
 }
@@ -62,7 +127,7 @@ script = ExtResource("1_scenario")
 scenario_id = &"protocol_guardrail_validation"
 display_name = "Protocol Guardrail Validation"
 description = "Validates that invalid spawn-entry protocol content is recorded as protocol issues and blocked before projectile or damage execution."
-goals = PackedStringArray("Verify spawn-entry protocol validation emits protocol.issue events.", "Verify an invalid on-hit child effect is blocked by the slot whitelist.", "Verify a wrong flight_profile resource type is blocked before any projectile runtime is created.")
+goals = PackedStringArray("Verify spawn-entry protocol validation emits protocol.issue events.", "Verify an invalid on-hit child effect is blocked by the slot whitelist.", "Verify a wrong flight_profile resource type is blocked before any projectile runtime is created.", "Verify unsupported effect params and invalid trigger condition types are also blocked before runtime behavior binds.", "Verify unknown on-hit effect ids and malformed override payloads are rejected before trigger binding.")
 validation_time_limit = 1.0
 validation_rules = [SubResource("Rule_protocol_issues"), SubResource("Rule_no_projectiles"), SubResource("Rule_no_damage")]
-spawns = [SubResource("Spawn_invalid_on_hit"), SubResource("Spawn_invalid_profile")]
+spawns = [SubResource("Spawn_invalid_on_hit"), SubResource("Spawn_invalid_profile"), SubResource("Spawn_invalid_effect_param"), SubResource("Spawn_invalid_trigger_condition"), SubResource("Spawn_unknown_on_hit_effect"), SubResource("Spawn_invalid_on_hit_params_shape"), SubResource("Spawn_invalid_effect_overrides_shape")]
