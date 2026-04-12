@@ -9,23 +9,13 @@ const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd"
 const BattleValidationRuleRef = preload("res://scripts/battle/battle_validation_rule.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
-const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
-const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
 const DebugOverlayRef = preload("res://scripts/debug/debug_overlay.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 
 const LANE_Y := {
 	0: 220.0,
 	1: 320.0,
-}
-const SPAWN_ENTRY_RESERVED_PARAMS := {
-	"interval": true,
-	"damage": true,
-	"speed": true,
-	"effect_overrides": true,
-	"on_hit_effect_id": true,
-	"on_hit_effect_params": true,
 }
 
 @export var tick_interval := 0.25
@@ -167,129 +157,31 @@ func _spawn_entry(spawn_entry) -> void:
 
 	var entry_kind: StringName = spawn_resolution.get("entity_kind", &"entity")
 	var lane_id: int = spawn_entry.lane_id
-	var params: Dictionary = spawn_resolution.get("params", {})
 	var hit_height_band: Resource = spawn_resolution.get("hit_height_band", null)
-	var projectile_flight_profile: Resource = spawn_resolution.get("projectile_flight_profile", null)
+	var trigger_instances: Array = spawn_resolution.get("trigger_instances", [])
 	var entity: Variant = spawn_resolution.get("entity", null)
-
-	match entry_kind:
-		&"plant":
-			var interval := float(params.get("interval", 1.5))
-			var damage := int(params.get("damage", 20))
-			var speed := float(params.get("speed", 220.0))
-			var effect_overrides: Dictionary = {}
-			if params.has("effect_overrides"):
-				effect_overrides = params["effect_overrides"].duplicate(true)
-			if effect_overrides.is_empty():
-				for key: Variant in params.keys():
-					if SPAWN_ENTRY_RESERVED_PARAMS.has(key):
-						continue
-					effect_overrides[key] = params[key]
-			var plant: Variant = entity
-			plant.assign_lane(lane_id)
-			_apply_spawn_height_band(plant, hit_height_band)
-			_entity_root.add_child(plant)
-			_bind_shooter_trigger(
-				plant,
-				interval,
-				damage,
-				speed,
-				effect_overrides,
-				projectile_flight_profile,
-				params
-			)
-		&"zombie":
-			var zombie: Variant = entity
-			zombie.assign_lane(lane_id)
-			_apply_spawn_height_band(zombie, hit_height_band)
-			_entity_root.add_child(zombie)
-			_bind_zombie_runtime(zombie)
-		_:
-			push_warning("Unsupported spawn entry kind: %s" % [String(entry_kind)])
-
-
-func _bind_shooter_trigger(
-	plant: Node,
-	interval: float,
-	damage: int,
-	speed: float,
-	effect_overrides: Dictionary = {},
-	projectile_flight_profile: Resource = null,
-	spawn_params: Dictionary = {}
-) -> void:
-	var on_hit: Variant = _build_on_hit_effect(spawn_params, damage)
-	var root_params: Dictionary = {
-		"speed": speed,
-		"direction": Vector2.RIGHT,
-		"damage": damage,
-	}
-	if projectile_flight_profile != null and projectile_flight_profile.get_script() == ProjectileFlightProfileRef:
-		root_params["flight_profile"] = projectile_flight_profile
-		root_params["movement_mode"] = StringName(projectile_flight_profile.get("move_mode"))
-	for key: Variant in effect_overrides.keys():
-		root_params[key] = effect_overrides[key]
-	var root_effect: Variant = EffectNodeRef.new(&"spawn_projectile", root_params, {
-		&"on_hit": on_hit,
-	})
-
-	var trigger: Variant = TriggerInstanceRef.new()
-	trigger.def_id = &"periodically"
-	trigger.event_name = &"game.tick"
-	trigger.condition_values = {"interval": interval}
-	trigger.effect_roots = [root_effect]
-
-	var trigger_component: Variant = plant.get_node_or_null("TriggerComponent")
-	if trigger_component != null:
-		trigger_component.bind_triggers([trigger])
-
-
-func _build_on_hit_effect(spawn_params: Dictionary, damage: int):
-	var custom_effect_id := StringName(spawn_params.get("on_hit_effect_id", StringName()))
-	if custom_effect_id == StringName():
-		return EffectNodeRef.new(&"damage", {
-			"amount": damage,
-			"target_mode": &"context_target",
-		})
-
-	var custom_params: Dictionary = {}
-	if spawn_params.has("on_hit_effect_params") and spawn_params["on_hit_effect_params"] is Dictionary:
-		custom_params = spawn_params["on_hit_effect_params"].duplicate(true)
-	if not custom_params.has("amount"):
-		custom_params["amount"] = damage
-	return EffectNodeRef.new(custom_effect_id, custom_params)
-
-
-func _bind_zombie_runtime(zombie: Node) -> void:
-	var retaliation_effect: Variant = EffectNodeRef.new(&"damage", {
-		"amount": 4,
-		"target_mode": &"event_source",
-	})
-	var retaliation_trigger: Variant = TriggerInstanceRef.new()
-	retaliation_trigger.def_id = &"when_damaged"
-	retaliation_trigger.event_name = &"entity.damaged"
-	retaliation_trigger.condition_values = {"min_damage": 1}
-	retaliation_trigger.effect_roots = [retaliation_effect]
-
-	var death_effect: Variant = EffectNodeRef.new(&"explode", {
-		"amount": 10,
-		"target_mode": &"enemies_in_radius",
-		"radius": 110.0,
-	})
-	var death_trigger: Variant = TriggerInstanceRef.new()
-	death_trigger.def_id = &"on_death"
-	death_trigger.event_name = &"entity.died"
-	death_trigger.effect_roots = [death_effect]
-
-	var trigger_component: Variant = zombie.get_node_or_null("TriggerComponent")
-	if trigger_component == null:
+	if entry_kind not in [&"plant", &"zombie"]:
+		push_warning("Unsupported spawn entry kind: %s" % [String(entry_kind)])
 		return
-	trigger_component.bind_triggers([retaliation_trigger, death_trigger])
+	if entity == null or not entity.has_method("assign_lane"):
+		return
+	entity.assign_lane(lane_id)
+	_apply_spawn_height_band(entity, hit_height_band)
+	_entity_root.add_child(entity)
+	_bind_runtime_triggers(entity, trigger_instances)
 
 
 func _spawn_debug_overlay() -> void:
 	var overlay: Variant = DebugOverlayRef.new()
 	add_child(overlay)
 	overlay.bind_battle_root(self)
+
+
+func _bind_runtime_triggers(entity: Node, trigger_instances: Array) -> void:
+	var trigger_component: Variant = entity.get_node_or_null("TriggerComponent")
+	if trigger_component == null:
+		return
+	trigger_component.bind_triggers(trigger_instances)
 
 
 func _build_projectile_movement_params(context, params: Dictionary, spawn_position: Vector2, direction: Vector2, speed: float) -> Dictionary:

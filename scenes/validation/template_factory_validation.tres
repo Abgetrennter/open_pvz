@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/templates/plant_track_bomber.tres" id="4_plant_template"]
+[ext_resource type="Resource" path="res://data/combat/templates/zombie_reactive_bomber.tres" id="5_zombie_template"]
+
+[sub_resource type="Resource" id="Spawn_factory_plant"]
+script = ExtResource("2_spawn")
+entity_template = ExtResource("4_plant_template")
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_factory_zombie"]
+script = ExtResource("2_spawn")
+entity_template = ExtResource("5_zombie_template")
+lane_id = 0
+x_position = 250.0
+
+[sub_resource type="Resource" id="Rule_factory_attack"]
+script = ExtResource("3_rule")
+rule_id = &"factory_attack"
+description = "template factory should build the plant attack trigger from template data and spawn a tracking projectile"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"track",
+"profile_id": &"track_ground",
+"source_template_id": &"plant_track_bomber"
+}
+
+[sub_resource type="Resource" id="Rule_factory_retaliation"]
+script = ExtResource("3_rule")
+rule_id = &"factory_retaliation"
+description = "template factory should build the zombie retaliation trigger with the template-defined damage amount"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("effect", "entity.damaged")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_track_bomber",
+"value": 7
+}
+
+[sub_resource type="Resource" id="Rule_factory_death"]
+script = ExtResource("3_rule")
+rule_id = &"factory_death"
+description = "template-defined health budget should let the zombie die on two 12-damage hits"
+event_name = &"entity.died"
+required_core_values = {
+"target_template_id": &"zombie_reactive_bomber",
+"target_kind": &"zombie"
+}
+
+[sub_resource type="Resource" id="Rule_factory_death_explode"]
+script = ExtResource("3_rule")
+rule_id = &"factory_death_explode"
+description = "template factory should build the zombie death trigger with the template-defined explode amount"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode", "entity.died")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_track_bomber",
+"value": 21
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"template_factory_validation"
+display_name = "Template Factory Validation"
+description = "Validates that EntityFactory can instantiate template-defined entities and build template-defined runtime triggers without BattleManager-specific behavior branches."
+goals = PackedStringArray("Verify template-defined attack behavior is built by EntityFactory into runtime triggers.", "Verify template-defined when_damaged retaliation is built by EntityFactory and reaches runtime events.", "Verify template-defined on_death explode behavior is built by EntityFactory and survives through the full event chain.")
+validation_time_limit = 2.2
+validation_rules = [SubResource("Rule_factory_attack"), SubResource("Rule_factory_retaliation"), SubResource("Rule_factory_death"), SubResource("Rule_factory_death_explode")]
+spawns = [SubResource("Spawn_factory_plant"), SubResource("Spawn_factory_zombie")]

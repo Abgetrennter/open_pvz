@@ -200,6 +200,7 @@ func _register_builtin_strategies() -> void:
 		var result: Variant = EffectResultRef.new()
 		var target := _resolve_target(context, params)
 		var amount := int(params.get("amount", 10))
+		var effect_source := _resolve_effect_source_node(context)
 		var damage_tags := PackedStringArray(context.core.get("tags", PackedStringArray()))
 		if not damage_tags.has("effect"):
 			damage_tags.append("effect")
@@ -207,7 +208,7 @@ func _register_builtin_strategies() -> void:
 		if not event_tag.is_empty() and not damage_tags.has(event_tag):
 			damage_tags.append(event_tag)
 		if target != null and target.has_method("take_damage"):
-			target.call("take_damage", amount, context.source_node, damage_tags, {
+			target.call("take_damage", amount, effect_source, damage_tags, {
 				"depth": int(context.runtime.get("depth", context.depth)) + 1,
 				"chain_id": context.chain_id,
 				"origin_event_name": context.event_name,
@@ -234,6 +235,7 @@ func _register_builtin_strategies() -> void:
 		var result: Variant = EffectResultRef.new()
 		var targets: Array = _resolve_targets(context, params)
 		var amount := int(params.get("amount", 15))
+		var effect_source := _resolve_effect_source_node(context)
 		if targets.is_empty():
 			result.success = false
 			result.notes.append("Explosion targets missing or invalid.")
@@ -242,7 +244,7 @@ func _register_builtin_strategies() -> void:
 		for target in targets:
 			if target == null or not target.has_method("take_damage"):
 				continue
-			target.call("take_damage", amount, context.source_node, PackedStringArray(["explode", String(context.event_name)]), {
+			target.call("take_damage", amount, effect_source, PackedStringArray(["explode", String(context.event_name)]), {
 				"depth": int(context.runtime.get("depth", context.depth)) + 1,
 				"chain_id": context.chain_id,
 				"origin_event_name": context.event_name,
@@ -320,3 +322,15 @@ func _node_ground_position(node: Node) -> Vector2:
 	if node.has_method("get_ground_position"):
 		return Vector2(node.call("get_ground_position"))
 	return (node as Node2D).global_position
+
+
+func _resolve_effect_source_node(context) -> Node:
+	if context == null:
+		return null
+	if context.owner_entity != null and context.owner_entity.has_method("get"):
+		var owner_kind := StringName(context.owner_entity.get("entity_kind"))
+		if owner_kind != &"projectile":
+			return context.owner_entity
+	if context.source_node != null:
+		return context.source_node
+	return context.owner_entity

@@ -10,3 +10,4 @@ class_name EntityTemplate
 @export var hit_height_band: Resource = null
 @export var projectile_flight_profile: Resource = null
 @export var default_params: Dictionary = {}
+@export var runtime_behavior: Dictionary = {}

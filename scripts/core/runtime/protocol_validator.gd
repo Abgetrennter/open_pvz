@@ -1,6 +1,7 @@
 extends RefCounted
 class_name ProtocolValidator
 
+const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
@@ -181,6 +182,16 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 			entity_template.default_params,
 			"EntityTemplate %s default_params" % String(entity_template.template_id)
 		))
+	if not (entity_template.runtime_behavior is Dictionary):
+		errors.append("EntityTemplate.runtime_behavior must be a Dictionary.")
+	else:
+		errors.append_array(_validate_template_runtime_behavior(
+			StringName(entity_template.entity_kind),
+			entity_template,
+			entity_template.default_params,
+			entity_template.projectile_flight_profile,
+			"EntityTemplate %s runtime_behavior" % String(entity_template.template_id)
+		))
 	if int(entity_template.max_health) != -1 and int(entity_template.max_health) <= 0:
 		errors.append("EntityTemplate.max_health must be -1 or greater than zero.")
 	if entity_template.hitbox_size != Vector2.ZERO and (entity_template.hitbox_size.x <= 0.0 or entity_template.hitbox_size.y <= 0.0):
@@ -239,6 +250,16 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 		_merge_spawn_params(spawn_entry, spawn_entry.entity_template),
 		"%s params" % scope
 	))
+	if spawn_entry.entity_template != null:
+		var merged_params := _merge_spawn_params(spawn_entry, spawn_entry.entity_template)
+		var resolved_profile: Resource = spawn_entry.projectile_flight_profile if spawn_entry.projectile_flight_profile != null else spawn_entry.entity_template.projectile_flight_profile
+		errors.append_array(_validate_template_runtime_behavior(
+			StringName(entity_kind),
+			spawn_entry.entity_template,
+			merged_params,
+			resolved_profile,
+			"%s template runtime_behavior" % scope
+		))
 	return errors
 
 
@@ -585,3 +606,22 @@ static func _load_resource_script(resource_script_path: String):
 		return null
 	var loaded := load(resource_script_path)
 	return loaded if loaded is Script else null
+
+
+static func _validate_template_runtime_behavior(
+	entity_kind: StringName,
+	entity_template,
+	params: Dictionary,
+	projectile_flight_profile: Resource,
+	scope: String
+) -> Array[String]:
+	if entity_template == null:
+		return []
+	var factory: Variant = EntityFactoryRef.new()
+	var errors: Array[String] = []
+	for trigger_instance in factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile):
+		var validation: Dictionary = normalize_trigger_instance(trigger_instance)
+		if not bool(validation.get("valid", false)):
+			for error in PackedStringArray(validation.get("errors", PackedStringArray())):
+				errors.append("%s: %s" % [scope, error])
+	return errors

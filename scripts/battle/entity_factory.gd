@@ -4,12 +4,15 @@ class_name EntityFactory
 const PlantRootRef = preload("res://scripts/entities/plant_root.gd")
 const ZombieRootRef = preload("res://scripts/entities/zombie_root.gd")
 const ProjectileRootRef = preload("res://scripts/entities/projectile_root.gd")
+const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
+const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
 const TriggerComponentRef = preload("res://scripts/components/trigger_component.gd")
 const HealthComponentRef = preload("res://scripts/components/health_component.gd")
 const MovementComponentRef = preload("res://scripts/components/movement_component.gd")
 const HitboxComponentRef = preload("res://scripts/components/hitbox_component.gd")
 const DebugViewComponentRef = preload("res://scripts/components/debug_view_component.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
+const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 
 const DEFAULT_TEMPLATE_CONFIG := {
 	&"plant": {
@@ -27,11 +30,47 @@ const DEFAULT_TEMPLATE_CONFIG := {
 		"debug_view_component": false,
 	},
 }
+const SPAWN_ENTRY_RESERVED_PARAMS := {
+	"interval": true,
+	"damage": true,
+	"speed": true,
+	"effect_overrides": true,
+	"on_hit_effect_id": true,
+	"on_hit_effect_params": true,
+}
+const ATTACK_BEHAVIOR_RESERVED_KEYS := {
+	"enabled": true,
+	"interval": true,
+	"damage": true,
+	"speed": true,
+	"effect_overrides": true,
+	"on_hit_effect_id": true,
+	"on_hit_effect_params": true,
+}
+const DEFAULT_ZOMBIE_REACTION_BEHAVIOR := {
+	"when_damaged": {
+		"min_damage": 1,
+		"effect_id": &"damage",
+		"effect_params": {
+			"amount": 4,
+			"target_mode": &"event_source",
+		},
+	},
+	"on_death": {
+		"effect_id": &"explode",
+		"effect_params": {
+			"amount": 10,
+			"target_mode": &"enemies_in_radius",
+			"radius": 110.0,
+		},
+	},
+}
 
 func instantiate_spawn_entry(spawn_entry: Resource, position: Vector2) -> Dictionary:
 	var entity_template = _resolve_template(spawn_entry)
 	var entity_kind: StringName = _resolve_entity_kind(spawn_entry, entity_template)
 	var params: Dictionary = _resolve_params(spawn_entry, entity_template)
+	var projectile_flight_profile: Resource = _resolve_projectile_flight_profile(spawn_entry, entity_template)
 	var entity = instantiate_entity(entity_kind, position, entity_template, params)
 	if entity == null:
 		return {}
@@ -41,7 +80,8 @@ func instantiate_spawn_entry(spawn_entry: Resource, position: Vector2) -> Dictio
 		"entity_template": entity_template,
 		"params": params,
 		"hit_height_band": _resolve_hit_height_band(spawn_entry, entity_template),
-		"projectile_flight_profile": _resolve_projectile_flight_profile(spawn_entry, entity_template),
+		"projectile_flight_profile": projectile_flight_profile,
+		"trigger_instances": build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile),
 	}
 
 
@@ -70,6 +110,21 @@ func create_projectile(position: Vector2):
 	projectile.position = position
 	projectile.add_child(_make_projectile_hitbox(10.0))
 	return projectile
+
+
+func build_runtime_triggers(
+	entity_kind: StringName,
+	template = null,
+	params: Dictionary = {},
+	projectile_flight_profile: Resource = null
+) -> Array:
+	match entity_kind:
+		&"plant":
+			return _build_plant_runtime_triggers(template, params, projectile_flight_profile)
+		&"zombie":
+			return _build_zombie_runtime_triggers(template)
+		_:
+			return []
 
 
 func _resolve_template(spawn_entry: Resource):
@@ -272,3 +327,132 @@ func _apply_template_metadata(entity: Node, template) -> void:
 		return
 	if template is EntityTemplateRef and template.template_id != StringName():
 		entity.set("template_id", template.template_id)
+
+
+func _build_plant_runtime_triggers(template, params: Dictionary, projectile_flight_profile: Resource) -> Array:
+	var runtime_behavior: Dictionary = _resolve_runtime_behavior(template)
+	var attack_behavior: Dictionary = {}
+	if runtime_behavior.get("attack", null) is Dictionary:
+		attack_behavior = runtime_behavior["attack"].duplicate(true)
+	if not bool(attack_behavior.get("enabled", true)):
+		return []
+
+	var interval := float(attack_behavior.get("interval", params.get("interval", 1.5)))
+	var damage := int(attack_behavior.get("damage", params.get("damage", 20)))
+	var speed := float(attack_behavior.get("speed", params.get("speed", 220.0)))
+	var root_params: Dictionary = {
+		"speed": speed,
+		"direction": Vector2.RIGHT,
+		"damage": damage,
+	}
+	if projectile_flight_profile != null and projectile_flight_profile.get_script() == ProjectileFlightProfileRef:
+		root_params["flight_profile"] = projectile_flight_profile
+		root_params["movement_mode"] = StringName(projectile_flight_profile.get("move_mode"))
+	var effect_overrides := _collect_spawn_projectile_effect_overrides(params, attack_behavior)
+	for key: Variant in effect_overrides.keys():
+		root_params[key] = effect_overrides[key]
+	var root_effect = EffectNodeRef.new(&"spawn_projectile", root_params, {
+		&"on_hit": _build_on_hit_effect_node(params, attack_behavior, damage),
+	})
+
+	var trigger = TriggerInstanceRef.new()
+	trigger.def_id = &"periodically"
+	trigger.event_name = &"game.tick"
+	trigger.condition_values = {"interval": interval}
+	trigger.effect_roots = [root_effect]
+	return [trigger]
+
+
+func _build_zombie_runtime_triggers(template) -> Array:
+	var runtime_behavior: Dictionary = _merge_dictionary_deep(DEFAULT_ZOMBIE_REACTION_BEHAVIOR, _resolve_runtime_behavior(template))
+	var triggers: Array = []
+
+	var retaliation_config: Dictionary = {}
+	if runtime_behavior.get("when_damaged", null) is Dictionary:
+		retaliation_config = runtime_behavior["when_damaged"].duplicate(true)
+	if bool(retaliation_config.get("enabled", true)):
+		var retaliation_trigger = TriggerInstanceRef.new()
+		retaliation_trigger.def_id = &"when_damaged"
+		retaliation_trigger.event_name = &"entity.damaged"
+		retaliation_trigger.condition_values = {
+			"min_damage": int(retaliation_config.get("min_damage", 1)),
+		}
+		retaliation_trigger.effect_roots = [_build_simple_effect_node(
+			StringName(retaliation_config.get("effect_id", &"damage")),
+			Dictionary(retaliation_config.get("effect_params", {}))
+		)]
+		triggers.append(retaliation_trigger)
+
+	var death_config: Dictionary = {}
+	if runtime_behavior.get("on_death", null) is Dictionary:
+		death_config = runtime_behavior["on_death"].duplicate(true)
+	if bool(death_config.get("enabled", true)):
+		var death_trigger = TriggerInstanceRef.new()
+		death_trigger.def_id = &"on_death"
+		death_trigger.event_name = &"entity.died"
+		death_trigger.effect_roots = [_build_simple_effect_node(
+			StringName(death_config.get("effect_id", &"explode")),
+			Dictionary(death_config.get("effect_params", {}))
+		)]
+		triggers.append(death_trigger)
+
+	return triggers
+
+
+func _build_on_hit_effect_node(params: Dictionary, attack_behavior: Dictionary, damage: int):
+	var custom_effect_id := StringName(attack_behavior.get("on_hit_effect_id", params.get("on_hit_effect_id", StringName())))
+	if custom_effect_id == StringName():
+		return EffectNodeRef.new(&"damage", {
+			"amount": damage,
+			"target_mode": &"context_target",
+		})
+
+	var custom_params: Dictionary = {}
+	if params.get("on_hit_effect_params", null) is Dictionary:
+		custom_params = params["on_hit_effect_params"].duplicate(true)
+	if attack_behavior.get("on_hit_effect_params", null) is Dictionary:
+		for key: Variant in attack_behavior["on_hit_effect_params"].keys():
+			custom_params[key] = attack_behavior["on_hit_effect_params"][key]
+	if not custom_params.has("amount"):
+		custom_params["amount"] = damage
+	return EffectNodeRef.new(custom_effect_id, custom_params)
+
+
+func _build_simple_effect_node(effect_id: StringName, effect_params: Dictionary):
+	return EffectNodeRef.new(effect_id, effect_params.duplicate(true))
+
+
+func _collect_spawn_projectile_effect_overrides(params: Dictionary, attack_behavior: Dictionary) -> Dictionary:
+	var effect_overrides: Dictionary = {}
+	if params.get("effect_overrides", null) is Dictionary:
+		effect_overrides = params["effect_overrides"].duplicate(true)
+	if effect_overrides.is_empty():
+		for key: Variant in params.keys():
+			if SPAWN_ENTRY_RESERVED_PARAMS.has(key):
+				continue
+			effect_overrides[key] = params[key]
+	if attack_behavior.get("effect_overrides", null) is Dictionary:
+		for key: Variant in attack_behavior["effect_overrides"].keys():
+			effect_overrides[key] = attack_behavior["effect_overrides"][key]
+	for key: Variant in attack_behavior.keys():
+		if ATTACK_BEHAVIOR_RESERVED_KEYS.has(key):
+			continue
+		effect_overrides[key] = attack_behavior[key]
+	return effect_overrides
+
+
+func _resolve_runtime_behavior(template) -> Dictionary:
+	if template is EntityTemplateRef and template.runtime_behavior is Dictionary:
+		return template.runtime_behavior.duplicate(true)
+	return {}
+
+
+func _merge_dictionary_deep(base: Dictionary, override: Dictionary) -> Dictionary:
+	var merged: Dictionary = base.duplicate(true)
+	for key: Variant in override.keys():
+		var override_value: Variant = override[key]
+		if merged.get(key, null) is Dictionary and override_value is Dictionary:
+			merged[key] = _merge_dictionary_deep(merged[key], override_value)
+		else:
+			merged[key] = override_value
+	return merged
