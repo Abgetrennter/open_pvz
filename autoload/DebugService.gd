@@ -1,5 +1,7 @@
 extends Node
 
+const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
+
 const MAX_EVENTS := 128
 const MAX_EFFECTS := 128
 const MAX_TRIGGERS := 128
@@ -76,6 +78,16 @@ func record_protocol_issue(scope: StringName, message: String, severity: StringN
 	})
 	if protocol_log.size() > MAX_PROTOCOL_ISSUES:
 		protocol_log.pop_back()
+	var protocol_event: Variant = EventDataRef.create(
+		null,
+		null,
+		message,
+		PackedStringArray(["protocol", String(severity)])
+	)
+	protocol_event.core["scope"] = scope
+	protocol_event.core["severity"] = severity
+	protocol_event.core["message"] = message
+	EventBus.push_event(&"protocol.issue", protocol_event)
 	print("[Protocol][%s][%s] %s" % [String(severity).to_upper(), String(scope), message])
 
 

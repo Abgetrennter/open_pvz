@@ -1,6 +1,20 @@
 extends RefCounted
 class_name ProtocolValidator
 
+const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
+const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
+const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
+const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
+
+const SPAWN_ENTRY_RESERVED_PARAMS := {
+	"interval": true,
+	"damage": true,
+	"speed": true,
+	"effect_overrides": true,
+	"on_hit_effect_id": true,
+	"on_hit_effect_params": true,
+}
+
 
 static func ping():
 	return true
@@ -79,6 +93,9 @@ static func validate_height_band(height_band: Resource) -> Array[String]:
 	if height_band == null:
 		errors.append("HeightBand is null.")
 		return errors
+	if height_band.get_script() != HeightBandRef:
+		errors.append("HeightBand resource must use height_band.gd.")
+		return errors
 	if StringName(height_band.band_id) == StringName():
 		errors.append("HeightBand.band_id must not be empty.")
 	if float(height_band.min_height) < 0.0:
@@ -92,6 +109,9 @@ static func validate_projectile_flight_profile(profile: Resource) -> Array[Strin
 	var errors: Array[String] = []
 	if profile == null:
 		errors.append("ProjectileFlightProfile is null.")
+		return errors
+	if profile.get_script() != ProjectileFlightProfileRef:
+		errors.append("ProjectileFlightProfile resource must use projectile_flight_profile.gd.")
 		return errors
 	if StringName(profile.profile_id) == StringName():
 		errors.append("ProjectileFlightProfile.profile_id must not be empty.")
@@ -155,6 +175,12 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 			errors.append("EntityTemplate projectile_flight_profile: %s" % error)
 	if not (entity_template.default_params is Dictionary):
 		errors.append("EntityTemplate.default_params must be a Dictionary.")
+	else:
+		errors.append_array(_validate_entity_runtime_params(
+			String(entity_template.entity_kind),
+			entity_template.default_params,
+			"EntityTemplate %s default_params" % String(entity_template.template_id)
+		))
 	if int(entity_template.max_health) != -1 and int(entity_template.max_health) <= 0:
 		errors.append("EntityTemplate.max_health must be -1 or greater than zero.")
 	if entity_template.hitbox_size != Vector2.ZERO and (entity_template.hitbox_size.x <= 0.0 or entity_template.hitbox_size.y <= 0.0):
@@ -208,6 +234,11 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 		for error in validate_projectile_flight_profile(spawn_entry.projectile_flight_profile):
 			errors.append("%s projectile_flight_profile: %s" % [scope, error])
 
+	errors.append_array(_validate_entity_runtime_params(
+		entity_kind,
+		_merge_spawn_params(spawn_entry, spawn_entry.entity_template),
+		"%s params" % scope
+	))
 	return errors
 
 
@@ -365,6 +396,12 @@ static func _validate_param_definition(param_def: Dictionary, scope: String) -> 
 		errors.append("%s has a param definition without type." % scope)
 	elif not _allowed_param_types().has(param_type):
 		errors.append("%s has unsupported param type %s." % [scope, param_type])
+	if param_type == "resource" and param_def.has("resource_script"):
+		var resource_script_path := String(param_def.get("resource_script", "")).strip_edges()
+		if resource_script_path.is_empty():
+			errors.append("%s has a resource param without resource_script." % scope)
+		elif not (_load_resource_script(resource_script_path) is Script):
+			errors.append("%s references missing resource_script %s." % [scope, resource_script_path])
 	return errors
 
 
@@ -401,6 +438,13 @@ static func _normalize_param_value(value: Variant, param_def: Dictionary, errors
 		"resource":
 			if value != null and not (value is Resource):
 				errors.append("%s param %s must be Resource." % [scope, param_name])
+			elif value != null and param_def.has("resource_script"):
+				var resource_script_path := String(param_def.get("resource_script", "")).strip_edges()
+				var expected_script: Variant = _load_resource_script(resource_script_path)
+				if expected_script == null:
+					errors.append("%s param %s references missing resource_script %s." % [scope, param_name, resource_script_path])
+				elif value.get_script() != expected_script:
+					errors.append("%s param %s must use resource script %s." % [scope, param_name, resource_script_path])
 		_:
 			pass
 
@@ -465,3 +509,79 @@ static func _variant_string_set(values: Variant) -> Array[String]:
 
 static func _join_strings(values: Array[String]) -> String:
 	return ", ".join(values)
+
+
+static func _validate_entity_runtime_params(entity_kind: String, params: Dictionary, scope: String) -> Array[String]:
+	var errors: Array[String] = []
+	if not (params is Dictionary):
+		errors.append("%s must be a Dictionary." % scope)
+		return errors
+	if entity_kind != "plant":
+		return errors
+
+	var effect_overrides: Dictionary = {}
+	if params.has("effect_overrides"):
+		if params["effect_overrides"] is Dictionary:
+			effect_overrides = params["effect_overrides"].duplicate(true)
+		else:
+			errors.append("%s.effect_overrides must be a Dictionary." % scope)
+
+	var on_hit_effect_params: Dictionary = {}
+	if params.has("on_hit_effect_params"):
+		if params["on_hit_effect_params"] is Dictionary:
+			on_hit_effect_params = params["on_hit_effect_params"].duplicate(true)
+		else:
+			errors.append("%s.on_hit_effect_params must be a Dictionary." % scope)
+
+	var root_params: Dictionary = {}
+	if params.has("speed"):
+		root_params["speed"] = params["speed"]
+	if params.has("damage"):
+		root_params["damage"] = params["damage"]
+	for key: Variant in params.keys():
+		if SPAWN_ENTRY_RESERVED_PARAMS.has(key):
+			continue
+		root_params[key] = params[key]
+	for key: Variant in effect_overrides.keys():
+		root_params[key] = effect_overrides[key]
+
+	var on_hit_effect_id := StringName(params.get("on_hit_effect_id", StringName()))
+	if on_hit_effect_id == StringName():
+		on_hit_effect_id = &"damage"
+		if not on_hit_effect_params.has("target_mode"):
+			on_hit_effect_params["target_mode"] = &"context_target"
+	if not on_hit_effect_params.has("amount"):
+		on_hit_effect_params["amount"] = params.get("damage", 10)
+
+	var root_effect = EffectNodeRef.new(&"spawn_projectile", root_params, {
+		&"on_hit": EffectNodeRef.new(on_hit_effect_id, on_hit_effect_params),
+	})
+	var trigger_instance = TriggerInstanceRef.new()
+	trigger_instance.def_id = &"periodically"
+	trigger_instance.event_name = &"game.tick"
+	trigger_instance.condition_values = {"interval": params.get("interval", 1.5)}
+	trigger_instance.effect_roots = [root_effect]
+
+	var validation: Dictionary = normalize_trigger_instance(trigger_instance)
+	if not bool(validation.get("valid", false)):
+		for error in PackedStringArray(validation.get("errors", PackedStringArray())):
+			errors.append("%s: %s" % [scope, error])
+	return errors
+
+
+static func _merge_spawn_params(spawn_entry: Resource, entity_template = null) -> Dictionary:
+	var resolved_params: Dictionary = {}
+	if entity_template != null and entity_template.get("default_params") is Dictionary:
+		resolved_params = entity_template.get("default_params").duplicate(true)
+	var spawn_params: Variant = spawn_entry.get("params")
+	if spawn_params is Dictionary:
+		for key: Variant in spawn_params.keys():
+			resolved_params[key] = spawn_params[key]
+	return resolved_params
+
+
+static func _load_resource_script(resource_script_path: String):
+	if resource_script_path.is_empty():
+		return null
+	var loaded := load(resource_script_path)
+	return loaded if loaded is Script else null

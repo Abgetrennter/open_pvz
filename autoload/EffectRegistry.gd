@@ -4,6 +4,7 @@ const EffectDefRef = preload("res://scripts/core/defs/effect_def.gd")
 const EffectSlotDefRef = preload("res://scripts/core/defs/effect_slot_def.gd")
 const EffectResultRef = preload("res://scripts/core/runtime/effect_result.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
+const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight_profile.gd"
 
 var _effect_defs: Dictionary = {}
 var _effect_strategies: Dictionary = {}
@@ -151,11 +152,13 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "flight_profile",
 		"type": "resource",
+		"resource_script": ProjectileFlightProfilePath,
 	}]
 	spawn_projectile.param_defs = spawn_projectile_param_defs
 	var on_hit_slot = EffectSlotDefRef.new()
 	on_hit_slot.slot_name = &"on_hit"
 	on_hit_slot.slot_type = EffectSlotDefRef.SlotType.EFFECT
+	on_hit_slot.allowed_effect_ids = PackedStringArray(["damage", "explode"])
 	spawn_projectile.slots = [on_hit_slot]
 	spawn_projectile.allow_extra_params = false
 	spawn_projectile.allow_extra_children = false

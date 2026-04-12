@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_ground_height"]
+
+[sub_resource type="Resource" id="Spawn_invalid_on_hit"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 0
+x_position = 160.0
+hit_height_band = ExtResource("4_ground_height")
+params = {
+"damage": 10,
+"interval": 0.5,
+"on_hit_effect_id": &"spawn_projectile",
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_invalid_profile"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+lane_id = 1
+x_position = 160.0
+hit_height_band = ExtResource("4_ground_height")
+projectile_flight_profile = ExtResource("4_ground_height")
+params = {
+"damage": 10,
+"interval": 0.5,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Rule_protocol_issues"]
+script = ExtResource("3_rule")
+rule_id = &"protocol_issues"
+description = "invalid spawn entries should be rejected through protocol issues before runtime behavior binds"
+event_name = &"protocol.issue"
+min_count = 2
+required_core_values = {
+"scope": &"battle_spawn_entry"
+}
+
+[sub_resource type="Resource" id="Rule_no_projectiles"]
+script = ExtResource("3_rule")
+rule_id = &"no_projectile_spawn"
+description = "invalid protocol content should not be allowed to spawn projectiles"
+event_name = &"projectile.spawned"
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_no_damage"]
+script = ExtResource("3_rule")
+rule_id = &"no_damage_events"
+description = "invalid protocol content should be blocked before any damage event is emitted"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"protocol_guardrail_validation"
+display_name = "Protocol Guardrail Validation"
+description = "Validates that invalid spawn-entry protocol content is recorded as protocol issues and blocked before projectile or damage execution."
+goals = PackedStringArray("Verify spawn-entry protocol validation emits protocol.issue events.", "Verify an invalid on-hit child effect is blocked by the slot whitelist.", "Verify a wrong flight_profile resource type is blocked before any projectile runtime is created.")
+validation_time_limit = 1.0
+validation_rules = [SubResource("Rule_protocol_issues"), SubResource("Rule_no_projectiles"), SubResource("Rule_no_damage")]
+spawns = [SubResource("Spawn_invalid_on_hit"), SubResource("Spawn_invalid_profile")]
