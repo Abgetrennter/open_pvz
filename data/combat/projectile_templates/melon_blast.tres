@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ProjectileTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/projectile_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/parabola_terminal_blast.tres" id="2_profile"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"melon_blast"
+display_name = "Melon Blast Projectile"
+tags = PackedStringArray("projectile", "melon", "blast")
+flight_profile = ExtResource("2_profile")
+lifetime = 5.0
+hitbox_radius = 14.0
+default_params = {
+"damage": 40,
+"speed": 220.0
+}

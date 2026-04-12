@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ProjectileFlightProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/projectile/projectile_flight_profile.gd" id="1_flight"]
+
+[resource]
+script = ExtResource("1_flight")
+profile_id = &"track_air"
+move_mode = &"track"
+height_strategy = &"flat"
+flight_height = 40.0
+projection_scale = 1.0
+max_hit_height = 96.0
+hit_strategy = &"swept_segment"
+impact_radius = 20.0
+collision_padding = 12.0
+lead_time_scale = 1.0
+dynamic_target_axis = &"xy"

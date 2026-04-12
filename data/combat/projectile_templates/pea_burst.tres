@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ProjectileTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/projectile_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="2_profile"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"pea_burst"
+display_name = "Burst Pea Projectile"
+tags = PackedStringArray("projectile", "pea", "burst")
+flight_profile = ExtResource("2_profile")
+lifetime = 5.0
+hitbox_radius = 10.0
+default_params = {
+"damage": 20,
+"speed": 300.0
+}

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ProjectileTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/projectile_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/parabola_cabbage_arc.tres" id="2_profile"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"cabbage_arc"
+display_name = "Cabbage Arc Projectile"
+tags = PackedStringArray("projectile", "cabbage", "parabola")
+flight_profile = ExtResource("2_profile")
+lifetime = 5.0
+hitbox_radius = 12.0
+default_params = {
+"damage": 20,
+"speed": 220.0
+}

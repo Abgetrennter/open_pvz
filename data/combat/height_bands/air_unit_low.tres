@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="HeightBand" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/height_band.gd" id="1_band"]
+
+[resource]
+script = ExtResource("1_band")
+band_id = &"air_unit_low"
+min_height = 18.0
+max_height = 44.0
