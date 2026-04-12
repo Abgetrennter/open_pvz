@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
 [ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
-[ext_resource type="Resource" path="res://data/combat/templates/plant_track_bomber.tres" id="4_plant_template"]
-[ext_resource type="Resource" path="res://data/combat/templates/zombie_reactive_bomber.tres" id="5_zombie_template"]
+[ext_resource type="Resource" path="res://data/combat/entity_templates/plants/plant_track_bomber.tres" id="4_plant_template"]
+[ext_resource type="Resource" path="res://data/combat/entity_templates/zombies/zombie_reactive_bomber.tres" id="5_zombie_template"]
 
 [sub_resource type="Resource" id="Spawn_factory_plant"]
 script = ExtResource("2_spawn")

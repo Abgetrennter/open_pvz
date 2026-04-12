@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="TriggerBinding" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/trigger_binding.gd" id="1_binding"]
+
+[resource]
+script = ExtResource("1_binding")
+binding_id = &"zombie_reactive_on_death"
+behavior_key = &"on_death"
+trigger_id = &"on_death"
+event_name = &"entity.died"
+effect_id = &"explode"
+effect_params = {
+"amount": 21,
+"radius": 120.0,
+"target_mode": &"enemies_in_radius"
+}

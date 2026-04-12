@@ -5,30 +5,14 @@
 
 [resource]
 script = ExtResource("1_template")
-template_id = &"zombie_reactive_bomber"
+template_id = &"zombie_lane_dummy"
 entity_kind = &"zombie"
-display_name = "Reactive Bomber Zombie"
-max_health = 24
+display_name = "Lane Dummy Zombie"
+tags = PackedStringArray("zombie", "template", "dummy")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 40
 hitbox_size = Vector2(44, 60)
 hit_height_band = ExtResource("2_height")
 default_params = {
 "move_speed": 0.0
-}
-runtime_behavior = {
-"on_death": {
-"effect_id": &"explode",
-"effect_params": {
-"amount": 21,
-"radius": 120.0,
-"target_mode": &"enemies_in_radius"
-}
-},
-"when_damaged": {
-"effect_id": &"damage",
-"effect_params": {
-"amount": 7,
-"target_mode": &"event_source"
-},
-"min_damage": 1
-}
 }

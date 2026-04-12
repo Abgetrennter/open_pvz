@@ -8,6 +8,7 @@ const BattleScenarioRef = preload("res://scripts/battle/battle_scenario.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
 const BattleValidationRuleRef = preload("res://scripts/battle/battle_validation_rule.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
+const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const DebugOverlayRef = preload("res://scripts/debug/debug_overlay.gd")
@@ -108,7 +109,8 @@ func reset_battle() -> void:
 
 func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = null) -> Node:
 	var direction := Vector2.RIGHT
-	var direction_value: Variant = params.get("direction", Vector2.RIGHT)
+	var resolved_params: Dictionary = _resolve_projectile_effect_params(params)
+	var direction_value: Variant = resolved_params.get("direction", Vector2.RIGHT)
 	if direction_value is Vector2:
 		direction = direction_value
 
@@ -116,10 +118,11 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 	if context.source_node != null and context.source_node is Node2D:
 		spawn_position = context.source_node.global_position + direction.normalized() * 34.0
 
-	var projectile: Variant = _entity_factory.create_projectile(spawn_position)
-	var speed := float(params.get("speed", 300.0))
-	var damage := int(params.get("damage", 10))
-	var movement_params: Dictionary = _build_projectile_movement_params(context, params, spawn_position, direction, speed)
+	var projectile_template = resolved_params.get("projectile_template", null)
+	var projectile: Variant = _entity_factory.create_projectile(spawn_position, projectile_template, resolved_params)
+	var speed := float(resolved_params.get("speed", 300.0))
+	var damage := int(resolved_params.get("damage", 10))
+	var movement_params: Dictionary = _build_projectile_movement_params(context, resolved_params, spawn_position, direction, speed)
 	projectile.launch(direction, speed, context.source_node, on_hit_effect, damage, movement_params, {
 		"depth": int(context.runtime.get("depth", context.depth)),
 		"chain_id": context.chain_id,
@@ -224,6 +227,31 @@ func _build_projectile_movement_params(context, params: Dictionary, spawn_positi
 			pass
 
 	return movement_params
+
+
+func _resolve_projectile_effect_params(params: Dictionary) -> Dictionary:
+	var resolved: Dictionary = params.duplicate(true)
+	var projectile_template = resolved.get("projectile_template", null)
+	if projectile_template == null or not (projectile_template is ProjectileTemplateRef):
+		return resolved
+
+	var template_errors: Array[String] = ProtocolValidatorRef.validate_projectile_template(projectile_template)
+	if not template_errors.is_empty():
+		_report_protocol_issues(template_errors, &"projectile_template")
+		resolved.erase("projectile_template")
+		return resolved
+
+	if projectile_template.default_params is Dictionary:
+		for key: Variant in projectile_template.default_params.keys():
+			if not resolved.has(key):
+				resolved[key] = projectile_template.default_params[key]
+	if not resolved.has("flight_profile") and projectile_template.flight_profile != null:
+		resolved["flight_profile"] = projectile_template.flight_profile
+	if not resolved.has("lifetime") and float(projectile_template.lifetime) > 0.0:
+		resolved["lifetime"] = projectile_template.lifetime
+	if not resolved.has("hitbox_radius") and float(projectile_template.hitbox_radius) > 0.0:
+		resolved["hitbox_radius"] = projectile_template.hitbox_radius
+	return resolved
 
 
 func _movement_params_from_flight_profile(flight_profile: Resource) -> Dictionary:

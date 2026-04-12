@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ProjectileTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/projectile_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/track_ground.tres" id="2_profile"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"track_bomb"
+display_name = "Tracking Bomb Projectile"
+tags = PackedStringArray("projectile", "bomb", "track")
+flight_profile = ExtResource("2_profile")
+lifetime = 5.0
+hitbox_radius = 12.0
+default_params = {
+"damage": 12,
+"speed": 260.0,
+"turn_rate": 8.0
+}

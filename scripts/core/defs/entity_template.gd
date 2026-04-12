@@ -4,10 +4,16 @@ class_name EntityTemplate
 @export var template_id: StringName = StringName()
 @export var entity_kind: StringName = &"plant"
 @export var display_name := ""
+@export var tags: PackedStringArray = PackedStringArray()
 @export var root_scene: PackedScene
+@export var visual_scene: PackedScene
+@export var required_components: PackedStringArray = PackedStringArray()
+@export var optional_components: PackedStringArray = PackedStringArray()
 @export var max_health := -1
 @export var hitbox_size := Vector2.ZERO
 @export var hit_height_band: Resource = null
 @export var projectile_flight_profile: Resource = null
+@export var projectile_template: Resource = null
 @export var default_params: Dictionary = {}
+@export var trigger_bindings: Array[Resource] = []
 @export var runtime_behavior: Dictionary = {}

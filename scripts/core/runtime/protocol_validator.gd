@@ -3,6 +3,8 @@ class_name ProtocolValidator
 
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
+const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
+const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
@@ -158,6 +160,54 @@ static func validate_projectile_flight_profile(profile: Resource) -> Array[Strin
 	return errors
 
 
+static func validate_projectile_template(projectile_template: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if projectile_template == null:
+		errors.append("ProjectileTemplate is null.")
+		return errors
+	if projectile_template.get_script() != ProjectileTemplateRef:
+		errors.append("ProjectileTemplate resource must use projectile_template.gd.")
+		return errors
+	if StringName(projectile_template.template_id) == StringName():
+		errors.append("ProjectileTemplate.template_id must not be empty.")
+	if projectile_template.flight_profile != null:
+		for error in validate_projectile_flight_profile(projectile_template.flight_profile):
+			errors.append("ProjectileTemplate flight_profile: %s" % error)
+	if not (projectile_template.default_params is Dictionary):
+		errors.append("ProjectileTemplate.default_params must be a Dictionary.")
+	if float(projectile_template.lifetime) != -1.0 and float(projectile_template.lifetime) <= 0.0:
+		errors.append("ProjectileTemplate.lifetime must be -1 or greater than zero.")
+	if float(projectile_template.hitbox_radius) <= 0.0:
+		errors.append("ProjectileTemplate.hitbox_radius must be greater than zero.")
+	return errors
+
+
+static func validate_trigger_binding(trigger_binding: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if trigger_binding == null:
+		errors.append("TriggerBinding is null.")
+		return errors
+	if trigger_binding.get_script() != TriggerBindingRef:
+		errors.append("TriggerBinding resource must use trigger_binding.gd.")
+		return errors
+	if StringName(trigger_binding.binding_id) == StringName():
+		errors.append("TriggerBinding.binding_id must not be empty.")
+	if StringName(trigger_binding.trigger_id) == StringName():
+		errors.append("TriggerBinding.trigger_id must not be empty.")
+	if StringName(trigger_binding.effect_id) == StringName():
+		errors.append("TriggerBinding.effect_id must not be empty.")
+	if not (trigger_binding.condition_values is Dictionary):
+		errors.append("TriggerBinding.condition_values must be a Dictionary.")
+	if not (trigger_binding.effect_params is Dictionary):
+		errors.append("TriggerBinding.effect_params must be a Dictionary.")
+	if not (trigger_binding.on_hit_effect_params is Dictionary):
+		errors.append("TriggerBinding.on_hit_effect_params must be a Dictionary.")
+	if trigger_binding.projectile_template != null:
+		for error in validate_projectile_template(trigger_binding.projectile_template):
+			errors.append("TriggerBinding projectile_template: %s" % error)
+	return errors
+
+
 static func validate_entity_template(entity_template: Resource) -> Array[String]:
 	var errors: Array[String] = []
 	if entity_template == null:
@@ -174,6 +224,9 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 	if entity_template.projectile_flight_profile != null:
 		for error in validate_projectile_flight_profile(entity_template.projectile_flight_profile):
 			errors.append("EntityTemplate projectile_flight_profile: %s" % error)
+	if entity_template.projectile_template != null:
+		for error in validate_projectile_template(entity_template.projectile_template):
+			errors.append("EntityTemplate projectile_template: %s" % error)
 	if not (entity_template.default_params is Dictionary):
 		errors.append("EntityTemplate.default_params must be a Dictionary.")
 	else:
@@ -184,13 +237,28 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 		))
 	if not (entity_template.runtime_behavior is Dictionary):
 		errors.append("EntityTemplate.runtime_behavior must be a Dictionary.")
-	else:
+	elif _entity_template_trigger_bindings(entity_template).is_empty():
 		errors.append_array(_validate_template_runtime_behavior(
 			StringName(entity_template.entity_kind),
 			entity_template,
 			entity_template.default_params,
 			entity_template.projectile_flight_profile,
+			entity_template.projectile_template,
 			"EntityTemplate %s runtime_behavior" % String(entity_template.template_id)
+		))
+	if not (entity_template.trigger_bindings is Array):
+		errors.append("EntityTemplate.trigger_bindings must be an Array.")
+	else:
+		for trigger_binding in entity_template.trigger_bindings:
+			for error in validate_trigger_binding(trigger_binding):
+				errors.append("EntityTemplate trigger_bindings: %s" % error)
+		errors.append_array(_validate_trigger_bindings_runtime(
+			StringName(entity_template.entity_kind),
+			entity_template,
+			entity_template.default_params,
+			entity_template.projectile_flight_profile,
+			entity_template.projectile_template,
+			"EntityTemplate %s trigger_bindings" % String(entity_template.template_id)
 		))
 	if int(entity_template.max_health) != -1 and int(entity_template.max_health) <= 0:
 		errors.append("EntityTemplate.max_health must be -1 or greater than zero.")
@@ -244,6 +312,10 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	if spawn_entry.projectile_flight_profile != null:
 		for error in validate_projectile_flight_profile(spawn_entry.projectile_flight_profile):
 			errors.append("%s projectile_flight_profile: %s" % [scope, error])
+	var projectile_template = _resolve_projectile_template(spawn_entry, spawn_entry.entity_template)
+	if projectile_template != null:
+		for error in validate_projectile_template(projectile_template):
+			errors.append("%s projectile_template: %s" % [scope, error])
 
 	errors.append_array(_validate_entity_runtime_params(
 		entity_kind,
@@ -252,13 +324,23 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	))
 	if spawn_entry.entity_template != null:
 		var merged_params := _merge_spawn_params(spawn_entry, spawn_entry.entity_template)
-		var resolved_profile: Resource = spawn_entry.projectile_flight_profile if spawn_entry.projectile_flight_profile != null else spawn_entry.entity_template.projectile_flight_profile
-		errors.append_array(_validate_template_runtime_behavior(
+		var resolved_profile: Resource = _resolve_projectile_flight_profile(spawn_entry, spawn_entry.entity_template, projectile_template)
+		if _entity_template_trigger_bindings(spawn_entry.entity_template).is_empty():
+			errors.append_array(_validate_template_runtime_behavior(
 			StringName(entity_kind),
 			spawn_entry.entity_template,
 			merged_params,
 			resolved_profile,
+			projectile_template,
 			"%s template runtime_behavior" % scope
+			))
+		errors.append_array(_validate_trigger_bindings_runtime(
+			StringName(entity_kind),
+			spawn_entry.entity_template,
+			merged_params,
+			resolved_profile,
+			projectile_template,
+			"%s template trigger_bindings" % scope
 		))
 	return errors
 
@@ -601,6 +683,33 @@ static func _merge_spawn_params(spawn_entry: Resource, entity_template = null) -
 	return resolved_params
 
 
+static func _resolve_projectile_template(spawn_entry: Resource, entity_template = null):
+	if spawn_entry != null and spawn_entry.get("params") is Dictionary and spawn_entry.get("params").get("projectile_template", null) is ProjectileTemplateRef:
+		return spawn_entry.get("params").get("projectile_template")
+	if entity_template != null and entity_template.get("projectile_template") is ProjectileTemplateRef:
+		return entity_template.get("projectile_template")
+	return null
+
+
+static func _resolve_projectile_flight_profile(spawn_entry: Resource, entity_template = null, projectile_template = null) -> Resource:
+	if spawn_entry != null and spawn_entry.get("projectile_flight_profile") != null:
+		return spawn_entry.get("projectile_flight_profile")
+	if spawn_entry != null and spawn_entry.get("params") is Dictionary and spawn_entry.get("params").get("flight_profile", null) != null:
+		return spawn_entry.get("params").get("flight_profile")
+	if projectile_template is ProjectileTemplateRef and projectile_template.flight_profile != null:
+		return projectile_template.flight_profile
+	if entity_template != null:
+		return entity_template.get("projectile_flight_profile")
+	return null
+
+
+static func _entity_template_trigger_bindings(entity_template) -> Array:
+	if entity_template == null:
+		return []
+	var trigger_bindings: Variant = entity_template.get("trigger_bindings")
+	return trigger_bindings if trigger_bindings is Array else []
+
+
 static func _load_resource_script(resource_script_path: String):
 	if resource_script_path.is_empty():
 		return null
@@ -613,15 +722,29 @@ static func _validate_template_runtime_behavior(
 	entity_template,
 	params: Dictionary,
 	projectile_flight_profile: Resource,
+	projectile_template,
 	scope: String
 ) -> Array[String]:
 	if entity_template == null:
 		return []
 	var factory: Variant = EntityFactoryRef.new()
 	var errors: Array[String] = []
-	for trigger_instance in factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile):
+	for trigger_instance in factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template):
 		var validation: Dictionary = normalize_trigger_instance(trigger_instance)
 		if not bool(validation.get("valid", false)):
 			for error in PackedStringArray(validation.get("errors", PackedStringArray())):
 				errors.append("%s: %s" % [scope, error])
 	return errors
+
+
+static func _validate_trigger_bindings_runtime(
+	entity_kind: StringName,
+	entity_template,
+	params: Dictionary,
+	projectile_flight_profile: Resource,
+	projectile_template,
+	scope: String
+) -> Array[String]:
+	if entity_template == null or not (entity_template.get("trigger_bindings") is Array) or entity_template.get("trigger_bindings").is_empty():
+		return []
+	return _validate_template_runtime_behavior(entity_kind, entity_template, params, projectile_flight_profile, projectile_template, scope)

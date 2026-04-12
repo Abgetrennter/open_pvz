@@ -5,6 +5,7 @@ const EffectSlotDefRef = preload("res://scripts/core/defs/effect_slot_def.gd")
 const EffectResultRef = preload("res://scripts/core/runtime/effect_result.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight_profile.gd"
+const ProjectileTemplatePath := "res://scripts/core/defs/projectile_template.gd"
 
 var _effect_defs: Dictionary = {}
 var _effect_strategies: Dictionary = {}
@@ -153,6 +154,10 @@ func _register_builtin_defs() -> void:
 		"name": "flight_profile",
 		"type": "resource",
 		"resource_script": ProjectileFlightProfilePath,
+	}, {
+		"name": "projectile_template",
+		"type": "resource",
+		"resource_script": ProjectileTemplatePath,
 	}]
 	spawn_projectile.param_defs = spawn_projectile_param_defs
 	var on_hit_slot = EffectSlotDefRef.new()
