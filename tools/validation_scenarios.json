@@ -67,11 +67,11 @@
   {
     "id": "template_guardrail_validation",
     "scenario": "res://scenes/validation/template_guardrail_validation.tres",
-    "description": "Validates that invalid template resources and malformed override combinations are rejected through protocol issues before runtime execution."
+    "description": "Validates that invalid template resources, malformed trigger bindings, and malformed override combinations are rejected through protocol issues before runtime execution."
   },
   {
     "id": "protocol_guardrail_validation",
     "scenario": "res://scenes/validation/protocol_guardrail_validation.tres",
-    "description": "Validates that invalid protocol content is rejected through protocol.issue events before projectile or damage execution can continue."
+    "description": "Validates that invalid protocol content, including unsupported target modes, is rejected through protocol.issue events before projectile or damage execution can continue."
   }
 ]

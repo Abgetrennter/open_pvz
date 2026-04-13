@@ -8,6 +8,20 @@ const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
+const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
+	&"attack": {
+		"trigger_id": &"periodically",
+		"event_name": &"game.tick",
+	},
+	&"when_damaged": {
+		"trigger_id": &"when_damaged",
+		"event_name": &"entity.damaged",
+	},
+	&"on_death": {
+		"trigger_id": &"on_death",
+		"event_name": &"entity.died",
+	},
+}
 
 const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"interval": true,
@@ -192,6 +206,21 @@ static func validate_trigger_binding(trigger_binding: Resource) -> Array[String]
 		return errors
 	if StringName(trigger_binding.binding_id) == StringName():
 		errors.append("TriggerBinding.binding_id must not be empty.")
+	if StringName(trigger_binding.behavior_key) == StringName():
+		errors.append("TriggerBinding.behavior_key must not be empty.")
+	else:
+		var behavior_key := StringName(trigger_binding.behavior_key)
+		var expected_behavior := _trigger_behavior_spec(behavior_key)
+		if expected_behavior.is_empty():
+			errors.append("TriggerBinding.behavior_key must be one of %s." % _join_strings(_allowed_trigger_behavior_keys()))
+		else:
+			var expected_trigger_id := StringName(expected_behavior.get("trigger_id", StringName()))
+			if StringName(trigger_binding.trigger_id) != StringName() and StringName(trigger_binding.trigger_id) != expected_trigger_id:
+				errors.append("TriggerBinding %s behavior_key %s must use trigger_id %s." % [
+					String(trigger_binding.binding_id),
+					String(behavior_key),
+					String(expected_trigger_id),
+				])
 	if StringName(trigger_binding.trigger_id) == StringName():
 		errors.append("TriggerBinding.trigger_id must not be empty.")
 	if StringName(trigger_binding.effect_id) == StringName():
@@ -202,6 +231,22 @@ static func validate_trigger_binding(trigger_binding: Resource) -> Array[String]
 		errors.append("TriggerBinding.effect_params must be a Dictionary.")
 	if not (trigger_binding.on_hit_effect_params is Dictionary):
 		errors.append("TriggerBinding.on_hit_effect_params must be a Dictionary.")
+	if StringName(trigger_binding.trigger_id) != StringName():
+		var trigger_def = TriggerRegistry.get_def(StringName(trigger_binding.trigger_id))
+		if trigger_def == null:
+			errors.append("TriggerBinding %s references unknown trigger_id %s." % [
+				String(trigger_binding.binding_id),
+				String(trigger_binding.trigger_id),
+			])
+		elif trigger_binding.condition_values is Dictionary:
+			var trigger_normalization := _normalize_trigger_event_and_conditions(
+				StringName(trigger_binding.event_name),
+				trigger_binding.condition_values,
+				trigger_def,
+				"TriggerBinding %s" % String(trigger_binding.binding_id)
+			)
+			for error in PackedStringArray(trigger_normalization.get("errors", PackedStringArray())):
+				errors.append(String(error))
 	if trigger_binding.projectile_template != null:
 		for error in validate_projectile_template(trigger_binding.projectile_template):
 			errors.append("TriggerBinding projectile_template: %s" % error)
@@ -375,33 +420,16 @@ static func normalize_trigger_instance(instance) -> Dictionary:
 		errors.append("Unknown TriggerDef %s." % String(instance.def_id))
 		return {"valid": false, "errors": errors}
 
-	var normalized_event_name := StringName(instance.event_name)
-	if normalized_event_name == StringName():
-		normalized_event_name = StringName(trigger_def.event_name)
-	elif StringName(trigger_def.event_name) != StringName() and normalized_event_name != StringName(trigger_def.event_name):
-		errors.append("TriggerInstance %s event_name must match TriggerDef event_name." % String(instance.def_id))
-
-	var normalized_conditions: Dictionary = {}
-	for param_def in trigger_def.condition_params:
-		if not (param_def is Dictionary):
-			continue
-		var param_name := String(param_def.get("name", ""))
-		if param_name.is_empty():
-			continue
-		if instance.condition_values.has(param_name):
-			normalized_conditions[param_name] = _normalize_param_value(
-				instance.condition_values[param_name],
-				param_def,
-				errors,
-				"TriggerInstance %s" % String(instance.def_id)
-			)
-		elif param_def.has("default"):
-			normalized_conditions[param_name] = param_def["default"]
-
-	if not bool(trigger_def.allow_extra_conditions):
-		for key: Variant in instance.condition_values.keys():
-			if not normalized_conditions.has(key):
-				errors.append("TriggerInstance %s has unsupported condition %s." % [String(instance.def_id), str(key)])
+	var trigger_normalization := _normalize_trigger_event_and_conditions(
+		StringName(instance.event_name),
+		instance.condition_values,
+		trigger_def,
+		"TriggerInstance %s" % String(instance.def_id)
+	)
+	for error in PackedStringArray(trigger_normalization.get("errors", PackedStringArray())):
+		errors.append(String(error))
+	var normalized_event_name := StringName(trigger_normalization.get("event_name", instance.event_name))
+	var normalized_conditions: Dictionary = Dictionary(trigger_normalization.get("condition_values", instance.condition_values))
 
 	if instance.effect_roots.is_empty():
 		errors.append("TriggerInstance %s must bind at least one effect root." % String(instance.def_id))
@@ -618,6 +646,17 @@ static func _allowed_param_types() -> Array[String]:
 	return ["int", "float", "string", "string_name", "bool", "vector2", "resource"]
 
 
+static func _allowed_trigger_behavior_keys() -> Array[String]:
+	var keys: Array[String] = []
+	for key: Variant in FROZEN_TRIGGER_BEHAVIOR_SPECS.keys():
+		keys.append(String(key))
+	return keys
+
+
+static func _trigger_behavior_spec(behavior_key: StringName) -> Dictionary:
+	return Dictionary(FROZEN_TRIGGER_BEHAVIOR_SPECS.get(behavior_key, {}))
+
+
 static func _variant_string_set(values: Variant) -> Array[String]:
 	var result: Array[String] = []
 	if values is PackedStringArray:
@@ -631,6 +670,48 @@ static func _variant_string_set(values: Variant) -> Array[String]:
 
 static func _join_strings(values: Array[String]) -> String:
 	return ", ".join(values)
+
+
+static func _normalize_trigger_event_and_conditions(
+	raw_event_name: StringName,
+	raw_condition_values: Dictionary,
+	trigger_def,
+	scope: String
+) -> Dictionary:
+	var errors: PackedStringArray = PackedStringArray()
+	var normalized_event_name := raw_event_name
+	if normalized_event_name == StringName():
+		normalized_event_name = StringName(trigger_def.event_name)
+	elif StringName(trigger_def.event_name) != StringName() and normalized_event_name != StringName(trigger_def.event_name):
+		errors.append("%s event_name must match TriggerDef event_name." % scope)
+
+	var normalized_conditions: Dictionary = {}
+	for param_def in trigger_def.condition_params:
+		if not (param_def is Dictionary):
+			continue
+		var param_name := String(param_def.get("name", ""))
+		if param_name.is_empty():
+			continue
+		if raw_condition_values.has(param_name):
+			normalized_conditions[param_name] = _normalize_param_value(
+				raw_condition_values[param_name],
+				param_def,
+				errors,
+				scope
+			)
+		elif param_def.has("default"):
+			normalized_conditions[param_name] = param_def["default"]
+
+	if not bool(trigger_def.allow_extra_conditions):
+		for key: Variant in raw_condition_values.keys():
+			if not normalized_conditions.has(key):
+				errors.append("%s has unsupported condition %s." % [scope, str(key)])
+
+	return {
+		"errors": errors,
+		"event_name": normalized_event_name,
+		"condition_values": normalized_conditions,
+	}
 
 
 static func _validate_entity_runtime_params(entity_kind: String, params: Dictionary, scope: String) -> Array[String]:

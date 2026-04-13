@@ -42,6 +42,21 @@ effect_params = {
 }
 projectile_template = SubResource("InvalidProjectileTemplate")
 
+[sub_resource type="Resource" id="InvalidTriggerBinding_trigger_contract"]
+script = ExtResource("8_trigger_binding_script")
+binding_id = &"invalid_trigger_contract_binding"
+behavior_key = &"support"
+trigger_id = &"periodically"
+event_name = &"entity.damaged"
+condition_values = {
+"interval": 0.6
+}
+effect_id = &"damage"
+effect_params = {
+"amount": 10,
+"target_mode": &"context_target"
+}
+
 [sub_resource type="Resource" id="InvalidEntityTemplate_runtime_key"]
 script = ExtResource("4_template_script")
 template_id = &"invalid_runtime_key_template"
@@ -65,6 +80,15 @@ hit_height_band = ExtResource("5_ground_height")
 projectile_flight_profile = ExtResource("6_linear_profile")
 trigger_bindings = [SubResource("InvalidTriggerBinding")]
 
+[sub_resource type="Resource" id="InvalidEntityTemplate_binding_contract"]
+script = ExtResource("4_template_script")
+template_id = &"invalid_binding_contract_template"
+entity_kind = &"plant"
+display_name = "Invalid Binding Contract Template"
+hit_height_band = ExtResource("5_ground_height")
+projectile_flight_profile = ExtResource("6_linear_profile")
+trigger_bindings = [SubResource("InvalidTriggerBinding_trigger_contract")]
+
 [sub_resource type="Resource" id="Spawn_missing_template_id"]
 script = ExtResource("2_spawn")
 entity_template = SubResource("InvalidEntityTemplate_missing_id")
@@ -76,6 +100,12 @@ script = ExtResource("2_spawn")
 entity_template = SubResource("InvalidEntityTemplate_binding")
 lane_id = 0
 x_position = 240.0
+
+[sub_resource type="Resource" id="Spawn_invalid_binding_contract"]
+script = ExtResource("2_spawn")
+entity_template = SubResource("InvalidEntityTemplate_binding_contract")
+lane_id = 0
+x_position = 280.0
 
 [sub_resource type="Resource" id="Spawn_invalid_runtime_key"]
 script = ExtResource("2_spawn")
@@ -111,7 +141,7 @@ script = ExtResource("3_rule")
 rule_id = &"template_protocol_issues"
 description = "invalid template and override content should be rejected through protocol issues before runtime behavior binds"
 event_name = &"protocol.issue"
-min_count = 6
+min_count = 7
 required_core_values = {
 "scope": &"battle_spawn_entry"
 }
@@ -136,8 +166,8 @@ max_count = 0
 script = ExtResource("1_scenario")
 scenario_id = &"template_guardrail_validation"
 display_name = "Template Guardrail Validation"
-description = "Validates that invalid template resources, unresolved template ids, malformed override resources, and inconsistent projectile override combinations are rejected before runtime binding."
-goals = PackedStringArray("Verify entity templates without template_id are rejected.", "Verify invalid trigger binding and runtime behavior keys are rejected.", "Verify unresolved entity_template_id and malformed projectile overrides are rejected.", "Verify inconsistent flight_profile and movement_mode combinations are blocked before runtime execution.")
+description = "Validates that invalid template resources, malformed trigger bindings, unresolved template ids, malformed override resources, and inconsistent projectile override combinations are rejected before runtime binding."
+goals = PackedStringArray("Verify entity templates without template_id are rejected.", "Verify invalid trigger binding payloads, unsupported behavior_key values, and event_name drift are rejected.", "Verify invalid runtime behavior keys are rejected.", "Verify unresolved entity_template_id and malformed projectile overrides are rejected.", "Verify inconsistent flight_profile and movement_mode combinations are blocked before runtime execution.")
 validation_time_limit = 1.0
 validation_rules = [SubResource("Rule_template_protocol_issues"), SubResource("Rule_no_projectiles"), SubResource("Rule_no_damage")]
-spawns = [SubResource("Spawn_missing_template_id"), SubResource("Spawn_invalid_binding"), SubResource("Spawn_invalid_runtime_key"), SubResource("Spawn_unresolved_template_id"), SubResource("Spawn_invalid_override_shape"), SubResource("Spawn_mismatched_override")]
+spawns = [SubResource("Spawn_missing_template_id"), SubResource("Spawn_invalid_binding"), SubResource("Spawn_invalid_binding_contract"), SubResource("Spawn_invalid_runtime_key"), SubResource("Spawn_unresolved_template_id"), SubResource("Spawn_invalid_override_shape"), SubResource("Spawn_mismatched_override")]
