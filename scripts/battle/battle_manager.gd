@@ -45,10 +45,15 @@ var _validation_counts: Dictionary = {}
 var _auto_quit_timer := -1.0
 var _validation_reported := false
 var _runtime_frame_counter := 0
+var _scenario_override_failed := false
 
 
 func _ready() -> void:
 	_apply_runtime_options()
+	if _scenario_override_failed:
+		if auto_quit_on_validation:
+			get_tree().quit(1)
+		return
 	_entity_root = _ensure_entity_root()
 	if not EventBus.event_pushed.is_connected(_on_validation_event):
 		EventBus.event_pushed.connect(_on_validation_event)
@@ -477,6 +482,8 @@ func get_unsatisfied_validation_descriptions() -> PackedStringArray:
 
 
 func _resolve_scenario():
+	if _scenario_override_failed:
+		return null
 	if scenario != null and scenario.get_script() == BattleScenarioRef:
 		return scenario
 	if scenario_registry_id != StringName() and SceneRegistry.has_validation_scenario(scenario_registry_id):
@@ -743,7 +750,9 @@ func _apply_runtime_options() -> void:
 	var loaded_scenario: Resource = load(scenario_override_path)
 	if loaded_scenario != null and loaded_scenario.get_script() == BattleScenarioRef:
 		scenario = loaded_scenario
+		_scenario_override_failed = false
 		return
+	_scenario_override_failed = true
 	push_warning("Failed to load validation scenario override: %s" % scenario_override_path)
 
 

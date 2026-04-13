@@ -24,6 +24,34 @@ $ConsoleLogPath = Join-Path $RunDir "godot.log"
 $ReportPath = Join-Path $RunDir "validation_report.json"
 $DebugLogPath = Join-Path $RunDir "debug_logs.json"
 
+$ResolvedScenarioPath = $Scenario
+if ($Scenario.StartsWith("res://")) {
+	$RelativeScenarioPath = $Scenario.Substring("res://".Length).Replace("/", "\")
+	$ResolvedScenarioPath = Join-Path $ProjectRoot $RelativeScenarioPath
+}
+
+if (-not (Test-Path -LiteralPath $ResolvedScenarioPath)) {
+	$Result = [pscustomobject]@{
+		Scenario = $Scenario
+		RunLabel = $RunLabel
+		RunDir = $RunDir
+		ConsoleLog = $ConsoleLogPath
+		ReportPath = $ReportPath
+		DebugLogPath = $DebugLogPath
+		Status = "failed"
+		ExitCode = 1
+	}
+	$MissingMessage = "[ValidationRunner] $RunLabel -> FAILED ($RunDir)`nMissing scenario resource: $Scenario"
+	$MissingMessage | Set-Content -LiteralPath $ConsoleLogPath -Encoding UTF8
+	Write-Host ("[ValidationRunner] {0} -> FAILED ({1})" -f $RunLabel, $RunDir)
+	if ($PassThru) {
+		$Result
+		return
+	}
+	Write-Host "Missing scenario resource: $Scenario"
+	exit 1
+}
+
 $GodotArgs = @(
 	"--headless",
 	"--path", $ProjectRoot,

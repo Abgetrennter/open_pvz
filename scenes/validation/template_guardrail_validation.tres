@@ -1,0 +1,143 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="4_template_script"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_ground_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="6_linear_profile"]
+[ext_resource type="Script" path="res://scripts/core/defs/projectile_template.gd" id="7_projectile_template_script"]
+[ext_resource type="Script" path="res://scripts/core/defs/trigger_binding.gd" id="8_trigger_binding_script"]
+
+[sub_resource type="Resource" id="InvalidEntityTemplate_missing_id"]
+script = ExtResource("4_template_script")
+entity_kind = &"plant"
+display_name = "Missing Template Id"
+hit_height_band = ExtResource("5_ground_height")
+projectile_flight_profile = ExtResource("6_linear_profile")
+
+[sub_resource type="Resource" id="InvalidProjectileTemplate"]
+script = ExtResource("7_projectile_template_script")
+display_name = "Missing Projectile Id"
+flight_profile = ExtResource("6_linear_profile")
+default_params = {
+"damage": 10,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="InvalidTriggerBinding"]
+script = ExtResource("8_trigger_binding_script")
+binding_id = &"invalid_runtime_binding"
+behavior_key = &"attack"
+trigger_id = &"periodically"
+event_name = &"game.tick"
+condition_values = {
+"interval": 0.6
+}
+effect_id = &"spawn_projectile"
+effect_params = {
+"damage": 10,
+"ghost_speed": 999.0,
+"speed": 220.0
+}
+projectile_template = SubResource("InvalidProjectileTemplate")
+
+[sub_resource type="Resource" id="InvalidEntityTemplate_runtime_key"]
+script = ExtResource("4_template_script")
+template_id = &"invalid_runtime_key_template"
+entity_kind = &"plant"
+display_name = "Invalid Runtime Key Template"
+hit_height_band = ExtResource("5_ground_height")
+projectile_flight_profile = ExtResource("6_linear_profile")
+runtime_behavior = {
+"attack": {
+"ghost_speed": 999.0,
+"interval": 0.6
+}
+}
+
+[sub_resource type="Resource" id="InvalidEntityTemplate_binding"]
+script = ExtResource("4_template_script")
+template_id = &"invalid_binding_template"
+entity_kind = &"plant"
+display_name = "Invalid Binding Template"
+hit_height_band = ExtResource("5_ground_height")
+projectile_flight_profile = ExtResource("6_linear_profile")
+trigger_bindings = [SubResource("InvalidTriggerBinding")]
+
+[sub_resource type="Resource" id="Spawn_missing_template_id"]
+script = ExtResource("2_spawn")
+entity_template = SubResource("InvalidEntityTemplate_missing_id")
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_invalid_binding"]
+script = ExtResource("2_spawn")
+entity_template = SubResource("InvalidEntityTemplate_binding")
+lane_id = 0
+x_position = 240.0
+
+[sub_resource type="Resource" id="Spawn_invalid_runtime_key"]
+script = ExtResource("2_spawn")
+entity_template = SubResource("InvalidEntityTemplate_runtime_key")
+lane_id = 0
+x_position = 320.0
+
+[sub_resource type="Resource" id="Spawn_unresolved_template_id"]
+script = ExtResource("2_spawn")
+entity_template_id = &"missing_template_id"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_invalid_override_shape"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_basic_shooter"
+lane_id = 1
+x_position = 240.0
+projectile_template_override = ExtResource("5_ground_height")
+
+[sub_resource type="Resource" id="Spawn_mismatched_override"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_basic_shooter"
+lane_id = 1
+x_position = 320.0
+spawn_overrides = {
+"movement_mode": &"track",
+"flight_profile": ExtResource("6_linear_profile")
+}
+
+[sub_resource type="Resource" id="Rule_template_protocol_issues"]
+script = ExtResource("3_rule")
+rule_id = &"template_protocol_issues"
+description = "invalid template and override content should be rejected through protocol issues before runtime behavior binds"
+event_name = &"protocol.issue"
+min_count = 6
+required_core_values = {
+"scope": &"battle_spawn_entry"
+}
+
+[sub_resource type="Resource" id="Rule_no_projectiles"]
+script = ExtResource("3_rule")
+rule_id = &"template_no_projectiles"
+description = "invalid template content should not be allowed to spawn projectiles"
+event_name = &"projectile.spawned"
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_no_damage"]
+script = ExtResource("3_rule")
+rule_id = &"template_no_damage"
+description = "invalid template content should be blocked before any damage event is emitted"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"template_guardrail_validation"
+display_name = "Template Guardrail Validation"
+description = "Validates that invalid template resources, unresolved template ids, malformed override resources, and inconsistent projectile override combinations are rejected before runtime binding."
+goals = PackedStringArray("Verify entity templates without template_id are rejected.", "Verify invalid trigger binding and runtime behavior keys are rejected.", "Verify unresolved entity_template_id and malformed projectile overrides are rejected.", "Verify inconsistent flight_profile and movement_mode combinations are blocked before runtime execution.")
+validation_time_limit = 1.0
+validation_rules = [SubResource("Rule_template_protocol_issues"), SubResource("Rule_no_projectiles"), SubResource("Rule_no_damage")]
+spawns = [SubResource("Spawn_missing_template_id"), SubResource("Spawn_invalid_binding"), SubResource("Spawn_invalid_runtime_key"), SubResource("Spawn_unresolved_template_id"), SubResource("Spawn_invalid_override_shape"), SubResource("Spawn_mismatched_override")]

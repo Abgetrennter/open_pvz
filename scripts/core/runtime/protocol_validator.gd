@@ -317,13 +317,24 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	if projectile_profile_override != null:
 		for error in validate_projectile_flight_profile(projectile_profile_override):
 			errors.append("%s projectile_flight_profile: %s" % [scope, error])
-	var spawn_overrides := _resolve_spawn_overrides(spawn_entry)
-	if not (spawn_overrides is Dictionary):
+	var raw_spawn_overrides: Variant = spawn_entry.get("spawn_overrides")
+	if raw_spawn_overrides != null and not (raw_spawn_overrides is Dictionary):
 		errors.append("%s.spawn_overrides must be a Dictionary." % scope)
+	var spawn_overrides := _resolve_spawn_overrides(spawn_entry)
+	if spawn_entry.get("projectile_template_override") != null and not (spawn_entry.get("projectile_template_override") is ProjectileTemplateRef):
+		errors.append("%s.projectile_template_override must be a ProjectileTemplate resource." % scope)
+	if spawn_entry.get("projectile_flight_profile_override") != null:
+		for error in validate_projectile_flight_profile(spawn_entry.get("projectile_flight_profile_override")):
+			errors.append("%s projectile_flight_profile_override: %s" % [scope, error])
 	var projectile_template = _resolve_projectile_template(spawn_entry, resolved_template)
 	if projectile_template != null:
 		for error in validate_projectile_template(projectile_template):
 			errors.append("%s projectile_template: %s" % [scope, error])
+	errors.append_array(_validate_projectile_config_consistency(
+		_merge_spawn_params(spawn_entry, resolved_template),
+		projectile_template,
+		"%s params" % scope
+	))
 
 	errors.append_array(_validate_entity_runtime_params(
 		entity_kind,
@@ -629,6 +640,7 @@ static func _validate_entity_runtime_params(entity_kind: String, params: Diction
 		return errors
 	if entity_kind != "plant":
 		return errors
+	errors.append_array(_validate_projectile_config_consistency(params, params.get("projectile_template", null), scope))
 
 	var effect_overrides: Dictionary = {}
 	if params.has("effect_overrides"):
@@ -677,6 +689,38 @@ static func _validate_entity_runtime_params(entity_kind: String, params: Diction
 	if not bool(validation.get("valid", false)):
 		for error in PackedStringArray(validation.get("errors", PackedStringArray())):
 			errors.append("%s: %s" % [scope, error])
+	return errors
+
+
+static func _validate_projectile_config_consistency(params: Dictionary, projectile_template, scope: String) -> Array[String]:
+	var errors: Array[String] = []
+	if not (params is Dictionary):
+		return errors
+
+	var profile: Resource = null
+	if params.get("flight_profile", null) is Resource:
+		profile = params.get("flight_profile")
+	elif projectile_template is ProjectileTemplateRef and projectile_template.flight_profile is Resource:
+		profile = projectile_template.flight_profile
+
+	if profile != null:
+		for error in validate_projectile_flight_profile(profile):
+			errors.append("%s flight_profile: %s" % [scope, error])
+		if params.has("movement_mode") and profile.get_script() == ProjectileFlightProfileRef:
+			var profile_move_mode := StringName(profile.get("move_mode"))
+			var override_move_mode := StringName(params.get("movement_mode", StringName()))
+			if override_move_mode != StringName() and override_move_mode != profile_move_mode:
+				errors.append("%s movement_mode must match flight_profile.move_mode when both are provided." % scope)
+
+	var resolved_move_mode := StringName(params.get("movement_mode", StringName()))
+	if resolved_move_mode == StringName() and profile != null and profile.get_script() == ProjectileFlightProfileRef:
+		resolved_move_mode = StringName(profile.get("move_mode"))
+	if resolved_move_mode == &"track" and params.has("arc_height"):
+		errors.append("%s arc_height is only valid for parabola movement." % scope)
+	if resolved_move_mode == &"linear" and params.has("turn_rate"):
+		errors.append("%s turn_rate is only valid for track movement." % scope)
+	if resolved_move_mode == &"parabola" and params.has("turn_rate"):
+		errors.append("%s turn_rate is only valid for track movement." % scope)
 	return errors
 
 

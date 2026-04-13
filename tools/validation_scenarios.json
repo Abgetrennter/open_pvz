@@ -45,6 +45,31 @@
     "description": "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides win over template projectile defaults."
   },
   {
+    "id": "air_interceptor_validation",
+    "scenario": "res://scenes/validation/air_interceptor_validation.tres",
+    "description": "Validates that the air interceptor sample can hit low and medium air targets through the shared template chain."
+  },
+  {
+    "id": "repeater_burst_validation",
+    "scenario": "res://scenes/validation/repeater_burst_validation.tres",
+    "description": "Validates that the repeater burst sample can spawn repeated projectiles and damage walker and runner targets in two lanes."
+  },
+  {
+    "id": "lobber_catalog_validation",
+    "scenario": "res://scenes/validation/lobber_catalog_validation.tres",
+    "description": "Validates that cabbage and melon lobber samples can spawn their dedicated projectile templates and resolve direct-hit and explode-tagged damage."
+  },
+  {
+    "id": "zombie_roster_attack_validation",
+    "scenario": "res://scenes/validation/zombie_roster_attack_validation.tres",
+    "description": "Validates that the new zombie roster samples can all attack the wall barrier sample through the common zombie runtime."
+  },
+  {
+    "id": "template_guardrail_validation",
+    "scenario": "res://scenes/validation/template_guardrail_validation.tres",
+    "description": "Validates that invalid template resources and malformed override combinations are rejected through protocol issues before runtime execution."
+  },
+  {
     "id": "protocol_guardrail_validation",
     "scenario": "res://scenes/validation/protocol_guardrail_validation.tres",
     "description": "Validates that invalid protocol content is rejected through protocol.issue events before projectile or damage execution can continue."
