@@ -9,5 +9,5 @@ scenario = ExtResource("2_scenario")
 allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
-showcase_title = "Terminal Explode Showcase"
-showcase_summary = "Parabola projectiles complete their flight, emit projectile.hit, and then hand off to explode damage on clustered targets."
+showcase_title = "终点爆炸展示"
+showcase_summary = "抛物线投射体飞到终点后先发出 projectile.hit，再把伤害交给范围爆炸链。"

@@ -1,7 +1,7 @@
 extends "res://scripts/battle/battle_manager.gd"
 class_name ShowcaseScene
 
-@export var showcase_title := "Showcase"
+@export var showcase_title := "展示场景"
 @export_multiline var showcase_summary := ""
 
 var _ui_layer: CanvasLayer = null
@@ -55,7 +55,7 @@ func _build_ui() -> void:
 	layout.add_child(_summary_label)
 
 	_back_button = Button.new()
-	_back_button.text = "Back To Hub (Esc)"
+	_back_button.text = "返回主面板 (Esc)"
 	_back_button.pressed.connect(_return_to_main_menu)
 	layout.add_child(_back_button)
 

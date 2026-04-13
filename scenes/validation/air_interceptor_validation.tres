@@ -1,0 +1,80 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/air_unit_medium.tres" id="4_air_medium"]
+
+[sub_resource type="Resource" id="Spawn_air_interceptor_lane0"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_air_interceptor"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_air_target_low"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_air_scout"
+lane_id = 0
+x_position = 420.0
+
+[sub_resource type="Resource" id="Spawn_air_interceptor_lane1"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_air_interceptor"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_air_target_medium"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 1
+x_position = 420.0
+hit_height_band_override = ExtResource("4_air_medium")
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_air_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"air_spawn"
+description = "air interceptor should spawn track_air projectiles from the registered template"
+event_name = &"projectile.spawned"
+min_count = 2
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"track_air",
+"source_template_id": &"plant_air_interceptor"
+}
+
+[sub_resource type="Resource" id="Rule_air_hit_low"]
+script = ExtResource("3_rule")
+rule_id = &"air_hit_low"
+description = "air interceptor should hit the low air scout target"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"source_template_id": &"plant_air_interceptor",
+"target_template_id": &"zombie_air_scout",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_air_hit_medium"]
+script = ExtResource("3_rule")
+rule_id = &"air_hit_medium"
+description = "air interceptor should also hit a target promoted to the medium air height band"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"source_template_id": &"plant_air_interceptor",
+"target_template_id": &"zombie_lane_dummy",
+"target_lane": 1
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"air_interceptor_validation"
+display_name = "Air Interceptor Validation"
+description = "Validates that the new air interceptor sample can spawn track_air projectiles and resolve hits against low and medium air targets through the unified template chain."
+goals = PackedStringArray("Verify plant_air_interceptor can be resolved through entity_template_id.", "Verify track_air projectile samples spawn through the template chain.", "Verify low and medium air targets can both be hit by the interceptor sample.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_air_spawn"), SubResource("Rule_air_hit_low"), SubResource("Rule_air_hit_medium")]
+spawns = [SubResource("Spawn_air_interceptor_lane0"), SubResource("Spawn_air_target_low"), SubResource("Spawn_air_interceptor_lane1"), SubResource("Spawn_air_target_medium")]

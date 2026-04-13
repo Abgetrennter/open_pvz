@@ -1,0 +1,89 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_wall_barrier"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 0
+x_position = 220.0
+
+[sub_resource type="Resource" id="Spawn_basic_walker"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 250.0
+
+[sub_resource type="Resource" id="Spawn_brisk_runner"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_brisk_runner"
+lane_id = 0
+x_position = 270.0
+
+[sub_resource type="Resource" id="Spawn_bucket_tank"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_bucket_tank"
+lane_id = 0
+x_position = 290.0
+
+[sub_resource type="Resource" id="Spawn_boss_heavy"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_boss_heavy"
+lane_id = 0
+x_position = 310.0
+
+[sub_resource type="Resource" id="Rule_basic_attack"]
+script = ExtResource("3_rule")
+rule_id = &"basic_attack"
+description = "basic walker should damage the wall barrier through its zombie runtime"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("bite")
+required_core_values = {
+"source_template_id": &"zombie_basic_walker",
+"target_template_id": &"plant_wall_barrier"
+}
+
+[sub_resource type="Resource" id="Rule_runner_attack"]
+script = ExtResource("3_rule")
+rule_id = &"runner_attack"
+description = "brisk runner should damage the wall barrier through its zombie runtime"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("bite")
+required_core_values = {
+"source_template_id": &"zombie_brisk_runner",
+"target_template_id": &"plant_wall_barrier"
+}
+
+[sub_resource type="Resource" id="Rule_bucket_attack"]
+script = ExtResource("3_rule")
+rule_id = &"bucket_attack"
+description = "bucket tank should damage the wall barrier through its zombie runtime"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("bite")
+required_core_values = {
+"source_template_id": &"zombie_bucket_tank",
+"target_template_id": &"plant_wall_barrier"
+}
+
+[sub_resource type="Resource" id="Rule_boss_attack"]
+script = ExtResource("3_rule")
+rule_id = &"boss_attack"
+description = "boss heavy should damage the wall barrier through its zombie runtime"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("bite")
+required_core_values = {
+"source_template_id": &"zombie_boss_heavy",
+"target_template_id": &"plant_wall_barrier"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_roster_attack_validation"
+display_name = "Zombie Roster Attack Validation"
+description = "Validates that the new zombie roster samples can instantiate from templates and reach the shared bite damage path against the wall barrier sample."
+goals = PackedStringArray("Verify the wall barrier sample can tank multiple zombie attackers.", "Verify the basic walker, brisk runner, bucket tank, and boss heavy samples all instantiate and attack through the common zombie runtime.", "Verify these roster samples appear in runtime events with stable template ids.")
+validation_time_limit = 3.2
+validation_rules = [SubResource("Rule_basic_attack"), SubResource("Rule_runner_attack"), SubResource("Rule_bucket_attack"), SubResource("Rule_boss_attack")]
+spawns = [SubResource("Spawn_wall_barrier"), SubResource("Spawn_basic_walker"), SubResource("Spawn_brisk_runner"), SubResource("Spawn_bucket_tank"), SubResource("Spawn_boss_heavy")]

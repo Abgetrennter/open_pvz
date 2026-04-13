@@ -9,5 +9,5 @@ scenario = ExtResource("2_scenario")
 allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
-showcase_title = "Height Hit Showcase"
-showcase_summary = "Low projectiles fail against elevated targets while elevated projectiles can resolve the same hit under shared height rules."
+showcase_title = "高度命中展示"
+showcase_summary = "低高度投射物会被高空目标挡掉，而高高度投射物可以在同一套规则下命中它们。"

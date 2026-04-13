@@ -10,4 +10,5 @@ allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
 showcase_title = "Minimal Validation Showcase"
-showcase_summary = "Original backbone scene showing linear, tracking, and parabola projectiles across two lanes."
+showcase_title = "最小验证展示"
+showcase_summary = "原始主干验证场景，展示两条 lane 上的直线、追踪和抛物线投射体。"
