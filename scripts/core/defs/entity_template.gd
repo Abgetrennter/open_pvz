@@ -16,4 +16,3 @@ class_name EntityTemplate
 @export var projectile_template: Resource = null
 @export var default_params: Dictionary = {}
 @export var trigger_bindings: Array[Resource] = []
-@export var runtime_behavior: Dictionary = {}

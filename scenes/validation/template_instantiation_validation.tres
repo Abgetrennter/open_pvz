@@ -8,13 +8,13 @@
 
 [sub_resource type="Resource" id="Spawn_template_plant"]
 script = ExtResource("2_spawn")
-entity_template = ExtResource("4_plant_template")
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_template_zombie"]
 script = ExtResource("2_spawn")
-entity_template = ExtResource("5_zombie_template")
+entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 500.0
 
@@ -67,7 +67,7 @@ script = ExtResource("1_scenario")
 scenario_id = &"template_instantiation_validation"
 display_name = "Template Instantiation Validation"
 description = "Validates that BattleScenario spawn entries can instantiate entities from EntityTemplate resources and carry template identity through runtime events."
-goals = PackedStringArray("Verify BattleSpawnEntry can reference EntityTemplate directly.", "Verify template default params and projectile profile feed the spawn chain without entry-local duplication.", "Verify template identity and template-defined health budget survive into runtime behavior.")
+goals = PackedStringArray("Verify BattleSpawnEntry can resolve EntityTemplate through SceneRegistry id.", "Verify template default params and projectile profile feed the spawn chain without entry-local duplication.", "Verify template identity and template-defined health budget survive into runtime behavior.")
 validation_time_limit = 2.5
 validation_rules = [SubResource("Rule_template_spawn"), SubResource("Rule_template_hit"), SubResource("Rule_template_damage"), SubResource("Rule_template_death")]
 spawns = [SubResource("Spawn_template_plant"), SubResource("Spawn_template_zombie")]

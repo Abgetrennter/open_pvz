@@ -8,12 +8,11 @@
 
 [sub_resource type="Resource" id="Spawn_fast_plant"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
-hit_height_band = ExtResource("4_ground_height")
-projectile_flight_profile = ExtResource("5_fast_profile")
-params = {
+projectile_flight_profile_override = ExtResource("5_fast_profile")
+spawn_overrides = {
 "damage": 20,
 "interval": 0.25,
 "speed": 10000.0
@@ -21,11 +20,10 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_stationary_target"]
 script = ExtResource("2_spawn")
-entity_kind = &"zombie"
+entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 320.0
-hit_height_band = ExtResource("4_ground_height")
-params = {
+spawn_overrides = {
 "move_speed": 0.0
 }
 

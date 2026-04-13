@@ -10,12 +10,11 @@
 
 [sub_resource type="Resource" id="Spawn_low_ground_plant"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
-hit_height_band = ExtResource("4_ground_height")
-projectile_flight_profile = ExtResource("6_linear_ground")
-params = {
+projectile_flight_profile_override = ExtResource("6_linear_ground")
+spawn_overrides = {
 "damage": 20,
 "interval": 1.2,
 "speed": 220.0
@@ -23,12 +22,11 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_air_plant"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 250.0
-hit_height_band = ExtResource("4_ground_height")
-projectile_flight_profile = ExtResource("7_linear_air")
-params = {
+projectile_flight_profile_override = ExtResource("7_linear_air")
+spawn_overrides = {
 "damage": 20,
 "interval": 1.6,
 "speed": 220.0
@@ -36,11 +34,11 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_air_target"]
 script = ExtResource("2_spawn")
-entity_kind = &"zombie"
+entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 620.0
-hit_height_band = ExtResource("5_air_height")
-params = {
+hit_height_band_override = ExtResource("5_air_height")
+spawn_overrides = {
 "move_speed": 45.0
 }
 

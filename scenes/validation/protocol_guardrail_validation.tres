@@ -7,11 +7,10 @@
 
 [sub_resource type="Resource" id="Spawn_invalid_on_hit"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
-hit_height_band = ExtResource("4_ground_height")
-params = {
+spawn_overrides = {
 "damage": 10,
 "interval": 0.5,
 "on_hit_effect_id": &"spawn_projectile",
@@ -20,12 +19,11 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_invalid_profile"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 160.0
-hit_height_band = ExtResource("4_ground_height")
-projectile_flight_profile = ExtResource("4_ground_height")
-params = {
+projectile_flight_profile_override = ExtResource("4_ground_height")
+spawn_overrides = {
 "damage": 10,
 "interval": 0.5,
 "speed": 220.0
@@ -33,11 +31,10 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_invalid_effect_param"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 240.0
-hit_height_band = ExtResource("4_ground_height")
-params = {
+spawn_overrides = {
 "damage": 10,
 "ghost_speed": 999.0,
 "interval": 0.5,
@@ -46,11 +43,10 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_invalid_trigger_condition"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 240.0
-hit_height_band = ExtResource("4_ground_height")
-params = {
+spawn_overrides = {
 "damage": 10,
 "interval": "fast",
 "speed": 220.0
@@ -58,11 +54,10 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_unknown_on_hit_effect"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 320.0
-hit_height_band = ExtResource("4_ground_height")
-params = {
+spawn_overrides = {
 "damage": 10,
 "interval": 0.5,
 "on_hit_effect_id": &"void_burst",
@@ -71,11 +66,10 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_invalid_on_hit_params_shape"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 320.0
-hit_height_band = ExtResource("4_ground_height")
-params = {
+spawn_overrides = {
 "damage": 10,
 "interval": 0.5,
 "on_hit_effect_id": &"damage",
@@ -85,11 +79,10 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_invalid_effect_overrides_shape"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 400.0
-hit_height_band = ExtResource("4_ground_height")
-params = {
+spawn_overrides = {
 "damage": 10,
 "effect_overrides": 7,
 "interval": 0.5,
@@ -98,11 +91,10 @@ params = {
 
 [sub_resource type="Resource" id="Spawn_invalid_target_mode"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 400.0
-hit_height_band = ExtResource("4_ground_height")
-params = {
+spawn_overrides = {
 "damage": 10,
 "interval": 0.5,
 "on_hit_effect_id": &"damage",

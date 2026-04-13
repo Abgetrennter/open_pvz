@@ -10,12 +10,10 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_linear"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
-hit_height_band = ExtResource("4_height")
-projectile_flight_profile = ExtResource("5_linear_profile")
-params = {
+spawn_overrides = {
 "damage": 20,
 "interval": 1.4,
 "speed": 220.0
@@ -23,12 +21,10 @@ params = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_track"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_track_bomber"
 lane_id = 0
 x_position = 250.0
-hit_height_band = ExtResource("4_height")
-projectile_flight_profile = ExtResource("6_track_profile")
-params = {
+spawn_overrides = {
 "damage": 15,
 "interval": 2.1,
 "movement_mode": &"track",
@@ -38,40 +34,37 @@ params = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_parabola"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_cabbage_lobber"
 lane_id = 1
 x_position = 160.0
-hit_height_band = ExtResource("4_height")
-projectile_flight_profile = ExtResource("7_parabola_profile")
-params = {
-"arc_height": 180.0,
+projectile_flight_profile_override = ExtResource("7_parabola_profile")
+spawn_overrides = {
 "damage": 20,
 "interval": 1.6,
-"movement_mode": &"parabola",
 "speed": 220.0,
 "travel_duration": 1.4
 }
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_a"]
 script = ExtResource("2_spawn")
-entity_kind = &"zombie"
+entity_template_id = &"zombie_reactive_bomber"
 lane_id = 0
-x_position = 460.0
-hit_height_band = ExtResource("4_height")
+x_position = 330.0
+spawn_overrides = {
+"move_speed": 0.0
+}
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_b"]
 script = ExtResource("2_spawn")
-entity_kind = &"zombie"
+entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 650.0
-hit_height_band = ExtResource("4_height")
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_c"]
 script = ExtResource("2_spawn")
-entity_kind = &"zombie"
+entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 520.0
-hit_height_band = ExtResource("4_height")
 
 [sub_resource type="Resource" id="BattleValidationRule_tick"]
 script = ExtResource("3_rule")

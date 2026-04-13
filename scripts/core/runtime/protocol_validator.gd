@@ -5,8 +5,6 @@ const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
 const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
-const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
-const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 	&"attack": {
@@ -30,6 +28,34 @@ const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"effect_overrides": true,
 	"on_hit_effect_id": true,
 	"on_hit_effect_params": true,
+}
+const ALLOWED_SPAWN_OVERRIDE_KEYS := {
+	"interval": true,
+	"damage": true,
+	"speed": true,
+	"effect_overrides": true,
+	"on_hit_effect_id": true,
+	"on_hit_effect_params": true,
+	"projectile_template": true,
+	"flight_profile": true,
+	"movement_mode": true,
+	"travel_duration": true,
+	"arc_height": true,
+	"impact_radius": true,
+	"collision_padding": true,
+	"lead_time_scale": true,
+	"dynamic_target_adjustment": true,
+	"dynamic_target_axis": true,
+	"max_lead_distance": true,
+	"lead_iterations": true,
+	"target_position": true,
+	"distance": true,
+	"lifetime": true,
+	"hitbox_radius": true,
+	"turn_rate": true,
+	"move_speed": true,
+	"max_health": true,
+	"hitbox_size": true,
 }
 
 
@@ -274,29 +300,17 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 			errors.append("EntityTemplate projectile_template: %s" % error)
 	if not (entity_template.default_params is Dictionary):
 		errors.append("EntityTemplate.default_params must be a Dictionary.")
-	else:
-		errors.append_array(_validate_entity_runtime_params(
-			String(entity_template.entity_kind),
-			entity_template.default_params,
-			"EntityTemplate %s default_params" % String(entity_template.template_id)
-		))
-	if not (entity_template.runtime_behavior is Dictionary):
-		errors.append("EntityTemplate.runtime_behavior must be a Dictionary.")
-	elif _entity_template_trigger_bindings(entity_template).is_empty():
-		errors.append_array(_validate_template_runtime_behavior(
-			StringName(entity_template.entity_kind),
-			entity_template,
-			entity_template.default_params,
-			entity_template.projectile_flight_profile,
-			entity_template.projectile_template,
-			"EntityTemplate %s runtime_behavior" % String(entity_template.template_id)
-		))
 	if not (entity_template.trigger_bindings is Array):
 		errors.append("EntityTemplate.trigger_bindings must be an Array.")
 	else:
 		for trigger_binding in entity_template.trigger_bindings:
 			for error in validate_trigger_binding(trigger_binding):
 				errors.append("EntityTemplate trigger_bindings: %s" % error)
+		errors.append_array(_validate_entity_runtime_params(
+			String(entity_template.entity_kind),
+			entity_template.default_params,
+			"EntityTemplate %s default_params" % String(entity_template.template_id)
+		))
 		errors.append_array(_validate_trigger_bindings_runtime(
 			StringName(entity_template.entity_kind),
 			entity_template,
@@ -341,6 +355,8 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 
 	var resolved_template = _resolve_spawn_entry_template(spawn_entry)
 	var entity_kind := String(spawn_entry.entity_kind)
+	if resolved_template == null:
+		errors.append("%s must resolve an entity template through entity_template or entity_template_id." % scope)
 	if StringName(spawn_entry.get("entity_template_id")) != StringName() and resolved_template == null:
 		errors.append("%s.entity_template_id must resolve through SceneRegistry." % scope)
 	if resolved_template != null:
@@ -389,15 +405,6 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	if resolved_template != null:
 		var merged_params := _merge_spawn_params(spawn_entry, resolved_template)
 		var resolved_profile: Resource = _resolve_projectile_flight_profile(spawn_entry, resolved_template, projectile_template)
-		if _entity_template_trigger_bindings(resolved_template).is_empty():
-			errors.append_array(_validate_template_runtime_behavior(
-			StringName(entity_kind),
-			resolved_template,
-			merged_params,
-			resolved_profile,
-			projectile_template,
-			"%s template runtime_behavior" % scope
-			))
 		errors.append_array(_validate_trigger_bindings_runtime(
 			StringName(entity_kind),
 			resolved_template,
@@ -719,8 +726,6 @@ static func _validate_entity_runtime_params(entity_kind: String, params: Diction
 	if not (params is Dictionary):
 		errors.append("%s must be a Dictionary." % scope)
 		return errors
-	if entity_kind != "plant":
-		return errors
 	errors.append_array(_validate_projectile_config_consistency(params, params.get("projectile_template", null), scope))
 
 	var effect_overrides: Dictionary = {}
@@ -736,40 +741,15 @@ static func _validate_entity_runtime_params(entity_kind: String, params: Diction
 			on_hit_effect_params = params["on_hit_effect_params"].duplicate(true)
 		else:
 			errors.append("%s.on_hit_effect_params must be a Dictionary." % scope)
-
-	var root_params: Dictionary = {}
-	if params.has("speed"):
-		root_params["speed"] = params["speed"]
-	if params.has("damage"):
-		root_params["damage"] = params["damage"]
+	if effect_overrides is Dictionary:
+		for key: Variant in effect_overrides.keys():
+			if SPAWN_ENTRY_RESERVED_PARAMS.has(key):
+				errors.append("%s.effect_overrides must not override reserved key %s." % [scope, str(key)])
 	for key: Variant in params.keys():
-		if SPAWN_ENTRY_RESERVED_PARAMS.has(key):
-			continue
-		root_params[key] = params[key]
-	for key: Variant in effect_overrides.keys():
-		root_params[key] = effect_overrides[key]
-
-	var on_hit_effect_id := StringName(params.get("on_hit_effect_id", StringName()))
-	if on_hit_effect_id == StringName():
-		on_hit_effect_id = &"damage"
-		if not on_hit_effect_params.has("target_mode"):
-			on_hit_effect_params["target_mode"] = &"context_target"
-	if not on_hit_effect_params.has("amount"):
-		on_hit_effect_params["amount"] = params.get("damage", 10)
-
-	var root_effect = EffectNodeRef.new(&"spawn_projectile", root_params, {
-		&"on_hit": EffectNodeRef.new(on_hit_effect_id, on_hit_effect_params),
-	})
-	var trigger_instance = TriggerInstanceRef.new()
-	trigger_instance.def_id = &"periodically"
-	trigger_instance.event_name = &"game.tick"
-	trigger_instance.condition_values = {"interval": params.get("interval", 1.5)}
-	trigger_instance.effect_roots = [root_effect]
-
-	var validation: Dictionary = normalize_trigger_instance(trigger_instance)
-	if not bool(validation.get("valid", false)):
-		for error in PackedStringArray(validation.get("errors", PackedStringArray())):
-			errors.append("%s: %s" % [scope, error])
+		if not ALLOWED_SPAWN_OVERRIDE_KEYS.has(str(key)):
+			errors.append("%s has unsupported spawn override key %s." % [scope, str(key)])
+	if entity_kind != "plant":
+		return errors
 	return errors
 
 
@@ -809,10 +789,6 @@ static func _merge_spawn_params(spawn_entry: Resource, entity_template = null) -
 	var resolved_params: Dictionary = {}
 	if entity_template != null and entity_template.get("default_params") is Dictionary:
 		resolved_params = entity_template.get("default_params").duplicate(true)
-	var spawn_params: Variant = spawn_entry.get("params")
-	if spawn_params is Dictionary:
-		for key: Variant in spawn_params.keys():
-			resolved_params[key] = spawn_params[key]
 	var explicit_overrides: Variant = spawn_entry.get("spawn_overrides")
 	if explicit_overrides is Dictionary:
 		for key: Variant in explicit_overrides.keys():
@@ -829,8 +805,6 @@ static func _resolve_projectile_template(spawn_entry: Resource, entity_template 
 		return spawn_entry.get("projectile_template_override")
 	if spawn_entry != null and spawn_entry.get("spawn_overrides") is Dictionary and spawn_entry.get("spawn_overrides").get("projectile_template", null) is ProjectileTemplateRef:
 		return spawn_entry.get("spawn_overrides").get("projectile_template")
-	if spawn_entry != null and spawn_entry.get("params") is Dictionary and spawn_entry.get("params").get("projectile_template", null) is ProjectileTemplateRef:
-		return spawn_entry.get("params").get("projectile_template")
 	if entity_template != null and entity_template.get("projectile_template") is ProjectileTemplateRef:
 		return entity_template.get("projectile_template")
 	return null
@@ -839,12 +813,8 @@ static func _resolve_projectile_template(spawn_entry: Resource, entity_template 
 static func _resolve_projectile_flight_profile(spawn_entry: Resource, entity_template = null, projectile_template = null) -> Resource:
 	if spawn_entry != null and spawn_entry.get("projectile_flight_profile_override") != null:
 		return spawn_entry.get("projectile_flight_profile_override")
-	if spawn_entry != null and spawn_entry.get("projectile_flight_profile") != null:
-		return spawn_entry.get("projectile_flight_profile")
 	if spawn_entry != null and spawn_entry.get("spawn_overrides") is Dictionary and spawn_entry.get("spawn_overrides").get("flight_profile", null) != null:
 		return spawn_entry.get("spawn_overrides").get("flight_profile")
-	if spawn_entry != null and spawn_entry.get("params") is Dictionary and spawn_entry.get("params").get("flight_profile", null) != null:
-		return spawn_entry.get("params").get("flight_profile")
 	if projectile_template is ProjectileTemplateRef and projectile_template.flight_profile != null:
 		return projectile_template.flight_profile
 	if entity_template != null:
@@ -855,25 +825,19 @@ static func _resolve_projectile_flight_profile(spawn_entry: Resource, entity_tem
 static func _resolve_spawn_hit_height_band_override(spawn_entry: Resource) -> Resource:
 	if spawn_entry == null:
 		return null
-	if spawn_entry.get("hit_height_band_override") != null:
-		return spawn_entry.get("hit_height_band_override")
-	return spawn_entry.get("hit_height_band")
+	return spawn_entry.get("hit_height_band_override")
 
 
 static func _resolve_spawn_projectile_profile_override(spawn_entry: Resource) -> Resource:
 	if spawn_entry == null:
 		return null
-	if spawn_entry.get("projectile_flight_profile_override") != null:
-		return spawn_entry.get("projectile_flight_profile_override")
-	return spawn_entry.get("projectile_flight_profile")
+	return spawn_entry.get("projectile_flight_profile_override")
 
 
 static func _resolve_spawn_overrides(spawn_entry: Resource) -> Dictionary:
 	if spawn_entry == null:
 		return {}
 	var resolved: Dictionary = {}
-	if spawn_entry.get("params") is Dictionary:
-		resolved = spawn_entry.get("params").duplicate(true)
 	if spawn_entry.get("spawn_overrides") is Dictionary:
 		for key: Variant in spawn_entry.get("spawn_overrides").keys():
 			resolved[key] = spawn_entry.get("spawn_overrides")[key]
@@ -906,26 +870,6 @@ static func _load_resource_script(resource_script_path: String):
 	return loaded if loaded is Script else null
 
 
-static func _validate_template_runtime_behavior(
-	entity_kind: StringName,
-	entity_template,
-	params: Dictionary,
-	projectile_flight_profile: Resource,
-	projectile_template,
-	scope: String
-) -> Array[String]:
-	if entity_template == null:
-		return []
-	var factory: Variant = EntityFactoryRef.new()
-	var errors: Array[String] = []
-	for trigger_instance in factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template):
-		var validation: Dictionary = normalize_trigger_instance(trigger_instance)
-		if not bool(validation.get("valid", false)):
-			for error in PackedStringArray(validation.get("errors", PackedStringArray())):
-				errors.append("%s: %s" % [scope, error])
-	return errors
-
-
 static func _validate_trigger_bindings_runtime(
 	entity_kind: StringName,
 	entity_template,
@@ -936,4 +880,11 @@ static func _validate_trigger_bindings_runtime(
 ) -> Array[String]:
 	if entity_template == null or not (entity_template.get("trigger_bindings") is Array) or entity_template.get("trigger_bindings").is_empty():
 		return []
-	return _validate_template_runtime_behavior(entity_kind, entity_template, params, projectile_flight_profile, projectile_template, scope)
+	var factory: Variant = EntityFactoryRef.new()
+	var errors: Array[String] = []
+	for trigger_instance in factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template):
+		var validation: Dictionary = normalize_trigger_instance(trigger_instance)
+		if not bool(validation.get("valid", false)):
+			for error in PackedStringArray(validation.get("errors", PackedStringArray())):
+				errors.append("%s: %s" % [scope, error])
+	return errors

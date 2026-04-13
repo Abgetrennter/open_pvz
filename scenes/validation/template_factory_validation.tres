@@ -8,13 +8,13 @@
 
 [sub_resource type="Resource" id="Spawn_factory_plant"]
 script = ExtResource("2_spawn")
-entity_template = ExtResource("4_plant_template")
+entity_template_id = &"plant_track_bomber"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_factory_zombie"]
 script = ExtResource("2_spawn")
-entity_template = ExtResource("5_zombie_template")
+entity_template_id = &"zombie_reactive_bomber"
 lane_id = 0
 x_position = 250.0
 

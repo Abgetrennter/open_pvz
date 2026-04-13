@@ -8,27 +8,23 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_parabola"]
 script = ExtResource("2_spawn")
-entity_kind = &"plant"
+entity_template_id = &"plant_cabbage_lobber"
 lane_id = 1
 x_position = 140.0
-hit_height_band = ExtResource("4_height")
-projectile_flight_profile = ExtResource("5_profile")
-params = {
-"arc_height": 220.0,
+projectile_flight_profile_override = ExtResource("5_profile")
+spawn_overrides = {
 "damage": 20,
 "impact_radius": 36.0,
 "interval": 1.2,
-"movement_mode": &"parabola",
 "speed": 220.0,
 "travel_duration": 2.5
 }
 
 [sub_resource type="Resource" id="BattleSpawnEntry_far_zombie"]
 script = ExtResource("2_spawn")
-entity_kind = &"zombie"
+entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 790.0
-hit_height_band = ExtResource("4_height")
 
 [sub_resource type="Resource" id="BattleValidationRule_tick"]
 script = ExtResource("3_rule")
