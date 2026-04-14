@@ -1,0 +1,116 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/sun_drop_entry.gd" id="3_sun_drop"]
+[ext_resource type="Script" path="res://scripts/battle/resource_spend_request.gd" id="4_spend"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="BattleSpawnEntry_sunflower_proxy"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"sun_production_interval": 1.0,
+"sun_production_start_delay": 0.5,
+"sun_production_value": 25
+}
+
+[sub_resource type="Resource" id="SunDropEntry_sky_drop"]
+script = ExtResource("3_sun_drop")
+at_time = 1.0
+lane_id = 0
+x_position = 260.0
+value = 25
+source_type = &"sky_drop"
+auto_collect_delay = 0.3
+
+[sub_resource type="Resource" id="BattleResourceSpendRequest_fail"]
+script = ExtResource("4_spend")
+at_time = 0.25
+resource_id = &"sun"
+cost = 25
+reason = &"validation_spend_failed"
+
+[sub_resource type="Resource" id="BattleResourceSpendRequest_success"]
+script = ExtResource("4_spend")
+at_time = 1.6
+resource_id = &"sun"
+cost = 25
+reason = &"validation_spend"
+
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("5_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_plant_sun_spawn"]
+script = ExtResource("5_rule")
+rule_id = &"plant_sun_spawn"
+description = "plant-generated sun spawns at least once"
+event_name = &"sun.spawned"
+required_core_values = {
+"source_type": &"plant_generated"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_sky_sun_spawn"]
+script = ExtResource("5_rule")
+rule_id = &"sky_sun_spawn"
+description = "sky-drop sun spawns at least once"
+event_name = &"sun.spawned"
+required_core_values = {
+"source_type": &"sky_drop"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_sun_collect"]
+script = ExtResource("5_rule")
+rule_id = &"sun_collect"
+description = "at least two sun collectibles are collected"
+event_name = &"sun.collected"
+min_count = 2
+
+[sub_resource type="Resource" id="BattleValidationRule_collect_resource_change"]
+script = ExtResource("5_rule")
+rule_id = &"collect_resource_change"
+description = "collecting sun changes the resource state"
+event_name = &"resource.changed"
+min_count = 2
+required_core_values = {
+"reason": &"collect",
+"resource_id": &"sun"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_spend_failed"]
+script = ExtResource("5_rule")
+rule_id = &"spend_failed"
+description = "insufficient sun spend emits resource.spend_failed"
+event_name = &"resource.spend_failed"
+required_core_values = {
+"reason": &"validation_spend_failed",
+"resource_id": &"sun"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_spend_success"]
+script = ExtResource("5_rule")
+rule_id = &"spend_success"
+description = "successful scheduled spend changes resource state"
+event_name = &"resource.changed"
+required_core_values = {
+"reason": &"validation_spend",
+"resource_id": &"sun"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"sun_resource_validation"
+display_name = "Sun Resource Validation"
+description = "Validates the first-stage sun economy loop: plant-generated sun, sky-drop sun, automatic collection, resource changes, and spend failure/success semantics."
+goals = PackedStringArray("Observe plant-generated and sky-drop sun enter the battle.", "Verify collected sun changes the authoritative resource state.", "Verify insufficient sun emits resource.spend_failed and later successful spending emits resource.changed.")
+validation_time_limit = 4.0
+sun_auto_collect_delay = 0.3
+sun_drop_entries = [SubResource("SunDropEntry_sky_drop")]
+resource_spend_requests = [SubResource("BattleResourceSpendRequest_fail"), SubResource("BattleResourceSpendRequest_success")]
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_plant_sun_spawn"), SubResource("BattleValidationRule_sky_sun_spawn"), SubResource("BattleValidationRule_sun_collect"), SubResource("BattleValidationRule_collect_resource_change"), SubResource("BattleValidationRule_spend_failed"), SubResource("BattleValidationRule_spend_success")]
+spawns = [SubResource("BattleSpawnEntry_sunflower_proxy")]

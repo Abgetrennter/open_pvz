@@ -7,6 +7,7 @@ const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const BattleScenarioRef = preload("res://scripts/battle/battle_scenario.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
 const BattleValidationRuleRef = preload("res://scripts/battle/battle_validation_rule.gd")
+const BattleEconomyStateRef = preload("res://scripts/battle/battle_economy_state.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
@@ -37,6 +38,8 @@ const LANE_Y := {
 var _tick_accumulator := 0.0
 var _entity_factory: Variant = EntityFactoryRef.new()
 var _entity_root: Node2D = null
+var _collectible_root: Node2D = null
+var _economy_state: Node = null
 var _validation_status: StringName = &"pending"
 var _validation_started_at := 0.0
 var _validation_deadline := 0.0
@@ -55,6 +58,7 @@ func _ready() -> void:
 			get_tree().quit(1)
 		return
 	_entity_root = _ensure_entity_root()
+	_collectible_root = _ensure_collectible_root()
 	if not EventBus.event_pushed.is_connected(_on_validation_event):
 		EventBus.event_pushed.connect(_on_validation_event)
 	queue_redraw()
@@ -109,6 +113,7 @@ func reset_battle() -> void:
 	EventBus.clear()
 	if DebugService.has_method("clear_logs"):
 		DebugService.clear_logs()
+	_reset_runtime_services()
 	_reset_validation()
 	_spawn_scenario()
 
@@ -412,9 +417,36 @@ func _apply_spawn_height_band(entity: Node, height_band: Resource) -> void:
 
 
 func get_runtime_entities() -> Array:
+	var runtime_nodes: Array = []
+	if _entity_root != null:
+		runtime_nodes.append_array(_entity_root.get_children())
+	if _collectible_root != null:
+		runtime_nodes.append_array(_collectible_root.get_children())
+	if _economy_state != null and is_instance_valid(_economy_state):
+		runtime_nodes.append(_economy_state)
+	return runtime_nodes
+
+
+func get_runtime_combat_entities() -> Array:
 	if _entity_root == null:
 		return []
 	return _entity_root.get_children()
+
+
+func get_current_sun() -> int:
+	if _economy_state == null or not is_instance_valid(_economy_state):
+		return 0
+	if _economy_state.has_method("get_current_sun"):
+		return int(_economy_state.call("get_current_sun"))
+	return 0
+
+
+func try_spend_sun(cost: int, reason: StringName = &"manual_spend", source_node: Node = null, metadata: Dictionary = {}) -> bool:
+	if _economy_state == null or not is_instance_valid(_economy_state):
+		return false
+	if not _economy_state.has_method("try_spend_sun"):
+		return false
+	return bool(_economy_state.call("try_spend_sun", cost, reason, source_node, metadata))
 
 
 func get_scenario_name() -> String:
@@ -566,12 +598,39 @@ func _ensure_entity_root() -> Node2D:
 	return root
 
 
+func _ensure_collectible_root() -> Node2D:
+	var root := get_node_or_null("RuntimeCollectibles") as Node2D
+	if root == null:
+		root = Node2D.new()
+		root.name = "RuntimeCollectibles"
+		add_child(root)
+	return root
+
+
 func _clear_runtime_entities() -> void:
 	if _entity_root == null:
+		pass
+	else:
+		for child in _entity_root.get_children():
+			_entity_root.remove_child(child)
+			child.queue_free()
+	if _collectible_root == null:
 		return
-	for child in _entity_root.get_children():
-		_entity_root.remove_child(child)
+	for child in _collectible_root.get_children():
+		_collectible_root.remove_child(child)
 		child.queue_free()
+
+
+func _reset_runtime_services() -> void:
+	if _economy_state != null and is_instance_valid(_economy_state):
+		remove_child(_economy_state)
+		_economy_state.free()
+	_economy_state = BattleEconomyStateRef.new()
+	_economy_state.name = "BattleEconomyState"
+	add_child(_economy_state)
+	var active_scenario = _resolve_scenario()
+	if active_scenario != null and _economy_state.has_method("setup"):
+		_economy_state.call("setup", self, _collectible_root, active_scenario)
 
 
 func _reset_validation() -> void:

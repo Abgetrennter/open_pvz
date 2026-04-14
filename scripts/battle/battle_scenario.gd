@@ -6,5 +6,9 @@ class_name BattleScenario
 @export_multiline var description := ""
 @export var goals: PackedStringArray = PackedStringArray()
 @export var validation_time_limit := 8.0
+@export var initial_sun := 0
+@export var sun_auto_collect_delay := -1.0
+@export var sun_drop_entries: Array = []
+@export var resource_spend_requests: Array = []
 @export var validation_rules: Array = []
 @export var spawns: Array = []

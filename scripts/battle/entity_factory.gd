@@ -73,6 +73,7 @@ func instantiate_entity(entity_kind: StringName, position: Vector2, template = n
 	_ensure_template_components(entity, entity_kind, template, params)
 	_apply_template_metadata(entity, template)
 	_apply_entity_property_overrides(entity, params)
+	_apply_runtime_param_metadata(entity, params)
 	return entity
 
 
@@ -300,6 +301,22 @@ func _apply_entity_property_overrides(entity: Node, params: Dictionary) -> void:
 		if not property_names.has(property_name):
 			continue
 		entity.set(property_name, params[key])
+
+
+func _apply_runtime_param_metadata(entity: Node, params: Dictionary) -> void:
+	if entity == null or params.is_empty():
+		return
+	if not entity.has_method("set_state_value"):
+		return
+	for param_name in [&"sun_production_interval", &"sun_production_value", &"sun_production_start_delay"]:
+		var resolved_key: Variant = null
+		if params.has(param_name):
+			resolved_key = param_name
+		elif params.has(String(param_name)):
+			resolved_key = String(param_name)
+		if resolved_key == null:
+			continue
+		entity.call("set_state_value", param_name, params[resolved_key])
 
 
 func _make_trigger_component():

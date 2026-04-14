@@ -5,6 +5,8 @@ const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
 const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
+const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
+const BattleResourceSpendRequestRef = preload("res://scripts/battle/resource_spend_request.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 	&"attack": {
@@ -56,6 +58,9 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"move_speed": true,
 	"max_health": true,
 	"hitbox_size": true,
+	"sun_production_interval": true,
+	"sun_production_value": true,
+	"sun_production_start_delay": true,
 }
 
 
@@ -337,6 +342,20 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		errors.append("BattleScenario.display_name must not be empty.")
 	if float(scenario.validation_time_limit) <= 0.0:
 		errors.append("BattleScenario.validation_time_limit must be greater than zero.")
+	if int(scenario.get("initial_sun")) < 0:
+		errors.append("BattleScenario.initial_sun must be >= 0.")
+	if float(scenario.get("sun_auto_collect_delay")) < -1.0:
+		errors.append("BattleScenario.sun_auto_collect_delay must be >= -1.")
+
+	var configured_sun_drop_entries: Variant = scenario.get("sun_drop_entries")
+	if configured_sun_drop_entries is Array:
+		for sun_drop_entry in configured_sun_drop_entries:
+			errors.append_array(_validate_sun_drop_entry(sun_drop_entry, scenario.scenario_id))
+
+	var configured_resource_spend_requests: Variant = scenario.get("resource_spend_requests")
+	if configured_resource_spend_requests is Array:
+		for spend_request in configured_resource_spend_requests:
+			errors.append_array(_validate_resource_spend_request(spend_request, scenario.scenario_id))
 
 	for validation_rule in scenario.validation_rules:
 		errors.append_array(_validate_battle_validation_rule(validation_rule, scenario.scenario_id))
@@ -543,6 +562,40 @@ static func _validate_battle_validation_rule(validation_rule: Resource, scenario
 		errors.append("BattleScenario %s validation rule %s max_count must be >= -1." % [String(scenario_id), String(validation_rule.rule_id)])
 	if int(validation_rule.max_count) >= 0 and int(validation_rule.max_count) < int(validation_rule.min_count):
 		errors.append("BattleScenario %s validation rule %s max_count must be >= min_count when bounded." % [String(scenario_id), String(validation_rule.rule_id)])
+	return errors
+
+
+static func _validate_sun_drop_entry(drop_entry: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if drop_entry == null:
+		errors.append("BattleScenario %s contains a null sun drop entry." % String(scenario_id))
+		return errors
+	if drop_entry.get_script() != SunDropEntryRef:
+		errors.append("BattleScenario %s sun_drop_entries must use sun_drop_entry.gd." % String(scenario_id))
+		return errors
+	if float(drop_entry.get("at_time")) < 0.0:
+		errors.append("BattleScenario %s sun drop at_time must be >= 0." % String(scenario_id))
+	if int(drop_entry.get("value")) <= 0:
+		errors.append("BattleScenario %s sun drop value must be > 0." % String(scenario_id))
+	if float(drop_entry.get("auto_collect_delay")) < -1.0:
+		errors.append("BattleScenario %s sun drop auto_collect_delay must be >= -1." % String(scenario_id))
+	return errors
+
+
+static func _validate_resource_spend_request(spend_request: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if spend_request == null:
+		errors.append("BattleScenario %s contains a null resource spend request." % String(scenario_id))
+		return errors
+	if spend_request.get_script() != BattleResourceSpendRequestRef:
+		errors.append("BattleScenario %s resource_spend_requests must use resource_spend_request.gd." % String(scenario_id))
+		return errors
+	if float(spend_request.get("at_time")) < 0.0:
+		errors.append("BattleScenario %s resource spend at_time must be >= 0." % String(scenario_id))
+	if StringName(spend_request.get("resource_id")) == StringName():
+		errors.append("BattleScenario %s resource spend request must define resource_id." % String(scenario_id))
+	if int(spend_request.get("cost")) <= 0:
+		errors.append("BattleScenario %s resource spend cost must be > 0." % String(scenario_id))
 	return errors
 
 
