@@ -1,0 +1,96 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="CardDef_basic_shooter"]
+script = ExtResource("2_card_def")
+card_id = &"basic_shooter_card"
+display_name = "Basic Shooter Card"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="CardDef_wall_barrier"]
+script = ExtResource("2_card_def")
+card_id = &"wall_barrier_card"
+display_name = "Wall Barrier Card"
+entity_template_id = &"plant_wall_barrier"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_accept"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"basic_shooter_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_reject"]
+script = ExtResource("3_card_request")
+at_time = 0.75
+card_id = &"wall_barrier_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("4_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_placement_accept"]
+script = ExtResource("4_rule")
+rule_id = &"placement_accept"
+description = "a legal slot request is accepted"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"basic_shooter_card",
+"lane_id": 0,
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_entity_spawned"]
+script = ExtResource("4_rule")
+rule_id = &"entity_spawned"
+description = "accepted placement spawns exactly one entity"
+event_name = &"entity.spawned"
+required_core_values = {
+"card_id": &"basic_shooter_card",
+"lane_id": 0,
+"slot_index": 0,
+"spawn_reason": &"card_play"
+}
+max_count = 1
+
+[sub_resource type="Resource" id="BattleValidationRule_placement_reject"]
+script = ExtResource("4_rule")
+rule_id = &"placement_reject"
+description = "an occupied slot request is rejected"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"wall_barrier_card",
+"lane_id": 0,
+"slot_index": 0,
+"reason": &"slot_occupied"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"board_placement_validation"
+display_name = "Board Placement Validation"
+description = "Validates the formal board placement layer by accepting one legal placement and rejecting a second request into the occupied slot."
+goals = PackedStringArray("Observe a legal slot request enter placement.accepted and spawn exactly one entity.", "Observe a second request into the same slot enter placement.rejected with slot_occupied.", "Verify the rejected request does not create a second entity.")
+validation_time_limit = 2.5
+initial_sun = 100
+board_slot_count = 2
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+card_defs = [SubResource("CardDef_basic_shooter"), SubResource("CardDef_wall_barrier")]
+card_play_requests = [SubResource("BattleCardPlayRequest_accept"), SubResource("BattleCardPlayRequest_reject")]
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_placement_accept"), SubResource("BattleValidationRule_entity_spawned"), SubResource("BattleValidationRule_placement_reject")]
+spawns = []

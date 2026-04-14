@@ -1,0 +1,152 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="CardDef_basic_shooter"]
+script = ExtResource("2_card_def")
+card_id = &"basic_shooter_card"
+display_name = "Basic Shooter Card"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 1.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="CardDef_expensive_wall"]
+script = ExtResource("2_card_def")
+card_id = &"expensive_wall_card"
+display_name = "Expensive Wall Card"
+entity_template_id = &"plant_wall_barrier"
+sun_cost = 100
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_success"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"basic_shooter_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_cooldown_fail"]
+script = ExtResource("3_card_request")
+at_time = 0.5
+card_id = &"basic_shooter_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_resource_fail"]
+script = ExtResource("3_card_request")
+at_time = 1.25
+card_id = &"expensive_wall_card"
+lane_id = 0
+slot_index = 2
+
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("4_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_card_selected"]
+script = ExtResource("4_rule")
+rule_id = &"card_selected"
+description = "all scripted card requests enter selected state"
+event_name = &"card.selected"
+min_count = 3
+
+[sub_resource type="Resource" id="BattleValidationRule_card_requested"]
+script = ExtResource("4_rule")
+rule_id = &"card_requested"
+description = "all scripted card requests emit play_requested"
+event_name = &"card.play_requested"
+min_count = 3
+
+[sub_resource type="Resource" id="BattleValidationRule_spend_success"]
+script = ExtResource("4_rule")
+rule_id = &"spend_success"
+description = "successful card play spends sun through resource.changed"
+event_name = &"resource.changed"
+required_core_values = {
+"card_id": &"basic_shooter_card",
+"reason": &"card_play",
+"resource_id": &"sun"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_placement_accept"]
+script = ExtResource("4_rule")
+rule_id = &"placement_accept"
+description = "successful card play accepts placement"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"basic_shooter_card",
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_entity_spawned"]
+script = ExtResource("4_rule")
+rule_id = &"entity_spawned"
+description = "successful card play spawns an entity"
+event_name = &"entity.spawned"
+required_core_values = {
+"card_id": &"basic_shooter_card",
+"spawn_reason": &"card_play"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_cooldown_started"]
+script = ExtResource("4_rule")
+rule_id = &"cooldown_started"
+description = "successful card play starts cooldown"
+event_name = &"card.cooldown_started"
+required_core_values = {
+"card_id": &"basic_shooter_card"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_cooldown_rejected"]
+script = ExtResource("4_rule")
+rule_id = &"cooldown_rejected"
+description = "cooldown replays are rejected"
+event_name = &"card.play_rejected"
+required_core_values = {
+"card_id": &"basic_shooter_card",
+"reason": &"on_cooldown"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_resource_failed"]
+script = ExtResource("4_rule")
+rule_id = &"resource_failed"
+description = "insufficient resource emits resource.spend_failed"
+event_name = &"resource.spend_failed"
+required_core_values = {
+"card_id": &"expensive_wall_card",
+"reason": &"card_play",
+"resource_id": &"sun"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_resource_rejected"]
+script = ExtResource("4_rule")
+rule_id = &"resource_rejected"
+description = "insufficient resource rejects card play"
+event_name = &"card.play_rejected"
+required_core_values = {
+"card_id": &"expensive_wall_card",
+"reason": &"insufficient_resource"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"card_flow_validation"
+display_name = "Card Flow Validation"
+description = "Validates the first-stage card runtime: card selection, play request, sun spending through try_spend_sun, placement acceptance, entity spawn, cooldown rejection, and insufficient-resource rejection."
+goals = PackedStringArray("Observe scripted card requests enter the card runtime state machine.", "Verify successful card play spends sun and spawns an entity.", "Verify cooldown and insufficient-resource cases reject without extra placement or spawn.")
+validation_time_limit = 3.0
+initial_sun = 50
+board_slot_count = 4
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+card_defs = [SubResource("CardDef_basic_shooter"), SubResource("CardDef_expensive_wall")]
+card_play_requests = [SubResource("BattleCardPlayRequest_success"), SubResource("BattleCardPlayRequest_cooldown_fail"), SubResource("BattleCardPlayRequest_resource_fail")]
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_card_selected"), SubResource("BattleValidationRule_card_requested"), SubResource("BattleValidationRule_spend_success"), SubResource("BattleValidationRule_placement_accept"), SubResource("BattleValidationRule_entity_spawned"), SubResource("BattleValidationRule_cooldown_started"), SubResource("BattleValidationRule_cooldown_rejected"), SubResource("BattleValidationRule_resource_failed"), SubResource("BattleValidationRule_resource_rejected")]
+spawns = []

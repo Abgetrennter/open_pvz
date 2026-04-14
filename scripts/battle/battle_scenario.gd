@@ -10,5 +10,10 @@ class_name BattleScenario
 @export var sun_auto_collect_delay := -1.0
 @export var sun_drop_entries: Array = []
 @export var resource_spend_requests: Array = []
+@export var board_slot_count := 5
+@export var board_slot_origin_x := 160.0
+@export var board_slot_spacing := 96.0
+@export var card_defs: Array = []
+@export var card_play_requests: Array = []
 @export var validation_rules: Array = []
 @export var spawns: Array = []

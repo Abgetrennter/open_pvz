@@ -78,5 +78,15 @@
     "id": "sun_resource_validation",
     "scenario": "res://scenes/validation/sun_resource_validation.tres",
     "description": "Validates the first-stage sun economy loop, including plant-generated and sky-drop sun, automatic collection, and spend failure/success resource events."
+  },
+  {
+    "id": "card_flow_validation",
+    "scenario": "res://scenes/validation/card_flow_validation.tres",
+    "description": "Validates the first-stage card runtime, including sun spending via try_spend_sun, placement acceptance, entity spawn, cooldown rejection, and insufficient-resource rejection."
+  },
+  {
+    "id": "board_placement_validation",
+    "scenario": "res://scenes/validation/board_placement_validation.tres",
+    "description": "Validates the formal board placement layer by accepting one legal slot request and rejecting a second request into the occupied slot."
   }
 ]

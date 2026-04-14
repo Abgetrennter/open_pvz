@@ -5,6 +5,8 @@ const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
 const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
+const CardDefRef = preload("res://scripts/battle/card_def.gd")
+const BattleCardPlayRequestRef = preload("res://scripts/battle/card_play_request.gd")
 const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
 const BattleResourceSpendRequestRef = preload("res://scripts/battle/resource_spend_request.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
@@ -346,6 +348,10 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		errors.append("BattleScenario.initial_sun must be >= 0.")
 	if float(scenario.get("sun_auto_collect_delay")) < -1.0:
 		errors.append("BattleScenario.sun_auto_collect_delay must be >= -1.")
+	if int(scenario.get("board_slot_count")) <= 0:
+		errors.append("BattleScenario.board_slot_count must be > 0.")
+	if float(scenario.get("board_slot_spacing")) <= 0.0:
+		errors.append("BattleScenario.board_slot_spacing must be > 0.")
 
 	var configured_sun_drop_entries: Variant = scenario.get("sun_drop_entries")
 	if configured_sun_drop_entries is Array:
@@ -356,6 +362,16 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 	if configured_resource_spend_requests is Array:
 		for spend_request in configured_resource_spend_requests:
 			errors.append_array(_validate_resource_spend_request(spend_request, scenario.scenario_id))
+
+	var configured_card_defs: Variant = scenario.get("card_defs")
+	if configured_card_defs is Array:
+		for card_def in configured_card_defs:
+			errors.append_array(_validate_card_def(card_def, scenario.scenario_id))
+
+	var configured_card_play_requests: Variant = scenario.get("card_play_requests")
+	if configured_card_play_requests is Array:
+		for play_request in configured_card_play_requests:
+			errors.append_array(_validate_card_play_request(play_request, scenario.scenario_id, int(scenario.get("board_slot_count"))))
 
 	for validation_rule in scenario.validation_rules:
 		errors.append_array(_validate_battle_validation_rule(validation_rule, scenario.scenario_id))
@@ -596,6 +612,50 @@ static func _validate_resource_spend_request(spend_request: Resource, scenario_i
 		errors.append("BattleScenario %s resource spend request must define resource_id." % String(scenario_id))
 	if int(spend_request.get("cost")) <= 0:
 		errors.append("BattleScenario %s resource spend cost must be > 0." % String(scenario_id))
+	return errors
+
+
+static func _validate_card_def(card_def: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if card_def == null:
+		errors.append("BattleScenario %s contains a null card def." % String(scenario_id))
+		return errors
+	if card_def.get_script() != CardDefRef:
+		errors.append("BattleScenario %s card_defs must use card_def.gd." % String(scenario_id))
+		return errors
+	if StringName(card_def.get("card_id")) == StringName():
+		errors.append("BattleScenario %s card def must define card_id." % String(scenario_id))
+	if StringName(card_def.get("entity_template_id")) == StringName():
+		errors.append("BattleScenario %s card def %s must define entity_template_id." % [String(scenario_id), String(card_def.get("card_id"))])
+	elif not SceneRegistry.has_entity_template(StringName(card_def.get("entity_template_id"))):
+		errors.append("BattleScenario %s card def %s references unknown entity_template_id %s." % [
+			String(scenario_id),
+			String(card_def.get("card_id")),
+			String(card_def.get("entity_template_id")),
+		])
+	if int(card_def.get("sun_cost")) < 0:
+		errors.append("BattleScenario %s card def %s sun_cost must be >= 0." % [String(scenario_id), String(card_def.get("card_id"))])
+	if float(card_def.get("cooldown_seconds")) < 0.0:
+		errors.append("BattleScenario %s card def %s cooldown_seconds must be >= 0." % [String(scenario_id), String(card_def.get("card_id"))])
+	return errors
+
+
+static func _validate_card_play_request(play_request: Resource, scenario_id: StringName, board_slot_count: int) -> Array[String]:
+	var errors: Array[String] = []
+	if play_request == null:
+		errors.append("BattleScenario %s contains a null card play request." % String(scenario_id))
+		return errors
+	if play_request.get_script() != BattleCardPlayRequestRef:
+		errors.append("BattleScenario %s card_play_requests must use card_play_request.gd." % String(scenario_id))
+		return errors
+	if float(play_request.get("at_time")) < 0.0:
+		errors.append("BattleScenario %s card play request at_time must be >= 0." % String(scenario_id))
+	if StringName(play_request.get("card_id")) == StringName():
+		errors.append("BattleScenario %s card play request must define card_id." % String(scenario_id))
+	if int(play_request.get("slot_index")) < 0 or int(play_request.get("slot_index")) >= board_slot_count:
+		errors.append("BattleScenario %s card play request slot_index must be within board_slot_count." % String(scenario_id))
+	if int(play_request.get("lane_id")) < 0:
+		errors.append("BattleScenario %s card play request lane_id must be >= 0." % String(scenario_id))
 	return errors
 
 

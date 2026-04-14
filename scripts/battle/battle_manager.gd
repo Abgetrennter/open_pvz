@@ -8,6 +8,9 @@ const BattleScenarioRef = preload("res://scripts/battle/battle_scenario.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
 const BattleValidationRuleRef = preload("res://scripts/battle/battle_validation_rule.gd")
 const BattleEconomyStateRef = preload("res://scripts/battle/battle_economy_state.gd")
+const BattleCardStateRef = preload("res://scripts/battle/battle_card_state.gd")
+const BattleBoardStateRef = preload("res://scripts/battle/battle_board_state.gd")
+const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
@@ -40,6 +43,8 @@ var _entity_factory: Variant = EntityFactoryRef.new()
 var _entity_root: Node2D = null
 var _collectible_root: Node2D = null
 var _economy_state: Node = null
+var _board_state: Node = null
+var _card_state: Node = null
 var _validation_status: StringName = &"pending"
 var _validation_started_at := 0.0
 var _validation_deadline := 0.0
@@ -179,10 +184,9 @@ func _spawn_entry(spawn_entry) -> void:
 		return
 	if entity == null or not entity.has_method("assign_lane"):
 		return
-	entity.assign_lane(lane_id)
-	_apply_spawn_height_band(entity, hit_height_band)
-	_entity_root.add_child(entity)
-	_bind_runtime_triggers(entity, trigger_instances)
+	_finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, null, {
+		"spawn_reason": &"scenario_spawn",
+	})
 
 
 func _spawn_debug_overlay() -> void:
@@ -424,6 +428,10 @@ func get_runtime_entities() -> Array:
 		runtime_nodes.append_array(_collectible_root.get_children())
 	if _economy_state != null and is_instance_valid(_economy_state):
 		runtime_nodes.append(_economy_state)
+	if _board_state != null and is_instance_valid(_board_state):
+		runtime_nodes.append(_board_state)
+	if _card_state != null and is_instance_valid(_card_state):
+		runtime_nodes.append(_card_state)
 	return runtime_nodes
 
 
@@ -447,6 +455,68 @@ func try_spend_sun(cost: int, reason: StringName = &"manual_spend", source_node:
 	if not _economy_state.has_method("try_spend_sun"):
 		return false
 	return bool(_economy_state.call("try_spend_sun", cost, reason, source_node, metadata))
+
+
+func is_valid_lane(lane_id: int) -> bool:
+	return LANE_Y.has(lane_id)
+
+
+func get_lane_ids() -> PackedInt32Array:
+	var lane_ids: Array[int] = []
+	for lane_key in LANE_Y.keys():
+		lane_ids.append(int(lane_key))
+	lane_ids.sort()
+	return PackedInt32Array(lane_ids)
+
+
+func validate_placement_request(request: Resource) -> Dictionary:
+	if _board_state == null or not is_instance_valid(_board_state) or not _board_state.has_method("validate_request"):
+		return {
+			"valid": false,
+			"reason": &"board_missing",
+		}
+	return _board_state.call("validate_request", request)
+
+
+func reject_placement_request(request: Resource, reason: StringName) -> void:
+	if _board_state == null or not is_instance_valid(_board_state) or not _board_state.has_method("reject_request"):
+		return
+	_board_state.call("reject_request", request, reason)
+
+
+func commit_placement_request(request: Resource, entity: Node) -> bool:
+	if _board_state == null or not is_instance_valid(_board_state) or not _board_state.has_method("commit_request"):
+		return false
+	return bool(_board_state.call("commit_request", request, entity))
+
+
+func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index: int, metadata: Dictionary = {}) -> Node:
+	if not SceneRegistry.has_entity_template(entity_template_id):
+		return null
+	var entity_template: Resource = SceneRegistry.get_entity_template(entity_template_id)
+	if entity_template == null or entity_template.get_script() != EntityTemplateRef:
+		return null
+	var entity_kind := StringName(entity_template.get("entity_kind"))
+	var params: Dictionary = {}
+	var spawn_position := _build_board_slot_position(lane_id, slot_index)
+	if _board_state != null and is_instance_valid(_board_state) and _board_state.has_method("get_slot_world_position"):
+		spawn_position = Vector2(_board_state.call("get_slot_world_position", lane_id, slot_index))
+	var entity: Variant = _entity_factory.instantiate_entity(entity_kind, spawn_position, entity_template, params)
+	if entity == null or not entity.has_method("assign_lane"):
+		return null
+	if entity.has_method("set_state_value"):
+		entity.call("set_state_value", &"slot_index", slot_index)
+		for key: Variant in metadata.keys():
+			entity.call("set_state_value", StringName(str(key)), metadata[key])
+	var projectile_template: Resource = null if not (entity_template is EntityTemplateRef) else entity_template.projectile_template
+	var projectile_flight_profile: Resource = null if not (entity_template is EntityTemplateRef) else entity_template.projectile_flight_profile
+	var trigger_instances: Array = _entity_factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template)
+	_finalize_spawned_entity(entity, lane_id, entity_template.hit_height_band, trigger_instances, null, metadata.merged({
+		"spawn_reason": &"card_play",
+		"slot_index": slot_index,
+		"entity_template_id": entity_template_id,
+	}), false)
+	return entity
 
 
 func get_scenario_name() -> String:
@@ -625,12 +695,69 @@ func _reset_runtime_services() -> void:
 	if _economy_state != null and is_instance_valid(_economy_state):
 		remove_child(_economy_state)
 		_economy_state.free()
+	if _board_state != null and is_instance_valid(_board_state):
+		remove_child(_board_state)
+		_board_state.free()
+	if _card_state != null and is_instance_valid(_card_state):
+		remove_child(_card_state)
+		_card_state.free()
 	_economy_state = BattleEconomyStateRef.new()
 	_economy_state.name = "BattleEconomyState"
 	add_child(_economy_state)
+	_board_state = BattleBoardStateRef.new()
+	_board_state.name = "BattleBoardState"
+	add_child(_board_state)
+	_card_state = BattleCardStateRef.new()
+	_card_state.name = "BattleCardState"
+	add_child(_card_state)
 	var active_scenario = _resolve_scenario()
-	if active_scenario != null and _economy_state.has_method("setup"):
-		_economy_state.call("setup", self, _collectible_root, active_scenario)
+	if active_scenario != null:
+		if _economy_state.has_method("setup"):
+			_economy_state.call("setup", self, _collectible_root, active_scenario)
+		if _board_state.has_method("setup"):
+			_board_state.call("setup", self, active_scenario)
+		if _card_state.has_method("setup"):
+			_card_state.call("setup", self, active_scenario)
+
+
+func _finalize_spawned_entity(
+	entity: Node,
+	lane_id: int,
+	hit_height_band: Resource,
+	trigger_instances: Array,
+	source_node: Node = null,
+	metadata: Dictionary = {},
+	emit_spawn_event: bool = true
+) -> void:
+	entity.assign_lane(lane_id)
+	_apply_spawn_height_band(entity, hit_height_band)
+	_entity_root.add_child(entity)
+	_bind_runtime_triggers(entity, trigger_instances)
+	if not emit_spawn_event:
+		return
+	_emit_entity_spawned(entity, lane_id, source_node, metadata)
+
+
+func _emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, metadata: Dictionary = {}) -> void:
+	var spawned_event: Variant = EventDataRef.create(source_node, entity, null, PackedStringArray(["entity", String(metadata.get("spawn_reason", &"spawn"))]))
+	spawned_event.core["lane_id"] = lane_id
+	if entity.has_method("get_entity_id"):
+		spawned_event.core["entity_id"] = int(entity.call("get_entity_id"))
+	if entity.get("template_id") != null:
+		spawned_event.core["entity_template_id"] = StringName(entity.get("template_id"))
+	for key: Variant in metadata.keys():
+		spawned_event.core[key] = metadata[key]
+	EventBus.push_event(&"entity.spawned", spawned_event)
+
+
+func _build_board_slot_position(lane_id: int, slot_index: int) -> Vector2:
+	var active_scenario = _resolve_scenario()
+	var origin_x := 160.0
+	var spacing := 96.0
+	if active_scenario != null:
+		origin_x = float(active_scenario.get("board_slot_origin_x"))
+		spacing = float(active_scenario.get("board_slot_spacing"))
+	return Vector2(origin_x + float(slot_index) * spacing, _lane_y(lane_id))
 
 
 func _reset_validation() -> void:
