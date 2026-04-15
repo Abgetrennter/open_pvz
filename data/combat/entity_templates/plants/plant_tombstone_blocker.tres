@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"plant_tombstone_blocker"
+entity_kind = &"plant"
+display_name = "Tombstone Blocker"
+tags = PackedStringArray("plant", "template", "blocker", "tombstone")
+placement_role = &"blocker"
+allowed_slot_types = PackedStringArray("ground")
+required_placement_tags = PackedStringArray("ground")
+required_empty_roles = PackedStringArray("surface", "primary", "cover", "blocker")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 600
+hitbox_size = Vector2(54, 64)
+hit_height_band = ExtResource("2_height")

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"plant_flower_pot_surface"
+entity_kind = &"plant"
+display_name = "Flower Pot Surface"
+tags = PackedStringArray("plant", "template", "roof", "surface")
+placement_role = &"surface"
+allowed_slot_types = PackedStringArray("roof")
+required_placement_tags = PackedStringArray("roof")
+granted_placement_tags = PackedStringArray("supports_primary", "roof_surface")
+required_empty_roles = PackedStringArray("primary", "blocker")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 180
+hitbox_size = Vector2(42, 54)
+hit_height_band = ExtResource("2_height")

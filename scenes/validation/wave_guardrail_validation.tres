@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/wave_def.gd" id="2_wave_def"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="WaveDef_invalid"]
+script = ExtResource("2_wave_def")
+wave_id = &"wave_invalid"
+start_time = -1.0
+spawn_entries = []
+
+[sub_resource type="Resource" id="BattleValidationRule_protocol_issue"]
+script = ExtResource("3_rule")
+rule_id = &"protocol_issue"
+description = "invalid wave definition emits protocol.issue"
+event_name = &"protocol.issue"
+min_count = 1
+required_tags = PackedStringArray("protocol")
+
+[sub_resource type="Resource" id="BattleValidationRule_no_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"no_spawn"
+description = "invalid wave definition does not spawn enemies"
+event_name = &"entity.spawned"
+min_count = 0
+max_count = 0
+required_core_values = {
+"spawn_reason": &"wave_spawn"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"wave_guardrail_validation"
+display_name = "Wave Guardrail Validation"
+description = "Validates that invalid wave definitions are rejected through protocol issues and do not continue into wave spawns."
+goals = PackedStringArray("Observe protocol.issue for an invalid wave definition.", "Ensure no wave-defined enemy spawn occurs.")
+validation_time_limit = 1.5
+wave_defs = [SubResource("WaveDef_invalid")]
+validation_rules = [SubResource("BattleValidationRule_protocol_issue"), SubResource("BattleValidationRule_no_spawn")]

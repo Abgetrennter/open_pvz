@@ -1,0 +1,95 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/wave_spawn_entry.gd" id="3_wave_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/wave_def.gd" id="4_wave_def"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="BattleSpawnEntry_wave_plant"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 60,
+"interval": 0.6,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="BattleSpawnEntry_wave_zombie"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="WaveSpawnEntry_zombie"]
+script = ExtResource("3_wave_spawn")
+spawn_time_offset = 0.0
+spawn_entry = SubResource("BattleSpawnEntry_wave_zombie")
+
+[sub_resource type="Resource" id="WaveDef_basic"]
+script = ExtResource("4_wave_def")
+wave_id = &"wave_basic"
+start_time = 0.5
+spawn_entries = [SubResource("WaveSpawnEntry_zombie")]
+
+[sub_resource type="Resource" id="BattleValidationRule_phase_running"]
+script = ExtResource("5_rule")
+rule_id = &"phase_running"
+description = "battle phase enters running"
+event_name = &"battle.phase_changed"
+required_core_values = {
+"after": &"running"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_wave_started"]
+script = ExtResource("5_rule")
+rule_id = &"wave_started"
+description = "wave starts"
+event_name = &"wave.started"
+required_core_values = {
+"wave_id": &"wave_basic"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_wave_spawned"]
+script = ExtResource("5_rule")
+rule_id = &"wave_spawned"
+description = "wave spawns a zombie entry"
+event_name = &"entity.spawned"
+required_core_values = {
+"spawn_reason": &"wave_spawn",
+"wave_id": &"wave_basic"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_wave_completed"]
+script = ExtResource("5_rule")
+rule_id = &"wave_completed"
+description = "wave completes"
+event_name = &"wave.completed"
+required_core_values = {
+"wave_id": &"wave_basic"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_battle_victory"]
+script = ExtResource("5_rule")
+rule_id = &"battle_victory"
+description = "battle reaches victory"
+event_name = &"battle.victory"
+required_core_values = {
+"reason": &"all_waves_cleared"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"wave_flow_validation"
+display_name = "Wave Flow Validation"
+description = "Validates the first-stage battle flow: preparing to running, wave start, wave spawn, wave completion, and battle victory."
+goals = PackedStringArray("Observe the battle phase enter running when the first wave starts.", "Observe a wave-defined zombie spawn through the shared spawn chain.", "Observe the wave complete and the battle reach victory after all spawned enemies are defeated.")
+validation_time_limit = 5.0
+spawns = [SubResource("BattleSpawnEntry_wave_plant")]
+wave_defs = [SubResource("WaveDef_basic")]
+validation_rules = [SubResource("BattleValidationRule_phase_running"), SubResource("BattleValidationRule_wave_started"), SubResource("BattleValidationRule_wave_spawned"), SubResource("BattleValidationRule_wave_completed"), SubResource("BattleValidationRule_battle_victory")]

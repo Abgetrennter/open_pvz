@@ -1,0 +1,116 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="CardDef_bare_roof_fail"]
+script = ExtResource("2_card_def")
+card_id = &"bare_roof_fail_card"
+display_name = "Bare Roof Fail Card"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("roof")
+
+[sub_resource type="Resource" id="CardDef_flower_pot"]
+script = ExtResource("2_card_def")
+card_id = &"flower_pot_card"
+display_name = "Flower Pot Card"
+entity_template_id = &"plant_flower_pot_surface"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("roof")
+
+[sub_resource type="Resource" id="CardDef_roof_primary"]
+script = ExtResource("2_card_def")
+card_id = &"roof_primary_card"
+display_name = "Roof Primary Card"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_bare_roof_fail"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"bare_roof_fail_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_flower_pot"]
+script = ExtResource("3_card_request")
+at_time = 0.75
+card_id = &"flower_pot_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_roof_primary"]
+script = ExtResource("3_card_request")
+at_time = 1.25
+card_id = &"roof_primary_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BoardSlotConfig_roof_slot"]
+script = ExtResource("4_slot_config")
+lane_id = 0
+slot_index = 1
+slot_type = &"roof"
+
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("5_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_bare_roof_reject"]
+script = ExtResource("5_rule")
+rule_id = &"bare_roof_reject"
+description = "bare roof rejects a primary template before a surface container exists"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"bare_roof_fail_card",
+"reason": &"template_tag_mismatch",
+"slot_type": &"roof"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_flower_pot_accept"]
+script = ExtResource("5_rule")
+rule_id = &"flower_pot_accept"
+description = "flower pot is accepted on roof"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"flower_pot_card",
+"placement_role": &"surface",
+"slot_type": &"roof"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_roof_primary_accept"]
+script = ExtResource("5_rule")
+rule_id = &"roof_primary_accept"
+description = "roof primary is accepted after the flower pot grants support tags"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"roof_primary_card",
+"placement_role": &"primary",
+"slot_type": &"roof"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"roof_slot_validation"
+display_name = "Roof Slot Validation"
+description = "Validates that roof slots require a surface container before a primary plant can be placed."
+goals = PackedStringArray("Reject a primary plant on a bare roof slot.", "Accept a flower pot surface on the roof slot.", "Accept a primary plant on the same roof slot after the surface container grants support.")
+validation_time_limit = 2.8
+initial_sun = 100
+board_slot_count = 2
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+board_slot_configs = [SubResource("BoardSlotConfig_roof_slot")]
+card_defs = [SubResource("CardDef_bare_roof_fail"), SubResource("CardDef_flower_pot"), SubResource("CardDef_roof_primary")]
+card_play_requests = [SubResource("BattleCardPlayRequest_bare_roof_fail"), SubResource("BattleCardPlayRequest_flower_pot"), SubResource("BattleCardPlayRequest_roof_primary")]
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_bare_roof_reject"), SubResource("BattleValidationRule_flower_pot_accept"), SubResource("BattleValidationRule_roof_primary_accept")]
+spawns = []

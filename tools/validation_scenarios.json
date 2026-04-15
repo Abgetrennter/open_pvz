@@ -88,5 +88,35 @@
     "id": "board_placement_validation",
     "scenario": "res://scenes/validation/board_placement_validation.tres",
     "description": "Validates the formal board placement layer by accepting one legal slot request and rejecting a second request into the occupied slot."
+  },
+  {
+    "id": "board_slot_tag_validation",
+    "scenario": "res://scenes/validation/board_slot_tag_validation.tres",
+    "description": "Validates that the formal board layer owns slot types and placement tags, rejecting mismatched requests and accepting matched ones."
+  },
+  {
+    "id": "roof_slot_validation",
+    "scenario": "res://scenes/validation/roof_slot_validation.tres",
+    "description": "Validates that roof slots require a surface container before a primary plant can be placed."
+  },
+  {
+    "id": "air_slot_validation",
+    "scenario": "res://scenes/validation/air_slot_validation.tres",
+    "description": "Validates that air-only slots reject unsupported templates and accept a template with matching static air-only constraints."
+  },
+  {
+    "id": "cover_blocker_validation",
+    "scenario": "res://scenes/validation/cover_blocker_validation.tres",
+    "description": "Validates cover and blocker role semantics, including cover stacking on primary and blocker exclusion."
+  },
+  {
+    "id": "wave_flow_validation",
+    "scenario": "res://scenes/validation/wave_flow_validation.tres",
+    "description": "Validates the first-stage battle flow, including phase changes, wave start/completion, wave spawns, and battle victory."
+  },
+  {
+    "id": "wave_guardrail_validation",
+    "scenario": "res://scenes/validation/wave_guardrail_validation.tres",
+    "description": "Validates that invalid wave definitions emit protocol issues and do not continue into wave-based spawns."
   }
 ]

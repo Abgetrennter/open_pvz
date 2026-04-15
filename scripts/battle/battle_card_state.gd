@@ -3,6 +3,7 @@ class_name BattleCardState
 
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const BattlePlacementRequestRef = preload("res://scripts/battle/placement_request.gd")
+const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 
 var battle: Node = null
 var board_slot_count := 5
@@ -147,11 +148,20 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 		selected_card_id = StringName()
 		return false
 	if battle.has_method("_emit_entity_spawned"):
+		var slot_type := StringName()
+		var slot_tags := PackedStringArray()
+		var resolved_slot = placement_result.get("slot", null)
+		if resolved_slot != null:
+			slot_type = StringName(resolved_slot.slot_type)
+			slot_tags = resolved_slot.get_effective_tags()
 		battle.call("_emit_entity_spawned", spawned_entity, lane_id, null, {
 			"card_id": card_id,
 			"request_id": StringName(placement_request.get("request_id")),
+			"placement_role": StringName(placement_request.get("placement_role")),
 			"spawn_reason": &"card_play",
 			"slot_index": slot_index,
+			"slot_type": slot_type,
+			"slot_tags": slot_tags,
 			"entity_template_id": StringName(card_def.get("entity_template_id")),
 		})
 	var cooldown_seconds := float(card_def.get("cooldown_seconds"))
@@ -192,5 +202,21 @@ func _build_placement_request(card_id: StringName, lane_id: int, slot_index: int
 	request.lane_id = lane_id
 	request.slot_index = slot_index
 	var placement_tags: Variant = card_def.get("placement_tags")
-	request.placement_tags = PackedStringArray(["ground"]) if not (placement_tags is PackedStringArray) else PackedStringArray(placement_tags)
+	request.placement_tags = PackedStringArray() if not (placement_tags is PackedStringArray) else PackedStringArray(placement_tags)
+	var entity_template: Resource = _resolve_entity_template(request.entity_template_id)
+	if entity_template != null:
+		request.placement_role = StringName(entity_template.get("placement_role"))
+		if request.placement_tags.is_empty():
+			request.placement_tags = PackedStringArray(entity_template.get("required_placement_tags"))
 	return request
+
+
+func _resolve_entity_template(entity_template_id: StringName):
+	if entity_template_id == StringName():
+		return null
+	if not SceneRegistry.has_entity_template(entity_template_id):
+		return null
+	var entity_template: Resource = SceneRegistry.get_entity_template(entity_template_id)
+	if entity_template == null or entity_template.get_script() != EntityTemplateRef:
+		return null
+	return entity_template

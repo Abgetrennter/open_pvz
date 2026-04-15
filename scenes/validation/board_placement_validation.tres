@@ -76,7 +76,7 @@ required_core_values = {
 "card_id": &"wall_barrier_card",
 "lane_id": 0,
 "slot_index": 0,
-"reason": &"slot_occupied"
+"reason": &"placement_role_occupied"
 }
 
 [resource]

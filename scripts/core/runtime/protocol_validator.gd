@@ -7,6 +7,10 @@ const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_templa
 const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
 const CardDefRef = preload("res://scripts/battle/card_def.gd")
 const BattleCardPlayRequestRef = preload("res://scripts/battle/card_play_request.gd")
+const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd")
+const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
+const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
+const WaveDefRef = preload("res://scripts/battle/wave_def.gd")
 const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
 const BattleResourceSpendRequestRef = preload("res://scripts/battle/resource_spend_request.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
@@ -330,6 +334,11 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 		errors.append("EntityTemplate.max_health must be -1 or greater than zero.")
 	if entity_template.hitbox_size != Vector2.ZERO and (entity_template.hitbox_size.x <= 0.0 or entity_template.hitbox_size.y <= 0.0):
 		errors.append("EntityTemplate.hitbox_size must be zero or a positive size.")
+	if entity_template.entity_kind == &"plant":
+		if StringName(entity_template.placement_role) == StringName():
+			errors.append("EntityTemplate.placement_role must not be empty for placeable templates.")
+		if entity_template.required_placement_tags.is_empty():
+			errors.append("EntityTemplate.required_placement_tags must contain at least one placement tag for placeable templates.")
 	return errors
 
 
@@ -352,6 +361,13 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		errors.append("BattleScenario.board_slot_count must be > 0.")
 	if float(scenario.get("board_slot_spacing")) <= 0.0:
 		errors.append("BattleScenario.board_slot_spacing must be > 0.")
+	if float(scenario.get("defeat_line_x")) <= 0.0:
+		errors.append("BattleScenario.defeat_line_x must be > 0.")
+
+	var configured_board_slot_configs: Variant = scenario.get("board_slot_configs")
+	if configured_board_slot_configs is Array:
+		for slot_config in configured_board_slot_configs:
+			errors.append_array(_validate_board_slot_config(slot_config, scenario.scenario_id, int(scenario.get("board_slot_count"))))
 
 	var configured_sun_drop_entries: Variant = scenario.get("sun_drop_entries")
 	if configured_sun_drop_entries is Array:
@@ -372,6 +388,11 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 	if configured_card_play_requests is Array:
 		for play_request in configured_card_play_requests:
 			errors.append_array(_validate_card_play_request(play_request, scenario.scenario_id, int(scenario.get("board_slot_count"))))
+
+	var configured_wave_defs: Variant = scenario.get("wave_defs")
+	if configured_wave_defs is Array:
+		for wave_def in configured_wave_defs:
+			errors.append_array(_validate_wave_def(wave_def, scenario.scenario_id))
 
 	for validation_rule in scenario.validation_rules:
 		errors.append_array(_validate_battle_validation_rule(validation_rule, scenario.scenario_id))
@@ -637,6 +658,9 @@ static func _validate_card_def(card_def: Resource, scenario_id: StringName) -> A
 		errors.append("BattleScenario %s card def %s sun_cost must be >= 0." % [String(scenario_id), String(card_def.get("card_id"))])
 	if float(card_def.get("cooldown_seconds")) < 0.0:
 		errors.append("BattleScenario %s card def %s cooldown_seconds must be >= 0." % [String(scenario_id), String(card_def.get("card_id"))])
+	var placement_tags: Variant = card_def.get("placement_tags")
+	if not (placement_tags is PackedStringArray):
+		errors.append("BattleScenario %s card def %s placement_tags must be a PackedStringArray." % [String(scenario_id), String(card_def.get("card_id"))])
 	return errors
 
 
@@ -656,6 +680,67 @@ static func _validate_card_play_request(play_request: Resource, scenario_id: Str
 		errors.append("BattleScenario %s card play request slot_index must be within board_slot_count." % String(scenario_id))
 	if int(play_request.get("lane_id")) < 0:
 		errors.append("BattleScenario %s card play request lane_id must be >= 0." % String(scenario_id))
+	return errors
+
+
+static func _validate_board_slot_config(slot_config: Resource, scenario_id: StringName, board_slot_count: int) -> Array[String]:
+	var errors: Array[String] = []
+	if slot_config == null:
+		errors.append("BattleScenario %s contains a null board slot config." % String(scenario_id))
+		return errors
+	if slot_config.get_script() != BoardSlotConfigRef:
+		errors.append("BattleScenario %s board_slot_configs must use board_slot_config.gd." % String(scenario_id))
+		return errors
+	if int(slot_config.get("lane_id")) < 0:
+		errors.append("BattleScenario %s board slot config lane_id must be >= 0." % String(scenario_id))
+	if int(slot_config.get("slot_index")) < 0 or int(slot_config.get("slot_index")) >= board_slot_count:
+		errors.append("BattleScenario %s board slot config slot_index must be within board_slot_count." % String(scenario_id))
+	if StringName(slot_config.get("slot_type")) == StringName():
+		errors.append("BattleScenario %s board slot config must define slot_type." % String(scenario_id))
+	elif not BoardSlotCatalogRef.is_known_slot_type(StringName(slot_config.get("slot_type"))):
+		errors.append("BattleScenario %s board slot config slot_type must be one of %s." % [
+			String(scenario_id),
+			", ".join(BoardSlotCatalogRef.list_slot_types()),
+		])
+	var placement_tags: Variant = slot_config.get("placement_tags")
+	if not (placement_tags is PackedStringArray):
+		errors.append("BattleScenario %s board slot config placement_tags must be a PackedStringArray." % String(scenario_id))
+	return errors
+
+
+static func _validate_wave_def(wave_def: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if wave_def == null:
+		errors.append("BattleScenario %s contains a null wave def." % String(scenario_id))
+		return errors
+	if wave_def.get_script() != WaveDefRef:
+		errors.append("BattleScenario %s wave_defs must use wave_def.gd." % String(scenario_id))
+		return errors
+	if StringName(wave_def.get("wave_id")) == StringName():
+		errors.append("BattleScenario %s wave def must define wave_id." % String(scenario_id))
+	if float(wave_def.get("start_time")) < 0.0:
+		errors.append("BattleScenario %s wave %s start_time must be >= 0." % [String(scenario_id), String(wave_def.get("wave_id"))])
+	var spawn_entries: Variant = wave_def.get("spawn_entries")
+	if not (spawn_entries is Array) or Array(spawn_entries).is_empty():
+		errors.append("BattleScenario %s wave %s must contain at least one spawn entry." % [String(scenario_id), String(wave_def.get("wave_id"))])
+	elif spawn_entries is Array:
+		for wave_spawn_entry in spawn_entries:
+			errors.append_array(_validate_wave_spawn_entry(wave_spawn_entry, scenario_id, StringName(wave_def.get("wave_id"))))
+	return errors
+
+
+static func _validate_wave_spawn_entry(wave_spawn_entry: Resource, scenario_id: StringName, wave_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if wave_spawn_entry == null:
+		errors.append("BattleScenario %s wave %s contains a null wave spawn entry." % [String(scenario_id), String(wave_id)])
+		return errors
+	if wave_spawn_entry.get_script() != WaveSpawnEntryRef:
+		errors.append("BattleScenario %s wave %s spawn_entries must use wave_spawn_entry.gd." % [String(scenario_id), String(wave_id)])
+		return errors
+	if float(wave_spawn_entry.get("spawn_time_offset")) < 0.0:
+		errors.append("BattleScenario %s wave %s spawn_time_offset must be >= 0." % [String(scenario_id), String(wave_id)])
+	var spawn_entry: Resource = wave_spawn_entry.get("spawn_entry")
+	errors.append_array(validate_battle_spawn_entry(spawn_entry, scenario_id))
 	return errors
 
 

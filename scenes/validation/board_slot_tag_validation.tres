@@ -1,0 +1,178 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="CardDef_ground_card"]
+script = ExtResource("2_card_def")
+card_id = &"ground_only_card"
+display_name = "Ground Only Card"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="CardDef_template_ground_mismatch"]
+script = ExtResource("2_card_def")
+card_id = &"template_ground_mismatch_card"
+display_name = "Template Ground Mismatch Card"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("water")
+
+[sub_resource type="Resource" id="CardDef_surface_supported_primary"]
+script = ExtResource("2_card_def")
+card_id = &"surface_supported_primary_card"
+display_name = "Surface Supported Primary Card"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+
+[sub_resource type="Resource" id="CardDef_water_card"]
+script = ExtResource("2_card_def")
+card_id = &"water_only_card"
+display_name = "Water Only Card"
+entity_template_id = &"plant_water_pod"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("water")
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_ground_fail"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"ground_only_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_water_ok"]
+script = ExtResource("3_card_request")
+at_time = 1.25
+card_id = &"water_only_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_template_mismatch"]
+script = ExtResource("3_card_request")
+at_time = 0.75
+card_id = &"template_ground_mismatch_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_primary_on_surface"]
+script = ExtResource("3_card_request")
+at_time = 1.75
+card_id = &"surface_supported_primary_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_primary_duplicate"]
+script = ExtResource("3_card_request")
+at_time = 2.25
+card_id = &"surface_supported_primary_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BoardSlotConfig_water_slot"]
+script = ExtResource("4_slot_config")
+lane_id = 0
+slot_index = 1
+slot_type = &"water"
+placement_tags = PackedStringArray("water")
+
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("5_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_tag_reject"]
+script = ExtResource("5_rule")
+rule_id = &"tag_reject"
+description = "ground-only card is rejected by water slot tags"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"ground_only_card",
+"reason": &"slot_tag_mismatch",
+"slot_index": 1,
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_water_accept"]
+script = ExtResource("5_rule")
+rule_id = &"water_accept"
+description = "water-only card is accepted by water slot"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"water_only_card",
+"slot_index": 1,
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_template_reject"]
+script = ExtResource("5_rule")
+rule_id = &"template_reject"
+description = "template static placement constraints reject a mismatched template"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"template_ground_mismatch_card",
+"reason": &"template_tag_mismatch",
+"slot_index": 1,
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_primary_on_surface_accept"]
+script = ExtResource("5_rule")
+rule_id = &"primary_on_surface_accept"
+description = "primary role can be placed on top of a surface container"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"surface_supported_primary_card",
+"placement_role": &"primary",
+"slot_index": 1,
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_primary_duplicate_reject"]
+script = ExtResource("5_rule")
+rule_id = &"primary_duplicate_reject"
+description = "a second primary request is rejected when the primary role is occupied"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"surface_supported_primary_card",
+"placement_role": &"primary",
+"reason": &"placement_role_occupied",
+"slot_index": 1
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_water_spawn"]
+script = ExtResource("5_rule")
+rule_id = &"water_spawn"
+description = "accepted water-slot placement spawns an entity"
+event_name = &"entity.spawned"
+required_core_values = {
+"card_id": &"surface_supported_primary_card",
+"placement_role": &"primary",
+"slot_index": 1,
+"spawn_reason": &"card_play"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"board_slot_tag_validation"
+display_name = "Board Slot Tag Validation"
+description = "Validates that the board layer owns slot_type and placement_tags, rejecting mismatched requests and accepting matched requests without card-side special cases."
+goals = PackedStringArray("Reject a ground-tag request into a water slot.", "Reject a template whose static constraints still do not match the water slot.", "Accept a surface container into the water slot and let it grant support tags.", "Accept a primary plant onto the same slot through a different placement role.", "Reject a second primary request because the primary role is already occupied.")
+validation_time_limit = 3.2
+initial_sun = 100
+board_slot_count = 2
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+board_slot_configs = [SubResource("BoardSlotConfig_water_slot")]
+card_defs = [SubResource("CardDef_ground_card"), SubResource("CardDef_template_ground_mismatch"), SubResource("CardDef_water_card"), SubResource("CardDef_surface_supported_primary")]
+card_play_requests = [SubResource("BattleCardPlayRequest_ground_fail"), SubResource("BattleCardPlayRequest_template_mismatch"), SubResource("BattleCardPlayRequest_water_ok"), SubResource("BattleCardPlayRequest_primary_on_surface"), SubResource("BattleCardPlayRequest_primary_duplicate")]
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_tag_reject"), SubResource("BattleValidationRule_template_reject"), SubResource("BattleValidationRule_water_accept"), SubResource("BattleValidationRule_primary_on_surface_accept"), SubResource("BattleValidationRule_primary_duplicate_reject"), SubResource("BattleValidationRule_water_spawn")]
+spawns = []

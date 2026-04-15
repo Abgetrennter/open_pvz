@@ -10,6 +10,8 @@ const BattleValidationRuleRef = preload("res://scripts/battle/battle_validation_
 const BattleEconomyStateRef = preload("res://scripts/battle/battle_economy_state.gd")
 const BattleCardStateRef = preload("res://scripts/battle/battle_card_state.gd")
 const BattleBoardStateRef = preload("res://scripts/battle/battle_board_state.gd")
+const BattleFlowStateRef = preload("res://scripts/battle/battle_flow_state.gd")
+const WaveRunnerRef = preload("res://scripts/battle/wave_runner.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
@@ -45,6 +47,8 @@ var _collectible_root: Node2D = null
 var _economy_state: Node = null
 var _board_state: Node = null
 var _card_state: Node = null
+var _flow_state: Node = null
+var _wave_runner: Node = null
 var _validation_status: StringName = &"pending"
 var _validation_started_at := 0.0
 var _validation_deadline := 0.0
@@ -158,33 +162,7 @@ func _spawn_scenario() -> void:
 
 
 func _spawn_entry(spawn_entry) -> void:
-	if spawn_entry == null:
-		return
-	var active_scenario = _resolve_scenario()
-	var scenario_id: StringName = StringName() if active_scenario == null else active_scenario.scenario_id
-	var spawn_errors: Array[String] = ProtocolValidatorRef.validate_battle_spawn_entry(spawn_entry, scenario_id)
-	if not spawn_errors.is_empty():
-		_report_protocol_issues(spawn_errors, &"battle_spawn_entry")
-		return
-
-	var spawn_resolution: Dictionary = _entity_factory.instantiate_spawn_entry(
-		spawn_entry,
-		_build_spawn_entry_position(spawn_entry)
-	)
-	if spawn_resolution.is_empty():
-		return
-
-	var entry_kind: StringName = spawn_resolution.get("entity_kind", &"entity")
-	var lane_id: int = spawn_entry.lane_id
-	var hit_height_band: Resource = spawn_resolution.get("hit_height_band", null)
-	var trigger_instances: Array = spawn_resolution.get("trigger_instances", [])
-	var entity: Variant = spawn_resolution.get("entity", null)
-	if entry_kind not in [&"plant", &"zombie"]:
-		push_warning("Unsupported spawn entry kind: %s" % [String(entry_kind)])
-		return
-	if entity == null or not entity.has_method("assign_lane"):
-		return
-	_finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, null, {
+	_spawn_entry_internal(spawn_entry, {
 		"spawn_reason": &"scenario_spawn",
 	})
 
@@ -432,6 +410,10 @@ func get_runtime_entities() -> Array:
 		runtime_nodes.append(_board_state)
 	if _card_state != null and is_instance_valid(_card_state):
 		runtime_nodes.append(_card_state)
+	if _flow_state != null and is_instance_valid(_flow_state):
+		runtime_nodes.append(_flow_state)
+	if _wave_runner != null and is_instance_valid(_wave_runner):
+		runtime_nodes.append(_wave_runner)
 	return runtime_nodes
 
 
@@ -517,6 +499,13 @@ func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index:
 		"entity_template_id": entity_template_id,
 	}), false)
 	return entity
+
+
+func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName()):
+	return _spawn_entry_internal(spawn_entry, {
+		"spawn_reason": &"wave_spawn",
+		"wave_id": wave_id,
+	})
 
 
 func get_scenario_name() -> String:
@@ -701,6 +690,12 @@ func _reset_runtime_services() -> void:
 	if _card_state != null and is_instance_valid(_card_state):
 		remove_child(_card_state)
 		_card_state.free()
+	if _flow_state != null and is_instance_valid(_flow_state):
+		remove_child(_flow_state)
+		_flow_state.free()
+	if _wave_runner != null and is_instance_valid(_wave_runner):
+		remove_child(_wave_runner)
+		_wave_runner.free()
 	_economy_state = BattleEconomyStateRef.new()
 	_economy_state.name = "BattleEconomyState"
 	add_child(_economy_state)
@@ -710,6 +705,12 @@ func _reset_runtime_services() -> void:
 	_card_state = BattleCardStateRef.new()
 	_card_state.name = "BattleCardState"
 	add_child(_card_state)
+	_flow_state = BattleFlowStateRef.new()
+	_flow_state.name = "BattleFlowState"
+	add_child(_flow_state)
+	_wave_runner = WaveRunnerRef.new()
+	_wave_runner.name = "WaveRunner"
+	add_child(_wave_runner)
 	var active_scenario = _resolve_scenario()
 	if active_scenario != null:
 		if _economy_state.has_method("setup"):
@@ -718,6 +719,10 @@ func _reset_runtime_services() -> void:
 			_board_state.call("setup", self, active_scenario)
 		if _card_state.has_method("setup"):
 			_card_state.call("setup", self, active_scenario)
+		if _flow_state.has_method("setup"):
+			_flow_state.call("setup", self, active_scenario)
+		if _wave_runner.has_method("setup"):
+			_wave_runner.call("setup", self, _flow_state, active_scenario)
 
 
 func _finalize_spawned_entity(
@@ -748,6 +753,37 @@ func _emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, 
 	for key: Variant in metadata.keys():
 		spawned_event.core[key] = metadata[key]
 	EventBus.push_event(&"entity.spawned", spawned_event)
+
+
+func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}):
+	if spawn_entry == null:
+		return null
+	var active_scenario = _resolve_scenario()
+	var scenario_id: StringName = StringName() if active_scenario == null else active_scenario.scenario_id
+	var spawn_errors: Array[String] = ProtocolValidatorRef.validate_battle_spawn_entry(spawn_entry, scenario_id)
+	if not spawn_errors.is_empty():
+		_report_protocol_issues(spawn_errors, &"battle_spawn_entry")
+		return null
+
+	var spawn_resolution: Dictionary = _entity_factory.instantiate_spawn_entry(
+		spawn_entry,
+		_build_spawn_entry_position(spawn_entry)
+	)
+	if spawn_resolution.is_empty():
+		return null
+
+	var entry_kind: StringName = spawn_resolution.get("entity_kind", &"entity")
+	var lane_id: int = spawn_entry.lane_id
+	var hit_height_band: Resource = spawn_resolution.get("hit_height_band", null)
+	var trigger_instances: Array = spawn_resolution.get("trigger_instances", [])
+	var entity: Variant = spawn_resolution.get("entity", null)
+	if entry_kind not in [&"plant", &"zombie"]:
+		push_warning("Unsupported spawn entry kind: %s" % [String(entry_kind)])
+		return null
+	if entity == null or not entity.has_method("assign_lane"):
+		return null
+	_finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, null, metadata)
+	return entity
 
 
 func _build_board_slot_position(lane_id: int, slot_index: int) -> Vector2:

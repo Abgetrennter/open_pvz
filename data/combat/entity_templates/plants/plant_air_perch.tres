@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/air_unit_low.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"plant_air_perch"
+entity_kind = &"plant"
+display_name = "Air Perch Plant"
+tags = PackedStringArray("plant", "template", "air")
+placement_role = &"primary"
+allowed_slot_types = PackedStringArray("air_only")
+required_placement_tags = PackedStringArray("supports_air")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 120
+hitbox_size = Vector2(42, 54)
+hit_height_band = ExtResource("2_height")

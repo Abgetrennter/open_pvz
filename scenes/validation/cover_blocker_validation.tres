@@ -1,0 +1,161 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="CardDef_primary"]
+script = ExtResource("2_card_def")
+card_id = &"primary_card"
+display_name = "Primary Card"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+
+[sub_resource type="Resource" id="CardDef_cover"]
+script = ExtResource("2_card_def")
+card_id = &"cover_card"
+display_name = "Cover Card"
+entity_template_id = &"plant_pumpkin_cover"
+sun_cost = 25
+cooldown_seconds = 0.0
+
+[sub_resource type="Resource" id="CardDef_blocker"]
+script = ExtResource("2_card_def")
+card_id = &"blocker_card"
+display_name = "Blocker Card"
+entity_template_id = &"plant_tombstone_blocker"
+sun_cost = 25
+cooldown_seconds = 0.0
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_cover_without_primary"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"cover_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_primary_ok"]
+script = ExtResource("3_card_request")
+at_time = 0.75
+card_id = &"primary_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_cover_ok"]
+script = ExtResource("3_card_request")
+at_time = 1.25
+card_id = &"cover_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_cover_duplicate"]
+script = ExtResource("3_card_request")
+at_time = 1.75
+card_id = &"cover_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_blocker_ok"]
+script = ExtResource("3_card_request")
+at_time = 2.25
+card_id = &"blocker_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_primary_vs_blocker"]
+script = ExtResource("3_card_request")
+at_time = 2.75
+card_id = &"primary_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("4_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_cover_missing_primary"]
+script = ExtResource("4_rule")
+rule_id = &"cover_missing_primary"
+description = "cover is rejected when no primary role is present"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"cover_card",
+"reason": &"required_present_role_missing",
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_primary_accept"]
+script = ExtResource("4_rule")
+rule_id = &"primary_accept"
+description = "primary is accepted on empty slot"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"primary_card",
+"placement_role": &"primary",
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_cover_accept"]
+script = ExtResource("4_rule")
+rule_id = &"cover_accept"
+description = "cover is accepted when primary role is present"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"cover_card",
+"placement_role": &"cover",
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_cover_duplicate_reject"]
+script = ExtResource("4_rule")
+rule_id = &"cover_duplicate_reject"
+description = "second cover request is rejected when cover role is occupied"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"cover_card",
+"placement_role": &"cover",
+"reason": &"placement_role_occupied",
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_blocker_accept"]
+script = ExtResource("4_rule")
+rule_id = &"blocker_accept"
+description = "blocker is accepted on empty ground slot"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"blocker_card",
+"placement_role": &"blocker",
+"slot_index": 1
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_primary_blocker_reject"]
+script = ExtResource("4_rule")
+rule_id = &"primary_blocker_reject"
+description = "primary is rejected when blocker role is present"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"primary_card",
+"reason": &"required_empty_role_occupied",
+"slot_index": 1
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"cover_blocker_validation"
+display_name = "Cover Blocker Validation"
+description = "Validates cover and blocker role semantics: cover requires primary, cover can stack with primary, and blocker excludes other roles from the slot."
+goals = PackedStringArray("Reject cover when no primary role is present.", "Accept primary then cover on the same slot.", "Reject duplicate cover on the occupied cover role.", "Accept blocker on an empty slot and reject a primary request into the blocked slot.")
+validation_time_limit = 3.6
+initial_sun = 200
+board_slot_count = 2
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+card_defs = [SubResource("CardDef_primary"), SubResource("CardDef_cover"), SubResource("CardDef_blocker")]
+card_play_requests = [SubResource("BattleCardPlayRequest_cover_without_primary"), SubResource("BattleCardPlayRequest_primary_ok"), SubResource("BattleCardPlayRequest_cover_ok"), SubResource("BattleCardPlayRequest_cover_duplicate"), SubResource("BattleCardPlayRequest_blocker_ok"), SubResource("BattleCardPlayRequest_primary_vs_blocker")]
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_cover_missing_primary"), SubResource("BattleValidationRule_primary_accept"), SubResource("BattleValidationRule_cover_accept"), SubResource("BattleValidationRule_cover_duplicate_reject"), SubResource("BattleValidationRule_blocker_accept"), SubResource("BattleValidationRule_primary_blocker_reject")]
+spawns = []

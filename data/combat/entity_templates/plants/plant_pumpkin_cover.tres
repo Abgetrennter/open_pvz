@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"plant_pumpkin_cover"
+entity_kind = &"plant"
+display_name = "Pumpkin Cover Plant"
+tags = PackedStringArray("plant", "template", "cover", "pumpkin")
+placement_role = &"cover"
+required_placement_tags = PackedStringArray("supports_primary")
+required_present_roles = PackedStringArray("primary")
+required_empty_roles = PackedStringArray("cover", "blocker")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 800
+hitbox_size = Vector2(58, 68)
+hit_height_band = ExtResource("2_height")
