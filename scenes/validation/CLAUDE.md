@@ -6,7 +6,7 @@
 
 引擎的自动化测试机制。每个验证场景由一个 `.tres`（BattleScenario 配置）和可选的 `.tscn`（场景文件）组成。通过 BattleManager 的内置验证状态机执行。
 
-## 当前场景 (24 个)
+## 当前场景 (25 个)
 
 详见根 CLAUDE.md 的验证场景清单。场景定义索引文件：`tools/validation_scenarios.json`。
 
@@ -21,6 +21,7 @@
 - `initial_sun` / `sun_auto_collect_delay` -- 经济参数
 - `board_slot_count` / `board_slot_spacing` / `board_slot_configs` -- 棋盘参数
 - `card_defs` / `card_play_requests` -- 卡片参数
+- `status_application_requests` -- 状态应用请求
 - `wave_defs` -- 波次参数
 - `defeat_line_x` -- 失败线
 

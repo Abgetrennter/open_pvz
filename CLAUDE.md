@@ -127,7 +127,7 @@ pwsh tools/run_all_validations.ps1
 pwsh tools/run_validation.ps1 -ScenarioId <id>
 ```
 
-场景定义：`tools/validation_scenarios.json`（24 个场景）
+场景定义：`tools/validation_scenarios.json`（25 个场景）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 
@@ -159,6 +159,7 @@ pwsh tools/run_validation.ps1 -ScenarioId <id>
 | `roof_slot_validation` | 屋顶槽位 |
 | `air_slot_validation` | 空中槽位 |
 | `cover_blocker_validation` | 掩体/阻挡角色 |
+| `status_system_validation` | 状态系统（减速/眩晕） |
 | `wave_flow_validation` | 波次与胜负流程 |
 | `wave_guardrail_validation` | 波次护栏 |
 

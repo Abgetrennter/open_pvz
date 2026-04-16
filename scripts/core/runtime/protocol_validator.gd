@@ -9,6 +9,7 @@ const CardDefRef = preload("res://scripts/battle/card_def.gd")
 const BattleCardPlayRequestRef = preload("res://scripts/battle/card_play_request.gd")
 const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
+const StatusApplicationRequestRef = preload("res://scripts/battle/status_application_request.gd")
 const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
 const WaveDefRef = preload("res://scripts/battle/wave_def.gd")
 const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
@@ -62,6 +63,7 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"hitbox_radius": true,
 	"turn_rate": true,
 	"move_speed": true,
+	"attack_interval": true,
 	"max_health": true,
 	"hitbox_size": true,
 	"sun_production_interval": true,
@@ -389,6 +391,11 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		for play_request in configured_card_play_requests:
 			errors.append_array(_validate_card_play_request(play_request, scenario.scenario_id, int(scenario.get("board_slot_count"))))
 
+	var configured_status_application_requests: Variant = scenario.get("status_application_requests")
+	if configured_status_application_requests is Array:
+		for status_request in configured_status_application_requests:
+			errors.append_array(_validate_status_application_request(status_request, scenario.scenario_id))
+
 	var configured_wave_defs: Variant = scenario.get("wave_defs")
 	if configured_wave_defs is Array:
 		for wave_def in configured_wave_defs:
@@ -705,6 +712,25 @@ static func _validate_board_slot_config(slot_config: Resource, scenario_id: Stri
 	var placement_tags: Variant = slot_config.get("placement_tags")
 	if not (placement_tags is PackedStringArray):
 		errors.append("BattleScenario %s board slot config placement_tags must be a PackedStringArray." % String(scenario_id))
+	return errors
+
+
+static func _validate_status_application_request(status_request: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if status_request == null:
+		errors.append("BattleScenario %s contains a null status application request." % String(scenario_id))
+		return errors
+	if status_request.get_script() != StatusApplicationRequestRef:
+		errors.append("BattleScenario %s status_application_requests must use status_application_request.gd." % String(scenario_id))
+		return errors
+	if float(status_request.get("at_time")) < 0.0:
+		errors.append("BattleScenario %s status application at_time must be >= 0." % String(scenario_id))
+	if StringName(status_request.get("status_id")) == StringName():
+		errors.append("BattleScenario %s status application must define status_id." % String(scenario_id))
+	if float(status_request.get("duration")) <= 0.0:
+		errors.append("BattleScenario %s status application duration must be > 0." % String(scenario_id))
+	if float(status_request.get("movement_scale")) < 0.0:
+		errors.append("BattleScenario %s status application movement_scale must be >= 0." % String(scenario_id))
 	return errors
 
 

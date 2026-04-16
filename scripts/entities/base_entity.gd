@@ -10,6 +10,7 @@ var entity_id := -1
 var template_id: StringName = StringName()
 var entity_state: Variant = EntityStateRef.new()
 var _hit_height_range := Vector2(0.0, 24.0)
+var _active_statuses: Dictionary = {}
 
 
 func _ready() -> void:
@@ -56,6 +57,51 @@ func sync_runtime_state() -> void:
 
 func is_combat_active() -> bool:
 	return true
+
+
+func apply_status(status_id: StringName, duration: float, properties: Dictionary = {}) -> void:
+	var expires_at := GameState.current_time + maxf(duration, 0.0)
+	_active_statuses[status_id] = {
+		"status_id": status_id,
+		"expires_at": expires_at,
+		"movement_scale": float(properties.get("movement_scale", 1.0)),
+		"blocks_attack": bool(properties.get("blocks_attack", false)),
+	}
+	_sync_status_state()
+
+
+func update_statuses(current_time: float) -> void:
+	var expired_statuses := PackedStringArray()
+	for status_id in _active_statuses.keys():
+		var status_entry: Dictionary = _active_statuses[status_id]
+		if current_time + 0.001 < float(status_entry.get("expires_at", 0.0)):
+			continue
+		expired_statuses.append(String(status_id))
+	for status_id in expired_statuses:
+		var removed_status := StringName(status_id)
+		_active_statuses.erase(removed_status)
+		var removed_event = preload("res://scripts/core/runtime/event_data.gd").create(null, self, null, PackedStringArray(["status", "removed"]))
+		removed_event.core["status_id"] = removed_status
+		EventBus.push_event(&"entity.status_removed", removed_event)
+	_sync_status_state()
+
+
+func has_status(status_id: StringName) -> bool:
+	return _active_statuses.has(status_id)
+
+
+func get_effective_movement_scale() -> float:
+	var scale := 1.0
+	for status_entry: Dictionary in _active_statuses.values():
+		scale = minf(scale, float(status_entry.get("movement_scale", 1.0)))
+	return scale
+
+
+func is_attack_blocked() -> bool:
+	for status_entry: Dictionary in _active_statuses.values():
+		if bool(status_entry.get("blocks_attack", false)):
+			return true
+	return false
 
 
 func get_ground_position() -> Vector2:
@@ -106,3 +152,11 @@ func _sync_entity_state() -> void:
 	entity_state.lane_id = lane_id
 	entity_state.position = global_position
 	entity_state.combat_active = is_combat_active()
+	entity_state.status_effects = _active_statuses.duplicate(true)
+
+
+func _sync_status_state() -> void:
+	set_state_value(&"active_statuses", PackedStringArray(_active_statuses.keys()))
+	set_state_value(&"effective_movement_scale", get_effective_movement_scale())
+	set_state_value(&"attack_blocked", is_attack_blocked())
+	_sync_entity_state()

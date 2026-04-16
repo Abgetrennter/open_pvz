@@ -1,0 +1,102 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/status_application_request.gd" id="3_status_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="BattleSpawnEntry_wall"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 0
+x_position = 220.0
+
+[sub_resource type="Resource" id="BattleSpawnEntry_stunned_zombie"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 260.0
+spawn_overrides = {
+"attack_interval": 0.25,
+"move_speed": 40.0
+}
+
+[sub_resource type="Resource" id="BattleSpawnEntry_slowed_zombie"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_brisk_runner"
+lane_id = 1
+x_position = 520.0
+spawn_overrides = {
+"move_speed": 80.0
+}
+
+[sub_resource type="Resource" id="StatusApplication_stunned"]
+script = ExtResource("3_status_request")
+at_time = 0.25
+target_template_id = &"zombie_basic_walker"
+lane_id = 0
+status_id = &"stunned"
+duration = 1.0
+movement_scale = 0.0
+blocks_attack = true
+
+[sub_resource type="Resource" id="StatusApplication_slowed"]
+script = ExtResource("3_status_request")
+at_time = 0.25
+target_template_id = &"zombie_brisk_runner"
+lane_id = 1
+status_id = &"slowed"
+duration = 1.0
+movement_scale = 0.4
+
+[sub_resource type="Resource" id="BattleValidationRule_status_applied"]
+script = ExtResource("4_rule")
+rule_id = &"status_applied"
+description = "status applications are emitted"
+event_name = &"entity.status_applied"
+min_count = 2
+
+[sub_resource type="Resource" id="BattleValidationRule_stunned_attack_blocked"]
+script = ExtResource("4_rule")
+rule_id = &"stunned_attack_blocked"
+description = "stunned zombie has its attack blocked"
+event_name = &"status.effect_observed"
+required_core_values = {
+"effect": &"attack_blocked"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_slowed_movement_scaled"]
+script = ExtResource("4_rule")
+rule_id = &"slowed_movement_scaled"
+description = "slowed zombie reports scaled movement"
+event_name = &"status.effect_observed"
+required_core_values = {
+"effect": &"movement_scaled"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_no_bite_damage"]
+script = ExtResource("4_rule")
+rule_id = &"no_bite_damage"
+description = "stunned zombie does not bite during stun window"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("bite")
+
+[sub_resource type="Resource" id="BattleValidationRule_status_removed"]
+script = ExtResource("4_rule")
+rule_id = &"status_removed"
+description = "status removal is emitted after expiry"
+event_name = &"entity.status_removed"
+min_count = 2
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"status_system_validation"
+display_name = "Status System Validation"
+description = "Validates the first-stage status system through slowed and stunned examples that affect zombie movement and attack."
+goals = PackedStringArray("Observe slowed and stunned statuses being applied.", "Observe slowed movement scaling and stunned attack blocking.", "Observe statuses expire and emit removal events.")
+validation_time_limit = 3.0
+spawns = [SubResource("BattleSpawnEntry_wall"), SubResource("BattleSpawnEntry_stunned_zombie"), SubResource("BattleSpawnEntry_slowed_zombie")]
+status_application_requests = [SubResource("StatusApplication_stunned"), SubResource("StatusApplication_slowed")]
+validation_rules = [SubResource("BattleValidationRule_status_applied"), SubResource("BattleValidationRule_stunned_attack_blocked"), SubResource("BattleValidationRule_slowed_movement_scaled"), SubResource("BattleValidationRule_no_bite_damage"), SubResource("BattleValidationRule_status_removed")]

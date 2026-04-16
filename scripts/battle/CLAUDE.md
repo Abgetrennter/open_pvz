@@ -24,6 +24,7 @@
 | `battle_board_state.gd` | `BattleBoardState` | 棋盘状态：格子管理、槽位类型/标签、放置验证（validate_request）、角色占位（primary/cover/blocker） |
 | `battle_card_state.gd` | `BattleCardState` | 卡片运行时：手牌管理、费用消耗、冷却管理、放置请求完整流程 |
 | `battle_flow_state.gd` | `BattleFlowState` | 流程状态：preparing -> running -> victory/defeat。发射 phase_changed 事件 |
+| `battle_status_state.gd` | `BattleStatusState` | 状态运行时：从 scenario 读取状态应用请求、定时 apply、驱动实体 update_statuses |
 | `wave_runner.gd` | `WaveRunner` | 波次调度：按时间启动波次、调度生成、检测波次完成、检测胜败条件 |
 
 ### 数据定义
@@ -43,6 +44,7 @@
 | `sun_collectible.gd` | `SunCollectible` | 阳光收集物（Node2D）：自动收集倒计时、collect 接口 |
 | `sun_drop_entry.gd` | `SunDropEntry` | 阳光掉落配置 |
 | `resource_spend_request.gd` | `ResourceSpendRequest` | 资源消耗请求 |
+| `status_application_request.gd` | `StatusApplicationRequest` | 状态应用请求：status_id + duration + movement_scale + blocks_attack |
 
 ## 核心流程
 

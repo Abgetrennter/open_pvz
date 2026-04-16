@@ -20,6 +20,7 @@ var _attack_cooldown := 0.0
 var _attack_target: Node = null
 var _is_dying := false
 var _death_elapsed := 0.0
+var _last_status_effect_signature := ""
 
 
 func _ready() -> void:
@@ -41,6 +42,8 @@ func _physics_process(delta: float) -> void:
 
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
 	_attack_target = _find_attack_target()
+	var movement_scale := get_effective_movement_scale() if has_method("get_effective_movement_scale") else 1.0
+	var effective_move_speed := move_speed * movement_scale
 
 	if movement_component != null:
 		movement_component.velocity = Vector2.ZERO
@@ -52,11 +55,21 @@ func _physics_process(delta: float) -> void:
 		set_state_value(&"speed", 0.0)
 		sync_runtime_state()
 		set_state_value(&"attack_target_id", _debug_target_id())
+		if is_attack_blocked():
+			_emit_status_effect_observed(&"attack_blocked", {
+				"movement_scale": movement_scale,
+			})
+			return
 		_try_attack()
 	elif movement_component != null:
-		movement_component.velocity = Vector2.LEFT * move_speed
+		movement_component.velocity = Vector2.LEFT * effective_move_speed
 		movement_component.physics_process_movement(self, delta)
 		set_state_value(&"attack_target_id", -1)
+		if movement_scale < 0.999:
+			_emit_status_effect_observed(&"movement_scaled", {
+				"movement_scale": movement_scale,
+				"effective_move_speed": effective_move_speed,
+			})
 
 
 func _process(delta: float) -> void:
@@ -176,3 +189,15 @@ func _debug_target_id() -> int:
 	if _attack_target != null and _attack_target.has_method("get_entity_id"):
 		return int(_attack_target.call("get_entity_id"))
 	return -1
+
+
+func _emit_status_effect_observed(effect: StringName, metadata: Dictionary) -> void:
+	var signature := "%s:%s" % [String(effect), JSON.stringify(metadata)]
+	if _last_status_effect_signature == signature:
+		return
+	_last_status_effect_signature = signature
+	var observed_event = preload("res://scripts/core/runtime/event_data.gd").create(self, _attack_target if _attack_target != null else null, null, PackedStringArray(["status", String(effect)]))
+	observed_event.core["effect"] = effect
+	for key: Variant in metadata.keys():
+		observed_event.core[key] = metadata[key]
+	EventBus.push_event(&"status.effect_observed", observed_event)

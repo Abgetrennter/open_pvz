@@ -110,6 +110,11 @@
     "description": "Validates cover and blocker role semantics, including cover stacking on primary and blocker exclusion."
   },
   {
+    "id": "status_system_validation",
+    "scenario": "res://scenes/validation/status_system_validation.tres",
+    "description": "Validates the first-stage status system through slowed and stunned examples that affect movement and attack."
+  },
+  {
     "id": "wave_flow_validation",
     "scenario": "res://scenes/validation/wave_flow_validation.tres",
     "description": "Validates the first-stage battle flow, including phase changes, wave start/completion, wave spawns, and battle victory."

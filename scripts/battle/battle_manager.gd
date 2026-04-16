@@ -11,6 +11,7 @@ const BattleEconomyStateRef = preload("res://scripts/battle/battle_economy_state
 const BattleCardStateRef = preload("res://scripts/battle/battle_card_state.gd")
 const BattleBoardStateRef = preload("res://scripts/battle/battle_board_state.gd")
 const BattleFlowStateRef = preload("res://scripts/battle/battle_flow_state.gd")
+const BattleStatusStateRef = preload("res://scripts/battle/battle_status_state.gd")
 const WaveRunnerRef = preload("res://scripts/battle/wave_runner.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
@@ -47,6 +48,7 @@ var _collectible_root: Node2D = null
 var _economy_state: Node = null
 var _board_state: Node = null
 var _card_state: Node = null
+var _status_state: Node = null
 var _flow_state: Node = null
 var _wave_runner: Node = null
 var _validation_status: StringName = &"pending"
@@ -410,6 +412,8 @@ func get_runtime_entities() -> Array:
 		runtime_nodes.append(_board_state)
 	if _card_state != null and is_instance_valid(_card_state):
 		runtime_nodes.append(_card_state)
+	if _status_state != null and is_instance_valid(_status_state):
+		runtime_nodes.append(_status_state)
 	if _flow_state != null and is_instance_valid(_flow_state):
 		runtime_nodes.append(_flow_state)
 	if _wave_runner != null and is_instance_valid(_wave_runner):
@@ -690,6 +694,9 @@ func _reset_runtime_services() -> void:
 	if _card_state != null and is_instance_valid(_card_state):
 		remove_child(_card_state)
 		_card_state.free()
+	if _status_state != null and is_instance_valid(_status_state):
+		remove_child(_status_state)
+		_status_state.free()
 	if _flow_state != null and is_instance_valid(_flow_state):
 		remove_child(_flow_state)
 		_flow_state.free()
@@ -705,6 +712,9 @@ func _reset_runtime_services() -> void:
 	_card_state = BattleCardStateRef.new()
 	_card_state.name = "BattleCardState"
 	add_child(_card_state)
+	_status_state = BattleStatusStateRef.new()
+	_status_state.name = "BattleStatusState"
+	add_child(_status_state)
 	_flow_state = BattleFlowStateRef.new()
 	_flow_state.name = "BattleFlowState"
 	add_child(_flow_state)
@@ -719,6 +729,8 @@ func _reset_runtime_services() -> void:
 			_board_state.call("setup", self, active_scenario)
 		if _card_state.has_method("setup"):
 			_card_state.call("setup", self, active_scenario)
+		if _status_state.has_method("setup"):
+			_status_state.call("setup", self, active_scenario)
 		if _flow_state.has_method("setup"):
 			_flow_state.call("setup", self, active_scenario)
 		if _wave_runner.has_method("setup"):

@@ -11,6 +11,7 @@ var position := Vector2.ZERO
 var combat_active := true
 var health := 0
 var max_health := 0
+var status_effects: Dictionary = {}
 var values: Dictionary = {}
 
 
@@ -42,5 +43,6 @@ func snapshot() -> Dictionary:
 		"position": position,
 		"health": health,
 		"max_health": max_health,
+		"status_effects": status_effects.duplicate(true),
 		"values": values.duplicate(true),
 	}
