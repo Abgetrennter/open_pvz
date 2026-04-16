@@ -12,6 +12,7 @@ const BattleCardStateRef = preload("res://scripts/battle/battle_card_state.gd")
 const BattleBoardStateRef = preload("res://scripts/battle/battle_board_state.gd")
 const BattleFlowStateRef = preload("res://scripts/battle/battle_flow_state.gd")
 const BattleStatusStateRef = preload("res://scripts/battle/battle_status_state.gd")
+const BattleFieldObjectStateRef = preload("res://scripts/battle/battle_field_object_state.gd")
 const WaveRunnerRef = preload("res://scripts/battle/wave_runner.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
@@ -49,6 +50,7 @@ var _economy_state: Node = null
 var _board_state: Node = null
 var _card_state: Node = null
 var _status_state: Node = null
+var _field_object_state: Node = null
 var _flow_state: Node = null
 var _wave_runner: Node = null
 var _validation_status: StringName = &"pending"
@@ -161,6 +163,8 @@ func _spawn_scenario() -> void:
 	_report_protocol_issues(ProtocolValidatorRef.validate_battle_scenario(active_scenario), &"battle_scenario")
 	for spawn_entry in active_scenario.spawns:
 		_spawn_entry(spawn_entry)
+	if _field_object_state != null and _field_object_state.has_method("spawn_field_objects"):
+		_field_object_state.call("spawn_field_objects", active_scenario)
 
 
 func _spawn_entry(spawn_entry) -> void:
@@ -414,6 +418,8 @@ func get_runtime_entities() -> Array:
 		runtime_nodes.append(_card_state)
 	if _status_state != null and is_instance_valid(_status_state):
 		runtime_nodes.append(_status_state)
+	if _field_object_state != null and is_instance_valid(_field_object_state):
+		runtime_nodes.append(_field_object_state)
 	if _flow_state != null and is_instance_valid(_flow_state):
 		runtime_nodes.append(_flow_state)
 	if _wave_runner != null and is_instance_valid(_wave_runner):
@@ -453,6 +459,14 @@ func get_lane_ids() -> PackedInt32Array:
 		lane_ids.append(int(lane_key))
 	lane_ids.sort()
 	return PackedInt32Array(lane_ids)
+
+
+func get_lane_y(lane_id: int) -> float:
+	return float(LANE_Y.get(lane_id, 220.0))
+
+
+func get_entity_factory() -> RefCounted:
+	return _entity_factory
 
 
 func validate_placement_request(request: Resource) -> Dictionary:
@@ -697,6 +711,9 @@ func _reset_runtime_services() -> void:
 	if _status_state != null and is_instance_valid(_status_state):
 		remove_child(_status_state)
 		_status_state.free()
+	if _field_object_state != null and is_instance_valid(_field_object_state):
+		remove_child(_field_object_state)
+		_field_object_state.free()
 	if _flow_state != null and is_instance_valid(_flow_state):
 		remove_child(_flow_state)
 		_flow_state.free()
@@ -715,6 +732,9 @@ func _reset_runtime_services() -> void:
 	_status_state = BattleStatusStateRef.new()
 	_status_state.name = "BattleStatusState"
 	add_child(_status_state)
+	_field_object_state = BattleFieldObjectStateRef.new()
+	_field_object_state.name = "BattleFieldObjectState"
+	add_child(_field_object_state)
 	_flow_state = BattleFlowStateRef.new()
 	_flow_state.name = "BattleFlowState"
 	add_child(_flow_state)
@@ -731,6 +751,8 @@ func _reset_runtime_services() -> void:
 			_card_state.call("setup", self, active_scenario)
 		if _status_state.has_method("setup"):
 			_status_state.call("setup", self, active_scenario)
+		if _field_object_state.has_method("setup"):
+			_field_object_state.call("setup", self, active_scenario)
 		if _flow_state.has_method("setup"):
 			_flow_state.call("setup", self, active_scenario)
 		if _wave_runner.has_method("setup"):

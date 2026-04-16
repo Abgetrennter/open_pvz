@@ -14,6 +14,8 @@
 | `plant_root.gd` | `PlantRoot` | BaseEntity | 植物根节点。team = "plant"，包含 take_damage 接口（委托给 HealthComponent） |
 | `zombie_root.gd` | `ZombieRoot` | BaseEntity | 僵尸根节点。team = "zombie"，包含 move_speed、自动移动逻辑、take_damage 接口 |
 | `projectile_root.gd` | `ProjectileRoot` | BaseEntity | 抛射体根节点。管理飞行状态、3D-2D 投影、命中检测（swept_segment / terminal / overlap）、on_hit 效果链 |
+| `field_object_root.gd` | `FieldObjectRoot` | BaseEntity | 场上物件根节点。team = "field_object"，is_combat_active() -> false，提供 activate/deactivate 生命周期 |
+| `lawn_mower.gd` | `LawnMower` | FieldObjectRoot | 割草机：idle → triggered → expired 状态机，检测同车道僵尸并扫掠击杀 |
 
 ## 核心接口
 

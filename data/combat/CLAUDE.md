@@ -13,6 +13,7 @@ data/combat/
   entity_templates/
     plants/          -- 植物模板（14 个）
     zombies/         -- 僵尸模板（7 个）
+    field_objects/     -- 场上物件模板（1 个）
   projectile_templates/ -- 抛射体模板（6 个）
   projectile_profiles/ -- 飞行配置（8 个）
   trigger_bindings/    -- 触发绑定（8 个）
@@ -47,6 +48,12 @@ data/combat/
 | `zombie_brisk_runner` | zombies/zombie_brisk_runner.tres |
 | `zombie_bucket_tank` | zombies/zombie_bucket_tank.tres |
 | `zombie_boss_heavy` | zombies/zombie_boss_heavy.tres |
+
+## 场物件模板清单
+
+| 模板 ID | 文件 | 类型 |
+|---------|------|------|
+| `field_object_lawn_mower` | field_objects/field_object_lawn_mower.tres | 割草机 |
 
 ## 模板编写约定
 

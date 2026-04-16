@@ -17,6 +17,7 @@ class_name BattleScenario
 @export var card_defs: Array = []
 @export var card_play_requests: Array = []
 @export var status_application_requests: Array = []
+@export var field_object_configs: Array = []
 @export var wave_defs: Array = []
 @export var defeat_line_x := 80.0
 @export var validation_rules: Array = []

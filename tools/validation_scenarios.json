@@ -123,5 +123,10 @@
     "id": "wave_guardrail_validation",
     "scenario": "res://scenes/validation/wave_guardrail_validation.tres",
     "description": "Validates that invalid wave definitions emit protocol issues and do not continue into wave-based spawns."
+  },
+  {
+    "id": "field_object_mower_validation",
+    "scenario": "res://scenes/validation/field_object_mower_validation.tres",
+    "description": "Validates that a lawn mower field object detects an approaching zombie, activates, sweeps to kill it, and expires off-screen without triggering defeat."
   }
 ]

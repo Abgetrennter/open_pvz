@@ -10,6 +10,7 @@ const BattleCardPlayRequestRef = preload("res://scripts/battle/card_play_request
 const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
 const StatusApplicationRequestRef = preload("res://scripts/battle/status_application_request.gd")
+const FieldObjectConfigRef = preload("res://scripts/battle/field_object_config.gd")
 const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
 const WaveDefRef = preload("res://scripts/battle/wave_def.gd")
 const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
@@ -69,6 +70,7 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"sun_production_interval": true,
 	"sun_production_value": true,
 	"sun_production_start_delay": true,
+	"detection_radius": true,
 }
 
 
@@ -300,8 +302,8 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 	if StringName(entity_template.template_id) == StringName():
 		errors.append("EntityTemplate.template_id must not be empty.")
 	var entity_kind := String(entity_template.entity_kind)
-	if entity_kind not in ["plant", "zombie"]:
-		errors.append("EntityTemplate.entity_kind must be plant or zombie.")
+	if entity_kind not in ["plant", "zombie", "field_object"]:
+		errors.append("EntityTemplate.entity_kind must be plant, zombie, or field_object.")
 	if entity_template.hit_height_band != null:
 		for error in validate_height_band(entity_template.hit_height_band):
 			errors.append("EntityTemplate hit_height_band: %s" % error)
@@ -401,6 +403,11 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		for wave_def in configured_wave_defs:
 			errors.append_array(_validate_wave_def(wave_def, scenario.scenario_id))
 
+	var configured_field_object_configs: Variant = scenario.get("field_object_configs")
+	if configured_field_object_configs is Array:
+		for field_object_config in configured_field_object_configs:
+			errors.append_array(_validate_field_object_config(field_object_config, scenario.scenario_id))
+
 	for validation_rule in scenario.validation_rules:
 		errors.append_array(_validate_battle_validation_rule(validation_rule, scenario.scenario_id))
 	return errors
@@ -427,8 +434,8 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 			errors.append("%s entity_template: %s" % [scope, error])
 		if StringName(resolved_template.get("entity_kind")) != StringName():
 			entity_kind = String(resolved_template.get("entity_kind"))
-	if entity_kind not in ["plant", "zombie"]:
-		errors.append("%s.entity_kind must be plant or zombie." % scope)
+	if entity_kind not in ["plant", "zombie", "field_object"]:
+		errors.append("%s.entity_kind must be plant, zombie, or field_object." % scope)
 	if int(spawn_entry.lane_id) < 0:
 		errors.append("%s.lane_id must be >= 0." % scope)
 
@@ -767,6 +774,31 @@ static func _validate_wave_spawn_entry(wave_spawn_entry: Resource, scenario_id: 
 		errors.append("BattleScenario %s wave %s spawn_time_offset must be >= 0." % [String(scenario_id), String(wave_id)])
 	var spawn_entry: Resource = wave_spawn_entry.get("spawn_entry")
 	errors.append_array(validate_battle_spawn_entry(spawn_entry, scenario_id))
+	return errors
+
+
+static func _validate_field_object_config(field_object_config: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if field_object_config == null:
+		errors.append("BattleScenario %s contains a null field object config." % String(scenario_id))
+		return errors
+	if field_object_config.get_script() != FieldObjectConfigRef:
+		errors.append("BattleScenario %s field_object_configs must use field_object_config.gd." % String(scenario_id))
+		return errors
+	var template_id := StringName(field_object_config.get("object_template_id"))
+	if template_id == StringName():
+		errors.append("BattleScenario %s field object config must define object_template_id." % String(scenario_id))
+	elif not SceneRegistry.has_entity_template(template_id):
+		errors.append("BattleScenario %s field object config references unknown object_template_id %s." % [String(scenario_id), String(template_id)])
+	else:
+		var entity_template = SceneRegistry.get_entity_template(template_id)
+		if entity_template != null:
+			for error in validate_entity_template(entity_template):
+				errors.append("BattleScenario %s field object config template: %s" % [String(scenario_id), error])
+			if StringName(entity_template.get("entity_kind")) != &"field_object":
+				errors.append("BattleScenario %s field object config template %s must have entity_kind field_object." % [String(scenario_id), String(template_id)])
+	if int(field_object_config.get("lane_id")) < 0:
+		errors.append("BattleScenario %s field object config lane_id must be >= 0." % String(scenario_id))
 	return errors
 
 

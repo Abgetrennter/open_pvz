@@ -3,6 +3,8 @@ class_name EntityFactory
 
 const PlantRootRef = preload("res://scripts/entities/plant_root.gd")
 const ZombieRootRef = preload("res://scripts/entities/zombie_root.gd")
+const FieldObjectRootRef = preload("res://scripts/entities/field_object_root.gd")
+const LawnMowerRef = preload("res://scripts/entities/lawn_mower.gd")
 const ProjectileRootRef = preload("res://scripts/entities/projectile_root.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
@@ -30,6 +32,13 @@ const DEFAULT_TEMPLATE_CONFIG := {
 		"trigger_component": true,
 		"movement_component": true,
 		"debug_view_component": false,
+	},
+	&"field_object": {
+		"max_health": -1,
+		"hitbox_size": Vector2(36.0, 36.0),
+		"trigger_component": false,
+		"movement_component": false,
+		"debug_view_component": true,
 	},
 }
 const SPAWN_ENTRY_RESERVED_PARAMS := {
@@ -204,18 +213,28 @@ func _instantiate_root(entity_kind: StringName, template = null):
 		if instantiated is Node2D:
 			return instantiated
 		push_warning("EntityTemplate %s root_scene must instantiate a Node2D." % String(template.template_id))
-	return _instantiate_builtin_root(entity_kind)
+	return _instantiate_builtin_root(entity_kind, template)
 
 
-func _instantiate_builtin_root(entity_kind: StringName):
+func _instantiate_builtin_root(entity_kind: StringName, template = null):
 	match entity_kind:
 		&"plant":
 			return PlantRootRef.new()
 		&"zombie":
 			return ZombieRootRef.new()
+		&"field_object":
+			return _instantiate_field_object(template)
 		_:
 			push_warning("Unsupported entity kind for template factory: %s" % String(entity_kind))
 			return null
+
+
+func _instantiate_field_object(template):
+	if template is EntityTemplateRef:
+		match StringName(template.template_id):
+			&"field_object_lawn_mower":
+				return LawnMowerRef.new()
+	return FieldObjectRootRef.new()
 
 
 func _ensure_template_components(entity: Node, entity_kind: StringName, template = null, params: Dictionary = {}) -> void:

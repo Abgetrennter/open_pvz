@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"field_object_lawn_mower"
+entity_kind = &"field_object"
+display_name = "Lawn Mower"
+tags = PackedStringArray("field_object", "mower")
+max_health = -1
+hitbox_size = Vector2(36, 36)
+default_params = {
+"detection_radius": 50.0,
+"move_speed": 300.0
+}

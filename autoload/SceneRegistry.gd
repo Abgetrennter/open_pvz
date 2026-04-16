@@ -5,6 +5,7 @@ const VALIDATION_SCENARIO_DIR := "res://scenes/validation"
 const ENTITY_TEMPLATE_DIRS := [
 	"res://data/combat/entity_templates/plants",
 	"res://data/combat/entity_templates/zombies",
+	"res://data/combat/entity_templates/field_objects",
 ]
 const PROJECTILE_TEMPLATE_DIR := "res://data/combat/projectile_templates"
 const TRIGGER_BINDING_DIR := "res://data/combat/trigger_bindings"

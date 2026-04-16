@@ -26,6 +26,7 @@
 | `battle_flow_state.gd` | `BattleFlowState` | 流程状态：preparing -> running -> victory/defeat。发射 phase_changed 事件 |
 | `battle_status_state.gd` | `BattleStatusState` | 状态运行时：从 scenario 读取状态应用请求、定时 apply、驱动实体 update_statuses |
 | `wave_runner.gd` | `WaveRunner` | 波次调度：按时间启动波次、调度生成、检测波次完成、检测胜败条件 |
+| `battle_field_object_state.gd` | `BattleFieldObjectState` | 场上物件状态：从 scenario 读取 field_object_configs、通过 EntityFactory 生成物件、发射 spawned 事件 |
 
 ### 数据定义
 
@@ -45,6 +46,7 @@
 | `sun_drop_entry.gd` | `SunDropEntry` | 阳光掉落配置 |
 | `resource_spend_request.gd` | `ResourceSpendRequest` | 资源消耗请求 |
 | `status_application_request.gd` | `StatusApplicationRequest` | 状态应用请求：status_id + duration + movement_scale + blocks_attack |
+| `field_object_config.gd` | `FieldObjectConfig` | 场上物件配置：object_template_id + lane_id + x_position + spawn_overrides |
 
 ## 核心流程
 
@@ -79,5 +81,6 @@ WaveRunner._on_game_tick()
 - `card_flow_validation` -- 卡片运行时
 - `board_placement_validation` / `board_slot_tag_validation` / `roof_slot_validation` / `air_slot_validation` / `cover_blocker_validation` -- 棋盘放置
 - `wave_flow_validation` / `wave_guardrail_validation` -- 波次系统
+- `field_object_mower_validation` -- 场上物件割草机
 
 <!-- 由 init-architect 自动生成，时间：2026-04-15 21:39:03 -->
