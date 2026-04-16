@@ -1,0 +1,166 @@
+{
+  "timestamp": "2026-04-15T21:39:03+08:00",
+  "project": "Open PVZ",
+  "engine": "Godot 4.x (GDScript)",
+  "phase": "Phase 4 - gameplay systems integration",
+  "scan_coverage": {
+    "total_project_files_estimated": 155,
+    "scanned_files": 57,
+    "coverage_percent": 36.8,
+    "note": "GDScript 源码和关键配置已全部扫描；.tres 数据资源仅统计路径未读内容；wiki/plans 文档已读取索引结构"
+  },
+  "root_claude_md": "CLAUDE.md",
+  "modules": [
+    {
+      "path": "autoload/",
+      "claude_md": "autoload/CLAUDE.md",
+      "language": "GDScript",
+      "file_count": 6,
+      "role": "全局单例：事件总线、注册表、游戏状态",
+      "entry_files": [
+        "autoload/EventBus.gd",
+        "autoload/GameState.gd",
+        "autoload/SceneRegistry.gd",
+        "autoload/TriggerRegistry.gd",
+        "autoload/EffectRegistry.gd",
+        "autoload/DebugService.gd"
+      ],
+      "interfaces": ["EventBus.push_event()", "EventBus.subscribe()", "SceneRegistry.get_entity_template()", "TriggerRegistry.get_def()", "EffectRegistry.get_strategy()"],
+      "tests": [],
+      "gaps": []
+    },
+    {
+      "path": "scripts/core/",
+      "claude_md": "scripts/core/CLAUDE.md",
+      "language": "GDScript",
+      "file_count": 15,
+      "role": "核心定义和运行时执行",
+      "entry_files": [
+        "scripts/core/runtime/effect_executor.gd",
+        "scripts/core/runtime/protocol_validator.gd"
+      ],
+      "interfaces": ["EffectExecutor.execute_node()", "ProtocolValidator.validate_*()"],
+      "tests": ["protocol_guardrail_validation", "template_guardrail_validation"],
+      "gaps": []
+    },
+    {
+      "path": "scripts/battle/",
+      "claude_md": "scripts/battle/CLAUDE.md",
+      "language": "GDScript",
+      "file_count": 18,
+      "role": "战斗协调：BattleManager, EntityFactory, 经济/棋盘/卡片/波次",
+      "entry_files": [
+        "scripts/battle/battle_manager.gd",
+        "scripts/battle/entity_factory.gd"
+      ],
+      "interfaces": ["BattleManager.reset_battle()", "BattleManager.spawn_card_entity()", "EntityFactory.instantiate_spawn_entry()"],
+      "tests": [
+        "minimal_battle_validation",
+        "sun_resource_validation",
+        "card_flow_validation",
+        "board_placement_validation",
+        "board_slot_tag_validation",
+        "wave_flow_validation",
+        "wave_guardrail_validation"
+      ],
+      "gaps": []
+    },
+    {
+      "path": "scripts/entities/",
+      "claude_md": "scripts/entities/CLAUDE.md",
+      "language": "GDScript",
+      "file_count": 4,
+      "role": "实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot",
+      "entry_files": [
+        "scripts/entities/base_entity.gd",
+        "scripts/entities/projectile_root.gd"
+      ],
+      "interfaces": ["BaseEntity.assign_lane()", "ProjectileRoot.launch()"],
+      "tests": ["template_instantiation_validation"],
+      "gaps": []
+    },
+    {
+      "path": "scripts/components/",
+      "claude_md": "scripts/components/CLAUDE.md",
+      "language": "GDScript",
+      "file_count": 6,
+      "role": "可复用组件：HealthComponent, TriggerComponent, HitboxComponent 等",
+      "entry_files": [
+        "scripts/components/health_component.gd",
+        "scripts/components/trigger_component.gd"
+      ],
+      "interfaces": ["HealthComponent.take_damage()", "TriggerComponent.bind_triggers()"],
+      "tests": [],
+      "gaps": []
+    },
+    {
+      "path": "scripts/projectile/",
+      "claude_md": "scripts/projectile/CLAUDE.md",
+      "language": "GDScript",
+      "file_count": 5,
+      "role": "抛射体运动系统：linear / parabola / track",
+      "entry_files": [
+        "scripts/projectile/projectile_flight_profile.gd"
+      ],
+      "interfaces": ["ProjectileMovementBase.configure_movement()", "ProjectileMovementBase.physics_process_projectile_move()"],
+      "tests": [
+        "parabola_long_range_validation",
+        "height_hit_validation",
+        "swept_segment_validation",
+        "terminal_explode_validation"
+      ],
+      "gaps": []
+    },
+    {
+      "path": "data/combat/",
+      "claude_md": "data/combat/CLAUDE.md",
+      "language": ".tres (Godot Resource)",
+      "file_count": 46,
+      "role": "战斗数据资源：实体模板、抛射体模板、飞行配置、触发绑定、高度段",
+      "entry_files": [],
+      "interfaces": [],
+      "tests": [],
+      "gaps": ["数据资源内容未逐一读取，仅统计路径"]
+    },
+    {
+      "path": "scenes/validation/",
+      "claude_md": "scenes/validation/CLAUDE.md",
+      "language": ".tres/.tscn",
+      "file_count": 25,
+      "role": "自动化验证场景（24 个验证配置 + 1 个通用场景）",
+      "entry_files": [
+        "tools/validation_scenarios.json"
+      ],
+      "interfaces": [],
+      "tests": [],
+      "gaps": []
+    }
+  ],
+  "ignored_directories": [
+    {
+      "path": "vendor/",
+      "reason": "参考实现（PVZ-Godot-Dream），不属于引擎核心"
+    },
+    {
+      "path": ".godot/",
+      "reason": "Godot 编辑器缓存，.gitignore 忽略"
+    },
+    {
+      "path": "artifacts/validation/",
+      "reason": "验证结果输出，.gitignore 忽略"
+    }
+  ],
+  "gap_summary": {
+    "missing_interfaces": [],
+    "missing_tests": [],
+    "missing_data_models": [],
+    "unscanned_directories": [
+      "scripts/main/ (2 files, showcase hub)",
+      "scripts/debug/ (1 file, debug overlay)",
+      "scenes/showcase/ (9 scenes, demo scenes)",
+      ".spec-workflow/ (workflow templates)"
+    ]
+  },
+  "truncated": false,
+  "next_steps": []
+}
