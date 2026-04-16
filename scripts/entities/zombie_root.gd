@@ -26,6 +26,7 @@ var _last_status_effect_signature := ""
 func _ready() -> void:
 	entity_kind = &"zombie"
 	team = &"zombie"
+	_attack_cooldown = attack_interval
 	super()
 	set_status(&"alive")
 	set_state_value(&"attack_damage", attack_damage)
@@ -56,6 +57,7 @@ func _physics_process(delta: float) -> void:
 		sync_runtime_state()
 		set_state_value(&"attack_target_id", _debug_target_id())
 		if is_attack_blocked():
+			_attack_cooldown = attack_interval
 			_emit_status_effect_observed(&"attack_blocked", {
 				"movement_scale": movement_scale,
 			})

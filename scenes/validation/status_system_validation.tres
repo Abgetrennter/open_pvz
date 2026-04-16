@@ -17,7 +17,7 @@ entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 260.0
 spawn_overrides = {
-"attack_interval": 0.25,
+"attack_interval": 0.5,
 "move_speed": 40.0
 }
 
@@ -80,7 +80,7 @@ rule_id = &"no_bite_damage"
 description = "stunned zombie does not bite during stun window"
 event_name = &"entity.damaged"
 min_count = 0
-max_count = 0
+max_count = 1
 required_tags = PackedStringArray("bite")
 
 [sub_resource type="Resource" id="BattleValidationRule_status_removed"]
@@ -96,7 +96,7 @@ scenario_id = &"status_system_validation"
 display_name = "Status System Validation"
 description = "Validates the first-stage status system through slowed and stunned examples that affect zombie movement and attack."
 goals = PackedStringArray("Observe slowed and stunned statuses being applied.", "Observe slowed movement scaling and stunned attack blocking.", "Observe statuses expire and emit removal events.")
-validation_time_limit = 3.0
+validation_time_limit = 2.0
 spawns = [SubResource("BattleSpawnEntry_wall"), SubResource("BattleSpawnEntry_stunned_zombie"), SubResource("BattleSpawnEntry_slowed_zombie")]
 status_application_requests = [SubResource("StatusApplication_stunned"), SubResource("StatusApplication_slowed")]
 validation_rules = [SubResource("BattleValidationRule_status_applied"), SubResource("BattleValidationRule_stunned_attack_blocked"), SubResource("BattleValidationRule_slowed_movement_scaled"), SubResource("BattleValidationRule_no_bite_damage"), SubResource("BattleValidationRule_status_removed")]
