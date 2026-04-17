@@ -150,6 +150,16 @@
     "description": "Validates that a minimal external content pack can register an entity template and validation scenario through the extension scan path."
   },
   {
+    "id": "hit_split_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/hit_split_chaos_validation.tres",
+    "description": "Validates that an extension-defined on_hit split effect can apply primary hit damage and spawn follow-up projectiles from the impact point."
+  },
+  {
+    "id": "periodic_summon_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/periodic_summon_chaos_validation.tres",
+    "description": "Validates that an extension-defined spawn_entity effect can periodically summon combat-ready shardlings into the shared runtime."
+  },
+  {
     "id": "target_acquisition_validation",
     "scenario": "res://scenes/validation/target_acquisition_validation.tres",
     "description": "Validates the first-stage lane_forward detection gate, including same-lane firing, adjacent-lane rejection, and RuleContext target propagation for parabola targeting."

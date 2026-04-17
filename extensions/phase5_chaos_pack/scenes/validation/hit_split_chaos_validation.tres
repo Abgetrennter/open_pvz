@@ -1,0 +1,74 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_splitter"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_splitter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_front_tank"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_bucket_tank"
+lane_id = 0
+x_position = 500.0
+
+[sub_resource type="Resource" id="Spawn_split_target_a"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 610.0
+
+[sub_resource type="Resource" id="Spawn_split_target_b"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 700.0
+
+[sub_resource type="Resource" id="Rule_primary_hit"]
+script = ExtResource("3_rule")
+rule_id = &"primary_hit_front_tank"
+description = "extension splitter should land its primary shot on the front tank before splitting"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_extension_splitter",
+"target_template_id": &"zombie_bucket_tank",
+"value": 20
+}
+
+[sub_resource type="Resource" id="Rule_split_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"split_projectiles_spawned"
+description = "on_hit split_projectiles should spawn at least two follow-up projectiles from the impact point"
+event_name = &"projectile.spawned"
+min_count = 2
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"source_template_id": &"plant_extension_splitter",
+"target_template_id": &"track_bomb"
+}
+
+[sub_resource type="Resource" id="Rule_split_damage"]
+script = ExtResource("3_rule")
+rule_id = &"split_projectiles_damage_followups"
+description = "split follow-up projectiles should damage nearby walkers through the extension hit_response effect"
+event_name = &"entity.damaged"
+min_count = 2
+required_core_values = {
+"source_template_id": &"plant_extension_splitter",
+"target_template_id": &"zombie_basic_walker",
+"value": 12
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"hit_split_chaos_validation"
+display_name = "Hit Split Chaos Validation"
+description = "Validates the first extension-backed hit-split chaos sample: a primary shot lands on a tank, then an extension on_hit effect splits into follow-up projectiles that damage nearby walkers."
+goals = PackedStringArray("Verify the extension splitter lands a primary hit on the front tank.", "Verify the extension split_projectiles effect spawns follow-up projectiles from the impact point.", "Verify the split follow-up projectiles damage two nearby walkers without BattleManager-specific branching.")
+validation_time_limit = 3.2
+validation_rules = [SubResource("Rule_primary_hit"), SubResource("Rule_split_spawn"), SubResource("Rule_split_damage")]
+spawns = [SubResource("Spawn_splitter"), SubResource("Spawn_front_tank"), SubResource("Spawn_split_target_a"), SubResource("Spawn_split_target_b")]

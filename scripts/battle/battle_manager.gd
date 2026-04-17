@@ -140,7 +140,9 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 		direction = direction_value
 
 	var spawn_position: Vector2 = context.position
-	if context.source_node != null and context.source_node is Node2D:
+	if resolved_params.get("spawn_position", null) is Vector2:
+		spawn_position = resolved_params.get("spawn_position")
+	elif context.source_node != null and context.source_node is Node2D:
 		spawn_position = context.source_node.global_position + direction.normalized() * 34.0
 
 	var projectile_template = resolved_params.get("projectile_template", null)
@@ -155,6 +157,27 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 	})
 	_entity_root.add_child(projectile)
 	return projectile
+
+
+func spawn_entity_from_effect(context, params: Dictionary, metadata: Dictionary = {}) -> Node:
+	var entity_template_id := StringName(params.get("entity_template_id", StringName()))
+	if entity_template_id == StringName():
+		_report_protocol_issues(["spawn_entity effect must provide entity_template_id."], &"spawn_entity")
+		return null
+
+	var entry = BattleSpawnEntryRef.new()
+	entry.entity_template_id = entity_template_id
+	entry.lane_id = _resolve_effect_spawn_lane(context, params)
+	entry.x_position = _resolve_effect_spawn_x_position(context, params)
+	if params.get("spawn_overrides", null) is Dictionary:
+		entry.spawn_overrides = params.get("spawn_overrides").duplicate(true)
+	if params.get("hit_height_band_override", null) is Resource:
+		entry.hit_height_band_override = params.get("hit_height_band_override")
+	if params.get("projectile_flight_profile_override", null) is Resource:
+		entry.projectile_flight_profile_override = params.get("projectile_flight_profile_override")
+	if params.get("projectile_template_override", null) is Resource:
+		entry.projectile_template_override = params.get("projectile_template_override")
+	return _spawn_entry_internal(entry, metadata, context.source_node)
 
 
 func _spawn_scenario() -> void:
@@ -199,6 +222,13 @@ func _build_projectile_movement_params(context, params: Dictionary, spawn_positi
 		movement_params = _movement_params_from_flight_profile(flight_profile)
 	var movement_mode_default: Variant = movement_params.get("move_mode", &"linear")
 	movement_params["move_mode"] = StringName(params.get("movement_mode", movement_mode_default))
+	if params.get("ignored_entity_ids", null) is PackedInt32Array:
+		movement_params["ignored_entity_ids"] = PackedInt32Array(params.get("ignored_entity_ids"))
+	elif params.get("ignored_entity_ids", null) is Array:
+		var ignored_ids := PackedInt32Array()
+		for raw_id in Array(params.get("ignored_entity_ids")):
+			ignored_ids.append(int(raw_id))
+		movement_params["ignored_entity_ids"] = ignored_ids
 	var move_mode: StringName = movement_params["move_mode"]
 
 	match move_mode:
@@ -790,7 +820,7 @@ func _emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, 
 	EventBus.push_event(&"entity.spawned", spawned_event)
 
 
-func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}):
+func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: Node = null):
 	if spawn_entry == null:
 		return null
 	var active_scenario = _resolve_scenario()
@@ -817,8 +847,31 @@ func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}):
 		return null
 	if entity == null or not entity.has_method("assign_lane"):
 		return null
-	_finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, null, metadata)
+	_finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata)
 	return entity
+
+
+func _resolve_effect_spawn_lane(context, params: Dictionary) -> int:
+	var explicit_lane: Variant = params.get("lane_id", null)
+	if explicit_lane is int and int(explicit_lane) >= 0:
+		return int(explicit_lane)
+	if context.target_node != null and context.target_node.get("lane_id") is int:
+		return int(context.target_node.get("lane_id"))
+	if context.source_node != null and context.source_node.get("lane_id") is int:
+		return int(context.source_node.get("lane_id"))
+	if context.owner_entity != null and context.owner_entity.get("lane_id") is int:
+		return int(context.owner_entity.get("lane_id"))
+	return 0
+
+
+func _resolve_effect_spawn_x_position(context, params: Dictionary) -> float:
+	var explicit_spawn_position: Variant = params.get("spawn_position", null)
+	if explicit_spawn_position is Vector2:
+		return float(explicit_spawn_position.x)
+	var explicit_x: Variant = params.get("x_position", null)
+	if explicit_x is float or explicit_x is int:
+		return float(explicit_x)
+	return float(context.position.x + float(params.get("x_offset", 0.0)))
 
 
 func _build_board_slot_position(lane_id: int, slot_index: int) -> Vector2:

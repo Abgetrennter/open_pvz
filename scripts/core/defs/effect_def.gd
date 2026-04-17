@@ -7,6 +7,7 @@ class_name EffectDef
 @export var allow_extra_params := false
 @export var allow_extra_children := false
 @export var tags: PackedStringArray = PackedStringArray()
+@export var strategy_script: Script = null
 
 
 func get_param_def(param_name: StringName) -> Dictionary:

@@ -12,3 +12,4 @@ enum SlotType {
 @export var min_value := 0.0
 @export var max_value := 1.0
 @export var allowed_effect_ids: PackedStringArray = PackedStringArray()
+@export var allowed_effect_tags: PackedStringArray = PackedStringArray()

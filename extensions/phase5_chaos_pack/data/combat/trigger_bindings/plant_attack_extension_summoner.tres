@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="TriggerBinding" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/trigger_binding.gd" id="1_binding"]
+
+[resource]
+script = ExtResource("1_binding")
+binding_id = &"plant_attack_extension_summoner"
+behavior_key = &"attack"
+trigger_id = &"periodically"
+event_name = &"game.tick"
+condition_values = {
+"detection_id": &"always",
+"interval": 0.8
+}
+effect_id = &"spawn_entity"
+effect_params = {
+"entity_template_id": &"plant_extension_shardling",
+"spawn_reason": &"extension_summon",
+"x_offset": 90.0
+}

@@ -38,6 +38,7 @@ var _height := 0.0
 var _max_hit_height := 24.0
 var _projection_scale := 1.0
 var _flight_profile_id: StringName = StringName()
+var _ignored_entity_ids: PackedInt32Array = PackedInt32Array()
 
 
 func _ready() -> void:
@@ -133,6 +134,7 @@ func launch(
 		_hit_strategy = configured_hit_strategy if configured_hit_strategy != StringName() else _default_hit_strategy_for_mode(_move_mode)
 		var configured_terminal_strategy := StringName(full_movement_params.get("terminal_hit_strategy", StringName()))
 		_terminal_hit_strategy = configured_terminal_strategy if configured_terminal_strategy != StringName() else _terminal_strategy_for_hit_strategy(_hit_strategy)
+		_ignored_entity_ids = PackedInt32Array(full_movement_params.get("ignored_entity_ids", PackedInt32Array()))
 		full_movement_params["start_position"] = _ground_position
 		debug_target_position = full_movement_params.get("target_position", _ground_position)
 		debug_target_node = full_movement_params.get("target_node", null)
@@ -163,6 +165,8 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 	if _consumed:
 		return
 	if target == null or target == self or target == owner_entity:
+		return
+	if _is_ignored_target(target):
 		return
 	if target.has_method("get") and target.get("team") == team:
 		return
@@ -198,6 +202,8 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 
 func _on_hitbox_overlap(target: Node) -> void:
 	if not _allows_overlap_hit():
+		return
+	if _is_ignored_target(target):
 		return
 	if not _matches_height_range(target, _height, _height):
 		return
@@ -256,6 +262,8 @@ func _find_terminal_hit_target() -> Node:
 	for candidate in battle.call("get_runtime_entities"):
 		if candidate == null or candidate == self or candidate == owner_entity:
 			continue
+		if _is_ignored_target(candidate):
+			continue
 		if not candidate.has_method("take_damage"):
 			continue
 		if not (candidate is Node2D):
@@ -288,6 +296,8 @@ func _find_segment_hit_target(start_position: Vector2, end_position: Vector2, pr
 	var best_score := INF
 	for candidate in battle.call("get_runtime_entities"):
 		if candidate == null or candidate == self or candidate == owner_entity:
+			continue
+		if _is_ignored_target(candidate):
 			continue
 		if not candidate.has_method("take_damage"):
 			continue
@@ -471,6 +481,12 @@ func _projectile_color() -> Color:
 			return PROJECTILE_COLOR_PARABOLA
 		_:
 			return PROJECTILE_COLOR_LINEAR
+
+
+func _is_ignored_target(target: Node) -> bool:
+	if target == null or not target.has_method("get_entity_id"):
+		return false
+	return _ignored_entity_ids.has(int(target.call("get_entity_id")))
 
 
 func _movement_component_count() -> int:

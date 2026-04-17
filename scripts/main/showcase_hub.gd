@@ -84,7 +84,7 @@ const GROUPS := [
 	},
 	{
 		"group_title": "第五阶段错误技",
-		"group_summary": "第五阶段正式错误技样例分组，对齐提交 7617055 的 4 个标准场景，集中展示级联爆炸、溅射区域、高速追击和多 lane 反击。",
+		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 2 个场景用于展示扩展包新增 on_hit 分裂与 spawn_entity 召唤能力。",
 		"color": Color("ef6c57"),
 		"items": [
 			{
@@ -106,6 +106,16 @@ const GROUPS := [
 				"title": "多 Lane 反击级联",
 				"summary": "两条 lane 上各自独立完成攻击与反击，验证 retaliation 链不会跨 lane 串线。",
 				"scene": "res://scenes/showcase/multi_lane_retaliation_cascade_showcase.tscn",
+			},
+			{
+				"title": "命中分裂扩展样例",
+				"summary": "主弹命中后从命中点分裂出追击投射物，验证扩展包最小 on_hit effect 位已经打通。",
+				"scene": "res://scenes/showcase/hit_split_chaos_showcase.tscn",
+			},
+			{
+				"title": "周期召唤扩展样例",
+				"summary": "召唤植物周期生成 shardling 并加入战斗，验证扩展包最小 spawn_entity 能力位已经打通。",
+				"scene": "res://scenes/showcase/periodic_summon_chaos_showcase.tscn",
 			},
 		],
 	},

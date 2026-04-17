@@ -6,14 +6,18 @@ const EffectResultRef = preload("res://scripts/core/runtime/effect_result.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight_profile.gd"
 const ProjectileTemplatePath := "res://scripts/core/defs/projectile_template.gd"
+const EXTENSION_ROOT_DIR := "res://extensions"
+const EXTENSION_EFFECT_DEF_DIR := "data/combat/effects"
 
 var _effect_defs: Dictionary = {}
 var _effect_strategies: Dictionary = {}
+var _effect_strategy_owners: Dictionary = {}
 
 
 func _ready() -> void:
 	_register_builtin_defs()
 	_register_builtin_strategies()
+	_register_extension_defs_and_strategies()
 
 
 func register_def(effect_def) -> void:
@@ -25,6 +29,12 @@ func register_def(effect_def) -> void:
 			push_warning(error)
 			if DebugService.has_method("record_protocol_issue"):
 				DebugService.record_protocol_issue(&"effect_def", error, &"error")
+		return
+	if _effect_defs.has(effect_def.effect_id):
+		var message := "Duplicate EffectDef %s registration was ignored." % String(effect_def.effect_id)
+		push_warning(message)
+		if DebugService.has_method("record_protocol_issue"):
+			DebugService.record_protocol_issue(&"effect_def", message, &"error")
 		return
 	_effect_defs[effect_def.effect_id] = effect_def
 
@@ -46,6 +56,7 @@ func get_strategy(effect_id: StringName) -> Callable:
 func _register_builtin_defs() -> void:
 	var damage = EffectDefRef.new()
 	damage.effect_id = &"damage"
+	damage.tags = PackedStringArray(["hit_response", "direct_damage"])
 	var damage_param_defs: Array[Dictionary] = [{
 		"name": "amount",
 		"type": "int",
@@ -65,6 +76,7 @@ func _register_builtin_defs() -> void:
 
 	var spawn_projectile = EffectDefRef.new()
 	spawn_projectile.effect_id = &"spawn_projectile"
+	spawn_projectile.tags = PackedStringArray(["projectile_spawn"])
 	var spawn_projectile_param_defs: Array[Dictionary] = [{
 		"name": "speed",
 		"type": "float",
@@ -163,7 +175,7 @@ func _register_builtin_defs() -> void:
 	var on_hit_slot = EffectSlotDefRef.new()
 	on_hit_slot.slot_name = &"on_hit"
 	on_hit_slot.slot_type = EffectSlotDefRef.SlotType.EFFECT
-	on_hit_slot.allowed_effect_ids = PackedStringArray(["damage", "explode"])
+	on_hit_slot.allowed_effect_tags = PackedStringArray(["hit_response"])
 	spawn_projectile.slots = [on_hit_slot]
 	spawn_projectile.allow_extra_params = false
 	spawn_projectile.allow_extra_children = false
@@ -171,6 +183,7 @@ func _register_builtin_defs() -> void:
 
 	var explode = EffectDefRef.new()
 	explode.effect_id = &"explode"
+	explode.tags = PackedStringArray(["hit_response", "area_damage"])
 	var explode_param_defs: Array[Dictionary] = [{
 		"name": "amount",
 		"type": "int",
@@ -339,3 +352,67 @@ func _resolve_effect_source_node(context) -> Node:
 	if context.source_node != null:
 		return context.source_node
 	return context.owner_entity
+
+
+func _register_extension_defs_and_strategies() -> void:
+	var absolute_root := ProjectSettings.globalize_path(EXTENSION_ROOT_DIR)
+	var directory := DirAccess.open(absolute_root)
+	if directory == null:
+		return
+
+	directory.list_dir_begin()
+	while true:
+		var entry_name := directory.get_next()
+		if entry_name.is_empty():
+			break
+		if entry_name.begins_with(".") or not directory.current_is_dir():
+			continue
+		_register_extension_effect_defs(EXTENSION_ROOT_DIR.path_join(entry_name).path_join(EXTENSION_EFFECT_DEF_DIR))
+	directory.list_dir_end()
+
+
+func _register_extension_effect_defs(directory_path: String) -> void:
+	var absolute_path := ProjectSettings.globalize_path(directory_path)
+	var directory := DirAccess.open(absolute_path)
+	if directory == null:
+		return
+
+	directory.list_dir_begin()
+	while true:
+		var entry_name := directory.get_next()
+		if entry_name.is_empty():
+			break
+		if entry_name.begins_with("."):
+			continue
+		var full_path := directory_path.path_join(entry_name)
+		if directory.current_is_dir():
+			_register_extension_effect_defs(full_path)
+			continue
+		if not entry_name.ends_with(".tres"):
+			continue
+		var effect_def := load(full_path)
+		if effect_def == null or effect_def.get_script() != EffectDefRef:
+			continue
+		register_def(effect_def)
+		_register_effect_strategy_from_def(effect_def, full_path)
+	directory.list_dir_end()
+
+
+func _register_effect_strategy_from_def(effect_def, source_path: String) -> void:
+	if effect_def == null or effect_def.strategy_script == null:
+		return
+	if not (effect_def.strategy_script is Script):
+		var invalid_message := "EffectDef %s strategy_script must be a Script (%s)." % [String(effect_def.effect_id), source_path]
+		push_warning(invalid_message)
+		if DebugService.has_method("record_protocol_issue"):
+			DebugService.record_protocol_issue(&"effect_strategy", invalid_message, &"error")
+		return
+	var strategy_owner = effect_def.strategy_script.new()
+	if strategy_owner == null or not strategy_owner.has_method("execute"):
+		var missing_message := "EffectDef %s strategy_script must expose execute(context, params, node) (%s)." % [String(effect_def.effect_id), source_path]
+		push_warning(missing_message)
+		if DebugService.has_method("record_protocol_issue"):
+			DebugService.record_protocol_issue(&"effect_strategy", missing_message, &"error")
+		return
+	_effect_strategy_owners[effect_def.effect_id] = strategy_owner
+	register_strategy(effect_def.effect_id, Callable(strategy_owner, "execute"))

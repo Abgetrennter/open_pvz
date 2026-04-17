@@ -583,7 +583,7 @@ static func normalize_effect_node(node) -> Dictionary:
 		var slot_def = slot_defs[str(slot_name)]
 		if int(slot_def.slot_type) != 1:
 			continue
-		if not slot_def.allowed_effect_ids.is_empty() and not slot_def.allowed_effect_ids.has(StringName(child.effect_id)):
+		if not _effect_allowed_in_slot(child, slot_def):
 			errors.append("EffectNode %s slot %s does not allow child effect %s." % [String(node.effect_id), str(slot_name), String(child.effect_id)])
 			continue
 		var child_validation: Dictionary = normalize_effect_node(child)
@@ -596,6 +596,26 @@ static func normalize_effect_node(node) -> Dictionary:
 		"errors": errors,
 		"params": normalized_params,
 	}
+
+
+static func _effect_allowed_in_slot(child, slot_def) -> bool:
+	if child == null or slot_def == null:
+		return false
+	var child_effect_id := StringName(child.effect_id)
+	if slot_def.allowed_effect_ids.is_empty() and slot_def.allowed_effect_tags.is_empty():
+		return true
+	if slot_def.allowed_effect_ids.has(child_effect_id):
+		return true
+	if slot_def.allowed_effect_tags.is_empty():
+		return false
+	var child_effect_def = EffectRegistry.get_def(child_effect_id)
+	if child_effect_def == null:
+		return false
+	var effect_tags := PackedStringArray(child_effect_def.tags)
+	for allowed_tag in PackedStringArray(slot_def.allowed_effect_tags):
+		if effect_tags.has(allowed_tag):
+			return true
+	return false
 
 
 static func _validate_battle_validation_rule(validation_rule: Resource, scenario_id: StringName) -> Array[String]:

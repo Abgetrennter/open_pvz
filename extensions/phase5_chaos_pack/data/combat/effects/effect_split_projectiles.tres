@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="EffectDef" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/effect_def.gd" id="1_effect"]
+[ext_resource type="Script" path="res://extensions/phase5_chaos_pack/scripts/effects/effect_split_projectiles.gd" id="2_strategy"]
+[ext_resource type="Script" path="res://scripts/core/defs/effect_slot_def.gd" id="3_slot"]
+
+[sub_resource type="Resource" id="EffectSlot_on_hit"]
+script = ExtResource("3_slot")
+slot_name = &"on_hit"
+slot_type = 1
+allowed_effect_tags = PackedStringArray("hit_response")
+
+[resource]
+script = ExtResource("1_effect")
+effect_id = &"split_projectiles"
+param_defs = [{
+"name": "impact_damage",
+"type": "int",
+"min": 0,
+"max": 9999,
+"default": 0
+}, {
+"name": "damage",
+"type": "int",
+"min": 0,
+"max": 9999,
+"default": 12
+}, {
+"name": "speed",
+"type": "float",
+"min": 1.0,
+"max": 12000.0,
+"default": 260.0
+}, {
+"name": "movement_mode",
+"type": "string_name",
+"default": &"track",
+"options": PackedStringArray("linear", "track", "parabola")
+}, {
+"name": "turn_rate",
+"type": "float",
+"min": 0.0,
+"max": 30.0,
+"default": 8.0
+}, {
+"name": "search_radius",
+"type": "float",
+"min": 1.0,
+"max": 1500.0,
+"default": 260.0
+}, {
+"name": "max_targets",
+"type": "int",
+"min": 1,
+"max": 4,
+"default": 2
+}, {
+"name": "projectile_template",
+"type": "resource",
+"resource_script": "res://scripts/core/defs/projectile_template.gd"
+}, {
+"name": "flight_profile",
+"type": "resource",
+"resource_script": "res://scripts/projectile/projectile_flight_profile.gd"
+}]
+slots = [SubResource("EffectSlot_on_hit")]
+allow_extra_params = false
+allow_extra_children = false
+tags = PackedStringArray("extension", "hit_response", "split_projectile")
+strategy_script = ExtResource("2_strategy")
