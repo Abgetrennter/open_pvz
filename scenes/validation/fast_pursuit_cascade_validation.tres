@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_track_bomber"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_track_bomber"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_brisk_runner"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_brisk_runner"
+lane_id = 0
+x_position = 500.0
+
+[sub_resource type="Resource" id="Rule_track_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"tracking_projectile_spawned"
+description = "track bomber should spawn multiple ground tracking projectiles targeting the fast runner"
+event_name = &"projectile.spawned"
+min_count = 3
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"track",
+"profile_id": &"track_ground",
+"source_template_id": &"plant_track_bomber"
+}
+
+[sub_resource type="Resource" id="Rule_track_hit"]
+script = ExtResource("3_rule")
+rule_id = &"tracking_hits_fast_target"
+description = "tracking projectile should successfully hit the fast-moving brisk runner"
+event_name = &"projectile.hit"
+min_count = 2
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"source_template_id": &"plant_track_bomber",
+"target_template_id": &"zombie_brisk_runner"
+}
+
+[sub_resource type="Resource" id="Rule_damage_accumulated"]
+script = ExtResource("3_rule")
+rule_id = &"damage_accumulated_on_runner"
+description = "multiple tracking hits should accumulate damage on the brisk runner"
+event_name = &"entity.damaged"
+min_count = 2
+required_core_values = {
+"source_template_id": &"plant_track_bomber",
+"target_template_id": &"zombie_brisk_runner",
+"value": 12
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"fast_pursuit_cascade_validation"
+display_name = "Fast Pursuit Chaos Validation"
+description = "Validates that ground tracking projectiles can reliably pursue and hit a fast-moving brisk runner through the shared tracking runtime without new battle scripts."
+goals = PackedStringArray("Verify the track bomber spawns multiple tracking projectiles.", "Verify at least two tracking projectiles hit the fast-moving brisk runner.", "Verify damage accumulates correctly through the shared projectile and damage chain.")
+validation_time_limit = 3.5
+validation_rules = [SubResource("Rule_track_spawn"), SubResource("Rule_track_hit"), SubResource("Rule_damage_accumulated")]
+spawns = [SubResource("Spawn_track_bomber"), SubResource("Spawn_brisk_runner")]

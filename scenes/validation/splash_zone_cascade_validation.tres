@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_melon"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_melon_lobber"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"interval": 0.3
+}
+
+[sub_resource type="Resource" id="Spawn_tank"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_bucket_tank"
+lane_id = 0
+x_position = 520.0
+
+[sub_resource type="Resource" id="Spawn_walker"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 570.0
+
+[sub_resource type="Resource" id="Rule_splash_hits_tank"]
+script = ExtResource("3_rule")
+rule_id = &"splash_hits_tank"
+description = "melon terminal explosion should damage the bucket tank through on_hit explode"
+event_name = &"entity.damaged"
+min_count = 1
+required_tags = PackedStringArray("explode", "projectile.hit")
+required_core_values = {
+"target_template_id": &"zombie_bucket_tank"
+}
+
+[sub_resource type="Resource" id="Rule_splash_hits_walker"]
+script = ExtResource("3_rule")
+rule_id = &"splash_hits_walker"
+description = "melon terminal explosion should also damage the nearby walker through the same explode radius"
+event_name = &"entity.damaged"
+min_count = 1
+required_tags = PackedStringArray("explode", "projectile.hit")
+required_core_values = {
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_melon_fired"]
+script = ExtResource("3_rule")
+rule_id = &"melon_projectile_fired"
+description = "melon lobber should spawn at least one parabola projectile through the template chain"
+event_name = &"projectile.spawned"
+min_count = 1
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"source_template_id": &"plant_melon_lobber",
+"move_mode": &"parabola"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"splash_zone_cascade_validation"
+display_name = "Splash Zone Chaos Validation"
+description = "Validates that a melon lobber's terminal explosion can simultaneously damage both a heavy tank and a nearby walker through the shared on_hit explode runtime."
+goals = PackedStringArray("Verify the melon lobber fires a parabola projectile through the shared template chain.", "Verify the terminal on_hit explode damages the bucket tank.", "Verify the same explosion also damages the basic walker standing nearby.", "Verify the splash emerges from template composition without special-case area-damage scripts.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_melon_fired"), SubResource("Rule_splash_hits_tank"), SubResource("Rule_splash_hits_walker")]
+spawns = [SubResource("Spawn_melon"), SubResource("Spawn_tank"), SubResource("Spawn_walker")]

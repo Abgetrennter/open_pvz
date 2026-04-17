@@ -153,5 +153,25 @@
     "id": "target_acquisition_validation",
     "scenario": "res://scenes/validation/target_acquisition_validation.tres",
     "description": "Validates the first-stage lane_forward detection gate, including same-lane firing, adjacent-lane rejection, and RuleContext target propagation for parabola targeting."
+  },
+  {
+    "id": "chain_explosion_cascade_validation",
+    "scenario": "res://scenes/validation/chain_explosion_cascade_validation.tres",
+    "description": "Validates a cascading death-explosion chain where two reactive bombers trigger sequential on_death explosions through spatial proximity."
+  },
+  {
+    "id": "splash_zone_cascade_validation",
+    "scenario": "res://scenes/validation/splash_zone_cascade_validation.tres",
+    "description": "Validates that a melon lobber terminal explosion can simultaneously damage a tank and a nearby walker through the shared on_hit explode runtime."
+  },
+  {
+    "id": "fast_pursuit_cascade_validation",
+    "scenario": "res://scenes/validation/fast_pursuit_cascade_validation.tres",
+    "description": "Validates that ground tracking projectiles can reliably pursue and hit a fast-moving brisk runner through the shared tracking runtime."
+  },
+  {
+    "id": "multi_lane_retaliation_cascade_validation",
+    "scenario": "res://scenes/validation/multi_lane_retaliation_cascade_validation.tres",
+    "description": "Validates that when_damaged retaliation correctly targets the event source in each lane without cross-lane interference."
   }
 ]

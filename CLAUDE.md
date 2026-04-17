@@ -100,7 +100,7 @@ graph TD
 | `scripts/projectile/` | GDScript | 5 | 抛射体运动系统：linear / parabola / track 运动模式 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
 | `data/combat/` | .tres | ~46 | 战斗数据资源：实体模板、抛射体模板、飞行配置、触发绑定 |
-| `scenes/validation/` | .tres/.tscn | 26 | 自动化验证场景（25 个场景 + 1 个通用 tscn） |
+| `scenes/validation/` | .tres/.tscn | 30 | 自动化验证场景（29 个场景 + 1 个通用 tscn） |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |
 | `wiki/` | Markdown | ~30 | 中文设计文档（5 个子目录） |
@@ -128,7 +128,7 @@ pwsh tools/run_all_validations.ps1
 pwsh tools/run_validation.ps1 -ScenarioId <id>
 ```
 
-场景定义：`tools/validation_scenarios.json`（26 个场景）
+场景定义：`tools/validation_scenarios.json`（30 个场景）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 
@@ -164,6 +164,10 @@ pwsh tools/run_validation.ps1 -ScenarioId <id>
 | `wave_flow_validation` | 波次与胜负流程 |
 | `wave_guardrail_validation` | 波次护栏 |
 | `field_object_mower_validation` | 场上物件割草机 |
+| `chain_explosion_cascade_validation` | 级联爆炸型错误技（多源反击+死亡爆炸链） |
+| `splash_zone_cascade_validation` | 溅射打击型错误技（终端爆炸多目标溅射） |
+| `fast_pursuit_cascade_validation` | 高速追踪型错误技（追踪高速移动目标） |
+| `multi_lane_retaliation_cascade_validation` | 多车道反击型错误技（跨车道反击隔离） |
 
 ## 冻结协议 (Phase 3)
 

@@ -6,7 +6,7 @@
 
 引擎的自动化测试机制。每个验证场景由一个 `.tres`（BattleScenario 配置）和可选的 `.tscn`（场景文件）组成。通过 BattleManager 的内置验证状态机执行。
 
-## 当前场景 (26 个)
+## 当前场景 (30 个)
 
 详见根 CLAUDE.md 的验证场景清单。场景定义索引文件：`tools/validation_scenarios.json`。
 

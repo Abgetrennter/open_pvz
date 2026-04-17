@@ -1,0 +1,102 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_shooter"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_basic_shooter"
+lane_id = 0
+x_position = 200.0
+
+[sub_resource type="Resource" id="Spawn_tracker"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_track_bomber"
+lane_id = 0
+x_position = 240.0
+
+[sub_resource type="Resource" id="Spawn_bomber"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_reactive_bomber"
+lane_id = 0
+x_position = 380.0
+
+[sub_resource type="Resource" id="Spawn_wall"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 0
+x_position = 460.0
+
+[sub_resource type="Resource" id="Rule_shooter_hits"]
+script = ExtResource("3_rule")
+rule_id = &"shooter_hits_bomber"
+description = "basic shooter should land linear projectile damage on the reactive bomber"
+event_name = &"entity.damaged"
+min_count = 1
+required_core_values = {
+"source_template_id": &"plant_basic_shooter",
+"target_template_id": &"zombie_reactive_bomber",
+"value": 20
+}
+
+[sub_resource type="Resource" id="Rule_tracker_hits"]
+script = ExtResource("3_rule")
+rule_id = &"tracker_hits_bomber"
+description = "track bomber should land tracking projectile damage on the reactive bomber"
+event_name = &"entity.damaged"
+min_count = 1
+required_core_values = {
+"source_template_id": &"plant_track_bomber",
+"target_template_id": &"zombie_reactive_bomber",
+"value": 12
+}
+
+[sub_resource type="Resource" id="Rule_retaliates_shooter"]
+script = ExtResource("3_rule")
+rule_id = &"bomber_retaliates_against_shooter"
+description = "reactive bomber should retaliate against the basic shooter through when_damaged"
+event_name = &"entity.damaged"
+min_count = 1
+required_tags = PackedStringArray("effect", "entity.damaged")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_basic_shooter",
+"value": 7
+}
+
+[sub_resource type="Resource" id="Rule_retaliates_tracker"]
+script = ExtResource("3_rule")
+rule_id = &"bomber_retaliates_against_tracker"
+description = "reactive bomber should also retaliate against the track bomber through when_damaged"
+event_name = &"entity.damaged"
+min_count = 1
+required_tags = PackedStringArray("effect", "entity.damaged")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_track_bomber",
+"value": 7
+}
+
+[sub_resource type="Resource" id="Rule_death_explode"]
+script = ExtResource("3_rule")
+rule_id = &"death_explosion_hits_wall"
+description = "bomber on_death explosion should damage the nearby wall through the shared explode runtime"
+event_name = &"entity.damaged"
+min_count = 1
+required_tags = PackedStringArray("explode", "entity.died")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_wall_barrier",
+"value": 21
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"chain_explosion_cascade_validation"
+display_name = "Chain Explosion Cascade Chaos Validation"
+description = "Validates a cross-type attack cascade where two different plant types strike a reactive bomber, triggering separate retaliations and a death explosion against a wall."
+goals = PackedStringArray("Verify both shooter and track bomber independently damage the reactive bomber through different projectile types.", "Verify the bomber retaliates against each attacker through when_damaged, proving multi-source retaliation works.", "Verify the bomber death explosion damages the wall through on_death, completing the attack-retaliate-explode chain.", "Verify the entire cascade emerges from template composition without BattleManager branches.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_shooter_hits"), SubResource("Rule_tracker_hits"), SubResource("Rule_retaliates_shooter"), SubResource("Rule_retaliates_tracker"), SubResource("Rule_death_explode")]
+spawns = [SubResource("Spawn_shooter"), SubResource("Spawn_tracker"), SubResource("Spawn_bomber"), SubResource("Spawn_wall")]

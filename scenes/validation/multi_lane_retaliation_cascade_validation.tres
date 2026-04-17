@@ -1,0 +1,89 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_shooter_lane0"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_basic_shooter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_repeater_lane1"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_repeater_burst"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_bomber_lane0"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_reactive_bomber"
+lane_id = 0
+x_position = 400.0
+
+[sub_resource type="Resource" id="Spawn_bomber_lane1"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_reactive_bomber"
+lane_id = 1
+x_position = 400.0
+
+[sub_resource type="Resource" id="Rule_lane0_attack"]
+script = ExtResource("3_rule")
+rule_id = &"lane0_shooter_attacks"
+description = "basic shooter in lane 0 should damage the bomber in lane 0"
+event_name = &"entity.damaged"
+min_count = 1
+required_core_values = {
+"source_template_id": &"plant_basic_shooter",
+"target_template_id": &"zombie_reactive_bomber",
+"value": 20
+}
+
+[sub_resource type="Resource" id="Rule_lane1_attack"]
+script = ExtResource("3_rule")
+rule_id = &"lane1_repeater_attacks"
+description = "repeater burst in lane 1 should damage the bomber in lane 1"
+event_name = &"entity.damaged"
+min_count = 1
+required_core_values = {
+"source_template_id": &"plant_repeater_burst",
+"target_template_id": &"zombie_reactive_bomber",
+"value": 20
+}
+
+[sub_resource type="Resource" id="Rule_lane0_retaliation"]
+script = ExtResource("3_rule")
+rule_id = &"lane0_bomber_retaliates"
+description = "lane 0 bomber should retaliate specifically against the basic shooter in its lane"
+event_name = &"entity.damaged"
+min_count = 1
+required_tags = PackedStringArray("effect", "entity.damaged")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_basic_shooter",
+"value": 7
+}
+
+[sub_resource type="Resource" id="Rule_lane1_retaliation"]
+script = ExtResource("3_rule")
+rule_id = &"lane1_bomber_retaliates"
+description = "lane 1 bomber should retaliate specifically against the repeater burst in its lane"
+event_name = &"entity.damaged"
+min_count = 1
+required_tags = PackedStringArray("effect", "entity.damaged")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_repeater_burst",
+"value": 7
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"multi_lane_retaliation_cascade_validation"
+display_name = "Multi-Lane Retaliation Chaos Validation"
+description = "Validates that when_damaged retaliation correctly targets the event source in each lane, proving that two independent attack-retaliation pairs run without cross-lane interference."
+goals = PackedStringArray("Verify each shooter independently damages the bomber in its own lane.", "Verify each bomber retaliates against its own lane attacker through when_damaged.", "Verify retaliation targeting stays lane-correct without BattleManager lane branches.", "Verify the two parallel retaliation chains coexist through the shared runtime.")
+validation_time_limit = 2.8
+validation_rules = [SubResource("Rule_lane0_attack"), SubResource("Rule_lane1_attack"), SubResource("Rule_lane0_retaliation"), SubResource("Rule_lane1_retaliation")]
+spawns = [SubResource("Spawn_shooter_lane0"), SubResource("Spawn_repeater_lane1"), SubResource("Spawn_bomber_lane0"), SubResource("Spawn_bomber_lane1")]
