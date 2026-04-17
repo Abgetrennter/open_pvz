@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_repeater_left"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_repeater_burst"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_repeater_mid"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_repeater_burst"
+lane_id = 0
+x_position = 240.0
+
+[sub_resource type="Resource" id="Spawn_reactive_bomber"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_reactive_bomber"
+lane_id = 0
+x_position = 420.0
+
+[sub_resource type="Resource" id="Rule_burst_hits_bomber"]
+script = ExtResource("3_rule")
+rule_id = &"burst_hits_bomber"
+description = "double repeater burst should land repeated projectile damage on the reactive bomber"
+event_name = &"entity.damaged"
+min_count = 2
+required_core_values = {
+"source_template_id": &"plant_repeater_burst",
+"target_template_id": &"zombie_reactive_bomber",
+"value": 20
+}
+
+[sub_resource type="Resource" id="Rule_bomber_retaliates"]
+script = ExtResource("3_rule")
+rule_id = &"bomber_retaliates"
+description = "reactive bomber should counterattack both repeater attackers through when_damaged"
+event_name = &"entity.damaged"
+min_count = 2
+required_tags = PackedStringArray("effect", "entity.damaged")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_repeater_burst",
+"value": 7
+}
+
+[sub_resource type="Resource" id="Rule_bomber_dies"]
+script = ExtResource("3_rule")
+rule_id = &"bomber_dies"
+description = "reactive bomber should still die through the shared runtime after the retaliation chain"
+event_name = &"entity.died"
+required_core_values = {
+"target_kind": &"zombie",
+"target_template_id": &"zombie_reactive_bomber"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"reactive_retaliation_chaos_validation"
+display_name = "Reactive Retaliation Chaos Validation"
+description = "Validates the first-stage chaos sample where repeated burst fire drives a reactive counterattack chain without introducing BattleManager-specific scripts."
+goals = PackedStringArray("Verify repeated burst-fire damage still flows through the shared projectile and damage chain.", "Verify the zombie_reactive_bomber template retaliates against both repeaters through when_damaged.", "Verify the retaliation sample still resolves death through the shared runtime instead of special-case chaos logic.")
+validation_time_limit = 2.8
+validation_rules = [SubResource("Rule_burst_hits_bomber"), SubResource("Rule_bomber_retaliates"), SubResource("Rule_bomber_dies")]
+spawns = [SubResource("Spawn_repeater_left"), SubResource("Spawn_repeater_mid"), SubResource("Spawn_reactive_bomber")]

@@ -131,6 +131,24 @@ func get_slot_world_position(lane_id: int, slot_index: int) -> Vector2:
 	return slot.world_position
 
 
+func get_debug_slot_lines(limit: int = 4) -> PackedStringArray:
+	var lines := PackedStringArray()
+	var slot_keys: Array = _slots.keys()
+	slot_keys.sort()
+	for slot_key in slot_keys:
+		var slot = _slots[slot_key]
+		if slot == null:
+			continue
+		if int(slot.occupant_count()) <= 0:
+			continue
+		lines.append(_debug_slot_line(slot))
+		if lines.size() >= maxi(limit, 1):
+			break
+	if lines.is_empty():
+		lines.append("<empty>")
+	return lines
+
+
 func is_valid_lane(lane_id: int) -> bool:
 	return battle != null and is_instance_valid(battle) and battle.has_method("is_valid_lane") and bool(battle.call("is_valid_lane", lane_id))
 
@@ -278,3 +296,25 @@ func _resolve_granted_placement_tags(request: Resource) -> PackedStringArray:
 
 func _slot_key(lane_id: int, slot_index: int) -> String:
 	return "%d:%d" % [lane_id, slot_index]
+
+
+func _debug_slot_line(slot) -> String:
+	var role_keys: Array = slot.role_occupants.keys()
+	role_keys.sort()
+	var role_parts: PackedStringArray = PackedStringArray()
+	for role in role_keys:
+		role_parts.append("%s=%s" % [String(role), _debug_slot_occupant_name(slot.role_occupants[role])])
+	return "L%d S%d %s %s" % [
+		int(slot.lane_id),
+		int(slot.slot_index),
+		String(slot.slot_type),
+		", ".join(role_parts),
+	]
+
+
+func _debug_slot_occupant_name(entity: Node) -> String:
+	if entity == null or not is_instance_valid(entity):
+		return "<null>"
+	if entity.has_method("get_debug_name"):
+		return String(entity.call("get_debug_name"))
+	return entity.name

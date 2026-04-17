@@ -1,0 +1,73 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_basic_shooter"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_basic_shooter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_wall_left"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 0
+x_position = 250.0
+
+[sub_resource type="Resource" id="Spawn_reactive_bomber"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_reactive_bomber"
+lane_id = 0
+x_position = 330.0
+
+[sub_resource type="Resource" id="Spawn_wall_right"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 0
+x_position = 410.0
+
+[sub_resource type="Resource" id="Rule_bomber_dies"]
+script = ExtResource("3_rule")
+rule_id = &"bomber_dies"
+description = "basic shooter should finish the reactive bomber and emit a shared death event"
+event_name = &"entity.died"
+required_core_values = {
+"target_kind": &"zombie",
+"target_template_id": &"zombie_reactive_bomber"
+}
+
+[sub_resource type="Resource" id="Rule_death_blossom_hits_walls"]
+script = ExtResource("3_rule")
+rule_id = &"death_blossom_hits_walls"
+description = "reactive bomber death explosion should damage both nearby wall barriers through explode"
+event_name = &"entity.damaged"
+min_count = 2
+required_tags = PackedStringArray("explode", "entity.died")
+required_core_values = {
+"source_template_id": &"zombie_reactive_bomber",
+"target_template_id": &"plant_wall_barrier",
+"value": 21
+}
+
+[sub_resource type="Resource" id="Rule_shooter_triggers_chain"]
+script = ExtResource("3_rule")
+rule_id = &"shooter_triggers_chain"
+description = "basic shooter should provide the initial damage chain that feeds the death blossom sample"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_basic_shooter",
+"target_template_id": &"zombie_reactive_bomber",
+"value": 20
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"death_blossom_chaos_validation"
+display_name = "Death Blossom Chaos Validation"
+description = "Validates the first-stage chaos sample where a reactive bomber death explosion damages nearby plants through the shared explode runtime."
+goals = PackedStringArray("Verify a normal shooter can drive the bomber into its shared on_death trigger.", "Verify the death explosion damages multiple nearby plants without special-case chaos code.", "Verify the blast sample stays inside the shared explode and validation pipeline.")
+validation_time_limit = 2.6
+validation_rules = [SubResource("Rule_bomber_dies"), SubResource("Rule_death_blossom_hits_walls"), SubResource("Rule_shooter_triggers_chain")]
+spawns = [SubResource("Spawn_basic_shooter"), SubResource("Spawn_wall_left"), SubResource("Spawn_reactive_bomber"), SubResource("Spawn_wall_right")]

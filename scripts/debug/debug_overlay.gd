@@ -2,6 +2,9 @@ extends CanvasLayer
 class_name DebugOverlay
 
 const REFRESH_INTERVAL := 0.15
+const MAX_SYSTEM_LINES := 5
+const MAX_BOARD_LINES := 4
+const MAX_STATUS_LINES := 4
 const MAX_EVENT_LINES := 6
 const MAX_TRIGGER_LINES := 4
 const MAX_EFFECT_LINES := 4
@@ -10,6 +13,9 @@ var battle_root: Node = null
 var _refresh_accumulator := 0.0
 var _panel: PanelContainer = null
 var _summary_label: Label = null
+var _systems_label: RichTextLabel = null
+var _board_label: RichTextLabel = null
+var _status_label: RichTextLabel = null
 var _events_label: RichTextLabel = null
 var _triggers_label: RichTextLabel = null
 var _effects_label: RichTextLabel = null
@@ -37,7 +43,7 @@ func bind_battle_root(node: Node) -> void:
 
 func _build_ui() -> void:
 	_panel = PanelContainer.new()
-	_panel.size = Vector2(340.0, 300.0)
+	_panel.size = Vector2(420.0, 500.0)
 	_panel.position = _panel_position()
 	add_child(_panel)
 
@@ -56,22 +62,22 @@ func _build_ui() -> void:
 	_summary_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	layout.add_child(_summary_label)
 
-	_events_label = RichTextLabel.new()
-	_events_label.fit_content = true
-	_events_label.scroll_active = false
-	_events_label.bbcode_enabled = false
+	_systems_label = _build_text_block()
+	layout.add_child(_systems_label)
+
+	_board_label = _build_text_block()
+	layout.add_child(_board_label)
+
+	_status_label = _build_text_block()
+	layout.add_child(_status_label)
+
+	_events_label = _build_text_block()
 	layout.add_child(_events_label)
 
-	_triggers_label = RichTextLabel.new()
-	_triggers_label.fit_content = true
-	_triggers_label.scroll_active = false
-	_triggers_label.bbcode_enabled = false
+	_triggers_label = _build_text_block()
 	layout.add_child(_triggers_label)
 
-	_effects_label = RichTextLabel.new()
-	_effects_label.fit_content = true
-	_effects_label.scroll_active = false
-	_effects_label.bbcode_enabled = false
+	_effects_label = _build_text_block()
 	layout.add_child(_effects_label)
 
 
@@ -81,6 +87,9 @@ func _refresh_text() -> void:
 
 	_panel.position = _panel_position()
 	_summary_label.text = _build_summary_text()
+	_systems_label.text = _build_systems_text()
+	_board_label.text = _build_board_text()
+	_status_label.text = _build_status_text()
 	_events_label.text = _build_events_text()
 	_triggers_label.text = _build_triggers_text()
 	_effects_label.text = _build_effects_text()
@@ -106,7 +115,7 @@ func _build_summary_text() -> String:
 		for goal_index in range(mini(goals.size(), 2)):
 			lines.append("Goal %s" % goals[goal_index])
 	lines.append("Reset R")
-	lines.append("Entities")
+	lines.append("Combat Entities")
 
 	if battle_root == null:
 		lines.append("  <no battle>")
@@ -120,6 +129,89 @@ func _build_summary_text() -> String:
 			continue
 		lines.append("  %s" % _entity_line(child))
 
+	return "\n".join(lines)
+
+
+func _build_systems_text() -> String:
+	var lines := PackedStringArray(["Battle Systems"])
+	if battle_root == null:
+		lines.append("  <no battle>")
+		return "\n".join(lines)
+
+	var economy_state := _snapshot_values(_battle_node("BattleEconomyState"))
+	if not economy_state.is_empty():
+		lines.append("  Sun %d active=%d" % [
+			int(economy_state.get("current_sun", 0)),
+			int(economy_state.get("active_sun_count", 0)),
+		])
+
+	var flow_state := _snapshot_values(_battle_node("BattleFlowState"))
+	if not flow_state.is_empty():
+		lines.append("  Phase %s wave=%s done=%d" % [
+			String(flow_state.get("status", "")),
+			String(flow_state.get("active_wave_id", "-")),
+			_battle_completed_wave_count(flow_state),
+		])
+
+	var wave_state := _snapshot_values(_battle_node("WaveRunner"))
+	if not wave_state.is_empty():
+		lines.append("  Waves started=%d done=%d line=%.0f" % [
+			int(wave_state.get("started_wave_count", 0)),
+			int(wave_state.get("completed_wave_count", 0)),
+			float(wave_state.get("defeat_line_x", 0.0)),
+		])
+
+	var board_state := _snapshot_values(_battle_node("BattleBoardState"))
+	if not board_state.is_empty():
+		lines.append("  Board occupied=%d/%d occupants=%d" % [
+			int(board_state.get("occupied_slot_count", 0)),
+			int(board_state.get("board_slot_count", 0)),
+			int(board_state.get("occupant_count", 0)),
+		])
+
+	while lines.size() > MAX_SYSTEM_LINES + 1:
+		lines.remove_at(lines.size() - 1)
+	return "\n".join(lines)
+
+
+func _build_board_text() -> String:
+	var lines := PackedStringArray(["Slot Occupancy"])
+	if battle_root == null:
+		lines.append("  <no battle>")
+		return "\n".join(lines)
+
+	var board_state := _battle_node("BattleBoardState")
+	if board_state == null or not board_state.has_method("get_debug_slot_lines"):
+		lines.append("  <board unavailable>")
+		return "\n".join(lines)
+
+	var slot_lines: PackedStringArray = board_state.call("get_debug_slot_lines", MAX_BOARD_LINES)
+	for slot_line in slot_lines:
+		lines.append("  %s" % slot_line)
+	return "\n".join(lines)
+
+
+func _build_status_text() -> String:
+	var lines := PackedStringArray(["Active Statuses"])
+	if battle_root == null or not battle_root.has_method("get_runtime_combat_entities"):
+		lines.append("  <no combat entities>")
+		return "\n".join(lines)
+
+	var shown := 0
+	for entity in battle_root.call("get_runtime_combat_entities"):
+		if entity == null or not entity.has_method("get_debug_snapshot"):
+			continue
+		var snapshot: Dictionary = entity.call("get_debug_snapshot")
+		var values: Dictionary = snapshot.get("values", {})
+		var active_statuses: PackedStringArray = PackedStringArray(values.get("active_statuses", PackedStringArray()))
+		if active_statuses.is_empty():
+			continue
+		lines.append("  %s -> %s" % [entity.call("get_debug_name"), ", ".join(active_statuses)])
+		shown += 1
+		if shown >= MAX_STATUS_LINES:
+			break
+	if shown == 0:
+		lines.append("  <none>")
 	return "\n".join(lines)
 
 
@@ -191,3 +283,35 @@ func _build_triggers_text() -> String:
 func _panel_position() -> Vector2:
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	return Vector2(maxf(12.0, viewport_size.x - _panel.size.x - 16.0), 12.0)
+
+
+func _build_text_block() -> RichTextLabel:
+	var label := RichTextLabel.new()
+	label.fit_content = true
+	label.scroll_active = false
+	label.bbcode_enabled = false
+	return label
+
+
+func _battle_node(node_name: String) -> Node:
+	if battle_root == null:
+		return null
+	return battle_root.get_node_or_null(node_name)
+
+
+func _snapshot_values(node: Node) -> Dictionary:
+	if node == null or not node.has_method("get_debug_snapshot"):
+		return {}
+	var snapshot: Dictionary = node.call("get_debug_snapshot")
+	var values: Dictionary = snapshot.get("values", {}).duplicate(true)
+	values["status"] = snapshot.get("status", "")
+	return values
+
+
+func _battle_completed_wave_count(flow_state: Dictionary) -> int:
+	var completed_wave_ids: Variant = flow_state.get("completed_wave_ids", PackedStringArray())
+	if completed_wave_ids is PackedStringArray:
+		return PackedStringArray(completed_wave_ids).size()
+	if completed_wave_ids is Array:
+		return Array(completed_wave_ids).size()
+	return 0

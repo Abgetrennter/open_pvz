@@ -1,0 +1,93 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_track_bomber"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_track_bomber"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_air_interceptor"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_air_interceptor"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_ground_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 440.0
+
+[sub_resource type="Resource" id="Spawn_air_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_air_scout"
+lane_id = 1
+x_position = 500.0
+
+[sub_resource type="Resource" id="Rule_ground_track_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"ground_track_spawn"
+description = "track bomber should spawn a ground tracking projectile through the shared template chain"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"track",
+"profile_id": &"track_ground",
+"source_lane": 0,
+"source_template_id": &"plant_track_bomber"
+}
+
+[sub_resource type="Resource" id="Rule_air_track_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"air_track_spawn"
+description = "air interceptor should spawn an air tracking projectile through the shared template chain"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"track",
+"profile_id": &"track_air",
+"source_lane": 1,
+"source_template_id": &"plant_air_interceptor"
+}
+
+[sub_resource type="Resource" id="Rule_ground_track_hit"]
+script = ExtResource("3_rule")
+rule_id = &"ground_track_hit"
+description = "ground tracking projectile should hit the walker target in lane 0"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"track",
+"source_lane": 0,
+"source_template_id": &"plant_track_bomber",
+"target_lane": 0,
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_air_track_hit"]
+script = ExtResource("3_rule")
+rule_id = &"air_track_hit"
+description = "air tracking projectile should hit the air scout target in lane 1"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"track",
+"source_lane": 1,
+"source_template_id": &"plant_air_interceptor",
+"target_lane": 1,
+"target_template_id": &"zombie_air_scout"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"tracking_barrage_chaos_validation"
+display_name = "Tracking Barrage Chaos Validation"
+description = "Validates the first-stage chaos sample where ground and air tracking attackers resolve in parallel through the same tracking runtime."
+goals = PackedStringArray("Verify ground and air tracking samples can coexist without adding new battle-manager branches.", "Verify both tracking samples still resolve through the shared projectile, target propagation, and hit pipeline.", "Verify the chaos tracking sample proves fifth-stage content is still template-and-rule driven.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_ground_track_spawn"), SubResource("Rule_air_track_spawn"), SubResource("Rule_ground_track_hit"), SubResource("Rule_air_track_hit")]
+spawns = [SubResource("Spawn_track_bomber"), SubResource("Spawn_air_interceptor"), SubResource("Spawn_ground_target"), SubResource("Spawn_air_target")]

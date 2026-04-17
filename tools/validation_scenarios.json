@@ -130,9 +130,24 @@
     "description": "Validates that invalid wave definitions emit protocol issues and do not continue into wave-based spawns."
   },
   {
-    "id": "field_object_mower_validation",
-    "scenario": "res://scenes/validation/field_object_mower_validation.tres",
-    "description": "Validates that a lawn mower field object detects an approaching zombie, activates, sweeps to kill it, and expires off-screen without triggering defeat."
+    "id": "reactive_retaliation_chaos_validation",
+    "scenario": "res://scenes/validation/reactive_retaliation_chaos_validation.tres",
+    "description": "Validates that repeated burst fire can drive a reactive counterattack chain through the shared runtime."
+  },
+  {
+    "id": "death_blossom_chaos_validation",
+    "scenario": "res://scenes/validation/death_blossom_chaos_validation.tres",
+    "description": "Validates that a reactive bomber death explosion can damage multiple nearby plants through the shared explode chain."
+  },
+  {
+    "id": "tracking_barrage_chaos_validation",
+    "scenario": "res://scenes/validation/tracking_barrage_chaos_validation.tres",
+    "description": "Validates that ground and air tracking attackers can coexist as a fifth-stage chaos sample without new battle-specific scripts."
+  },
+  {
+    "id": "extension_pack_smoke_validation",
+    "scenario": "res://extensions/minimal_chaos_pack/scenes/validation/extension_pack_smoke_validation.tres",
+    "description": "Validates that a minimal external content pack can register an entity template and validation scenario through the extension scan path."
   },
   {
     "id": "target_acquisition_validation",

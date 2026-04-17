@@ -9,6 +9,15 @@ const ENTITY_TEMPLATE_DIRS := [
 ]
 const PROJECTILE_TEMPLATE_DIR := "res://data/combat/projectile_templates"
 const TRIGGER_BINDING_DIR := "res://data/combat/trigger_bindings"
+const EXTENSION_ROOT_DIR := "res://extensions"
+const EXTENSION_VALIDATION_DIR := "scenes/validation"
+const EXTENSION_ENTITY_TEMPLATE_DIRS := [
+	"data/combat/entity_templates/plants",
+	"data/combat/entity_templates/zombies",
+	"data/combat/entity_templates/field_objects",
+]
+const EXTENSION_PROJECTILE_TEMPLATE_DIR := "data/combat/projectile_templates"
+const EXTENSION_TRIGGER_BINDING_DIR := "data/combat/trigger_bindings"
 
 var _scene_cache: Dictionary = {}
 var _resource_cache: Dictionary = {}
@@ -53,6 +62,7 @@ func rebuild_content_registries() -> void:
 		_register_resources_by_id(directory_path, &"template_id", _entity_template_paths)
 	_register_resources_by_id(PROJECTILE_TEMPLATE_DIR, &"template_id", _projectile_template_paths)
 	_register_resources_by_id(TRIGGER_BINDING_DIR, &"binding_id", _trigger_binding_paths)
+	_register_extension_content()
 
 
 func get_validation_scenario(scenario_id: StringName) -> Resource:
@@ -142,6 +152,9 @@ func _register_resources_by_id(directory_path: String, id_property: StringName, 
 		var resource_id := StringName(resource.get(id_property))
 		if resource_id == StringName():
 			continue
+		if registry.has(resource_id):
+			_report_duplicate_resource_id(resource_id, String(registry[resource_id]), full_path, id_property)
+			continue
 		registry[resource_id] = full_path
 
 	directory.list_dir_end()
@@ -154,3 +167,41 @@ func _sorted_keys(registry: Dictionary) -> PackedStringArray:
 	for key in keys:
 		result.append(String(key))
 	return result
+
+
+func _register_extension_content() -> void:
+	var absolute_root := ProjectSettings.globalize_path(EXTENSION_ROOT_DIR)
+	var directory := DirAccess.open(absolute_root)
+	if directory == null:
+		return
+
+	directory.list_dir_begin()
+	while true:
+		var entry_name := directory.get_next()
+		if entry_name.is_empty():
+			break
+		if entry_name.begins_with(".") or not directory.current_is_dir():
+			continue
+		var extension_root := EXTENSION_ROOT_DIR.path_join(entry_name)
+		_register_extension_root(extension_root)
+	directory.list_dir_end()
+
+
+func _register_extension_root(extension_root: String) -> void:
+	_register_resources_by_id(extension_root.path_join(EXTENSION_VALIDATION_DIR), &"scenario_id", _validation_scenario_paths)
+	for relative_dir in EXTENSION_ENTITY_TEMPLATE_DIRS:
+		_register_resources_by_id(extension_root.path_join(relative_dir), &"template_id", _entity_template_paths)
+	_register_resources_by_id(extension_root.path_join(EXTENSION_PROJECTILE_TEMPLATE_DIR), &"template_id", _projectile_template_paths)
+	_register_resources_by_id(extension_root.path_join(EXTENSION_TRIGGER_BINDING_DIR), &"binding_id", _trigger_binding_paths)
+
+
+func _report_duplicate_resource_id(resource_id: StringName, existing_path: String, duplicate_path: String, id_property: StringName) -> void:
+	var message := "SceneRegistry duplicate %s %s from %s conflicts with %s." % [
+		String(id_property),
+		String(resource_id),
+		duplicate_path,
+		existing_path,
+	]
+	push_warning(message)
+	if DebugService.has_method("record_protocol_issue"):
+		DebugService.record_protocol_issue(&"scene_registry", message, &"error")

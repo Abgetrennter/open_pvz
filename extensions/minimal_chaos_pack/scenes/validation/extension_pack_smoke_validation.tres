@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_extension_plant"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_glass_cannon"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_extension_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 420.0
+
+[sub_resource type="Resource" id="Rule_extension_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"extension_spawn"
+description = "extension template should register through SceneRegistry and spawn a linear projectile without touching core code"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"linear",
+"source_template_id": &"plant_extension_glass_cannon"
+}
+
+[sub_resource type="Resource" id="Rule_extension_damage"]
+script = ExtResource("3_rule")
+rule_id = &"extension_damage"
+description = "extension template should damage a core zombie sample through the shared runtime"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_extension_glass_cannon",
+"target_template_id": &"zombie_basic_walker",
+"value": 18
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"extension_pack_smoke_validation"
+display_name = "Extension Pack Smoke Validation"
+description = "Validates that a minimal external content pack can register a template and validation scenario without modifying the main runtime after the extension contract is in place."
+goals = PackedStringArray("Verify extension validation scenarios can load from the extension directory tree.", "Verify extension entity templates register through SceneRegistry by template_id.", "Verify extension content still runs on the shared projectile and damage runtime.")
+validation_time_limit = 2.2
+validation_rules = [SubResource("Rule_extension_spawn"), SubResource("Rule_extension_damage")]
+spawns = [SubResource("Spawn_extension_plant"), SubResource("Spawn_extension_target")]
