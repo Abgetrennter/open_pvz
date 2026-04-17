@@ -48,22 +48,4 @@ static func execute_node(node, context, depth: int = 0) -> Variant:
 	if result.terminated:
 		return result
 
-	var child_keys: Array = node.children.keys()
-	child_keys.sort()
-	for child_key: Variant in child_keys:
-		var child = node.children[child_key]
-		if child == null or child.effect_id == &"null":
-			continue
-
-		var child_context: Variant = context.duplicate_deep()
-		child_context.depth = chain_depth + 1
-		child_context.runtime["depth"] = child_context.depth
-		var child_result: Variant = execute_node(child, child_context, depth + 1)
-		if not child_result.success:
-			result.success = false
-			for note: String in child_result.notes:
-				result.notes.append(note)
-		if child_result.terminated:
-			return child_result
-
 	return result
