@@ -137,14 +137,14 @@ func _entity_line(entity: Node) -> String:
 	if health_component != null:
 		return "%s lane=%d hp=%d/%d%s %s" % [
 			entity.call("get_debug_name"),
-			int(entity.get("lane_id")),
+			int(entity.get("lane_id") if entity.get("lane_id") != null else -1),
 			int(health_component.current_health),
 			int(health_component.max_health),
 			status_text,
 			position_text,
 		]
 
-	return "%s lane=%d%s %s" % [entity.call("get_debug_name"), int(entity.get("lane_id")), status_text, position_text]
+	return "%s lane=%d%s %s" % [entity.call("get_debug_name"), int(entity.get("lane_id") if entity.get("lane_id") != null else -1), status_text, position_text]
 
 
 func _build_events_text() -> String:

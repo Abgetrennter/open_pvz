@@ -22,7 +22,7 @@ const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_valida
 const DebugOverlayRef = preload("res://scripts/debug/debug_overlay.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 
-const LANE_Y := {
+var lane_y_map := {
 	0: 220.0,
 	1: 320.0,
 }
@@ -126,6 +126,7 @@ func reset_battle() -> void:
 	EventBus.clear()
 	if DebugService.has_method("clear_logs"):
 		DebugService.clear_logs()
+	_rebuild_lane_config()
 	_reset_runtime_services()
 	_reset_validation()
 	_spawn_scenario()
@@ -450,19 +451,19 @@ func try_spend_sun(cost: int, reason: StringName = &"manual_spend", source_node:
 
 
 func is_valid_lane(lane_id: int) -> bool:
-	return LANE_Y.has(lane_id)
+	return lane_y_map.has(lane_id)
 
 
 func get_lane_ids() -> PackedInt32Array:
 	var lane_ids: Array[int] = []
-	for lane_key in LANE_Y.keys():
+	for lane_key in lane_y_map.keys():
 		lane_ids.append(int(lane_key))
 	lane_ids.sort()
 	return PackedInt32Array(lane_ids)
 
 
 func get_lane_y(lane_id: int) -> float:
-	return float(LANE_Y.get(lane_id, 220.0))
+	return float(lane_y_map.get(lane_id, 220.0))
 
 
 func get_entity_factory() -> RefCounted:
@@ -1148,11 +1149,39 @@ func _write_text_file(path: String, contents: String) -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, playfield_size), Color("d5f0b1"))
-	draw_rect(Rect2(Vector2(0, 150), Vector2(playfield_size.x, 240)), Color("b4dd7f"))
-	draw_line(Vector2(80, _lane_y(0)), Vector2(playfield_size.x - 80, _lane_y(0)), Color("6f9d53"), 2.0)
-	draw_line(Vector2(80, _lane_y(1)), Vector2(playfield_size.x - 80, _lane_y(1)), Color("6f9d53"), 2.0)
-	draw_line(Vector2(80, 270), Vector2(playfield_size.x - 80, 270), Color("8db768"), 1.0)
+	var lane_ids := get_lane_ids()
+	if lane_ids.is_empty():
+		return
+	var first_y := float(lane_y_map.get(lane_ids[0], 220.0))
+	var last_y := float(lane_y_map.get(lane_ids[-1], 320.0))
+	draw_rect(Rect2(Vector2(0, first_y - 40), Vector2(playfield_size.x, last_y - first_y + 80)), Color("b4dd7f"))
+	for lane_key in lane_ids:
+		var y := float(lane_y_map.get(lane_key, 220.0))
+		draw_line(Vector2(80, y), Vector2(playfield_size.x - 80, y), Color("6f9d53"), 2.0)
+	if lane_ids.size() > 1:
+		for i in range(lane_ids.size() - 1):
+			var y1 := float(lane_y_map.get(lane_ids[i], 220.0))
+			var y2 := float(lane_y_map.get(lane_ids[i + 1], 320.0))
+			draw_line(Vector2(80, (y1 + y2) * 0.5), Vector2(playfield_size.x - 80, (y1 + y2) * 0.5), Color("8db768"), 1.0)
 
 
 func _lane_y(lane_id: int) -> float:
-	return float(LANE_Y.get(lane_id, 220.0))
+	return float(lane_y_map.get(lane_id, 220.0))
+
+
+func _rebuild_lane_config() -> void:
+	var active_scenario = _resolve_scenario()
+	if active_scenario == null:
+		lane_y_map = {0: 220.0, 1: 320.0}
+		return
+	var lane_count := int(active_scenario.get("lane_count"))
+	if lane_count <= 0:
+		lane_count = 2
+	if lane_count == 2:
+		lane_y_map = {0: 220.0, 1: 320.0}
+		return
+	lane_y_map.clear()
+	var top_y := 185.0
+	var spacing := 60.0
+	for i in range(lane_count):
+		lane_y_map[i] = top_y + float(i) * spacing
