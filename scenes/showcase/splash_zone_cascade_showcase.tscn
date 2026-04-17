@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://scenes/validation/splash_zone_cascade_validation.tres" id="2_scenario"]
+
+[node name="SplashZoneCascadeShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = true
+showcase_title = "溅射区域错误技展示"
+showcase_summary = "西瓜投手在终点爆炸同时打到重装桶僵尸和附近普通僵尸，观察共享 splash runtime 的多目标结算。"

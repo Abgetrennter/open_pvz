@@ -84,23 +84,28 @@ const GROUPS := [
 	},
 	{
 		"group_title": "第五阶段错误技",
-		"group_summary": "第五阶段新增的手工错误技样例，可直接可视化观察共享运行时如何承载反击、死亡爆炸和双追踪弹幕。",
+		"group_summary": "第五阶段正式错误技样例分组，对齐提交 7617055 的 4 个标准场景，集中展示级联爆炸、溅射区域、高速追击和多 lane 反击。",
 		"color": Color("ef6c57"),
 		"items": [
 			{
-				"title": "受伤反击错误技",
-				"summary": "两个连发射手持续攻击 Reactive Bomber，观察 when_damaged 反击链如何分别回打两个攻击者。",
-				"scene": "res://scenes/showcase/reactive_retaliation_chaos_showcase.tscn",
+				"title": "连锁爆炸级联",
+				"summary": "基础射手与追踪投弹手共同击穿 Reactive Bomber，随后触发双反击与死亡爆炸链。",
+				"scene": "res://scenes/showcase/chain_explosion_cascade_showcase.tscn",
 			},
 			{
-				"title": "死亡爆炸错误技",
-				"summary": "基础射手击杀 Reactive Bomber 后，观察 on_death 爆炸如何同时命中两侧障碍植物。",
-				"scene": "res://scenes/showcase/death_blossom_chaos_showcase.tscn",
+				"title": "溅射区域级联",
+				"summary": "西瓜投手的终点爆炸同时覆盖重装桶僵尸和旁边普通僵尸，展示多目标 splash 结算。",
+				"scene": "res://scenes/showcase/splash_zone_cascade_showcase.tscn",
 			},
 			{
-				"title": "追踪弹幕错误技",
-				"summary": "地面追踪投弹手和空中拦截手并行开火，展示双 tracking runtime 的共享命中链。",
-				"scene": "res://scenes/showcase/tracking_barrage_chaos_showcase.tscn",
+				"title": "高速追击级联",
+				"summary": "追踪投弹手反复追击快跑僵尸，观察 tracking runtime 对高速目标的连续命中。",
+				"scene": "res://scenes/showcase/fast_pursuit_cascade_showcase.tscn",
+			},
+			{
+				"title": "多 Lane 反击级联",
+				"summary": "两条 lane 上各自独立完成攻击与反击，验证 retaliation 链不会跨 lane 串线。",
+				"scene": "res://scenes/showcase/multi_lane_retaliation_cascade_showcase.tscn",
 			},
 		],
 	},

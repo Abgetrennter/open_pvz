@@ -17,9 +17,10 @@ project's default startup scene:
 - `template_factory_showcase.tscn`
 - `height_hit_showcase.tscn`
 - `terminal_explode_showcase.tscn`
-- `reactive_retaliation_chaos_showcase.tscn`
-- `death_blossom_chaos_showcase.tscn`
-- `tracking_barrage_chaos_showcase.tscn`
+- `chain_explosion_cascade_showcase.tscn`
+- `splash_zone_cascade_showcase.tscn`
+- `fast_pursuit_cascade_showcase.tscn`
+- `multi_lane_retaliation_cascade_showcase.tscn`
 
 All of them use `BattleManager` directly and keep restart enabled with `R`.
 Each showcase scene also supports:

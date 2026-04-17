@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://scenes/validation/fast_pursuit_cascade_validation.tres" id="2_scenario"]
+
+[node name="FastPursuitCascadeShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = true
+showcase_title = "高速追击错误技展示"
+showcase_summary = "追踪投弹手持续追击快跑僵尸，观察 tracking runtime 在高速目标下的追踪与累计伤害表现。"
