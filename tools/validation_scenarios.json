@@ -115,6 +115,11 @@
     "description": "Validates the first-stage status system through slowed and stunned examples that affect movement and attack."
   },
   {
+    "id": "field_object_mower_validation",
+    "scenario": "res://scenes/validation/field_object_mower_validation.tres",
+    "description": "Validates the first-stage field object runtime through a lawn mower that activates, kills a zombie, and expires without triggering defeat."
+  },
+  {
     "id": "wave_flow_validation",
     "scenario": "res://scenes/validation/wave_flow_validation.tres",
     "description": "Validates the first-stage battle flow, including phase changes, wave start/completion, wave spawns, and battle victory."
@@ -128,5 +133,10 @@
     "id": "field_object_mower_validation",
     "scenario": "res://scenes/validation/field_object_mower_validation.tres",
     "description": "Validates that a lawn mower field object detects an approaching zombie, activates, sweeps to kill it, and expires off-screen without triggering defeat."
+  },
+  {
+    "id": "target_acquisition_validation",
+    "scenario": "res://scenes/validation/target_acquisition_validation.tres",
+    "description": "Validates the first-stage lane_forward detection gate, including same-lane firing, adjacent-lane rejection, and RuleContext target propagation for parabola targeting."
   }
 ]

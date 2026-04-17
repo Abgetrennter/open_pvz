@@ -26,130 +26,103 @@
 
 ## 当前阶段
 
-仓库当前仍处于**文档收敛 + 原型骨架搭建期**。
+仓库当前已经完成**第一到第四阶段**，主线已经转入**第五阶段（错误技、扩展与工具期）**。
 
-当前最重要的不是 GUI、编辑器或完整内容量，而是先跑通一条最小闭环：
+这意味着当前项目已经不再是“只有文档和原型骨架”，而是已经同时具备：
 
-1. 实体进入战场
-2. 事件被广播
-3. 触发器命中条件
-4. 效果被执行
-5. 生成投射物或直接造成伤害
-6. 命中后继续触发后续事件
+- 引擎主干：
+  - 结构化事件链
+  - 触发器与效果执行链
+  - 实体运行时状态
+  - 投射体连续行为与高度命中模型
+- 内容与协议主链：
+  - `EntityTemplate / ProjectileTemplate / TriggerBinding`
+  - 规则协议白名单与守卫
+  - 模板工厂与覆盖优先级
+- 战斗玩法层：
+  - 阳光与资源
+  - 棋盘、占位与放置
+  - 卡片、费用、冷却与手牌
+  - 波次、战局阶段与胜负条件
+  - 状态系统
+  - 场上物件与机关
+- 验证与展示：
+  - 批量回归入口
+  - 回归状态账本
+  - Showcase Hub
+  - 可运行的 Demo 关卡
 
-只要这条链稳定，后面的错误技生成、扩展加载和编辑器才有真实落点。
+当前最重要的工作已经不是“把最小事件链跑起来”，而是：
 
-## 当前设计共识
+1. 在现有稳定主干上制作第一批错误技样例
+2. 验证扩展入口和内容包边界
+3. 增强调试、可视化和内容工作流工具
 
-结合现有设计稿和参考实现，当前已经形成下面这些共识：
+## 当前项目现状
 
-- 项目的北极星仍然是“开放式 PVZ-like 规则引擎”
-- 错误技是引擎的旗舰验证能力，不是项目的全部定义
-- 第一阶段优先用 Godot 原生节点、组件和 `Autoload` 搭运行时
-- 不在第一阶段就押注完整 ECS 化
-- 定义层第一阶段优先使用 Godot `Resource`
-- 投射物系统优先采用“根节点 + MovementComponent”
-- 调试能力必须作为第一阶段正式需求
+结合仓库当前实现，项目现状可以概括成下面 4 点：
 
-## 当前建议的核心抽象
+### 1. 引擎主干已经稳定
 
-引擎层当前建议围绕以下抽象推进：
-
-- **Event / Context**
-  - 定义发生了什么，以及一次事件链中的共享语义数据
-- **Effect**
-  - 最小行为单元，可组合、可排序、可嵌套
-- **Entity Template**
-  - 用基础能力和组件组合出植物、僵尸、投射物等实体
-- **Continuous Simulation**
-  - 处理投射物与持续运动，不依赖离散事件补丁式修补
-- **Extension Pack**
-  - 加载自定义效果、模板、轨迹、资源
-
-错误技相关的当前重点实现则是：
-
-- 触发器系统
-- 效果树
-- 随机生成器
-- 命中连锁
-- 基于规则组合产生的非常规行为
-
-## 当前推荐的 Godot 骨架
-
-第一阶段更适合的落地形式大致如下：
-
-```text
-Autoload
-├── EventBus
-├── DebugService
-└── SceneRegistry
-
-Battle
-├── BattleManager
-└── EntityFactory
-
-PlantRoot
-├── TriggerComponent
-├── HealthComponent
-└── DebugViewComponent
-
-ZombieRoot
-├── HealthComponent
-└── StateComponent
-
-ProjectileRoot
-├── HitboxComponent
-├── MovementComponent
-└── ProjectileRuntime
-```
-
-核心执行链：
+当前已经有正式运行时主链：
 
 ```text
 EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 ```
 
-## 第一阶段范围
+并且已经接入：
 
-第一阶段不追求“大而全”，只追求引擎主干可用。
+- `EventData`
+- `RuleContext`
+- `ProtocolValidator`
+- `EntityFactory`
+- `BaseEntity / PlantRoot / ZombieRoot / ProjectileRoot`
 
-建议范围：
+### 2. 战斗玩法闭环已经形成
 
-- 事件：
-  - `game.tick`
-  - `entity.damaged`
-  - `projectile.hit`
-  - `entity.died`
-- 基础效果：
-  - `damage`
-  - `spawn_projectile`
-  - `explode`
-- 基础触发：
-  - 周期触发
-  - 受伤触发
-  - 死亡触发
-- 连续行为：
-  - 直线移动
-  - 一种附加贡献项轨迹
-- 调试能力：
-  - 事件日志
-  - 效果执行顺序
-  - 连锁深度
-  - 实体状态快照
+第四阶段的核心系统已经全部进入主干，而不是继续停留在草案层：
 
-当前明确不优先：
+- `BattleEconomyState`
+- `BattleBoardState`
+- `BattleCardState`
+- `BattleFlowState`
+- `BattleStatusState`
+- `BattleFieldObjectState`
 
-- 完整 ECS 架构
-- 高级渲染管线
-- 可视化编辑器
-- 社区工坊式生态
-- 大规模 GUI 包装
+### 3. 仓库已经有可操作 Demo
+
+当前项目默认启动场景是：
+
+- `res://scenes/main/main.tscn`
+
+它会进入 Showcase Hub，并可继续进入：
+
+- `res://scenes/demo/demo_level.tscn`
+
+这意味着仓库已经不只是“自动验证集合”，而是有一个可实际操作的最小 PvZ-like Demo。
+
+### 4. 验证体系已经进入持续回归状态
+
+当前仓库已经有：
+
+- `tools/run_validation.ps1`
+- `tools/run_all_validations.ps1`
+- `tools/validation_scenarios.json`
+
+当前批量回归清单已经覆盖 **27 个唯一验证场景 ID**，并持续维护：
+
+- `latest`
+- `history`
+- `per-scenario`
+
+三类回归状态记录。
 
 ## 文档结构
 
 ```text
-plans/   原始设计稿与整合稿
-wiki/    收敛后的结构化设计文档
+plans/          规划稿、阶段总结与执行清单
+plans/archive/  已完成阶段归档总览
+wiki/           收敛后的结构化设计文档
 ├── index.md
 ├── 01-overview/
 ├── 02-runtime-protocol/
@@ -161,10 +134,11 @@ vendor/  外部参考实现子模块
 
 推荐优先阅读：
 
-1. [plans/pvz_like_engine_design_doc_v_1.md](plans/pvz_like_engine_design_doc_v_1.md)
-2. [wiki/index.md](wiki/index.md)
-3. [wiki/01-overview/00-核心架构总览.md](wiki/01-overview/00-核心架构总览.md)
-4. [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)
+1. [wiki/index.md](wiki/index.md)
+2. [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)
+3. [plans/第四阶段阶段总结.md](plans/第四阶段阶段总结.md)
+4. [plans/第五阶段可执行任务清单.md](plans/第五阶段可执行任务清单.md)
+5. [plans/archive/第一至第四阶段归档总览.md](plans/archive/第一至第四阶段归档总览.md)
 
 ## 参考实现
 
@@ -199,15 +173,26 @@ git submodule update --init --recursive
 
 ## 运行方式
 
-当前仓库主要用于设计整理和原型准备。
+当前仓库已经可以直接进入 Showcase Hub 和 Demo 场景进行验证与演示。
 
 基础使用方式：
 
 1. 安装 Godot 4.x
 2. 拉取仓库和子模块
 3. 用 Godot 打开项目目录
+4. 运行默认主场景 `res://scenes/main/main.tscn`
 
-README 不承诺当前仓库已经存在完整可玩的游戏循环；它只描述项目当前收敛后的真实目标和推进方式。
+如果你要跑自动化验证，可以直接使用：
+
+```powershell
+& ".\tools\run_validation.ps1"
+```
+
+或：
+
+```powershell
+& ".\tools\run_all_validations.ps1"
+```
 
 ## 许可证
 

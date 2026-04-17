@@ -55,6 +55,17 @@ func _register_builtin_defs() -> void:
 		"type": "float",
 		"min": 0.25,
 		"max": 10.0,
+	}, {
+		"name": "detection_id",
+		"type": "string_name",
+		"default": &"always",
+		"options": PackedStringArray(["always", "lane_forward"]),
+	}, {
+		"name": "scan_range",
+		"type": "float",
+		"min": 1.0,
+		"max": 4000.0,
+		"default": 900.0,
 	}]
 	periodically.trigger_id = &"periodically"
 	periodically.event_name = &"game.tick"
@@ -92,7 +103,29 @@ func _register_builtin_strategies() -> void:
 	register_strategy(&"periodically", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
 		var interval := float(condition_values.get("interval", 1.0))
 		var game_time := float(event_data.core.get("game_time", 0.0))
-		return game_time - instance.last_triggered_time >= interval
+		if game_time - instance.last_triggered_time < interval:
+			return false
+
+		var detection_id := StringName(condition_values.get("detection_id", &"always"))
+		if detection_id == StringName() or detection_id == &"always":
+			return true
+
+		var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, instance.owner_entity, {
+			"scan_range": float(condition_values.get("scan_range", 900.0)),
+		})
+		if not bool(detection_result.get("has_target", false)):
+			return false
+
+		var detected_target_ids := PackedInt32Array()
+		for target in Array(detection_result.get("targets", [])):
+			if target != null and target.has_method("get_entity_id"):
+				detected_target_ids.append(int(target.call("get_entity_id")))
+		instance.set_pending_context_overrides({
+			"target_node": detection_result.get("primary_target", null),
+			"detection_id": detection_id,
+			"detected_target_ids": detected_target_ids,
+		})
+		return true
 	)
 
 	register_strategy(&"when_damaged", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:

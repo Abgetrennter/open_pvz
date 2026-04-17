@@ -1,0 +1,90 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_target_linear"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_basic_shooter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_target_blocked_track"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_track_bomber"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_target_parabola"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_cabbage_lobber"
+lane_id = 2
+x_position = 160.0
+spawn_overrides = {
+"interval": 1.0,
+"travel_duration": 0.75
+}
+
+[sub_resource type="Resource" id="Spawn_target_zombie_lane_0"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 330.0
+
+[sub_resource type="Resource" id="Spawn_target_zombie_lane_2"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 2
+x_position = 520.0
+
+[sub_resource type="Resource" id="Rule_target_linear_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"target_linear_spawn"
+description = "lane_forward should allow the basic shooter to fire when an enemy is present in the same lane."
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"linear",
+"source_lane": 0,
+"source_template_id": &"plant_basic_shooter"
+}
+
+[sub_resource type="Resource" id="Rule_target_track_blocked"]
+script = ExtResource("3_rule")
+rule_id = &"target_track_blocked"
+description = "lane_forward should block the track bomber when enemies exist only in adjacent lanes."
+event_name = &"projectile.spawned"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"track",
+"source_lane": 1,
+"source_template_id": &"plant_track_bomber"
+}
+
+[sub_resource type="Resource" id="Rule_target_parabola_hit"]
+script = ExtResource("3_rule")
+rule_id = &"target_parabola_hit"
+description = "the detected target should flow into RuleContext so the cabbage lobber resolves a parabola hit in its own lane."
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"parabola",
+"source_lane": 2,
+"source_template_id": &"plant_cabbage_lobber",
+"target_lane": 2,
+"target_template_id": &"zombie_lane_dummy"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"target_acquisition_validation"
+display_name = "Target Acquisition Validation"
+description = "Validates the first-stage lane_forward detection gate, including same-lane firing, adjacent-lane rejection, and RuleContext target propagation for projectile targeting."
+goals = PackedStringArray("Verify a lane_forward attacker only fires when its own lane contains an enemy.", "Verify adjacent-lane enemies do not accidentally trigger a lane_forward attacker.", "Verify detected targets flow into RuleContext so parabola targeting uses the detection result instead of a fallback nearest-enemy scan.")
+validation_time_limit = 3.2
+lane_count = 3
+validation_rules = [SubResource("Rule_target_linear_spawn"), SubResource("Rule_target_track_blocked"), SubResource("Rule_target_parabola_hit")]
+spawns = [SubResource("Spawn_target_linear"), SubResource("Spawn_target_blocked_track"), SubResource("Spawn_target_parabola"), SubResource("Spawn_target_zombie_lane_0"), SubResource("Spawn_target_zombie_lane_2")]

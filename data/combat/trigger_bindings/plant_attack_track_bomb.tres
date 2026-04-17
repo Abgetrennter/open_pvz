@@ -10,7 +10,9 @@ behavior_key = &"attack"
 trigger_id = &"periodically"
 event_name = &"game.tick"
 condition_values = {
-"interval": 0.35
+"detection_id": &"lane_forward",
+"interval": 0.35,
+"scan_range": 900.0
 }
 effect_id = &"spawn_projectile"
 effect_params = {

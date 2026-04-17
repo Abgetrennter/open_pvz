@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i '436s/entity_kind not in \\\\[\"plant\", \"zombie\"\\\\]/entity_kind not in [\"plant\", \"zombie\", \"field_object\"]/' scripts/core/runtime/protocol_validator.gd)",
+      "Bash(sed -i '437s/must be plant or zombie/must be plant, zombie, or field_object/' scripts/core/runtime/protocol_validator.gd)",
+      "Bash(\"E:/SDK/Godot/Godot_v4.6.1-stable_win64_console.exe\" --headless --path \"e:/Code/open_pvz\" -- --validation-scenario=\"res://scenes/validation/field_object_mower_validation.tres\" --validation-auto-quit --validation-print-report --validation-output-dir=\"e:/Code/open_pvz/artifacts/validation/mower_test\")",
+      "Bash(\"E:/SDK/Godot/Godot_v4.6.1-stable_win64_console.exe\" --headless --path \"e:/Code/open_pvz\" -- --validation-scenario=\"res://scenes/validation/wave_flow_validation.tres\" --validation-auto-quit --validation-print-report --validation-no-overlay)"
+    ]
+  }
+}
