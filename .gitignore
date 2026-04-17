@@ -2,4 +2,5 @@
 .godot/
 /android/
 /artifacts/validation/
-.exe
+*.exe
+*.uid
