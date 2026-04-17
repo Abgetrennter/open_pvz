@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://scenes/validation/death_blossom_chaos_validation.tres" id="2_scenario"]
+
+[node name="DeathBlossomChaosShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = true
+showcase_title = "死亡爆炸错误技展示"
+showcase_summary = "基础射手击杀 Reactive Bomber 后，观察 on_death 爆炸如何同时命中两侧障碍植物。"

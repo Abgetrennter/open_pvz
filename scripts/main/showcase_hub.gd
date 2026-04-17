@@ -83,6 +83,28 @@ const GROUPS := [
 		],
 	},
 	{
+		"group_title": "第五阶段错误技",
+		"group_summary": "第五阶段新增的手工错误技样例，可直接可视化观察共享运行时如何承载反击、死亡爆炸和双追踪弹幕。",
+		"color": Color("ef6c57"),
+		"items": [
+			{
+				"title": "受伤反击错误技",
+				"summary": "两个连发射手持续攻击 Reactive Bomber，观察 when_damaged 反击链如何分别回打两个攻击者。",
+				"scene": "res://scenes/showcase/reactive_retaliation_chaos_showcase.tscn",
+			},
+			{
+				"title": "死亡爆炸错误技",
+				"summary": "基础射手击杀 Reactive Bomber 后，观察 on_death 爆炸如何同时命中两侧障碍植物。",
+				"scene": "res://scenes/showcase/death_blossom_chaos_showcase.tscn",
+			},
+			{
+				"title": "追踪弹幕错误技",
+				"summary": "地面追踪投弹手和空中拦截手并行开火，展示双 tracking runtime 的共享命中链。",
+				"scene": "res://scenes/showcase/tracking_barrage_chaos_showcase.tscn",
+			},
+		],
+	},
+	{
 		"group_title": "输入验证",
 		"group_summary": "验证鼠标点击交互的正确性：阳光收集、卡片放置等玩家输入路径。",
 		"color": Color("ffb74d"),
