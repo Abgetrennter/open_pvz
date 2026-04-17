@@ -5,6 +5,11 @@ const VALIDATION_ENTRY_SCENE := "res://scenes/validation/minimal_battle_validati
 
 const SHOWCASES := [
 	{
+		"title": "MVP Demo",
+		"summary": "可玩的演示关卡：收集阳光、放置植物、抵御 3 波僵尸进攻。点击卡片选中，点击格子放置。",
+		"scene": "res://scenes/demo/demo_level.tscn",
+	},
+	{
 		"title": "最小验证场景",
 		"summary": "原始主干演示场景，包含直线、追踪和抛物线三种基础投射表现。",
 		"scene": "res://scenes/showcase/minimal_validation_showcase.tscn",

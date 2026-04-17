@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+
+[sub_resource type="Resource" id="CardDef_shooter"]
+script = ExtResource("2_card_def")
+card_id = &"card_shooter"
+display_name = "Shooter"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 0
+cooldown_seconds = 1.0
+placement_tags = PackedStringArray("supports_primary")
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"card_place_validation"
+display_name = "Card Place Validation"
+description = "Validates that selecting a card and clicking a cell places an entity."
+goals = PackedStringArray("A free Shooter card is available. The validation script clicks the card then a cell. Expect entity.spawned with spawn_reason=card_play.")
+validation_time_limit = 15.0
+initial_sun = 100
+sun_auto_collect_delay = -1.0
+board_slot_count = 5
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+lane_count = 2
+card_defs = [SubResource("CardDef_shooter")]
+wave_defs = []
+defeat_line_x = 80.0
+validation_rules = []

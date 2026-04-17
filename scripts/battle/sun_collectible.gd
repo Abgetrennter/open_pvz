@@ -1,6 +1,8 @@
 extends Node2D
 class_name SunCollectible
 
+signal clicked
+
 var sun_id := -1
 var sun_value := 25
 var source_type: StringName = &"sky_drop"
@@ -11,6 +13,7 @@ var collected := false
 
 var _age := 0.0
 var _economy_state: Node = null
+var _click_area: Area2D = null
 
 
 func configure(
@@ -29,7 +32,38 @@ func configure(
 	source_entity_id = new_source_entity_id
 	_economy_state = economy_state
 	auto_collect_delay = new_auto_collect_delay
+	_setup_click_detection()
 	queue_redraw()
+
+
+func _setup_click_detection() -> void:
+	if _click_area != null and is_instance_valid(_click_area):
+		return
+	_click_area = Area2D.new()
+	var shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 18.0
+	shape.shape = circle
+	_click_area.add_child(shape)
+	_click_area.input_pickable = true
+	_click_area.input_event.connect(_on_click_area_input)
+	add_child(_click_area)
+
+
+func _on_click_area_input(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
+	if collected:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		clicked.emit()
+		_collect()
+
+
+func _collect() -> void:
+	if _economy_state == null or not is_instance_valid(_economy_state):
+		return
+	if not _economy_state.has_method("collect_sun"):
+		return
+	_economy_state.call("collect_sun", self, null)
 
 
 func _process(delta: float) -> void:

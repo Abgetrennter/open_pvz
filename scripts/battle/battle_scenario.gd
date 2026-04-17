@@ -14,6 +14,7 @@ class_name BattleScenario
 @export var board_slot_origin_x := 160.0
 @export var board_slot_spacing := 96.0
 @export var board_slot_configs: Array = []
+@export var lane_count := 2
 @export var card_defs: Array = []
 @export var card_play_requests: Array = []
 @export var status_application_requests: Array = []
