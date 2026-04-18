@@ -7,7 +7,8 @@
       "Bash(\"E:/SDK/Godot/Godot_v4.6.1-stable_win64_console.exe\" --headless --path \"e:/Code/open_pvz\" -- --validation-scenario=\"res://scenes/validation/wave_flow_validation.tres\" --validation-auto-quit --validation-print-report --validation-no-overlay)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'已注册场景数: {len\\(d.get\\(\\\\\"scenarios\\\\\", d\\) if isinstance\\(d, list\\) else d.get\\(\\\\\"scenarios\\\\\", []\\)\\)}'\\)\")",
       "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); scenarios=d if isinstance\\(d,list\\) else d.get\\('scenarios',[]\\); print\\(f'已注册场景数: {len\\(scenarios\\)}'\\)\")",
-      "Bash(pwsh -NoProfile -Command \"& 'E:\\\\Code\\\\open_pvz\\\\tools\\\\run_all_validations.ps1'\")"
+      "Bash(pwsh -NoProfile -Command \"& 'E:\\\\Code\\\\open_pvz\\\\tools\\\\run_all_validations.ps1'\")",
+      "Bash(grep -E \"\\\\.\\(gd|tscn|tres\\)$\")"
     ]
   }
 }
