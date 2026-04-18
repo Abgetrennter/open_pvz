@@ -180,6 +180,21 @@
     "description": "Validates that an extension-defined aura effect can periodically apply slowed to nearby enemies while leaving distant enemies untouched."
   },
   {
+    "id": "delayed_trigger_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/delayed_trigger_chaos_validation.tres",
+    "description": "Validates that an extension-defined delayed_trigger effect can defer single-target damage until after a configured delay."
+  },
+  {
+    "id": "delayed_explode_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/delayed_explode_chaos_validation.tres",
+    "description": "Validates that an extension-defined delayed_explode effect can defer an area explosion and damage clustered enemies after the delay."
+  },
+  {
+    "id": "mark_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/mark_chaos_validation.tres",
+    "description": "Validates that an extension-defined mark effect can apply a timed mark and emit a removal event on expiry."
+  },
+  {
     "id": "extension_effect_guardrail_validation",
     "scenario": "res://scenes/validation/extension_effect_guardrail_validation.tres",
     "description": "Validates extension effect guardrails across registry rebuild and spawn-entry binding checks, including duplicate ids, invalid schemas, missing execute entry points, slot mismatches, and missing strategies."

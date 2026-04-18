@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_delayed_caster"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_delayed_caster"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 420.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_delayed_event"]
+script = ExtResource("3_rule")
+rule_id = &"delayed_trigger_event"
+description = "delayed_trigger should emit effect.delayed_triggered after the configured delay"
+event_name = &"effect.delayed_triggered"
+required_tags = PackedStringArray("extension", "delayed_trigger")
+required_core_values = {
+"target_template_id": &"zombie_basic_walker",
+"value": 15
+}
+
+[sub_resource type="Resource" id="Rule_delayed_damage"]
+script = ExtResource("3_rule")
+rule_id = &"delayed_trigger_damage"
+description = "delayed_trigger should damage the target after the delay instead of immediately on hit"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("effect", "delayed_trigger", "extension")
+required_core_values = {
+"source_template_id": &"plant_extension_delayed_caster",
+"target_template_id": &"zombie_basic_walker",
+"value": 15
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"delayed_trigger_chaos_validation"
+display_name = "Delayed Trigger Chaos Validation"
+description = "Validates that an extension-defined delayed_trigger effect can defer single-target damage until after a configured delay."
+goals = PackedStringArray("Verify delayed_trigger emits a dedicated delayed event.", "Verify the target only takes delayed damage after the delay window.", "Verify the delay logic is driven by the shared runtime rather than bespoke scene script.")
+validation_time_limit = 2.0
+validation_rules = [SubResource("Rule_delayed_event"), SubResource("Rule_delayed_damage")]
+spawns = [SubResource("Spawn_delayed_caster"), SubResource("Spawn_target")]

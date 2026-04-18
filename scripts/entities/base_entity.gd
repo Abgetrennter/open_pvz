@@ -11,6 +11,7 @@ var template_id: StringName = StringName()
 var entity_state: Variant = EntityStateRef.new()
 var _hit_height_range := Vector2(0.0, 24.0)
 var _active_statuses: Dictionary = {}
+var _active_marks: Dictionary = {}
 
 
 func _ready() -> void:
@@ -70,6 +71,16 @@ func apply_status(status_id: StringName, duration: float, properties: Dictionary
 	_sync_status_state()
 
 
+func apply_mark(mark_id: StringName, duration: float, metadata: Dictionary = {}) -> void:
+	var expires_at := GameState.current_time + maxf(duration, 0.0)
+	_active_marks[mark_id] = {
+		"mark_id": mark_id,
+		"expires_at": expires_at,
+		"metadata": metadata.duplicate(true),
+	}
+	_sync_mark_state()
+
+
 func update_statuses(current_time: float) -> void:
 	var expired_statuses := PackedStringArray()
 	for status_id in _active_statuses.keys():
@@ -85,9 +96,27 @@ func update_statuses(current_time: float) -> void:
 		EventBus.push_event(&"entity.status_removed", removed_event)
 	_sync_status_state()
 
+	var expired_marks := PackedStringArray()
+	for mark_id in _active_marks.keys():
+		var mark_entry: Dictionary = _active_marks[mark_id]
+		if current_time + 0.001 < float(mark_entry.get("expires_at", 0.0)):
+			continue
+		expired_marks.append(String(mark_id))
+	for mark_id in expired_marks:
+		var removed_mark := StringName(mark_id)
+		_active_marks.erase(removed_mark)
+		var removed_mark_event = preload("res://scripts/core/runtime/event_data.gd").create(null, self, null, PackedStringArray(["mark", "removed"]))
+		removed_mark_event.core["mark_id"] = removed_mark
+		EventBus.push_event(&"entity.mark_removed", removed_mark_event)
+	_sync_mark_state()
+
 
 func has_status(status_id: StringName) -> bool:
 	return _active_statuses.has(status_id)
+
+
+func has_mark(mark_id: StringName) -> bool:
+	return _active_marks.has(mark_id)
 
 
 func get_effective_movement_scale() -> float:
@@ -153,10 +182,16 @@ func _sync_entity_state() -> void:
 	entity_state.position = global_position
 	entity_state.combat_active = is_combat_active()
 	entity_state.status_effects = _active_statuses.duplicate(true)
+	entity_state.set_value(&"active_marks", PackedStringArray(_active_marks.keys()))
 
 
 func _sync_status_state() -> void:
 	set_state_value(&"active_statuses", PackedStringArray(_active_statuses.keys()))
 	set_state_value(&"effective_movement_scale", get_effective_movement_scale())
 	set_state_value(&"attack_blocked", is_attack_blocked())
+	_sync_entity_state()
+
+
+func _sync_mark_state() -> void:
+	set_state_value(&"active_marks", PackedStringArray(_active_marks.keys()))
 	_sync_entity_state()

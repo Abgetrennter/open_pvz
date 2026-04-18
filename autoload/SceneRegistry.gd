@@ -1,6 +1,7 @@
 extends Node
 
 const MAIN_SCENE := "res://scenes/main/main.tscn"
+const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 const VALIDATION_SCENARIO_DIR := "res://scenes/validation"
 const ENTITY_TEMPLATE_DIRS := [
 	"res://data/combat/entity_templates/plants",
@@ -9,7 +10,6 @@ const ENTITY_TEMPLATE_DIRS := [
 ]
 const PROJECTILE_TEMPLATE_DIR := "res://data/combat/projectile_templates"
 const TRIGGER_BINDING_DIR := "res://data/combat/trigger_bindings"
-const EXTENSION_ROOT_DIR := "res://extensions"
 const EXTENSION_VALIDATION_DIR := "scenes/validation"
 const EXTENSION_ENTITY_TEMPLATE_DIRS := [
 	"data/combat/entity_templates/plants",
@@ -18,9 +18,6 @@ const EXTENSION_ENTITY_TEMPLATE_DIRS := [
 ]
 const EXTENSION_PROJECTILE_TEMPLATE_DIR := "data/combat/projectile_templates"
 const EXTENSION_TRIGGER_BINDING_DIR := "data/combat/trigger_bindings"
-const GUARDRail_EXTENSION_PACK_IDS := [StringName(&"phase5_guardrail_pack")]
-const GUARDRail_EXTENSION_SCENARIO_IDS := [StringName(&"extension_effect_guardrail_validation")]
-
 var _scene_cache: Dictionary = {}
 var _resource_cache: Dictionary = {}
 var _validation_scenario_paths: Dictionary = {}
@@ -172,23 +169,8 @@ func _sorted_keys(registry: Dictionary) -> PackedStringArray:
 
 
 func _register_extension_content() -> void:
-	var absolute_root := ProjectSettings.globalize_path(EXTENSION_ROOT_DIR)
-	var directory := DirAccess.open(absolute_root)
-	if directory == null:
-		return
-
-	directory.list_dir_begin()
-	while true:
-		var entry_name := directory.get_next()
-		if entry_name.is_empty():
-			break
-		if entry_name.begins_with(".") or not directory.current_is_dir():
-			continue
-		if not _should_register_extension_pack(entry_name):
-			continue
-		var extension_root := EXTENSION_ROOT_DIR.path_join(entry_name)
-		_register_extension_root(extension_root)
-	directory.list_dir_end()
+	for pack_manifest in ExtensionPackCatalogRef.list_enabled_packs(&"resources"):
+		_register_extension_root(String(pack_manifest.get("root_path", "")))
 
 
 func _register_extension_root(extension_root: String) -> void:
@@ -209,28 +191,3 @@ func _report_duplicate_resource_id(resource_id: StringName, existing_path: Strin
 	push_warning(message)
 	if DebugService.has_method("record_protocol_issue"):
 		DebugService.record_protocol_issue(&"scene_registry", message, &"error")
-
-
-func _should_register_extension_pack(pack_name: String) -> bool:
-	var pack_id := StringName(pack_name)
-	if not GUARDRail_EXTENSION_PACK_IDS.has(pack_id):
-		return true
-	return _guardrail_extensions_enabled()
-
-
-func _guardrail_extensions_enabled() -> bool:
-	for raw_arg in OS.get_cmdline_user_args():
-		var arg := String(raw_arg)
-		if arg == "--include-guardrail-extension-packs":
-			return true
-		if arg.begins_with("--include-extension-pack="):
-			if StringName(arg.trim_prefix("--include-extension-pack=")) in GUARDRail_EXTENSION_PACK_IDS:
-				return true
-		if arg.begins_with("--validation-scenario-id="):
-			if StringName(arg.trim_prefix("--validation-scenario-id=")) in GUARDRail_EXTENSION_SCENARIO_IDS:
-				return true
-		if arg.begins_with("--validation-scenario="):
-			var scenario_path := arg.trim_prefix("--validation-scenario=")
-			if scenario_path.contains("extension_effect_guardrail_validation"):
-				return true
-	return false

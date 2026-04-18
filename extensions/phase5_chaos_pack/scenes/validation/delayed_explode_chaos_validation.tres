@@ -1,0 +1,71 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_delayed_bomber"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_delayed_bomber"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_tank"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_bucket_tank"
+lane_id = 0
+x_position = 430.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_walker"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_delayed_explode_event"]
+script = ExtResource("3_rule")
+rule_id = &"delayed_explode_event"
+description = "delayed_explode should emit effect.delayed_exploded after the configured delay"
+event_name = &"effect.delayed_exploded"
+required_tags = PackedStringArray("extension", "delayed_explode")
+required_core_values = {
+"value": 20
+}
+
+[sub_resource type="Resource" id="Rule_delayed_explode_tank"]
+script = ExtResource("3_rule")
+rule_id = &"delayed_explode_hits_tank"
+description = "delayed_explode should damage the primary tank target after the delay"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode", "delayed_explode", "extension")
+required_core_values = {
+"target_template_id": &"zombie_bucket_tank",
+"value": 20
+}
+
+[sub_resource type="Resource" id="Rule_delayed_explode_walker"]
+script = ExtResource("3_rule")
+rule_id = &"delayed_explode_hits_walker"
+description = "delayed_explode should also damage a nearby walker inside the blast radius"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode", "delayed_explode", "extension")
+required_core_values = {
+"target_template_id": &"zombie_basic_walker",
+"value": 20
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"delayed_explode_chaos_validation"
+display_name = "Delayed Explode Chaos Validation"
+description = "Validates that an extension-defined delayed_explode effect can defer an area explosion and then damage clustered enemies after the configured delay."
+goals = PackedStringArray("Verify delayed_explode emits a delayed explosion event.", "Verify the delayed blast damages the primary tank target.", "Verify the same delayed blast also damages a nearby walker.")
+validation_time_limit = 2.0
+validation_rules = [SubResource("Rule_delayed_explode_event"), SubResource("Rule_delayed_explode_tank"), SubResource("Rule_delayed_explode_walker")]
+spawns = [SubResource("Spawn_delayed_bomber"), SubResource("Spawn_tank"), SubResource("Spawn_walker")]

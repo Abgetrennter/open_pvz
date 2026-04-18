@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="EffectDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/effect_def.gd" id="1_effect"]
+[ext_resource type="Script" path="res://extensions/phase5_chaos_pack/scripts/effects/effect_delayed_trigger.gd" id="2_strategy"]
+
+[resource]
+script = ExtResource("1_effect")
+effect_id = &"delayed_trigger"
+param_defs = [{
+"name": "delay",
+"type": "float",
+"min": 0.1,
+"max": 5.0,
+"default": 0.5
+}, {
+"name": "amount",
+"type": "int",
+"min": 0,
+"max": 9999,
+"default": 12
+}, {
+"name": "target_mode",
+"type": "string_name",
+"default": &"context_target",
+"options": PackedStringArray("source", "owner", "context_target", "event_source", "event_target")
+}]
+allow_extra_params = false
+allow_extra_children = false
+tags = PackedStringArray("extension", "hit_response", "timed_trigger")
+strategy_script = ExtResource("2_strategy")

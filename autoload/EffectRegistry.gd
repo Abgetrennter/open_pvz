@@ -3,13 +3,11 @@ extends Node
 const EffectDefRef = preload("res://scripts/core/defs/effect_def.gd")
 const EffectSlotDefRef = preload("res://scripts/core/defs/effect_slot_def.gd")
 const EffectResultRef = preload("res://scripts/core/runtime/effect_result.gd")
+const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight_profile.gd"
 const ProjectileTemplatePath := "res://scripts/core/defs/projectile_template.gd"
-const EXTENSION_ROOT_DIR := "res://extensions"
 const EXTENSION_EFFECT_DEF_DIR := "data/combat/effects"
-const GUARDRail_EXTENSION_PACK_IDS := [StringName(&"phase5_guardrail_pack")]
-const GUARDRail_EXTENSION_SCENARIO_IDS := [StringName(&"extension_effect_guardrail_validation")]
 
 var _effect_defs: Dictionary = {}
 var _effect_strategies: Dictionary = {}
@@ -367,22 +365,11 @@ func _resolve_effect_source_node(context) -> Node:
 
 
 func _register_extension_defs_and_strategies() -> void:
-	var absolute_root := ProjectSettings.globalize_path(EXTENSION_ROOT_DIR)
-	var directory := DirAccess.open(absolute_root)
-	if directory == null:
-		return
-
-	directory.list_dir_begin()
-	while true:
-		var entry_name := directory.get_next()
-		if entry_name.is_empty():
-			break
-		if entry_name.begins_with(".") or not directory.current_is_dir():
+	for pack_manifest in ExtensionPackCatalogRef.list_enabled_packs(&"effects"):
+		var root_path := String(pack_manifest.get("root_path", ""))
+		if root_path.is_empty():
 			continue
-		if not _should_register_extension_pack(entry_name):
-			continue
-		_register_extension_effect_defs(EXTENSION_ROOT_DIR.path_join(entry_name).path_join(EXTENSION_EFFECT_DEF_DIR))
-	directory.list_dir_end()
+		_register_extension_effect_defs(root_path.path_join(EXTENSION_EFFECT_DEF_DIR))
 
 
 func _register_extension_effect_defs(directory_path: String) -> void:
@@ -431,28 +418,3 @@ func _register_effect_strategy_from_def(effect_def, source_path: String) -> void
 		return
 	_effect_strategy_owners[effect_def.effect_id] = strategy_owner
 	register_strategy(effect_def.effect_id, Callable(strategy_owner, "execute"))
-
-
-func _should_register_extension_pack(pack_name: String) -> bool:
-	var pack_id := StringName(pack_name)
-	if not GUARDRail_EXTENSION_PACK_IDS.has(pack_id):
-		return true
-	return _guardrail_extensions_enabled()
-
-
-func _guardrail_extensions_enabled() -> bool:
-	for raw_arg in OS.get_cmdline_user_args():
-		var arg := String(raw_arg)
-		if arg == "--include-guardrail-extension-packs":
-			return true
-		if arg.begins_with("--include-extension-pack="):
-			if StringName(arg.trim_prefix("--include-extension-pack=")) in GUARDRail_EXTENSION_PACK_IDS:
-				return true
-		if arg.begins_with("--validation-scenario-id="):
-			if StringName(arg.trim_prefix("--validation-scenario-id=")) in GUARDRail_EXTENSION_SCENARIO_IDS:
-				return true
-		if arg.begins_with("--validation-scenario="):
-			var scenario_path := arg.trim_prefix("--validation-scenario=")
-			if scenario_path.contains("extension_effect_guardrail_validation"):
-				return true
-	return false

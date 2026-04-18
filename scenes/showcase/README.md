@@ -26,6 +26,10 @@ project's default startup scene:
 - `apply_status_chaos_showcase.tscn`
 - `knockback_chaos_showcase.tscn`
 - `chain_bounce_chaos_showcase.tscn`
+- `aura_chaos_showcase.tscn`
+- `delayed_trigger_chaos_showcase.tscn`
+- `delayed_explode_chaos_showcase.tscn`
+- `mark_chaos_showcase.tscn`
 
 Phase 5 分组的额外说明见：
 

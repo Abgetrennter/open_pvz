@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/scenes/validation/mark_chaos_validation.tres" id="2_scenario"]
+
+[node name="MarkChaosShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = true
+showcase_title = "标记错误技展示"
+showcase_summary = "命中后给目标挂上 timed mark，并在生命周期结束时移除，展示独立于状态系统的标记语义。"

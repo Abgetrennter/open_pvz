@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_marker"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_marker"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_mark_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_bucket_tank"
+lane_id = 0
+x_position = 430.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_mark_applied"]
+script = ExtResource("3_rule")
+rule_id = &"mark_applied"
+description = "mark effect should emit entity.mark_applied on the target zombie"
+event_name = &"entity.mark_applied"
+required_tags = PackedStringArray("extension", "mark", "applied")
+required_core_values = {
+"mark_id": &"vulnerable",
+"target_template_id": &"zombie_bucket_tank"
+}
+
+[sub_resource type="Resource" id="Rule_mark_removed"]
+script = ExtResource("3_rule")
+rule_id = &"mark_removed"
+description = "mark should naturally expire and emit entity.mark_removed"
+event_name = &"entity.mark_removed"
+required_core_values = {
+"mark_id": &"vulnerable"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mark_chaos_validation"
+display_name = "Mark Chaos Validation"
+description = "Validates that an extension-defined mark effect can apply a timed mark to a target and later emit a mark removal event on expiry."
+goals = PackedStringArray("Verify mark emits entity.mark_applied with the configured mark_id.", "Verify the mark naturally expires and emits entity.mark_removed.", "Verify the mark runtime is separate from the status runtime and remains observable in events.")
+validation_time_limit = 2.4
+validation_rules = [SubResource("Rule_mark_applied"), SubResource("Rule_mark_removed")]
+spawns = [SubResource("Spawn_marker"), SubResource("Spawn_mark_target")]

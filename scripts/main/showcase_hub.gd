@@ -84,7 +84,7 @@ const GROUPS := [
 	},
 	{
 		"group_title": "第五阶段错误技",
-		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 6 个场景用于展示扩展包新增的分裂、召唤、状态控制、击退、跳链和光环能力。",
+		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 9 个场景用于展示扩展包新增的分裂、召唤、状态控制、击退、跳链、光环、延迟触发、延迟爆炸和标记能力。",
 		"color": Color("ef6c57"),
 		"items": [
 			{
@@ -136,6 +136,21 @@ const GROUPS := [
 				"title": "光环扩展样例",
 				"summary": "站场植物持续减速近处敌人，验证扩展 aura 能力位已经接入共享状态主链。",
 				"scene": "res://scenes/showcase/aura_chaos_showcase.tscn",
+			},
+			{
+				"title": "延迟触发扩展样例",
+				"summary": "命中后延迟一段时间再造成伤害，验证扩展 delayed_trigger 的时序执行链。",
+				"scene": "res://scenes/showcase/delayed_trigger_chaos_showcase.tscn",
+			},
+			{
+				"title": "延迟爆炸扩展样例",
+				"summary": "命中后延迟爆炸并波及周围目标，验证扩展 delayed_explode 的共享 area effect 链。",
+				"scene": "res://scenes/showcase/delayed_explode_chaos_showcase.tscn",
+			},
+			{
+				"title": "标记扩展样例",
+				"summary": "命中后施加独立 mark，并在持续时间结束后自动移除，验证扩展 mark 生命周期。",
+				"scene": "res://scenes/showcase/mark_chaos_showcase.tscn",
 			},
 		],
 	},

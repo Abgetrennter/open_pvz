@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EffectDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/effect_def.gd" id="1_effect"]
+[ext_resource type="Script" path="res://extensions/phase5_chaos_pack/scripts/effects/effect_mark.gd" id="2_strategy"]
+
+[resource]
+script = ExtResource("1_effect")
+effect_id = &"mark"
+param_defs = [{
+"name": "mark_id",
+"type": "string_name"
+}, {
+"name": "duration",
+"type": "float",
+"min": 0.1,
+"max": 10.0,
+"default": 1.2
+}, {
+"name": "target_mode",
+"type": "string_name",
+"default": &"context_target",
+"options": PackedStringArray("source", "owner", "context_target", "event_source", "event_target")
+}]
+allow_extra_params = false
+allow_extra_children = false
+tags = PackedStringArray("extension", "hit_response", "mark_control")
+strategy_script = ExtResource("2_strategy")

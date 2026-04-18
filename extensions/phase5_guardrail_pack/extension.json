@@ -1,0 +1,13 @@
+{
+  "pack_id": "phase5_guardrail_pack",
+  "enabled_by_default": false,
+  "register": [
+    "effects"
+  ],
+  "activation_scenario_ids": [
+    "extension_effect_guardrail_validation"
+  ],
+  "activation_cli_flags": [
+    "--include-guardrail-extension-packs"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "pack_id": "phase5_chaos_pack",
+  "enabled_by_default": true,
+  "register": [
+    "resources",
+    "effects"
+  ]
+}

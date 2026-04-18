@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/scenes/validation/delayed_trigger_chaos_validation.tres" id="2_scenario"]
+
+[node name="DelayedTriggerChaosShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = true
+showcase_title = "延迟触发错误技展示"
+showcase_summary = "命中后不立刻结算，而是延迟一段时间再触发伤害，展示时序型扩展效果的最小闭环。"
