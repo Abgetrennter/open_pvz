@@ -15,6 +15,8 @@
 | `battle_manager.gd` | `BattleManager` | 战斗主控制器（Node2D）。管理 tick 循环、实体生成、验证状态机、抛射体生成接口。连接所有子系统 |
 | `entity_factory.gd` | `EntityFactory` | 实体工厂（RefCounted）。从 EntityTemplate 实例化实体、组装组件、构建运行时触发器 |
 | `battle_scenario.gd` | `BattleScenario` | 战斗场景配置（Resource）。定义生成条目、验证规则、经济参数、棋盘配置、波次定义 |
+| `battle_projectile_effect_resolver.gd` | `BattleProjectileEffectResolver` | 投射体 effect 参数解析、movement params 组装、目标解析与预测 |
+| `battle_validation_reporter.gd` | `BattleValidationReporter` | 验证报告构建、artifact 导出、JSON/text 写入 |
 
 ### Phase 4 子系统
 
