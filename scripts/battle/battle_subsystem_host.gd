@@ -134,21 +134,21 @@ func _create_subsystems() -> void:
 
 
 func _setup_subsystems() -> void:
-	var active_scenario = _battle.call("_resolve_scenario")
+	var active_scenario = _battle.resolve_scenario()
 	if active_scenario == null:
 		return
-	var collectible_root: Node2D = _battle.call("_get_collectible_root")
-	if _economy_state != null and _economy_state.has_method("setup"):
-		_economy_state.call("setup", _battle, collectible_root, active_scenario)
-	if _board_state != null and _board_state.has_method("setup"):
-		_board_state.call("setup", _battle, active_scenario)
-	if _card_state != null and _card_state.has_method("setup"):
-		_card_state.call("setup", _battle, active_scenario)
-	if _status_state != null and _status_state.has_method("setup"):
-		_status_state.call("setup", _battle, active_scenario)
-	if _field_object_state != null and _field_object_state.has_method("setup"):
-		_field_object_state.call("setup", _battle, active_scenario)
-	if _flow_state != null and _flow_state.has_method("setup"):
-		_flow_state.call("setup", _battle, active_scenario)
-	if _wave_runner != null and _wave_runner.has_method("setup"):
-		_wave_runner.call("setup", _battle, _flow_state, active_scenario)
+	var collectible_root: Node2D = _battle.get_collectible_root()
+	if _economy_state != null:
+		_economy_state.setup(_battle, collectible_root, active_scenario)
+	if _board_state != null:
+		_board_state.setup(_battle, active_scenario)
+	if _card_state != null:
+		_card_state.setup(_battle, active_scenario)
+	if _status_state != null:
+		_status_state.setup(_battle, active_scenario)
+	if _field_object_state != null:
+		_field_object_state.setup(_battle, active_scenario)
+	if _flow_state != null:
+		_flow_state.setup(_battle, active_scenario)
+	if _wave_runner != null:
+		_wave_runner.setup(_battle, _flow_state, active_scenario)

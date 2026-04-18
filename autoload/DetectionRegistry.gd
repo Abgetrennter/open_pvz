@@ -76,6 +76,21 @@ func _register_builtin_strategies() -> void:
 		}
 	)
 
+	register_strategy(&"lane_backward", func(owner: Node, params: Dictionary) -> Dictionary:
+		if owner == null or not (owner is Node2D):
+			return _empty_result()
+		var lane_id := int(owner.get("lane_id"))
+		if lane_id < 0:
+			return _empty_result()
+		var scan_range := float(params.get("scan_range", 900.0))
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", true)
+		return {
+			"has_target": not targets.is_empty(),
+			"targets": targets,
+			"primary_target": null if targets.is_empty() else targets[0],
+		}
+	)
+
 
 func _scan_enemies(
 	source: Node,

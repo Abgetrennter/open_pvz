@@ -66,7 +66,7 @@ func _on_game_tick(event_data: Variant) -> void:
 		return
 	if flow_state == null or not is_instance_valid(flow_state):
 		return
-	if flow_state.has_method("is_terminal") and bool(flow_state.call("is_terminal")):
+	if flow_state.is_terminal():
 		return
 
 	var game_time := float(event_data.core.get("game_time", GameState.current_time))
@@ -87,10 +87,8 @@ func _start_due_waves(game_time: float) -> void:
 		_started_waves[wave_id] = true
 		_spawned_entry_indices[wave_id] = {}
 		_spawned_entities[wave_id] = []
-		if flow_state.has_method("ensure_running"):
-			flow_state.call("ensure_running", wave_id)
-		if flow_state.has_method("mark_wave_started"):
-			flow_state.call("mark_wave_started", wave_id)
+		flow_state.ensure_running(wave_id)
+		flow_state.mark_wave_started(wave_id)
 
 
 func _spawn_due_entries(game_time: float) -> void:
@@ -112,12 +110,11 @@ func _spawn_due_entries(game_time: float) -> void:
 			if game_time + 0.001 < scheduled_time:
 				continue
 			var spawn_entry: Resource = wave_spawn_entry.get("spawn_entry")
-			if battle.has_method("spawn_wave_entry"):
-				var spawned_entity = battle.call("spawn_wave_entry", spawn_entry, wave_id)
-				var wave_entities: Array = Array(_spawned_entities.get(wave_id, []))
-				if spawned_entity != null:
-					wave_entities.append(spawned_entity)
-				_spawned_entities[wave_id] = wave_entities
+			var spawned_entity = battle.spawn_wave_entry(spawn_entry, wave_id)
+			var wave_entities: Array = Array(_spawned_entities.get(wave_id, []))
+			if spawned_entity != null:
+				wave_entities.append(spawned_entity)
+			_spawned_entities[wave_id] = wave_entities
 			var spawned_indices: Dictionary = Dictionary(_spawned_entry_indices.get(wave_id, {}))
 			spawned_indices[index] = true
 			_spawned_entry_indices[wave_id] = spawned_indices
@@ -136,8 +133,7 @@ func _complete_finished_waves() -> void:
 		if _wave_has_active_entities(wave_id):
 			continue
 		_completed_waves[wave_id] = true
-		if flow_state.has_method("mark_wave_completed"):
-			flow_state.call("mark_wave_completed", wave_id)
+		flow_state.mark_wave_completed(wave_id)
 
 
 func _check_victory() -> void:
@@ -147,14 +143,11 @@ func _check_victory() -> void:
 		return
 	if _has_active_enemies():
 		return
-	if flow_state.has_method("mark_victory"):
-		flow_state.call("mark_victory", &"all_waves_cleared")
+	flow_state.mark_victory(&"all_waves_cleared")
 
 
 func _check_defeat() -> void:
-	if not battle.has_method("get_runtime_combat_entities"):
-		return
-	for entity in battle.call("get_runtime_combat_entities"):
+	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
 		if entity.get("team") != &"zombie":
@@ -164,8 +157,7 @@ func _check_defeat() -> void:
 		if not (entity is Node2D):
 			continue
 		if (entity as Node2D).global_position.x <= defeat_line_x:
-			if flow_state.has_method("mark_defeat"):
-				flow_state.call("mark_defeat", &"zombie_reached_goal")
+			flow_state.mark_defeat(&"zombie_reached_goal")
 			return
 
 
@@ -183,9 +175,7 @@ func _wave_has_active_entities(wave_id: StringName) -> bool:
 
 
 func _has_active_enemies() -> bool:
-	if not battle.has_method("get_runtime_combat_entities"):
-		return false
-	for entity in battle.call("get_runtime_combat_entities"):
+	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
 		if entity.get("team") != &"zombie":

@@ -140,20 +140,36 @@ func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName())
 	return _spawner.spawn_wave_entry(spawn_entry, wave_id)
 
 
-func _finalize_spawned_entity(entity: Node, lane_id: int, hit_height_band: Resource, trigger_instances: Array, source_node: Node = null, metadata: Dictionary = {}, emit_spawn_event: bool = true) -> void:
+func finalize_spawned_entity(entity: Node, lane_id: int, hit_height_band: Resource, trigger_instances: Array, source_node: Node = null, metadata: Dictionary = {}, emit_spawn_event: bool = true) -> void:
 	_spawner.finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata, emit_spawn_event)
 
 
-func _emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, metadata: Dictionary = {}) -> void:
+func _finalize_spawned_entity(entity: Node, lane_id: int, hit_height_band: Resource, trigger_instances: Array, source_node: Node = null, metadata: Dictionary = {}, emit_spawn_event: bool = true) -> void:
+	finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata, emit_spawn_event)
+
+
+func emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, metadata: Dictionary = {}) -> void:
 	_spawner.emit_entity_spawned(entity, lane_id, source_node, metadata)
 
 
-func _apply_spawn_height_band(entity: Node, height_band: Resource) -> void:
+func _emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, metadata: Dictionary = {}) -> void:
+	emit_entity_spawned(entity, lane_id, source_node, metadata)
+
+
+func apply_spawn_height_band(entity: Node, height_band: Resource) -> void:
 	_spawner.apply_spawn_height_band(entity, height_band)
 
 
-func _bind_runtime_triggers(entity: Node, trigger_instances: Array) -> void:
+func _apply_spawn_height_band(entity: Node, height_band: Resource) -> void:
+	apply_spawn_height_band(entity, height_band)
+
+
+func bind_runtime_triggers(entity: Node, trigger_instances: Array) -> void:
 	_spawner.bind_runtime_triggers(entity, trigger_instances)
+
+
+func _bind_runtime_triggers(entity: Node, trigger_instances: Array) -> void:
+	bind_runtime_triggers(entity, trigger_instances)
 
 
 # -- Runtime entity access --
@@ -172,37 +188,37 @@ func get_runtime_combat_entities() -> Array:
 
 func get_current_sun() -> int:
 	var economy: Node = _subsystem_host.get_economy_state()
-	if economy == null or not economy.has_method("get_current_sun"):
+	if economy == null:
 		return 0
-	return int(economy.call("get_current_sun"))
+	return int(economy.get_current_sun())
 
 
 func try_spend_sun(cost: int, reason: StringName = &"manual_spend", source_node: Node = null, metadata: Dictionary = {}) -> bool:
 	var economy: Node = _subsystem_host.get_economy_state()
-	if economy == null or not economy.has_method("try_spend_sun"):
+	if economy == null:
 		return false
-	return bool(economy.call("try_spend_sun", cost, reason, source_node, metadata))
+	return bool(economy.try_spend_sun(cost, reason, source_node, metadata))
 
 
 func validate_placement_request(request: Resource) -> Dictionary:
 	var board: Node = _subsystem_host.get_board_state()
-	if board == null or not board.has_method("validate_request"):
+	if board == null:
 		return {"valid": false, "reason": &"board_missing"}
-	return board.call("validate_request", request)
+	return board.validate_request(request)
 
 
 func reject_placement_request(request: Resource, reason: StringName) -> void:
 	var board: Node = _subsystem_host.get_board_state()
-	if board == null or not board.has_method("reject_request"):
+	if board == null:
 		return
-	board.call("reject_request", request, reason)
+	board.reject_request(request, reason)
 
 
 func commit_placement_request(request: Resource, entity: Node) -> bool:
 	var board: Node = _subsystem_host.get_board_state()
-	if board == null or not board.has_method("commit_request"):
+	if board == null:
 		return false
-	return bool(board.call("commit_request", request, entity))
+	return bool(board.commit_request(request, entity))
 
 
 func get_entity_factory() -> RefCounted:
@@ -245,16 +261,40 @@ func get_scenario_description() -> String:
 	return _scenario_provider.get_scenario_description()
 
 
-func _resolve_scenario():
+func resolve_scenario():
 	return _scenario_provider.resolve_scenario()
 
 
-func _build_default_scenario():
+func _resolve_scenario():
+	return resolve_scenario()
+
+
+func build_default_scenario():
 	return _scenario_provider.build_default_scenario()
 
 
-func _make_spawn_entry(entity_template_id: StringName, lane_id: int, x_position: float, params: Dictionary):
+func _build_default_scenario():
+	return build_default_scenario()
+
+
+func make_spawn_entry(entity_template_id: StringName, lane_id: int, x_position: float, params: Dictionary):
 	return _scenario_provider.make_spawn_entry(entity_template_id, lane_id, x_position, params)
+
+
+func _make_spawn_entry(entity_template_id: StringName, lane_id: int, x_position: float, params: Dictionary):
+	return make_spawn_entry(entity_template_id, lane_id, x_position, params)
+
+
+func make_validation_rule(
+	rule_id: StringName,
+	description: String,
+	event_name: StringName,
+	min_count: int = 1,
+	max_count: int = -1,
+	required_tags: PackedStringArray = PackedStringArray(),
+	required_core_values: Dictionary = {}
+):
+	return _scenario_provider.make_validation_rule(rule_id, description, event_name, min_count, max_count, required_tags, required_core_values)
 
 
 func _make_validation_rule(
@@ -266,7 +306,7 @@ func _make_validation_rule(
 	required_tags: PackedStringArray = PackedStringArray(),
 	required_core_values: Dictionary = {}
 ):
-	return _scenario_provider.make_validation_rule(rule_id, description, event_name, min_count, max_count, required_tags, required_core_values)
+	return make_validation_rule(rule_id, description, event_name, min_count, max_count, required_tags, required_core_values)
 
 
 # -- Validation facade delegates --
@@ -289,32 +329,60 @@ func _on_validation_event(event_name: StringName, event_data: Variant) -> void:
 
 # -- Private getters for extracted coordinators --
 
-func _emit_validation_completed(status: StringName) -> void:
+func emit_validation_completed(status: StringName) -> void:
 	validation_completed.emit(status)
 
 
-func _get_validation_reporter() -> RefCounted:
+func _emit_validation_completed(status: StringName) -> void:
+	emit_validation_completed(status)
+
+
+func get_validation_reporter() -> RefCounted:
 	return _validation_reporter
 
 
-func _get_entity_root() -> Node2D:
+func _get_validation_reporter() -> RefCounted:
+	return get_validation_reporter()
+
+
+func get_entity_root() -> Node2D:
 	return _entity_root
 
 
-func _get_collectible_root() -> Node2D:
+func _get_entity_root() -> Node2D:
+	return get_entity_root()
+
+
+func get_collectible_root() -> Node2D:
 	return _collectible_root
 
 
-func _get_projectile_effect_resolver() -> RefCounted:
+func _get_collectible_root() -> Node2D:
+	return get_collectible_root()
+
+
+func get_projectile_effect_resolver() -> RefCounted:
 	return _projectile_effect_resolver
 
 
-func _get_board_state() -> Node:
+func _get_projectile_effect_resolver() -> RefCounted:
+	return get_projectile_effect_resolver()
+
+
+func get_board_state() -> Node:
 	return _subsystem_host.get_board_state()
 
 
-func _get_field_object_state() -> Node:
+func _get_board_state() -> Node:
+	return get_board_state()
+
+
+func get_field_object_state() -> Node:
 	return _subsystem_host.get_field_object_state()
+
+
+func _get_field_object_state() -> Node:
+	return get_field_object_state()
 
 
 # -- Scene tree helpers --
@@ -352,11 +420,15 @@ func _record_runtime_snapshot() -> void:
 	DebugService.record_runtime_snapshot(_runtime_frame_counter, GameState.current_time, scenario_name, get_runtime_entities())
 
 
-func _report_protocol_issues(errors: Array[String], scope: StringName) -> void:
+func report_protocol_issues(errors: Array[String], scope: StringName) -> void:
 	for error in errors:
 		push_warning(error)
 		if DebugService.has_method("record_protocol_issue"):
 			DebugService.record_protocol_issue(scope, error, &"error")
+
+
+func _report_protocol_issues(errors: Array[String], scope: StringName) -> void:
+	report_protocol_issues(errors, scope)
 
 
 # -- Rendering --
@@ -380,7 +452,7 @@ func _draw() -> void:
 
 
 func _rebuild_lane_config() -> void:
-	var active_scenario = _resolve_scenario()
+	var active_scenario = resolve_scenario()
 	if active_scenario == null:
 		lane_y_map = {0: 220.0, 1: 320.0}
 		return

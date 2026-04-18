@@ -17,7 +17,7 @@ func bind_battle(battle: Node) -> void:
 
 
 func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = null) -> Node:
-	var resolver: RefCounted = _battle.call("_get_projectile_effect_resolver")
+	var resolver: RefCounted = _battle.get_projectile_effect_resolver()
 	var direction := Vector2.RIGHT
 	var resolved_params: Dictionary = resolver.resolve_projectile_effect_params(params)
 	var direction_value: Variant = resolved_params.get("direction", Vector2.RIGHT)
@@ -46,7 +46,7 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 		"chain_id": context.chain_id,
 		"origin_event_name": context.event_name,
 	})
-	var entity_root: Node2D = _battle.call("_get_entity_root")
+	var entity_root: Node2D = _battle.get_entity_root()
 	entity_root.add_child(projectile)
 	return projectile
 
@@ -54,7 +54,7 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 func spawn_entity_from_effect(context, params: Dictionary, metadata: Dictionary = {}) -> Node:
 	var entity_template_id := StringName(params.get("entity_template_id", StringName()))
 	if entity_template_id == StringName():
-		_battle.call("_report_protocol_issues", ["spawn_entity effect must provide entity_template_id."], &"spawn_entity")
+		_battle.report_protocol_issues(["spawn_entity effect must provide entity_template_id."], &"spawn_entity")
 		return null
 
 	var entry = BattleSpawnEntryRef.new()
@@ -81,9 +81,9 @@ func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index:
 	var entity_kind := StringName(entity_template.get("entity_kind"))
 	var params: Dictionary = {}
 	var spawn_position := _build_board_slot_position(lane_id, slot_index)
-	var board_state: Node = _battle.call("_get_board_state")
-	if board_state != null and is_instance_valid(board_state) and board_state.has_method("get_slot_world_position"):
-		spawn_position = Vector2(board_state.call("get_slot_world_position", lane_id, slot_index))
+	var board_state: Node = _battle.get_board_state()
+	if board_state != null and is_instance_valid(board_state):
+		spawn_position = Vector2(board_state.get_slot_world_position(lane_id, slot_index))
 	var entity: Variant = _entity_factory.instantiate_entity(entity_kind, spawn_position, entity_template, params)
 	if entity == null or not entity.has_method("assign_lane"):
 		return null
@@ -94,7 +94,7 @@ func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index:
 	var projectile_template: Resource = null if not (entity_template is EntityTemplateRef) else entity_template.projectile_template
 	var projectile_flight_profile: Resource = null if not (entity_template is EntityTemplateRef) else entity_template.projectile_flight_profile
 	var trigger_instances: Array = _entity_factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template)
-	finalize_spawned_entity(entity, lane_id, entity_template.hit_height_band, trigger_instances, null, metadata.merged({
+	_battle.finalize_spawned_entity(entity, lane_id, entity_template.hit_height_band, trigger_instances, null, metadata.merged({
 		"spawn_reason": &"card_play",
 		"slot_index": slot_index,
 		"entity_template_id": entity_template_id,
@@ -110,15 +110,15 @@ func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName())
 
 
 func spawn_scenario() -> void:
-	var active_scenario = _battle.call("_resolve_scenario")
+	var active_scenario = _battle.resolve_scenario()
 	if active_scenario == null:
 		return
-	_battle.call("_report_protocol_issues", ProtocolValidatorRef.validate_battle_scenario(active_scenario), &"battle_scenario")
+	_battle.report_protocol_issues(ProtocolValidatorRef.validate_battle_scenario(active_scenario), &"battle_scenario")
 	for spawn_entry in active_scenario.spawns:
 		_spawn_entry_internal(spawn_entry, {"spawn_reason": &"scenario_spawn"})
-	var field_object_state: Node = _battle.call("_get_field_object_state")
-	if field_object_state != null and field_object_state.has_method("spawn_field_objects"):
-		field_object_state.call("spawn_field_objects", active_scenario)
+	var field_object_state: Node = _battle.get_field_object_state()
+	if field_object_state != null:
+		field_object_state.spawn_field_objects(active_scenario)
 
 
 func finalize_spawned_entity(
@@ -132,7 +132,7 @@ func finalize_spawned_entity(
 ) -> void:
 	entity.assign_lane(lane_id)
 	apply_spawn_height_band(entity, hit_height_band)
-	var entity_root: Node2D = _battle.call("_get_entity_root")
+	var entity_root: Node2D = _battle.get_entity_root()
 	entity_root.add_child(entity)
 	bind_runtime_triggers(entity, trigger_instances)
 	if not emit_spawn_event:
@@ -157,7 +157,7 @@ func apply_spawn_height_band(entity: Node, height_band: Resource) -> void:
 		return
 	var height_errors: Array[String] = ProtocolValidatorRef.validate_height_band(height_band)
 	if not height_errors.is_empty():
-		_battle.call("_report_protocol_issues", height_errors, &"height_band")
+		_battle.report_protocol_issues(height_errors, &"height_band")
 		return
 	if height_band.get_script() != HeightBandRef:
 		return
@@ -175,11 +175,11 @@ func bind_runtime_triggers(entity: Node, trigger_instances: Array) -> void:
 func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: Node = null):
 	if spawn_entry == null:
 		return null
-	var active_scenario = _battle.call("_resolve_scenario")
+	var active_scenario = _battle.resolve_scenario()
 	var scenario_id: StringName = StringName() if active_scenario == null else active_scenario.scenario_id
 	var spawn_errors: Array[String] = ProtocolValidatorRef.validate_battle_spawn_entry(spawn_entry, scenario_id)
 	if not spawn_errors.is_empty():
-		_battle.call("_report_protocol_issues", spawn_errors, &"battle_spawn_entry")
+		_battle.report_protocol_issues(spawn_errors, &"battle_spawn_entry")
 		return null
 
 	var spawn_resolution: Dictionary = _entity_factory.instantiate_spawn_entry(
@@ -199,7 +199,7 @@ func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: 
 		return null
 	if entity == null or not entity.has_method("assign_lane"):
 		return null
-	finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata)
+	_battle.finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata)
 	return entity
 
 
@@ -227,14 +227,14 @@ func _resolve_effect_spawn_x_position(context, params: Dictionary) -> float:
 
 
 func _build_board_slot_position(lane_id: int, slot_index: int) -> Vector2:
-	var active_scenario = _battle.call("_resolve_scenario")
+	var active_scenario = _battle.resolve_scenario()
 	var origin_x := 160.0
 	var spacing := 96.0
 	if active_scenario != null:
 		origin_x = float(active_scenario.get("board_slot_origin_x"))
 		spacing = float(active_scenario.get("board_slot_spacing"))
-	return Vector2(origin_x + float(slot_index) * spacing, float(_battle.call("_lane_y", lane_id)))
+	return Vector2(origin_x + float(slot_index) * spacing, float(_battle.get_lane_y(lane_id)))
 
 
 func _build_spawn_entry_position(spawn_entry: Resource) -> Vector2:
-	return Vector2(float(spawn_entry.get("x_position")), float(_battle.call("_lane_y", int(spawn_entry.get("lane_id")))))
+	return Vector2(float(spawn_entry.get("x_position")), float(_battle.get_lane_y(int(spawn_entry.get("lane_id")))))

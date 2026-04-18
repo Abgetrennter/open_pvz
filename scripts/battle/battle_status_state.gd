@@ -77,9 +77,7 @@ func _on_game_tick(event_data: Variant) -> void:
 func _update_entity_statuses(game_time: float) -> void:
 	if battle == null or not is_instance_valid(battle):
 		return
-	if not battle.has_method("get_runtime_combat_entities"):
-		return
-	for entity in battle.call("get_runtime_combat_entities"):
+	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
 		if entity.has_method("update_statuses"):
@@ -89,11 +87,9 @@ func _update_entity_statuses(game_time: float) -> void:
 func _resolve_target_entity(request: Resource):
 	if battle == null or not is_instance_valid(battle):
 		return null
-	if not battle.has_method("get_runtime_combat_entities"):
-		return null
 	var target_template_id := StringName(request.get("target_template_id"))
 	var target_lane := int(request.get("lane_id"))
-	for entity in battle.call("get_runtime_combat_entities"):
+	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
 		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):

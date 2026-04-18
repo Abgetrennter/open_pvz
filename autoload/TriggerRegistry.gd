@@ -59,7 +59,7 @@ func _register_builtin_defs() -> void:
 		"name": "detection_id",
 		"type": "string_name",
 		"default": &"always",
-		"options": PackedStringArray(["always", "lane_forward"]),
+		"options": PackedStringArray(["always", "lane_forward", "lane_backward"]),
 	}, {
 		"name": "scan_range",
 		"type": "float",

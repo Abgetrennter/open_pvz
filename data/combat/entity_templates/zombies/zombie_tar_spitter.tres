@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/trigger_bindings/zombie_attack_tar_spit.tres" id="3_binding"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"zombie_tar_spitter"
+entity_kind = &"zombie"
+display_name = "Tar Spitter Zombie"
+tags = PackedStringArray("zombie", "template", "support", "disrupt", "ranged")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 260
+hitbox_size = Vector2(44, 60)
+hit_height_band = ExtResource("2_height")
+default_params = {
+"move_speed": 22.0
+}
+trigger_bindings = [ExtResource("3_binding")]

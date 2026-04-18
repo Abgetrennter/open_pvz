@@ -150,7 +150,7 @@ func get_debug_slot_lines(limit: int = 4) -> PackedStringArray:
 
 
 func is_valid_lane(lane_id: int) -> bool:
-	return battle != null and is_instance_valid(battle) and battle.has_method("is_valid_lane") and bool(battle.call("is_valid_lane", lane_id))
+	return battle != null and is_instance_valid(battle) and bool(battle.is_valid_lane(lane_id))
 
 
 func _on_game_tick(_event_data: Variant) -> void:
@@ -214,9 +214,8 @@ func _rebuild_slots() -> void:
 	if battle == null or not is_instance_valid(battle):
 		return
 	var lane_ids: Array[int] = []
-	if battle.has_method("get_lane_ids"):
-		for lane_id in battle.call("get_lane_ids"):
-			lane_ids.append(int(lane_id))
+	for lane_id in battle.get_lane_ids():
+		lane_ids.append(int(lane_id))
 	if lane_ids.is_empty():
 		lane_ids = [0, 1]
 	lane_ids.sort()
@@ -226,7 +225,7 @@ func _rebuild_slots() -> void:
 			slot.configure(
 				lane_id,
 				slot_index,
-				Vector2(board_slot_origin_x + float(slot_index) * board_slot_spacing, float(battle.call("_lane_y", lane_id))),
+				Vector2(board_slot_origin_x + float(slot_index) * board_slot_spacing, float(battle.get_lane_y(lane_id))),
 				&"ground",
 				BoardSlotCatalogRef.default_tags_for(&"ground")
 			)

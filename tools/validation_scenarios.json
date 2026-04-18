@@ -78,6 +78,18 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_roster_phase6_validation",
+    "scenario": "res://scenes/validation/plant_roster_phase6_validation.tres",
+    "description": "Validates the first formal Phase 6 plant roster additions for control and summon roles through shared built-in runtime effects.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_roster_phase6_validation",
+    "scenario": "res://scenes/validation/zombie_roster_phase6_validation.tres",
+    "description": "Validates the first formal Phase 6 zombie roster additions for ranged special attack and support disruption.",
+    "layers": ["core"]
+  },
+  {
     "id": "template_guardrail_validation",
     "scenario": "res://scenes/validation/template_guardrail_validation.tres",
     "description": "Validates that invalid template resources, malformed trigger bindings, and malformed override combinations are rejected through protocol issues before runtime execution.",

@@ -16,6 +16,7 @@ const WaveDefRef = preload("res://scripts/battle/wave_def.gd")
 const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
 const BattleResourceSpendRequestRef = preload("res://scripts/battle/resource_spend_request.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
+const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 	&"attack": {
 		"trigger_id": &"periodically",
@@ -423,7 +424,7 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	if scenario_id != StringName():
 		scope = "%s in scenario %s" % [scope, String(scenario_id)]
 
-	var resolved_template = _resolve_spawn_entry_template(spawn_entry)
+	var resolved_template = CombatContentResolverRef.resolve_spawn_entry_template(spawn_entry)
 	var entity_kind := String(spawn_entry.entity_kind)
 	if resolved_template == null:
 		errors.append("%s must resolve an entity template through entity_template or entity_template_id." % scope)
@@ -439,42 +440,42 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	if int(spawn_entry.lane_id) < 0:
 		errors.append("%s.lane_id must be >= 0." % scope)
 
-	var hit_height_band_override: Resource = _resolve_spawn_hit_height_band_override(spawn_entry)
+	var hit_height_band_override: Resource = CombatContentResolverRef.resolve_spawn_hit_height_band_override(spawn_entry)
 	if hit_height_band_override != null:
 		for error in validate_height_band(hit_height_band_override):
 			errors.append("%s hit_height_band: %s" % [scope, error])
 
-	var projectile_profile_override: Resource = _resolve_spawn_projectile_profile_override(spawn_entry)
+	var projectile_profile_override: Resource = CombatContentResolverRef.resolve_spawn_projectile_profile_override(spawn_entry)
 	if projectile_profile_override != null:
 		for error in validate_projectile_flight_profile(projectile_profile_override):
 			errors.append("%s projectile_flight_profile: %s" % [scope, error])
 	var raw_spawn_overrides: Variant = spawn_entry.get("spawn_overrides")
 	if raw_spawn_overrides != null and not (raw_spawn_overrides is Dictionary):
 		errors.append("%s.spawn_overrides must be a Dictionary." % scope)
-	var spawn_overrides := _resolve_spawn_overrides(spawn_entry)
+	var spawn_overrides := CombatContentResolverRef.resolve_spawn_overrides(spawn_entry)
 	if spawn_entry.get("projectile_template_override") != null and not (spawn_entry.get("projectile_template_override") is ProjectileTemplateRef):
 		errors.append("%s.projectile_template_override must be a ProjectileTemplate resource." % scope)
 	if spawn_entry.get("projectile_flight_profile_override") != null:
 		for error in validate_projectile_flight_profile(spawn_entry.get("projectile_flight_profile_override")):
 			errors.append("%s projectile_flight_profile_override: %s" % [scope, error])
-	var projectile_template = _resolve_projectile_template(spawn_entry, resolved_template)
+	var projectile_template = CombatContentResolverRef.resolve_projectile_template(spawn_entry, resolved_template)
 	if projectile_template != null:
 		for error in validate_projectile_template(projectile_template):
 			errors.append("%s projectile_template: %s" % [scope, error])
 	errors.append_array(_validate_projectile_config_consistency(
-		_merge_spawn_params(spawn_entry, resolved_template),
+		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template),
 		projectile_template,
 		"%s params" % scope
 	))
 
 	errors.append_array(_validate_entity_runtime_params(
 		entity_kind,
-		_merge_spawn_params(spawn_entry, resolved_template),
+		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template),
 		"%s params" % scope
 	))
 	if resolved_template != null:
-		var merged_params := _merge_spawn_params(spawn_entry, resolved_template)
-		var resolved_profile: Resource = _resolve_projectile_flight_profile(spawn_entry, resolved_template, projectile_template)
+		var merged_params := CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template)
+		var resolved_profile: Resource = CombatContentResolverRef.resolve_projectile_flight_profile(spawn_entry, resolved_template, projectile_template)
 		errors.append_array(_validate_trigger_bindings_runtime(
 			StringName(entity_kind),
 			resolved_template,
@@ -1063,77 +1064,6 @@ static func _validate_projectile_config_consistency(params: Dictionary, projecti
 	if resolved_move_mode == &"parabola" and params.has("turn_rate"):
 		errors.append("%s turn_rate is only valid for track movement." % scope)
 	return errors
-
-
-static func _merge_spawn_params(spawn_entry: Resource, entity_template = null) -> Dictionary:
-	var resolved_params: Dictionary = {}
-	if entity_template != null and entity_template.get("default_params") is Dictionary:
-		resolved_params = entity_template.get("default_params").duplicate(true)
-	var explicit_overrides: Variant = spawn_entry.get("spawn_overrides")
-	if explicit_overrides is Dictionary:
-		for key: Variant in explicit_overrides.keys():
-			resolved_params[key] = explicit_overrides[key]
-	if spawn_entry.get("projectile_template_override") is ProjectileTemplateRef:
-		resolved_params["projectile_template"] = spawn_entry.get("projectile_template_override")
-	if spawn_entry.get("projectile_flight_profile_override") != null:
-		resolved_params["flight_profile"] = spawn_entry.get("projectile_flight_profile_override")
-	return resolved_params
-
-
-static func _resolve_projectile_template(spawn_entry: Resource, entity_template = null):
-	if spawn_entry != null and spawn_entry.get("projectile_template_override") is ProjectileTemplateRef:
-		return spawn_entry.get("projectile_template_override")
-	if spawn_entry != null and spawn_entry.get("spawn_overrides") is Dictionary and spawn_entry.get("spawn_overrides").get("projectile_template", null) is ProjectileTemplateRef:
-		return spawn_entry.get("spawn_overrides").get("projectile_template")
-	if entity_template != null and entity_template.get("projectile_template") is ProjectileTemplateRef:
-		return entity_template.get("projectile_template")
-	return null
-
-
-static func _resolve_projectile_flight_profile(spawn_entry: Resource, entity_template = null, projectile_template = null) -> Resource:
-	if spawn_entry != null and spawn_entry.get("projectile_flight_profile_override") != null:
-		return spawn_entry.get("projectile_flight_profile_override")
-	if spawn_entry != null and spawn_entry.get("spawn_overrides") is Dictionary and spawn_entry.get("spawn_overrides").get("flight_profile", null) != null:
-		return spawn_entry.get("spawn_overrides").get("flight_profile")
-	if projectile_template is ProjectileTemplateRef and projectile_template.flight_profile != null:
-		return projectile_template.flight_profile
-	if entity_template != null:
-		return entity_template.get("projectile_flight_profile")
-	return null
-
-
-static func _resolve_spawn_hit_height_band_override(spawn_entry: Resource) -> Resource:
-	if spawn_entry == null:
-		return null
-	return spawn_entry.get("hit_height_band_override")
-
-
-static func _resolve_spawn_projectile_profile_override(spawn_entry: Resource) -> Resource:
-	if spawn_entry == null:
-		return null
-	return spawn_entry.get("projectile_flight_profile_override")
-
-
-static func _resolve_spawn_overrides(spawn_entry: Resource) -> Dictionary:
-	if spawn_entry == null:
-		return {}
-	var resolved: Dictionary = {}
-	if spawn_entry.get("spawn_overrides") is Dictionary:
-		for key: Variant in spawn_entry.get("spawn_overrides").keys():
-			resolved[key] = spawn_entry.get("spawn_overrides")[key]
-	return resolved
-
-
-static func _resolve_spawn_entry_template(spawn_entry: Resource):
-	if spawn_entry == null:
-		return null
-	var direct_template = spawn_entry.get("entity_template")
-	if direct_template != null:
-		return direct_template
-	var template_id := StringName(spawn_entry.get("entity_template_id"))
-	if template_id != StringName() and SceneRegistry.has_entity_template(template_id):
-		return SceneRegistry.get_entity_template(template_id)
-	return null
 
 
 static func _entity_template_trigger_bindings(entity_template) -> Array:

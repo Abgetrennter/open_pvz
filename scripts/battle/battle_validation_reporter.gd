@@ -24,7 +24,7 @@ func report_validation_result(
 		return
 
 	var status_label := "PASSED" if validation_status == &"passed" else "FAILED"
-	var active_scenario = _battle.call("_resolve_scenario")
+	var active_scenario = _battle.resolve_scenario()
 	var scenario_label := "unknown"
 	if active_scenario != null:
 		scenario_label = "%s (%s)" % [active_scenario.display_name, String(active_scenario.scenario_id)]
@@ -100,7 +100,7 @@ func _build_validation_report(
 	enable_runtime_snapshot_logging: bool,
 	runtime_snapshot_interval_frames: int
 ) -> Dictionary:
-	var active_scenario = _battle.call("_resolve_scenario")
+	var active_scenario = _battle.resolve_scenario()
 	var validation_rules: Array[Dictionary] = []
 	for rule_state in validation_rule_states:
 		validation_rules.append({

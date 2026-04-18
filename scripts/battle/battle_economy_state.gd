@@ -177,9 +177,7 @@ func _process_producers(game_time: float) -> void:
 	var seen_entities: Dictionary = {}
 	if battle == null or not is_instance_valid(battle):
 		return
-	if not battle.has_method("get_runtime_combat_entities"):
-		return
-	for entity in battle.call("get_runtime_combat_entities"):
+	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
 		if not entity.has_method("get_entity_id"):
@@ -247,6 +245,6 @@ func _emit_resource_changed(delta: int, reason: StringName, source_node: Node, m
 
 
 func _lane_y(lane_id: int) -> float:
-	if battle != null and is_instance_valid(battle) and battle.has_method("_lane_y"):
-		return float(battle.call("_lane_y", lane_id))
+	if battle != null and is_instance_valid(battle):
+		return float(battle.get_lane_y(lane_id))
 	return 220.0 + lane_id * 100.0

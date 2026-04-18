@@ -233,4 +233,4 @@ func _estimate_target_tracking_budget(target_node: Node2D, travel_duration: floa
 func _report_protocol_issues(errors: Array[String], scope: StringName) -> void:
 	if _battle == null:
 		return
-	_battle.call("_report_protocol_issues", errors, scope)
+	_battle.report_protocol_issues(errors, scope)

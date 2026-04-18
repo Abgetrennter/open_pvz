@@ -107,12 +107,12 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 
 	var placement_request: Resource = _build_placement_request(card_id, lane_id, slot_index, card_def)
 	var placement_result: Dictionary = {}
-	if battle != null and is_instance_valid(battle) and battle.has_method("validate_placement_request"):
-		placement_result = battle.call("validate_placement_request", placement_request)
+	if battle != null and is_instance_valid(battle):
+		placement_result = battle.validate_placement_request(placement_request)
 	var placement_reason := StringName(placement_result.get("reason", &"placement_validation_missing"))
 	if not bool(placement_result.get("valid", false)):
-		if battle != null and is_instance_valid(battle) and battle.has_method("reject_placement_request"):
-			battle.call("reject_placement_request", placement_request, placement_reason)
+		if battle != null and is_instance_valid(battle):
+			battle.reject_placement_request(placement_request, placement_reason)
 		_emit_card_rejected(card_id, lane_id, slot_index, &"invalid_placement", {
 			"placement_reason": placement_reason,
 		})
@@ -121,8 +121,8 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 
 	var sun_cost := int(card_def.get("sun_cost"))
 	var spend_ok := false
-	if battle != null and is_instance_valid(battle) and battle.has_method("try_spend_sun"):
-		spend_ok = bool(battle.call("try_spend_sun", sun_cost, &"card_play", null, {
+	if battle != null and is_instance_valid(battle):
+		spend_ok = bool(battle.try_spend_sun(sun_cost, &"card_play", null, {
 			"card_id": card_id,
 			"lane_id": lane_id,
 			"slot_index": slot_index,
@@ -133,8 +133,8 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 		return false
 
 	var spawned_entity: Node = null
-	if battle != null and is_instance_valid(battle) and battle.has_method("spawn_card_entity"):
-		spawned_entity = battle.call("spawn_card_entity", StringName(card_def.get("entity_template_id")), lane_id, slot_index, {
+	if battle != null and is_instance_valid(battle):
+		spawned_entity = battle.spawn_card_entity(StringName(card_def.get("entity_template_id")), lane_id, slot_index, {
 			"card_id": card_id,
 			"request_id": StringName(placement_request.get("request_id")),
 		})
@@ -143,18 +143,18 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 		selected_card_id = StringName()
 		return false
 
-	if battle == null or not is_instance_valid(battle) or not battle.has_method("commit_placement_request") or not bool(battle.call("commit_placement_request", placement_request, spawned_entity)):
+	if battle == null or not is_instance_valid(battle) or not bool(battle.commit_placement_request(placement_request, spawned_entity)):
 		_emit_card_rejected(card_id, lane_id, slot_index, &"placement_commit_failed")
 		selected_card_id = StringName()
 		return false
-	if battle.has_method("_emit_entity_spawned"):
+	if battle != null and is_instance_valid(battle):
 		var slot_type := StringName()
 		var slot_tags := PackedStringArray()
 		var resolved_slot = placement_result.get("slot", null)
 		if resolved_slot != null:
 			slot_type = StringName(resolved_slot.slot_type)
 			slot_tags = resolved_slot.get_effective_tags()
-		battle.call("_emit_entity_spawned", spawned_entity, lane_id, null, {
+		battle.emit_entity_spawned(spawned_entity, lane_id, null, {
 			"card_id": card_id,
 			"request_id": StringName(placement_request.get("request_id")),
 			"placement_role": StringName(placement_request.get("placement_role")),

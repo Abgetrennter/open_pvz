@@ -12,6 +12,14 @@ This directory stores combat-facing Resource content for the runtime and validat
   - Projectile content templates.
 - `trigger_bindings/`
   - Template behavior binding resources.
+- `cards/`
+  - Formal card definitions and reusable card rosters.
+- `waves/`
+  - Formal wave templates and spawn pacing resources.
+- `levels/`
+  - Reserved for formal level-side data and shared level metadata.
+- `battlefields/`
+  - Reserved for battlefield and board-semantics presets.
 - `entity_templates/plants/`
   - Plant entity templates.
 - `entity_templates/zombies/`
@@ -23,6 +31,9 @@ This directory stores combat-facing Resource content for the runtime and validat
 - `EntityTemplate` resources should be split by major entity kind at minimum.
 - `ProjectileTemplate` resources should describe the projectile itself, not the firing entity.
 - `TriggerBinding` resources should describe when a template triggers an effect, not long-lived entity stats.
+- Formal battle content should prefer `data/combat/*` trees over `scenes/validation` or `scenes/showcase`.
+- `scenes/validation/` is for verification scenarios.
+- `scenes/showcase/` is for display wrappers only.
 
 ## First Batch Samples
 
@@ -55,6 +66,9 @@ This directory stores combat-facing Resource content for the runtime and validat
 - `plant_cabbage_lobber`
 - `plant_melon_lobber`
 - `plant_wall_barrier`
+- `plant_frost_pea`
+- `plant_spore_summoner`
+- `plant_sporeling`
 
 ### Zombie Templates
 
@@ -65,3 +79,5 @@ This directory stores combat-facing Resource content for the runtime and validat
 - `zombie_bucket_tank`
 - `zombie_air_scout`
 - `zombie_boss_heavy`
+- `zombie_bone_thrower`
+- `zombie_tar_spitter`

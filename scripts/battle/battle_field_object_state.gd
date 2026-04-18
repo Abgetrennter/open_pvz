@@ -76,10 +76,9 @@ func _spawn_field_object(config: Resource, scenario: Resource) -> void:
 		return
 	if entity.has_method("set_battle_ref"):
 		entity.call("set_battle_ref", battle)
-	if battle.has_method("_finalize_spawned_entity"):
-		battle.call("_finalize_spawned_entity", entity, lane_id, entity_template.hit_height_band, [], null, {
-			"spawn_reason": &"field_object_spawn",
-		})
+	battle.finalize_spawned_entity(entity, lane_id, entity_template.hit_height_band, [], null, {
+		"spawn_reason": &"field_object_spawn",
+	})
 	_field_objects.append(entity)
 	_emit_field_object_spawned(entity, lane_id, template_id)
 
@@ -95,8 +94,8 @@ func _resolve_template(template_id: StringName):
 
 func _build_spawn_position(lane_id: int, x_position: float) -> Vector2:
 	var lane_y := 220.0
-	if battle != null and battle.has_method("get_lane_y"):
-		lane_y = battle.call("get_lane_y", lane_id)
+	if battle != null:
+		lane_y = battle.get_lane_y(lane_id)
 	return Vector2(x_position, lane_y)
 
 

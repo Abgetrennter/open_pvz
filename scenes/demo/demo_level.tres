@@ -1,60 +1,19 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=32 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
-[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
-[ext_resource type="Script" path="res://scripts/battle/wave_def.gd" id="3_wave_def"]
-[ext_resource type="Script" path="res://scripts/battle/wave_spawn_entry.gd" id="4_wave_spawn"]
-[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="5_spawn"]
-[ext_resource type="Script" path="res://scripts/battle/sun_drop_entry.gd" id="6_sun_drop"]
-[ext_resource type="Script" path="res://scripts/battle/field_object_config.gd" id="7_field_obj"]
-
-[sub_resource type="Resource" id="CardDef_sunflower"]
-script = ExtResource("2_card_def")
-card_id = &"card_sunflower"
-display_name = "Sunflower"
-entity_template_id = &"plant_sunflower"
-sun_cost = 50
-cooldown_seconds = 5.0
-placement_tags = PackedStringArray("supports_primary")
-
-[sub_resource type="Resource" id="CardDef_shooter"]
-script = ExtResource("2_card_def")
-card_id = &"card_shooter"
-display_name = "Shooter"
-entity_template_id = &"plant_basic_shooter"
-sun_cost = 100
-cooldown_seconds = 5.0
-placement_tags = PackedStringArray("supports_primary")
-
-[sub_resource type="Resource" id="CardDef_wall"]
-script = ExtResource("2_card_def")
-card_id = &"card_wall"
-display_name = "Wall"
-entity_template_id = &"plant_wall_barrier"
-sun_cost = 50
-cooldown_seconds = 10.0
-placement_tags = PackedStringArray("supports_primary")
-
-[sub_resource type="Resource" id="CardDef_repeater"]
-script = ExtResource("2_card_def")
-card_id = &"card_repeater"
-display_name = "Repeater"
-entity_template_id = &"plant_repeater_burst"
-sun_cost = 200
-cooldown_seconds = 5.0
-placement_tags = PackedStringArray("supports_primary")
-
-[sub_resource type="Resource" id="CardDef_lobber"]
-script = ExtResource("2_card_def")
-card_id = &"card_lobber"
-display_name = "Lobber"
-entity_template_id = &"plant_cabbage_lobber"
-sun_cost = 150
-cooldown_seconds = 5.0
-placement_tags = PackedStringArray("supports_primary")
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_sunflower.tres" id="2_card_sunflower"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_shooter.tres" id="3_card_shooter"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_wall.tres" id="4_card_wall"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_repeater.tres" id="5_card_repeater"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_lobber.tres" id="6_card_lobber"]
+[ext_resource type="Resource" path="res://data/combat/waves/demo/wave_1.tres" id="7_wave_1"]
+[ext_resource type="Resource" path="res://data/combat/waves/demo/wave_2.tres" id="8_wave_2"]
+[ext_resource type="Resource" path="res://data/combat/waves/demo/wave_3.tres" id="9_wave_3"]
+[ext_resource type="Script" path="res://scripts/battle/sun_drop_entry.gd" id="10_sun_drop"]
+[ext_resource type="Script" path="res://scripts/battle/field_object_config.gd" id="11_field_obj"]
 
 [sub_resource type="Resource" id="SunDrop_1"]
-script = ExtResource("6_sun_drop")
+script = ExtResource("10_sun_drop")
 at_time = 5.0
 lane_id = 2
 x_position = 400.0
@@ -63,7 +22,7 @@ source_type = &"sky_drop"
 auto_collect_delay = 12.0
 
 [sub_resource type="Resource" id="SunDrop_2"]
-script = ExtResource("6_sun_drop")
+script = ExtResource("10_sun_drop")
 at_time = 13.0
 lane_id = 1
 x_position = 350.0
@@ -72,7 +31,7 @@ source_type = &"sky_drop"
 auto_collect_delay = 12.0
 
 [sub_resource type="Resource" id="SunDrop_3"]
-script = ExtResource("6_sun_drop")
+script = ExtResource("10_sun_drop")
 at_time = 21.0
 lane_id = 3
 x_position = 450.0
@@ -81,7 +40,7 @@ source_type = &"sky_drop"
 auto_collect_delay = 12.0
 
 [sub_resource type="Resource" id="SunDrop_4"]
-script = ExtResource("6_sun_drop")
+script = ExtResource("10_sun_drop")
 at_time = 29.0
 lane_id = 0
 x_position = 380.0
@@ -90,7 +49,7 @@ source_type = &"sky_drop"
 auto_collect_delay = 12.0
 
 [sub_resource type="Resource" id="SunDrop_5"]
-script = ExtResource("6_sun_drop")
+script = ExtResource("10_sun_drop")
 at_time = 37.0
 lane_id = 4
 x_position = 420.0
@@ -99,7 +58,7 @@ source_type = &"sky_drop"
 auto_collect_delay = 12.0
 
 [sub_resource type="Resource" id="SunDrop_6"]
-script = ExtResource("6_sun_drop")
+script = ExtResource("10_sun_drop")
 at_time = 45.0
 lane_id = 2
 x_position = 360.0
@@ -108,7 +67,7 @@ source_type = &"sky_drop"
 auto_collect_delay = 12.0
 
 [sub_resource type="Resource" id="SunDrop_7"]
-script = ExtResource("6_sun_drop")
+script = ExtResource("10_sun_drop")
 at_time = 53.0
 lane_id = 1
 x_position = 400.0
@@ -117,7 +76,7 @@ source_type = &"sky_drop"
 auto_collect_delay = 12.0
 
 [sub_resource type="Resource" id="SunDrop_8"]
-script = ExtResource("6_sun_drop")
+script = ExtResource("10_sun_drop")
 at_time = 61.0
 lane_id = 3
 x_position = 430.0
@@ -125,258 +84,32 @@ value = 25
 source_type = &"sky_drop"
 auto_collect_delay = 12.0
 
-[sub_resource type="Resource" id="Spawn_w1_l1"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 1
-x_position = 920.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w1_l3"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 3
-x_position = 940.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w1_l4"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 4
-x_position = 910.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="WaveSpawn_w1_e1"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 0.0
-spawn_entry = SubResource("Spawn_w1_l1")
-
-[sub_resource type="Resource" id="WaveSpawn_w1_e2"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 2.0
-spawn_entry = SubResource("Spawn_w1_l3")
-
-[sub_resource type="Resource" id="WaveSpawn_w1_e3"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 4.0
-spawn_entry = SubResource("Spawn_w1_l4")
-
-[sub_resource type="Resource" id="WaveDef_1"]
-script = ExtResource("3_wave_def")
-wave_id = &"wave_1"
-start_time = 20.0
-spawn_entries = [SubResource("WaveSpawn_w1_e1"), SubResource("WaveSpawn_w1_e2"), SubResource("WaveSpawn_w1_e3")]
-
-[sub_resource type="Resource" id="Spawn_w2_l0"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 0
-x_position = 930.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w2_l2a"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 2
-x_position = 920.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w2_l2b"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_brisk_runner"
-lane_id = 2
-x_position = 950.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w2_l4"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 4
-x_position = 940.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w2_l1"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_brisk_runner"
-lane_id = 1
-x_position = 960.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="WaveSpawn_w2_e1"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 0.0
-spawn_entry = SubResource("Spawn_w2_l0")
-
-[sub_resource type="Resource" id="WaveSpawn_w2_e2"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 3.0
-spawn_entry = SubResource("Spawn_w2_l2a")
-
-[sub_resource type="Resource" id="WaveSpawn_w2_e3"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 3.0
-spawn_entry = SubResource("Spawn_w2_l2b")
-
-[sub_resource type="Resource" id="WaveSpawn_w2_e4"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 6.0
-spawn_entry = SubResource("Spawn_w2_l4")
-
-[sub_resource type="Resource" id="WaveSpawn_w2_e5"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 8.0
-spawn_entry = SubResource("Spawn_w2_l1")
-
-[sub_resource type="Resource" id="WaveDef_2"]
-script = ExtResource("3_wave_def")
-wave_id = &"wave_2"
-start_time = 45.0
-spawn_entries = [SubResource("WaveSpawn_w2_e1"), SubResource("WaveSpawn_w2_e2"), SubResource("WaveSpawn_w2_e3"), SubResource("WaveSpawn_w2_e4"), SubResource("WaveSpawn_w2_e5")]
-
-[sub_resource type="Resource" id="Spawn_w3_l0"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 0
-x_position = 920.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w3_l1"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_brisk_runner"
-lane_id = 1
-x_position = 940.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w3_l2"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_bucket_tank"
-lane_id = 2
-x_position = 910.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w3_l3a"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 3
-x_position = 930.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w3_l3b"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_brisk_runner"
-lane_id = 3
-x_position = 950.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w3_l4a"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_bucket_tank"
-lane_id = 4
-x_position = 920.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w3_l4b"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_basic_walker"
-lane_id = 4
-x_position = 950.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="Spawn_w3_l0b"]
-script = ExtResource("5_spawn")
-entity_template_id = &"zombie_brisk_runner"
-lane_id = 0
-x_position = 960.0
-spawn_overrides = {
-}
-
-[sub_resource type="Resource" id="WaveSpawn_w3_e1"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 0.0
-spawn_entry = SubResource("Spawn_w3_l0")
-
-[sub_resource type="Resource" id="WaveSpawn_w3_e2"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 0.0
-spawn_entry = SubResource("Spawn_w3_l1")
-
-[sub_resource type="Resource" id="WaveSpawn_w3_e3"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 2.0
-spawn_entry = SubResource("Spawn_w3_l2")
-
-[sub_resource type="Resource" id="WaveSpawn_w3_e4"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 4.0
-spawn_entry = SubResource("Spawn_w3_l3a")
-
-[sub_resource type="Resource" id="WaveSpawn_w3_e5"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 4.0
-spawn_entry = SubResource("Spawn_w3_l3b")
-
-[sub_resource type="Resource" id="WaveSpawn_w3_e6"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 6.0
-spawn_entry = SubResource("Spawn_w3_l4a")
-
-[sub_resource type="Resource" id="WaveSpawn_w3_e7"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 8.0
-spawn_entry = SubResource("Spawn_w3_l4b")
-
-[sub_resource type="Resource" id="WaveSpawn_w3_e8"]
-script = ExtResource("4_wave_spawn")
-spawn_time_offset = 10.0
-spawn_entry = SubResource("Spawn_w3_l0b")
-
-[sub_resource type="Resource" id="WaveDef_3"]
-script = ExtResource("3_wave_def")
-wave_id = &"wave_3"
-start_time = 75.0
-spawn_entries = [SubResource("WaveSpawn_w3_e1"), SubResource("WaveSpawn_w3_e2"), SubResource("WaveSpawn_w3_e3"), SubResource("WaveSpawn_w3_e4"), SubResource("WaveSpawn_w3_e5"), SubResource("WaveSpawn_w3_e6"), SubResource("WaveSpawn_w3_e7"), SubResource("WaveSpawn_w3_e8")]
-
 [sub_resource type="Resource" id="FieldObj_mower_0"]
-script = ExtResource("7_field_obj")
+script = ExtResource("11_field_obj")
 object_template_id = &"field_object_lawn_mower"
 lane_id = 0
 x_position = 80.0
 
 [sub_resource type="Resource" id="FieldObj_mower_1"]
-script = ExtResource("7_field_obj")
+script = ExtResource("11_field_obj")
 object_template_id = &"field_object_lawn_mower"
 lane_id = 1
 x_position = 80.0
 
 [sub_resource type="Resource" id="FieldObj_mower_2"]
-script = ExtResource("7_field_obj")
+script = ExtResource("11_field_obj")
 object_template_id = &"field_object_lawn_mower"
 lane_id = 2
 x_position = 80.0
 
 [sub_resource type="Resource" id="FieldObj_mower_3"]
-script = ExtResource("7_field_obj")
+script = ExtResource("11_field_obj")
 object_template_id = &"field_object_lawn_mower"
 lane_id = 3
 x_position = 80.0
 
 [sub_resource type="Resource" id="FieldObj_mower_4"]
-script = ExtResource("7_field_obj")
+script = ExtResource("11_field_obj")
 object_template_id = &"field_object_lawn_mower"
 lane_id = 4
 x_position = 80.0
@@ -395,8 +128,8 @@ board_slot_count = 9
 board_slot_origin_x = 200.0
 board_slot_spacing = 80.0
 lane_count = 5
-card_defs = [SubResource("CardDef_sunflower"), SubResource("CardDef_shooter"), SubResource("CardDef_wall"), SubResource("CardDef_repeater"), SubResource("CardDef_lobber")]
-wave_defs = [SubResource("WaveDef_1"), SubResource("WaveDef_2"), SubResource("WaveDef_3")]
+card_defs = [ExtResource("2_card_sunflower"), ExtResource("3_card_shooter"), ExtResource("4_card_wall"), ExtResource("5_card_repeater"), ExtResource("6_card_lobber")]
+wave_defs = [ExtResource("7_wave_1"), ExtResource("8_wave_2"), ExtResource("9_wave_3")]
 field_object_configs = [SubResource("FieldObj_mower_0"), SubResource("FieldObj_mower_1"), SubResource("FieldObj_mower_2"), SubResource("FieldObj_mower_3"), SubResource("FieldObj_mower_4")]
 defeat_line_x = 60.0
 validation_rules = []

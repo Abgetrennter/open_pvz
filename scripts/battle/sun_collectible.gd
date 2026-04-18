@@ -61,9 +61,7 @@ func _on_click_area_input(_viewport: Viewport, event: InputEvent, _shape_idx: in
 func _collect() -> void:
 	if _economy_state == null or not is_instance_valid(_economy_state):
 		return
-	if not _economy_state.has_method("collect_sun"):
-		return
-	_economy_state.call("collect_sun", self, null)
+	_economy_state.collect_sun(self, null)
 
 
 func _process(delta: float) -> void:
@@ -76,8 +74,7 @@ func _process(delta: float) -> void:
 		return
 	if _economy_state == null or not is_instance_valid(_economy_state):
 		return
-	if _economy_state.has_method("collect_sun"):
-		_economy_state.call("collect_sun", self, null)
+	_economy_state.collect_sun(self, null)
 
 
 func get_debug_name() -> String:

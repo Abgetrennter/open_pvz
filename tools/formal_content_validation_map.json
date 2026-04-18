@@ -1,0 +1,83 @@
+{
+  "groups": [
+    {
+      "id": "plant_roster_v1",
+      "description": "Formal plant-side baseline capabilities that should stay independently verifiable.",
+      "validations": [
+        "template_factory_validation",
+        "repeater_burst_validation",
+        "lobber_catalog_validation",
+        "air_interceptor_validation",
+        "sun_resource_validation",
+        "card_flow_validation",
+        "plant_roster_phase6_validation"
+      ],
+      "showcases": [
+        "template_factory_showcase",
+        "repeater_burst_showcase",
+        "lobber_catalog_showcase",
+        "air_interceptor_showcase"
+      ]
+    },
+    {
+      "id": "zombie_roster_v1",
+      "description": "Formal zombie-side pressure baseline for runner, walker, tank, air and reactive units.",
+      "validations": [
+        "zombie_roster_attack_validation",
+        "wave_flow_validation",
+        "fast_pursuit_cascade_validation",
+        "tracking_barrage_chaos_validation",
+        "zombie_roster_phase6_validation"
+      ],
+      "showcases": [
+        "zombie_roster_showcase",
+        "fast_pursuit_cascade_showcase",
+        "tracking_barrage_chaos_showcase"
+      ]
+    },
+    {
+      "id": "board_and_battlefield_semantics_v1",
+      "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
+      "validations": [
+        "board_placement_validation",
+        "board_slot_tag_validation",
+        "roof_slot_validation",
+        "air_slot_validation",
+        "cover_blocker_validation",
+        "field_object_mower_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "wave_and_level_structure_v1",
+      "description": "Formal wave pacing and playable level structure for reusable battle content.",
+      "validations": [
+        "wave_flow_validation",
+        "wave_guardrail_validation"
+      ],
+      "showcases": [
+        "minimal_validation_showcase"
+      ]
+    },
+    {
+      "id": "extension_and_guardrail_boundaries_v1",
+      "description": "Validation-only and extension-boundary groups that should stay separate from formal roster ownership.",
+      "validations": [
+        "extension_pack_smoke_validation",
+        "extension_manifest_guardrail_validation",
+        "extension_effect_guardrail_validation"
+      ],
+      "showcases": [
+        "hit_split_chaos_showcase",
+        "periodic_summon_chaos_showcase",
+        "apply_status_chaos_showcase",
+        "knockback_chaos_showcase",
+        "chain_bounce_chaos_showcase",
+        "aura_chaos_showcase",
+        "delayed_trigger_chaos_showcase",
+        "delayed_explode_chaos_showcase",
+        "mark_chaos_showcase"
+      ]
+    }
+  ]
+}

@@ -20,7 +20,7 @@ func bind_battle(battle: Node) -> void:
 func reset_validation() -> void:
 	_validation_status = &"pending"
 	_validation_started_at = GameState.current_time
-	var active_scenario = _battle.call("_resolve_scenario")
+	var active_scenario = _battle.resolve_scenario()
 	_validation_deadline = GameState.current_time + (0.0 if active_scenario == null else float(active_scenario.validation_time_limit))
 	_validation_rule_states.clear()
 	_validation_counts.clear()
@@ -146,7 +146,7 @@ func _set_validation_status(next_status: StringName) -> void:
 	_validation_status = next_status
 	if next_status == &"passed" or next_status == &"failed":
 		_report_validation_result()
-		_battle.call("_emit_validation_completed", next_status)
+		_battle.emit_validation_completed(next_status)
 		var auto_quit_on_validation: bool = _battle.auto_quit_on_validation
 		if auto_quit_on_validation:
 			var auto_quit_delay: float = _battle.auto_quit_delay
@@ -162,7 +162,7 @@ func _report_validation_result() -> void:
 	if not print_report and not auto_quit and output_dir.is_empty():
 		return
 	_validation_reported = true
-	var reporter: RefCounted = _battle.call("_get_validation_reporter")
+	var reporter: RefCounted = _battle.get_validation_reporter()
 	reporter.report_validation_result(
 		_validation_status,
 		output_dir,

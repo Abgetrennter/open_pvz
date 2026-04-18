@@ -2,6 +2,9 @@
 
 These scenes are thin wrappers around already-validated battle scenario resources.
 
+They are display/navigation entry points, not the source of truth for formal content organization.
+Formal combat content should live in `data/combat/` and runtime battle scenarios should stay independent from showcase naming.
+
 The project startup scene is now a lightweight showcase hub:
 
 - `res://scenes/main/main.tscn`
@@ -39,3 +42,12 @@ All of them use `BattleManager` directly and keep restart enabled with `R`.
 Each showcase scene also supports:
 
 - `Esc` to return to the showcase hub
+
+## Boundary
+
+- `scenes/showcase/`
+  - For human-facing demonstration and navigation only.
+- `scenes/validation/`
+  - For verification scenarios and regression entry points.
+- formal combat data
+  - Should be authored under `data/combat/` and referenced into battle scenarios as needed.

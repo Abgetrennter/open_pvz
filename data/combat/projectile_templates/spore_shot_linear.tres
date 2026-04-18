@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ProjectileTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/projectile_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="2_profile"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"spore_shot_linear"
+display_name = "Spore Shot Projectile"
+tags = PackedStringArray("projectile", "spore", "linear")
+flight_profile = ExtResource("2_profile")
+lifetime = 4.5
+hitbox_radius = 9.0
+default_params = {
+"damage": 10,
+"speed": 180.0
+}

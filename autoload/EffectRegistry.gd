@@ -5,6 +5,7 @@ const EffectSlotDefRef = preload("res://scripts/core/defs/effect_slot_def.gd")
 const EffectResultRef = preload("res://scripts/core/runtime/effect_result.gd")
 const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
+const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight_profile.gd"
 const ProjectileTemplatePath := "res://scripts/core/defs/projectile_template.gd"
 const EXTENSION_EFFECT_DEF_DIR := "data/combat/effects"
@@ -222,6 +223,69 @@ func _register_builtin_defs() -> void:
 	explode.allow_extra_children = false
 	register_def(explode)
 
+	var apply_status = EffectDefRef.new()
+	apply_status.effect_id = &"apply_status"
+	apply_status.tags = PackedStringArray(["hit_response", "status_apply"])
+	var apply_status_param_defs: Array[Dictionary] = [{
+		"name": "status_id",
+		"type": "string_name",
+	}, {
+		"name": "duration",
+		"type": "float",
+		"min": 0.1,
+		"max": 30.0,
+		"default": 2.0,
+	}, {
+		"name": "movement_scale",
+		"type": "float",
+		"min": 0.0,
+		"max": 1.0,
+		"default": 1.0,
+	}, {
+		"name": "blocks_attack",
+		"type": "bool",
+		"default": false,
+	}, {
+		"name": "target_mode",
+		"type": "string_name",
+		"default": &"context_target",
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target"]),
+	}]
+	apply_status.param_defs = apply_status_param_defs
+	apply_status.allow_extra_params = false
+	apply_status.allow_extra_children = false
+	register_def(apply_status)
+
+	var spawn_entity = EffectDefRef.new()
+	spawn_entity.effect_id = &"spawn_entity"
+	spawn_entity.tags = PackedStringArray(["summon", "spawn"])
+	var spawn_entity_param_defs: Array[Dictionary] = [{
+		"name": "entity_template_id",
+		"type": "string_name",
+	}, {
+		"name": "x_offset",
+		"type": "float",
+		"min": -600.0,
+		"max": 600.0,
+		"default": 0.0,
+	}, {
+		"name": "x_position",
+		"type": "float",
+		"min": 0.0,
+		"max": 4000.0,
+	}, {
+		"name": "spawn_position",
+		"type": "vector2",
+	}, {
+		"name": "spawn_reason",
+		"type": "string_name",
+		"default": &"effect_spawn",
+	}]
+	spawn_entity.param_defs = spawn_entity_param_defs
+	spawn_entity.allow_extra_params = false
+	spawn_entity.allow_extra_children = false
+	register_def(spawn_entity)
+
 
 func _register_builtin_strategies() -> void:
 	register_strategy(&"damage", func(context, params: Dictionary, _node) -> Variant:
@@ -277,6 +341,54 @@ func _register_builtin_strategies() -> void:
 				"chain_id": context.chain_id,
 				"origin_event_name": context.event_name,
 			})
+		return result
+	)
+
+	register_strategy(&"apply_status", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var target := _resolve_target(context, params)
+		var effect_source := _resolve_effect_source_node(context)
+		if target == null or not target.has_method("apply_status"):
+			result.success = false
+			result.notes.append("Status target missing or invalid.")
+			return result
+
+		var status_id := StringName(params.get("status_id", StringName()))
+		if status_id == StringName():
+			result.success = false
+			result.notes.append("apply_status requires status_id.")
+			return result
+
+		var duration := float(params.get("duration", 2.0))
+		var movement_scale := float(params.get("movement_scale", 1.0))
+		var blocks_attack := bool(params.get("blocks_attack", false))
+		target.call("apply_status", status_id, duration, {
+			"movement_scale": movement_scale,
+			"blocks_attack": blocks_attack,
+		})
+
+		var applied_event: Variant = EventDataRef.create(effect_source, target, null, PackedStringArray(["status", "applied", "effect"]))
+		applied_event.core["status_id"] = status_id
+		applied_event.core["duration"] = duration
+		applied_event.core["movement_scale"] = movement_scale
+		applied_event.core["blocks_attack"] = blocks_attack
+		EventBus.push_event(&"entity.status_applied", applied_event)
+		return result
+	)
+
+	register_strategy(&"spawn_entity", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		if GameState.current_battle == null:
+			result.success = false
+			result.notes.append("No active battle manager available.")
+			return result
+
+		var spawned_entity = GameState.current_battle.spawn_entity_from_effect(context, params, {
+			"spawn_reason": StringName(params.get("spawn_reason", &"effect_spawn")),
+		})
+		if spawned_entity == null:
+			result.success = false
+			result.notes.append("Entity spawn failed.")
 		return result
 	)
 
