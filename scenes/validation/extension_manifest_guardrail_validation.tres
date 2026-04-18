@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="BattleValidationRule_manifest_issues"]
+script = ExtResource("2_rule")
+rule_id = &"extension_manifest_protocol_issues"
+description = "invalid extension manifests should be rejected during extension pack scan"
+event_name = &"protocol.issue"
+min_count = 5
+required_core_values = {
+"scope": &"extension_manifest"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_no_projectiles"]
+script = ExtResource("2_rule")
+rule_id = &"extension_manifest_no_projectiles"
+description = "manifest guardrail fixtures should not spawn any projectile runtime"
+event_name = &"projectile.spawned"
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="BattleValidationRule_no_damage"]
+script = ExtResource("2_rule")
+rule_id = &"extension_manifest_no_damage"
+description = "manifest guardrail fixtures should not emit any damage events"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"extension_manifest_guardrail_validation"
+display_name = "Extension Manifest Guardrail Validation"
+description = "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids."
+goals = PackedStringArray("Verify invalid extension manifests emit protocol.issue events during extension pack scan.", "Verify invalid manifest fixtures never proceed into projectile or damage runtime behavior.")
+validation_time_limit = 0.5
+validation_rules = [SubResource("BattleValidationRule_manifest_issues"), SubResource("BattleValidationRule_no_projectiles"), SubResource("BattleValidationRule_no_damage")]

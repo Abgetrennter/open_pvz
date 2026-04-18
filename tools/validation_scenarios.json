@@ -195,6 +195,11 @@
     "description": "Validates that an extension-defined mark effect can apply a timed mark and emit a removal event on expiry."
   },
   {
+    "id": "extension_manifest_guardrail_validation",
+    "scenario": "res://scenes/validation/extension_manifest_guardrail_validation.tres",
+    "description": "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids."
+  },
+  {
     "id": "extension_effect_guardrail_validation",
     "scenario": "res://scenes/validation/extension_effect_guardrail_validation.tres",
     "description": "Validates extension effect guardrails across registry rebuild and spawn-entry binding checks, including duplicate ids, invalid schemas, missing execute entry points, slot mismatches, and missing strategies."
