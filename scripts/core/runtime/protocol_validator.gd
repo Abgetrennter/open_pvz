@@ -540,6 +540,10 @@ static func normalize_effect_node(node) -> Dictionary:
 	if effect_def == null:
 		errors.append("Unknown EffectDef %s." % String(node.effect_id))
 		return {"valid": false, "errors": errors}
+	var effect_strategy: Callable = EffectRegistry.get_strategy(StringName(node.effect_id))
+	if not effect_strategy.is_valid():
+		errors.append("EffectDef %s has no registered strategy." % String(node.effect_id))
+		return {"valid": false, "errors": errors}
 
 	var normalized_params: Dictionary = {}
 	for param_def in effect_def.param_defs:

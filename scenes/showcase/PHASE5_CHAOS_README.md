@@ -15,10 +15,16 @@
 
 - `hit_split_chaos_showcase.tscn`
 - `periodic_summon_chaos_showcase.tscn`
+- `apply_status_chaos_showcase.tscn`
+- `knockback_chaos_showcase.tscn`
+- `chain_bounce_chaos_showcase.tscn`
 
-这 2 个场景用于展示第五阶段后续扩展能力：
+这 5 个场景用于展示第五阶段后续扩展能力：
 
 - 扩展包新增最小 `on_hit` 效果位
 - 扩展包新增最小 `spawn_entity` 效果位
+- 扩展包新增 `apply_status` 控制效果
+- 扩展包新增 `knockback` 位移效果
+- 扩展包新增 `chain_bounce` 多目标跳链伤害
 
 它们的目标不是替代正式级联样例，而是证明扩展入口已经可以承接更强的内容表达力。

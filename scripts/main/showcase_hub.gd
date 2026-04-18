@@ -84,7 +84,7 @@ const GROUPS := [
 	},
 	{
 		"group_title": "第五阶段错误技",
-		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 2 个场景用于展示扩展包新增 on_hit 分裂与 spawn_entity 召唤能力。",
+		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 5 个场景用于展示扩展包新增的分裂、召唤、状态控制、击退和跳链能力。",
 		"color": Color("ef6c57"),
 		"items": [
 			{
@@ -116,6 +116,21 @@ const GROUPS := [
 				"title": "周期召唤扩展样例",
 				"summary": "召唤植物周期生成 shardling 并加入战斗，验证扩展包最小 spawn_entity 能力位已经打通。",
 				"scene": "res://scenes/showcase/periodic_summon_chaos_showcase.tscn",
+			},
+			{
+				"title": "状态控制扩展样例",
+				"summary": "命中后直接施加减速状态，验证扩展 apply_status 能力位已经接入现有状态主链。",
+				"scene": "res://scenes/showcase/apply_status_chaos_showcase.tscn",
+			},
+			{
+				"title": "击退扩展样例",
+				"summary": "命中后把僵尸向后推回去，验证扩展 knockback 位移效果已经接入共享实体运行时。",
+				"scene": "res://scenes/showcase/knockback_chaos_showcase.tscn",
+			},
+			{
+				"title": "跳链扩展样例",
+				"summary": "命中后按距离把伤害跳到附近多个目标，验证扩展 chain_bounce 多目标逻辑已经打通。",
+				"scene": "res://scenes/showcase/chain_bounce_chaos_showcase.tscn",
 			},
 		],
 	},

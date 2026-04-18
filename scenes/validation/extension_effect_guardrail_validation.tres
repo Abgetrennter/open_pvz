@@ -1,0 +1,170 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="4_template_script"]
+[ext_resource type="Script" path="res://scripts/core/defs/trigger_binding.gd" id="5_binding_script"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="6_ground_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_linear.tres" id="7_projectile_template"]
+
+[sub_resource type="Resource" id="InvalidBinding_split_bad_param"]
+script = ExtResource("5_binding_script")
+binding_id = &"invalid_extension_split_binding"
+behavior_key = &"attack"
+trigger_id = &"periodically"
+event_name = &"game.tick"
+condition_values = {
+"detection_id": &"lane_forward",
+"interval": 0.6,
+"scan_range": 900.0
+}
+effect_id = &"spawn_projectile"
+effect_params = {
+"damage": 10,
+"direction": Vector2(1, 0),
+"speed": 220.0
+}
+on_hit_effect_id = &"split_projectiles"
+on_hit_effect_params = {
+"damage": 12,
+"projectile_template": "not_a_resource"
+}
+projectile_template = ExtResource("7_projectile_template")
+
+[sub_resource type="Resource" id="InvalidBinding_slot_mismatch"]
+script = ExtResource("5_binding_script")
+binding_id = &"invalid_extension_slot_binding"
+behavior_key = &"attack"
+trigger_id = &"periodically"
+event_name = &"game.tick"
+condition_values = {
+"detection_id": &"lane_forward",
+"interval": 0.6,
+"scan_range": 900.0
+}
+effect_id = &"spawn_projectile"
+effect_params = {
+"damage": 10,
+"direction": Vector2(1, 0),
+"speed": 220.0
+}
+on_hit_effect_id = &"spawn_entity"
+on_hit_effect_params = {
+"entity_template_id": &"plant_extension_shardling"
+}
+projectile_template = ExtResource("7_projectile_template")
+
+[sub_resource type="Resource" id="InvalidBinding_missing_strategy"]
+script = ExtResource("5_binding_script")
+binding_id = &"invalid_extension_strategy_binding"
+behavior_key = &"attack"
+trigger_id = &"periodically"
+event_name = &"game.tick"
+condition_values = {
+"detection_id": &"lane_forward",
+"interval": 0.6,
+"scan_range": 900.0
+}
+effect_id = &"invalid_strategy_ext"
+effect_params = {
+"amount": 5
+}
+
+[sub_resource type="Resource" id="InvalidTemplate_split_bad_param"]
+script = ExtResource("4_template_script")
+template_id = &"invalid_extension_split_template"
+entity_kind = &"plant"
+display_name = "Invalid Extension Split Template"
+hit_height_band = ExtResource("6_ground_height")
+trigger_bindings = [SubResource("InvalidBinding_split_bad_param")]
+
+[sub_resource type="Resource" id="InvalidTemplate_slot_mismatch"]
+script = ExtResource("4_template_script")
+template_id = &"invalid_extension_slot_template"
+entity_kind = &"plant"
+display_name = "Invalid Extension Slot Template"
+hit_height_band = ExtResource("6_ground_height")
+trigger_bindings = [SubResource("InvalidBinding_slot_mismatch")]
+
+[sub_resource type="Resource" id="InvalidTemplate_missing_strategy"]
+script = ExtResource("4_template_script")
+template_id = &"invalid_extension_strategy_template"
+entity_kind = &"plant"
+display_name = "Invalid Extension Strategy Template"
+hit_height_band = ExtResource("6_ground_height")
+trigger_bindings = [SubResource("InvalidBinding_missing_strategy")]
+
+[sub_resource type="Resource" id="Spawn_invalid_split_bad_param"]
+script = ExtResource("2_spawn")
+entity_template = SubResource("InvalidTemplate_split_bad_param")
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_invalid_slot_mismatch"]
+script = ExtResource("2_spawn")
+entity_template = SubResource("InvalidTemplate_slot_mismatch")
+lane_id = 0
+x_position = 240.0
+
+[sub_resource type="Resource" id="Spawn_invalid_missing_strategy"]
+script = ExtResource("2_spawn")
+entity_template = SubResource("InvalidTemplate_missing_strategy")
+lane_id = 0
+x_position = 320.0
+
+[sub_resource type="Resource" id="Rule_effect_def_issues"]
+script = ExtResource("3_rule")
+rule_id = &"extension_effect_def_issues"
+description = "invalid extension effect definitions should be rejected during registry rebuild"
+event_name = &"protocol.issue"
+min_count = 3
+required_core_values = {
+"scope": &"effect_def"
+}
+
+[sub_resource type="Resource" id="Rule_effect_strategy_issues"]
+script = ExtResource("3_rule")
+rule_id = &"extension_effect_strategy_issues"
+description = "extension effects without executable strategies should be rejected during registry rebuild"
+event_name = &"protocol.issue"
+min_count = 1
+required_core_values = {
+"scope": &"effect_strategy"
+}
+
+[sub_resource type="Resource" id="Rule_spawn_guardrail_issues"]
+script = ExtResource("3_rule")
+rule_id = &"extension_spawn_guardrail_issues"
+description = "invalid extension effect bindings should be rejected before runtime execution"
+event_name = &"protocol.issue"
+min_count = 3
+required_core_values = {
+"scope": &"battle_spawn_entry"
+}
+
+[sub_resource type="Resource" id="Rule_no_projectile_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"extension_guardrail_no_projectiles"
+description = "guardrail samples should not spawn any projectiles"
+event_name = &"projectile.spawned"
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_no_damage_events"]
+script = ExtResource("3_rule")
+rule_id = &"extension_guardrail_no_damage"
+description = "guardrail samples should be blocked before any damage event is emitted"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"extension_effect_guardrail_validation"
+display_name = "Extension Effect Guardrail Validation"
+description = "Validates extension effect guardrails across registry rebuild and spawn-entry binding checks, including duplicate ids, invalid effect defs, missing strategy execute entry points, slot tag mismatches, bad param types, and effects with no registered strategy."
+goals = PackedStringArray("Verify invalid extension effect definitions emit protocol issues during registry rebuild.", "Verify an extension effect without execute() emits an effect_strategy protocol issue.", "Verify invalid extension on_hit bindings are rejected before any runtime projectile or damage execution begins.")
+validation_time_limit = 0.9
+validation_rules = [SubResource("Rule_effect_def_issues"), SubResource("Rule_effect_strategy_issues"), SubResource("Rule_spawn_guardrail_issues"), SubResource("Rule_no_projectile_spawn"), SubResource("Rule_no_damage_events")]
+spawns = [SubResource("Spawn_invalid_split_bad_param"), SubResource("Spawn_invalid_slot_mismatch"), SubResource("Spawn_invalid_missing_strategy")]

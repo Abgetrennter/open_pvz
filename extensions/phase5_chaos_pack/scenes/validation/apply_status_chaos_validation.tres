@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_status_binder"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_status_binder"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 430.0
+spawn_overrides = {
+"move_speed": 40.0
+}
+
+[sub_resource type="Resource" id="Rule_status_applied"]
+script = ExtResource("3_rule")
+rule_id = &"extension_status_applied"
+description = "extension apply_status effect should emit entity.status_applied on the zombie target"
+event_name = &"entity.status_applied"
+required_core_values = {
+"status_id": &"slowed",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_movement_scaled"]
+script = ExtResource("3_rule")
+rule_id = &"extension_status_movement_scaled"
+description = "slowed zombie should report movement_scaled while the extension status is active"
+event_name = &"status.effect_observed"
+required_core_values = {
+"effect": &"movement_scaled"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"apply_status_chaos_validation"
+display_name = "Apply Status Chaos Validation"
+description = "Validates that an extension-defined apply_status effect can slow a zombie on hit, emit the shared status event, and reuse the existing movement-scale status runtime."
+goals = PackedStringArray("Verify extension apply_status emits entity.status_applied.", "Verify the slowed zombie reports movement_scaled through the existing status effect observed event.", "Verify the effect is carried by the shared status runtime rather than a bespoke combat script.")
+validation_time_limit = 2.0
+validation_rules = [SubResource("Rule_status_applied"), SubResource("Rule_movement_scaled")]
+spawns = [SubResource("Spawn_status_binder"), SubResource("Spawn_target")]

@@ -160,6 +160,26 @@
     "description": "Validates that an extension-defined spawn_entity effect can periodically summon combat-ready shardlings into the shared runtime."
   },
   {
+    "id": "apply_status_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/apply_status_chaos_validation.tres",
+    "description": "Validates that an extension-defined apply_status effect can slow a zombie on hit and reuse the shared status runtime."
+  },
+  {
+    "id": "knockback_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/knockback_chaos_validation.tres",
+    "description": "Validates that an extension-defined knockback effect can displace a zombie on hit while preserving primary damage."
+  },
+  {
+    "id": "chain_bounce_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/chain_bounce_chaos_validation.tres",
+    "description": "Validates that an extension-defined chain_bounce effect can jump between clustered targets with falloff damage."
+  },
+  {
+    "id": "extension_effect_guardrail_validation",
+    "scenario": "res://scenes/validation/extension_effect_guardrail_validation.tres",
+    "description": "Validates extension effect guardrails across registry rebuild and spawn-entry binding checks, including duplicate ids, invalid schemas, missing execute entry points, slot mismatches, and missing strategies."
+  },
+  {
     "id": "target_acquisition_validation",
     "scenario": "res://scenes/validation/target_acquisition_validation.tres",
     "description": "Validates the first-stage lane_forward detection gate, including same-lane firing, adjacent-lane rejection, and RuleContext target propagation for parabola targeting."

@@ -8,10 +8,22 @@
   - 命中后分裂出新的追击投射物
 - `spawn_entity`
   - 周期生成新实体
+- `apply_status`
+  - 命中后施加共享状态系统里的控制效果
+- `knockback`
+  - 命中后对目标施加最小受控位移
+- `chain_bounce`
+  - 命中后把伤害跳到附近目标并带伤害衰减
 - `plant_extension_splitter`
   - 命中分裂型错误技样例
 - `plant_extension_summoner`
   - 周期召唤型错误技样例
+- `plant_extension_status_binder`
+  - 状态控制型错误技样例
+- `plant_extension_knockback_binder`
+  - 击退控制型错误技样例
+- `plant_extension_chain_bouncer`
+  - 跳链伤害型错误技样例
 
 当前包的目标不是提供完整生态，而是证明：
 

@@ -18,6 +18,8 @@ const EXTENSION_ENTITY_TEMPLATE_DIRS := [
 ]
 const EXTENSION_PROJECTILE_TEMPLATE_DIR := "data/combat/projectile_templates"
 const EXTENSION_TRIGGER_BINDING_DIR := "data/combat/trigger_bindings"
+const GUARDRail_EXTENSION_PACK_IDS := [StringName(&"phase5_guardrail_pack")]
+const GUARDRail_EXTENSION_SCENARIO_IDS := [StringName(&"extension_effect_guardrail_validation")]
 
 var _scene_cache: Dictionary = {}
 var _resource_cache: Dictionary = {}
@@ -182,6 +184,8 @@ func _register_extension_content() -> void:
 			break
 		if entry_name.begins_with(".") or not directory.current_is_dir():
 			continue
+		if not _should_register_extension_pack(entry_name):
+			continue
 		var extension_root := EXTENSION_ROOT_DIR.path_join(entry_name)
 		_register_extension_root(extension_root)
 	directory.list_dir_end()
@@ -205,3 +209,28 @@ func _report_duplicate_resource_id(resource_id: StringName, existing_path: Strin
 	push_warning(message)
 	if DebugService.has_method("record_protocol_issue"):
 		DebugService.record_protocol_issue(&"scene_registry", message, &"error")
+
+
+func _should_register_extension_pack(pack_name: String) -> bool:
+	var pack_id := StringName(pack_name)
+	if not GUARDRail_EXTENSION_PACK_IDS.has(pack_id):
+		return true
+	return _guardrail_extensions_enabled()
+
+
+func _guardrail_extensions_enabled() -> bool:
+	for raw_arg in OS.get_cmdline_user_args():
+		var arg := String(raw_arg)
+		if arg == "--include-guardrail-extension-packs":
+			return true
+		if arg.begins_with("--include-extension-pack="):
+			if StringName(arg.trim_prefix("--include-extension-pack=")) in GUARDRail_EXTENSION_PACK_IDS:
+				return true
+		if arg.begins_with("--validation-scenario-id="):
+			if StringName(arg.trim_prefix("--validation-scenario-id=")) in GUARDRail_EXTENSION_SCENARIO_IDS:
+				return true
+		if arg.begins_with("--validation-scenario="):
+			var scenario_path := arg.trim_prefix("--validation-scenario=")
+			if scenario_path.contains("extension_effect_guardrail_validation"):
+				return true
+	return false

@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_knockback_binder"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_knockback_binder"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 360.0
+spawn_overrides = {
+"move_speed": 35.0
+}
+
+[sub_resource type="Resource" id="Rule_knockback_event"]
+script = ExtResource("3_rule")
+rule_id = &"extension_knockback_event"
+description = "extension knockback effect should emit entity.knockback_applied for the target zombie"
+event_name = &"entity.knockback_applied"
+required_core_values = {
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_knockback_damage"]
+script = ExtResource("3_rule")
+rule_id = &"extension_knockback_damage"
+description = "the knockback binder should still land its primary projectile damage"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_extension_knockback_binder",
+"target_template_id": &"zombie_basic_walker",
+"value": 10
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"knockback_chaos_validation"
+display_name = "Knockback Chaos Validation"
+description = "Validates that an extension-defined knockback effect can push a zombie backward on hit while still using the shared projectile runtime."
+goals = PackedStringArray("Verify extension knockback emits entity.knockback_applied.", "Verify the binder still lands its primary projectile hit before displacement.", "Verify displacement happens through the shared entity runtime rather than a bespoke battle script.")
+validation_time_limit = 2.0
+validation_rules = [SubResource("Rule_knockback_event"), SubResource("Rule_knockback_damage")]
+spawns = [SubResource("Spawn_knockback_binder"), SubResource("Spawn_target")]

@@ -23,6 +23,9 @@ project's default startup scene:
 - `multi_lane_retaliation_cascade_showcase.tscn`
 - `hit_split_chaos_showcase.tscn`
 - `periodic_summon_chaos_showcase.tscn`
+- `apply_status_chaos_showcase.tscn`
+- `knockback_chaos_showcase.tscn`
+- `chain_bounce_chaos_showcase.tscn`
 
 Phase 5 分组的额外说明见：
 

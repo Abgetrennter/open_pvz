@@ -8,6 +8,8 @@ const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight
 const ProjectileTemplatePath := "res://scripts/core/defs/projectile_template.gd"
 const EXTENSION_ROOT_DIR := "res://extensions"
 const EXTENSION_EFFECT_DEF_DIR := "data/combat/effects"
+const GUARDRail_EXTENSION_PACK_IDS := [StringName(&"phase5_guardrail_pack")]
+const GUARDRail_EXTENSION_SCENARIO_IDS := [StringName(&"extension_effect_guardrail_validation")]
 
 var _effect_defs: Dictionary = {}
 var _effect_strategies: Dictionary = {}
@@ -20,23 +22,24 @@ func _ready() -> void:
 	_register_extension_defs_and_strategies()
 
 
-func register_def(effect_def) -> void:
-	if effect_def == null or effect_def.effect_id == StringName():
-		return
+func register_def(effect_def) -> bool:
+	if effect_def == null:
+		return false
 	var errors: Array[String] = ProtocolValidatorRef.validate_effect_def(effect_def)
 	if not errors.is_empty():
 		for error in errors:
 			push_warning(error)
 			if DebugService.has_method("record_protocol_issue"):
 				DebugService.record_protocol_issue(&"effect_def", error, &"error")
-		return
+		return false
 	if _effect_defs.has(effect_def.effect_id):
 		var message := "Duplicate EffectDef %s registration was ignored." % String(effect_def.effect_id)
 		push_warning(message)
 		if DebugService.has_method("record_protocol_issue"):
 			DebugService.record_protocol_issue(&"effect_def", message, &"error")
-		return
+		return false
 	_effect_defs[effect_def.effect_id] = effect_def
+	return true
 
 
 func register_strategy(effect_id: StringName, strategy: Callable) -> void:
@@ -51,6 +54,15 @@ func get_def(effect_id: StringName):
 
 func get_strategy(effect_id: StringName) -> Callable:
 	return _effect_strategies.get(effect_id, Callable())
+
+
+func rebuild_registry() -> void:
+	_effect_defs.clear()
+	_effect_strategies.clear()
+	_effect_strategy_owners.clear()
+	_register_builtin_defs()
+	_register_builtin_strategies()
+	_register_extension_defs_and_strategies()
 
 
 func _register_builtin_defs() -> void:
@@ -367,6 +379,8 @@ func _register_extension_defs_and_strategies() -> void:
 			break
 		if entry_name.begins_with(".") or not directory.current_is_dir():
 			continue
+		if not _should_register_extension_pack(entry_name):
+			continue
 		_register_extension_effect_defs(EXTENSION_ROOT_DIR.path_join(entry_name).path_join(EXTENSION_EFFECT_DEF_DIR))
 	directory.list_dir_end()
 
@@ -393,8 +407,9 @@ func _register_extension_effect_defs(directory_path: String) -> void:
 		var effect_def := load(full_path)
 		if effect_def == null or effect_def.get_script() != EffectDefRef:
 			continue
-		register_def(effect_def)
-		_register_effect_strategy_from_def(effect_def, full_path)
+		var accepted := register_def(effect_def)
+		if accepted:
+			_register_effect_strategy_from_def(effect_def, full_path)
 	directory.list_dir_end()
 
 
@@ -416,3 +431,28 @@ func _register_effect_strategy_from_def(effect_def, source_path: String) -> void
 		return
 	_effect_strategy_owners[effect_def.effect_id] = strategy_owner
 	register_strategy(effect_def.effect_id, Callable(strategy_owner, "execute"))
+
+
+func _should_register_extension_pack(pack_name: String) -> bool:
+	var pack_id := StringName(pack_name)
+	if not GUARDRail_EXTENSION_PACK_IDS.has(pack_id):
+		return true
+	return _guardrail_extensions_enabled()
+
+
+func _guardrail_extensions_enabled() -> bool:
+	for raw_arg in OS.get_cmdline_user_args():
+		var arg := String(raw_arg)
+		if arg == "--include-guardrail-extension-packs":
+			return true
+		if arg.begins_with("--include-extension-pack="):
+			if StringName(arg.trim_prefix("--include-extension-pack=")) in GUARDRail_EXTENSION_PACK_IDS:
+				return true
+		if arg.begins_with("--validation-scenario-id="):
+			if StringName(arg.trim_prefix("--validation-scenario-id=")) in GUARDRail_EXTENSION_SCENARIO_IDS:
+				return true
+		if arg.begins_with("--validation-scenario="):
+			var scenario_path := arg.trim_prefix("--validation-scenario=")
+			if scenario_path.contains("extension_effect_guardrail_validation"):
+				return true
+	return false

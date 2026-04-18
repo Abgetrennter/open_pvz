@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/scenes/validation/apply_status_chaos_validation.tres" id="2_scenario"]
+
+[node name="ApplyStatusChaosShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = true
+showcase_title = "状态控制错误技展示"
+showcase_summary = "扩展 apply_status 会在命中后直接给僵尸挂减速状态，观察现有状态系统如何接住扩展效果。"

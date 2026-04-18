@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_chain_bouncer"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_chain_bouncer"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_target_a"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 430.0
+
+[sub_resource type="Resource" id="Spawn_target_b"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 520.0
+
+[sub_resource type="Resource" id="Spawn_target_c"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 610.0
+
+[sub_resource type="Resource" id="Rule_bounce_damage_a"]
+script = ExtResource("3_rule")
+rule_id = &"chain_bounce_damage_a"
+description = "chain_bounce should damage the first target with bounce tags"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("chain_bounce")
+required_core_values = {
+"source_template_id": &"plant_extension_chain_bouncer",
+"target_template_id": &"zombie_basic_walker",
+"value": 18
+}
+
+[sub_resource type="Resource" id="Rule_bounce_damage_b"]
+script = ExtResource("3_rule")
+rule_id = &"chain_bounce_damage_b"
+description = "chain_bounce should continue to a second nearby target with reduced damage"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("chain_bounce")
+required_core_values = {
+"source_template_id": &"plant_extension_chain_bouncer",
+"target_template_id": &"zombie_basic_walker",
+"value": 14
+}
+
+[sub_resource type="Resource" id="Rule_bounce_damage_c"]
+script = ExtResource("3_rule")
+rule_id = &"chain_bounce_damage_c"
+description = "chain_bounce should continue to a third nearby target with reduced damage"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("chain_bounce")
+required_core_values = {
+"source_template_id": &"plant_extension_chain_bouncer",
+"target_template_id": &"zombie_basic_walker",
+"value": 10
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"chain_bounce_chaos_validation"
+display_name = "Chain Bounce Chaos Validation"
+description = "Validates that an extension-defined chain_bounce effect can jump between clustered zombies with falloff damage through the shared runtime."
+goals = PackedStringArray("Verify the chain_bounce effect damages the first target.", "Verify the bounce continues to nearby targets with falling damage values.", "Verify the entire chain is observable through tagged entity.damaged events.")
+validation_time_limit = 2.4
+validation_rules = [SubResource("Rule_bounce_damage_a"), SubResource("Rule_bounce_damage_b"), SubResource("Rule_bounce_damage_c")]
+spawns = [SubResource("Spawn_chain_bouncer"), SubResource("Spawn_target_a"), SubResource("Spawn_target_b"), SubResource("Spawn_target_c")]

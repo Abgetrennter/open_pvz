@@ -126,9 +126,11 @@ func reset_battle() -> void:
 	EventBus.clear()
 	if DebugService.has_method("clear_logs"):
 		DebugService.clear_logs()
+	_reset_validation()
+	if EffectRegistry.has_method("rebuild_registry"):
+		EffectRegistry.rebuild_registry()
 	_rebuild_lane_config()
 	_reset_runtime_services()
-	_reset_validation()
 	_spawn_scenario()
 
 

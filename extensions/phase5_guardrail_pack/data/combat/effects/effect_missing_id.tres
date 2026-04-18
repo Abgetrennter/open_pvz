@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EffectDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/effect_def.gd" id="1_effect"]
+[ext_resource type="Script" path="res://extensions/phase5_chaos_pack/scripts/effects/effect_spawn_entity.gd" id="2_strategy"]
+
+[resource]
+script = ExtResource("1_effect")
+param_defs = [{
+"name": "entity_template_id",
+"type": "string_name"
+}]
+allow_extra_params = false
+allow_extra_children = false
+tags = PackedStringArray("extension", "entity_spawn")
+strategy_script = ExtResource("2_strategy")
