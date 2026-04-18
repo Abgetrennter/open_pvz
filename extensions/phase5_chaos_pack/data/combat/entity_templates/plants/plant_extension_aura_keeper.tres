@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+[ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/data/combat/trigger_bindings/plant_attack_extension_aura_keeper.tres" id="3_binding"]
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"plant_extension_aura_keeper"
+entity_kind = &"plant"
+display_name = "Extension Aura Keeper"
+tags = PackedStringArray("plant", "template", "extension", "aura")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 95
+hitbox_size = Vector2(44, 54)
+hit_height_band = ExtResource("2_height")
+trigger_bindings = [ExtResource("3_binding")]

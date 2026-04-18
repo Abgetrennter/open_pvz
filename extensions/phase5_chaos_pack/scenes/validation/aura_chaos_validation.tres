@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_aura_keeper"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_extension_aura_keeper"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_near_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 260.0
+spawn_overrides = {
+"move_speed": 40.0
+}
+
+[sub_resource type="Resource" id="Spawn_far_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_brisk_runner"
+lane_id = 0
+x_position = 520.0
+
+[sub_resource type="Resource" id="Rule_near_status_applied"]
+script = ExtResource("3_rule")
+rule_id = &"aura_status_applied_near"
+description = "aura should apply slowed to the nearby walker"
+event_name = &"entity.status_applied"
+min_count = 1
+required_tags = PackedStringArray("status", "applied", "extension", "aura")
+required_core_values = {
+"status_id": &"slowed",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_far_status_blocked"]
+script = ExtResource("3_rule")
+rule_id = &"aura_status_not_applied_far"
+description = "aura should not apply slowed to the far brisk runner outside aura radius"
+event_name = &"entity.status_applied"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("status", "applied", "extension", "aura")
+required_core_values = {
+"target_template_id": &"zombie_brisk_runner"
+}
+
+[sub_resource type="Resource" id="Rule_near_movement_scaled"]
+script = ExtResource("3_rule")
+rule_id = &"aura_movement_scaled"
+description = "nearby slowed walker should report movement_scaled while inside the aura"
+event_name = &"status.effect_observed"
+required_core_values = {
+"effect": &"movement_scaled"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"aura_chaos_validation"
+display_name = "Aura Chaos Validation"
+description = "Validates that an extension-defined aura effect can periodically apply slowed to nearby enemies while leaving distant enemies untouched."
+goals = PackedStringArray("Verify aura applies slowed to nearby enemies in the same lane.", "Verify enemies outside aura radius are not affected.", "Verify the slowed target reports movement scaling through the shared status runtime.")
+validation_time_limit = 1.8
+validation_rules = [SubResource("Rule_near_status_applied"), SubResource("Rule_far_status_blocked"), SubResource("Rule_near_movement_scaled")]
+spawns = [SubResource("Spawn_aura_keeper"), SubResource("Spawn_near_target"), SubResource("Spawn_far_target")]

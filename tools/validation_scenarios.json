@@ -175,6 +175,11 @@
     "description": "Validates that an extension-defined chain_bounce effect can jump between clustered targets with falloff damage."
   },
   {
+    "id": "aura_chaos_validation",
+    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/aura_chaos_validation.tres",
+    "description": "Validates that an extension-defined aura effect can periodically apply slowed to nearby enemies while leaving distant enemies untouched."
+  },
+  {
     "id": "extension_effect_guardrail_validation",
     "scenario": "res://scenes/validation/extension_effect_guardrail_validation.tres",
     "description": "Validates extension effect guardrails across registry rebuild and spawn-entry binding checks, including duplicate ids, invalid schemas, missing execute entry points, slot mismatches, and missing strategies."

@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="EffectDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/effect_def.gd" id="1_effect"]
+[ext_resource type="Script" path="res://extensions/phase5_chaos_pack/scripts/effects/effect_aura.gd" id="2_strategy"]
+
+[resource]
+script = ExtResource("1_effect")
+effect_id = &"aura"
+param_defs = [{
+"name": "status_id",
+"type": "string_name"
+}, {
+"name": "duration",
+"type": "float",
+"min": 0.1,
+"max": 5.0,
+"default": 0.6
+}, {
+"name": "movement_scale",
+"type": "float",
+"min": 0.0,
+"max": 1.0,
+"default": 1.0
+}, {
+"name": "blocks_attack",
+"type": "bool",
+"default": false
+}, {
+"name": "radius",
+"type": "float",
+"min": 1.0,
+"max": 400.0,
+"default": 140.0
+}, {
+"name": "team_mode",
+"type": "string_name",
+"default": &"enemies",
+"options": PackedStringArray("enemies", "allies", "all")
+}, {
+"name": "origin_mode",
+"type": "string_name",
+"default": &"owner",
+"options": PackedStringArray("owner", "source", "event_source")
+}, {
+"name": "lane_only",
+"type": "bool",
+"default": false
+}]
+allow_extra_params = false
+allow_extra_children = false
+tags = PackedStringArray("extension", "aura_control")
+strategy_script = ExtResource("2_strategy")

@@ -84,7 +84,7 @@ const GROUPS := [
 	},
 	{
 		"group_title": "第五阶段错误技",
-		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 5 个场景用于展示扩展包新增的分裂、召唤、状态控制、击退和跳链能力。",
+		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 6 个场景用于展示扩展包新增的分裂、召唤、状态控制、击退、跳链和光环能力。",
 		"color": Color("ef6c57"),
 		"items": [
 			{
@@ -131,6 +131,11 @@ const GROUPS := [
 				"title": "跳链扩展样例",
 				"summary": "命中后按距离把伤害跳到附近多个目标，验证扩展 chain_bounce 多目标逻辑已经打通。",
 				"scene": "res://scenes/showcase/chain_bounce_chaos_showcase.tscn",
+			},
+			{
+				"title": "光环扩展样例",
+				"summary": "站场植物持续减速近处敌人，验证扩展 aura 能力位已经接入共享状态主链。",
+				"scene": "res://scenes/showcase/aura_chaos_showcase.tscn",
 			},
 		],
 	},
