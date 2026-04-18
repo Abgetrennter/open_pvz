@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_extension_plant"]
+script = ExtResource("2_spawn")
+entity_template_id = &"__PLANT_ID__"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_core_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 420.0
+
+[sub_resource type="Resource" id="Rule_projectile_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"extension_template_projectile_spawn"
+description = "extension template should spawn a projectile through the shared runtime"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"source_template_id": &"__PLANT_ID__"
+}
+
+[sub_resource type="Resource" id="Rule_damage"]
+script = ExtResource("3_rule")
+rule_id = &"extension_template_damage"
+description = "extension template should damage a core zombie sample through the shared runtime"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"__PLANT_ID__",
+"target_template_id": &"zombie_basic_walker",
+"value": 12
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"__SCENARIO_ID__"
+display_name = "__SCENARIO_ID__"
+description = "Validates a minimal v1 extension pack template."
+goals = PackedStringArray("Verify the extension entity template registers by template_id.", "Verify the extension content runs on the shared projectile and damage runtime.")
+validation_time_limit = 2.2
+validation_rules = [SubResource("Rule_projectile_spawn"), SubResource("Rule_damage")]
+spawns = [SubResource("Spawn_extension_plant"), SubResource("Spawn_core_target")]

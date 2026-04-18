@@ -156,8 +156,13 @@ vendor/  外部参考实现子模块
 4. [plans/第五阶段可执行任务清单.md](plans/第五阶段可执行任务清单.md)
 5. [plans/第五阶段阶段总结.md](plans/第五阶段阶段总结.md)
 6. [plans/第五阶段-v1现状盘点.md](plans/第五阶段-v1现状盘点.md)
-7. [plans/第五阶段-v1规范化-4到8周执行路线图.md](plans/第五阶段-v1规范化-4到8周执行路线图.md)
-8. [plans/archive/第一至第四阶段归档总览.md](plans/archive/第一至第四阶段归档总览.md)
+7. [plans/第五阶段-v1协议冻结清单.md](plans/第五阶段-v1协议冻结清单.md)
+8. [plans/第五阶段-v1回归分层方案.md](plans/第五阶段-v1回归分层方案.md)
+9. [plans/第五阶段-v1内容工作流.md](plans/第五阶段-v1内容工作流.md)
+10. [plans/第五阶段-主干编排收口计划.md](plans/第五阶段-主干编排收口计划.md)
+11. [plans/第五阶段-外循环接口预留方案.md](plans/第五阶段-外循环接口预留方案.md)
+12. [plans/第五阶段-v1规范化-4到8周执行路线图.md](plans/第五阶段-v1规范化-4到8周执行路线图.md)
+13. [plans/archive/第一至第四阶段归档总览.md](plans/archive/第一至第四阶段归档总览.md)
 
 ## 参考实现
 

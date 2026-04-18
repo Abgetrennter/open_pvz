@@ -2,231 +2,277 @@
   {
     "id": "minimal_battle_validation",
     "scenario": "res://scenes/validation/minimal_battle_validation.tres",
-    "description": "Covers the minimum engine backbone validation scenario."
+    "description": "Covers the minimum engine backbone validation scenario.",
+    "layers": ["smoke", "core"]
   },
   {
     "id": "parabola_long_range_validation",
     "scenario": "res://scenes/validation/parabola_long_range_validation.tres",
-    "description": "Covers long-range parabola hit behavior."
+    "description": "Covers long-range parabola hit behavior.",
+    "layers": ["core"]
   },
   {
     "id": "height_hit_validation",
     "scenario": "res://scenes/validation/height_hit_validation.tres",
-    "description": "Validates that hit height bands block low projectiles while allowing elevated projectiles to resolve against elevated targets."
+    "description": "Validates that hit height bands block low projectiles while allowing elevated projectiles to resolve against elevated targets.",
+    "layers": ["core"]
   },
   {
     "id": "lane_isolation_validation",
     "scenario": "res://scenes/validation/lane_isolation_validation.tres",
-    "description": "Validates that crossing projected paths do not cause off-lane interception during parabola flight."
+    "description": "Validates that crossing projected paths do not cause off-lane interception during parabola flight.",
+    "layers": ["core"]
   },
   {
     "id": "swept_segment_validation",
     "scenario": "res://scenes/validation/swept_segment_validation.tres",
-    "description": "Validates that high-speed linear projectiles still register hits through swept-segment collision instead of skipping through targets."
+    "description": "Validates that high-speed linear projectiles still register hits through swept-segment collision instead of skipping through targets.",
+    "layers": ["core"]
   },
   {
     "id": "terminal_explode_validation",
     "scenario": "res://scenes/validation/terminal_explode_validation.tres",
-    "description": "Validates that terminal-hit projectiles can drive explode-tagged area damage at their impact point."
+    "description": "Validates that terminal-hit projectiles can drive explode-tagged area damage at their impact point.",
+    "layers": ["core"]
   },
   {
     "id": "template_instantiation_validation",
     "scenario": "res://scenes/validation/template_instantiation_validation.tres",
-    "description": "Validates that BattleScenario spawn entries can instantiate entities from EntityTemplate resources and preserve template identity through runtime events."
+    "description": "Validates that BattleScenario spawn entries can instantiate entities from EntityTemplate resources and preserve template identity through runtime events.",
+    "layers": ["core"]
   },
   {
     "id": "template_factory_validation",
     "scenario": "res://scenes/validation/template_factory_validation.tres",
-    "description": "Validates that EntityFactory can build template-defined runtime triggers so attack, retaliation, and death behaviors come from template resources instead of BattleManager branches."
+    "description": "Validates that EntityFactory can build template-defined runtime triggers so attack, retaliation, and death behaviors come from template resources instead of BattleManager branches.",
+    "layers": ["smoke", "core"]
   },
   {
     "id": "spawn_override_priority_validation",
     "scenario": "res://scenes/validation/spawn_override_priority_validation.tres",
-    "description": "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides win over template projectile defaults."
+    "description": "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides win over template projectile defaults.",
+    "layers": ["core"]
   },
   {
     "id": "air_interceptor_validation",
     "scenario": "res://scenes/validation/air_interceptor_validation.tres",
-    "description": "Validates that the air interceptor sample can hit low and medium air targets through the shared template chain."
+    "description": "Validates that the air interceptor sample can hit low and medium air targets through the shared template chain.",
+    "layers": ["core"]
   },
   {
     "id": "repeater_burst_validation",
     "scenario": "res://scenes/validation/repeater_burst_validation.tres",
-    "description": "Validates that the repeater burst sample can spawn repeated projectiles and damage walker and runner targets in two lanes."
+    "description": "Validates that the repeater burst sample can spawn repeated projectiles and damage walker and runner targets in two lanes.",
+    "layers": ["core"]
   },
   {
     "id": "lobber_catalog_validation",
     "scenario": "res://scenes/validation/lobber_catalog_validation.tres",
-    "description": "Validates that cabbage and melon lobber samples can spawn their dedicated projectile templates and resolve direct-hit and explode-tagged damage."
+    "description": "Validates that cabbage and melon lobber samples can spawn their dedicated projectile templates and resolve direct-hit and explode-tagged damage.",
+    "layers": ["core"]
   },
   {
     "id": "zombie_roster_attack_validation",
     "scenario": "res://scenes/validation/zombie_roster_attack_validation.tres",
-    "description": "Validates that the new zombie roster samples can all attack the wall barrier sample through the common zombie runtime."
+    "description": "Validates that the new zombie roster samples can all attack the wall barrier sample through the common zombie runtime.",
+    "layers": ["core"]
   },
   {
     "id": "template_guardrail_validation",
     "scenario": "res://scenes/validation/template_guardrail_validation.tres",
-    "description": "Validates that invalid template resources, malformed trigger bindings, and malformed override combinations are rejected through protocol issues before runtime execution."
+    "description": "Validates that invalid template resources, malformed trigger bindings, and malformed override combinations are rejected through protocol issues before runtime execution.",
+    "layers": ["guardrail"]
   },
   {
     "id": "protocol_guardrail_validation",
     "scenario": "res://scenes/validation/protocol_guardrail_validation.tres",
-    "description": "Validates that invalid protocol content, including unsupported target modes, is rejected through protocol.issue events before projectile or damage execution can continue."
+    "description": "Validates that invalid protocol content, including unsupported target modes, is rejected through protocol.issue events before projectile or damage execution can continue.",
+    "layers": ["smoke", "guardrail"]
   },
   {
     "id": "sun_resource_validation",
     "scenario": "res://scenes/validation/sun_resource_validation.tres",
-    "description": "Validates the first-stage sun economy loop, including plant-generated and sky-drop sun, automatic collection, and spend failure/success resource events."
+    "description": "Validates the first-stage sun economy loop, including plant-generated and sky-drop sun, automatic collection, and spend failure/success resource events.",
+    "layers": ["smoke", "core"]
   },
   {
     "id": "card_flow_validation",
     "scenario": "res://scenes/validation/card_flow_validation.tres",
-    "description": "Validates the first-stage card runtime, including sun spending via try_spend_sun, placement acceptance, entity spawn, cooldown rejection, and insufficient-resource rejection."
+    "description": "Validates the first-stage card runtime, including sun spending via try_spend_sun, placement acceptance, entity spawn, cooldown rejection, and insufficient-resource rejection.",
+    "layers": ["core"]
   },
   {
     "id": "board_placement_validation",
     "scenario": "res://scenes/validation/board_placement_validation.tres",
-    "description": "Validates the formal board placement layer by accepting one legal slot request and rejecting a second request into the occupied slot."
+    "description": "Validates the formal board placement layer by accepting one legal slot request and rejecting a second request into the occupied slot.",
+    "layers": ["smoke", "core"]
   },
   {
     "id": "board_slot_tag_validation",
     "scenario": "res://scenes/validation/board_slot_tag_validation.tres",
-    "description": "Validates that the formal board layer owns slot types and placement tags, rejecting mismatched requests and accepting matched ones."
+    "description": "Validates that the formal board layer owns slot types and placement tags, rejecting mismatched requests and accepting matched ones.",
+    "layers": ["core"]
   },
   {
     "id": "roof_slot_validation",
     "scenario": "res://scenes/validation/roof_slot_validation.tres",
-    "description": "Validates that roof slots require a surface container before a primary plant can be placed."
+    "description": "Validates that roof slots require a surface container before a primary plant can be placed.",
+    "layers": ["core"]
   },
   {
     "id": "air_slot_validation",
     "scenario": "res://scenes/validation/air_slot_validation.tres",
-    "description": "Validates that air-only slots reject unsupported templates and accept a template with matching static air-only constraints."
+    "description": "Validates that air-only slots reject unsupported templates and accept a template with matching static air-only constraints.",
+    "layers": ["core"]
   },
   {
     "id": "cover_blocker_validation",
     "scenario": "res://scenes/validation/cover_blocker_validation.tres",
-    "description": "Validates cover and blocker role semantics, including cover stacking on primary and blocker exclusion."
+    "description": "Validates cover and blocker role semantics, including cover stacking on primary and blocker exclusion.",
+    "layers": ["core"]
   },
   {
     "id": "status_system_validation",
     "scenario": "res://scenes/validation/status_system_validation.tres",
-    "description": "Validates the first-stage status system through slowed and stunned examples that affect movement and attack."
+    "description": "Validates the first-stage status system through slowed and stunned examples that affect movement and attack.",
+    "layers": ["core"]
   },
   {
     "id": "field_object_mower_validation",
     "scenario": "res://scenes/validation/field_object_mower_validation.tres",
-    "description": "Validates the first-stage field object runtime through a lawn mower that activates, kills a zombie, and expires without triggering defeat."
+    "description": "Validates the first-stage field object runtime through a lawn mower that activates, kills a zombie, and expires without triggering defeat.",
+    "layers": ["core"]
   },
   {
     "id": "wave_flow_validation",
     "scenario": "res://scenes/validation/wave_flow_validation.tres",
-    "description": "Validates the first-stage battle flow, including phase changes, wave start/completion, wave spawns, and battle victory."
+    "description": "Validates the first-stage battle flow, including phase changes, wave start/completion, wave spawns, and battle victory.",
+    "layers": ["smoke", "core"]
   },
   {
     "id": "wave_guardrail_validation",
     "scenario": "res://scenes/validation/wave_guardrail_validation.tres",
-    "description": "Validates that invalid wave definitions emit protocol issues and do not continue into wave-based spawns."
+    "description": "Validates that invalid wave definitions emit protocol issues and do not continue into wave-based spawns.",
+    "layers": ["guardrail"]
   },
   {
     "id": "reactive_retaliation_chaos_validation",
     "scenario": "res://scenes/validation/reactive_retaliation_chaos_validation.tres",
-    "description": "Validates that repeated burst fire can drive a reactive counterattack chain through the shared runtime."
+    "description": "Validates that repeated burst fire can drive a reactive counterattack chain through the shared runtime.",
+    "layers": ["core"]
   },
   {
     "id": "death_blossom_chaos_validation",
     "scenario": "res://scenes/validation/death_blossom_chaos_validation.tres",
-    "description": "Validates that a reactive bomber death explosion can damage multiple nearby plants through the shared explode chain."
+    "description": "Validates that a reactive bomber death explosion can damage multiple nearby plants through the shared explode chain.",
+    "layers": ["core"]
   },
   {
     "id": "tracking_barrage_chaos_validation",
     "scenario": "res://scenes/validation/tracking_barrage_chaos_validation.tres",
-    "description": "Validates that ground and air tracking attackers can coexist as a fifth-stage chaos sample without new battle-specific scripts."
+    "description": "Validates that ground and air tracking attackers can coexist as a fifth-stage chaos sample without new battle-specific scripts.",
+    "layers": ["core"]
   },
   {
     "id": "extension_pack_smoke_validation",
     "scenario": "res://extensions/minimal_chaos_pack/scenes/validation/extension_pack_smoke_validation.tres",
-    "description": "Validates that a minimal external content pack can register an entity template and validation scenario through the extension scan path."
+    "description": "Validates that a minimal external content pack can register an entity template and validation scenario through the extension scan path.",
+    "layers": ["smoke", "extension"]
   },
   {
     "id": "hit_split_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/hit_split_chaos_validation.tres",
-    "description": "Validates that an extension-defined on_hit split effect can apply primary hit damage and spawn follow-up projectiles from the impact point."
+    "description": "Validates that an extension-defined on_hit split effect can apply primary hit damage and spawn follow-up projectiles from the impact point.",
+    "layers": ["extension"]
   },
   {
     "id": "periodic_summon_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/periodic_summon_chaos_validation.tres",
-    "description": "Validates that an extension-defined spawn_entity effect can periodically summon combat-ready shardlings into the shared runtime."
+    "description": "Validates that an extension-defined spawn_entity effect can periodically summon combat-ready shardlings into the shared runtime.",
+    "layers": ["extension"]
   },
   {
     "id": "apply_status_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/apply_status_chaos_validation.tres",
-    "description": "Validates that an extension-defined apply_status effect can slow a zombie on hit and reuse the shared status runtime."
+    "description": "Validates that an extension-defined apply_status effect can slow a zombie on hit and reuse the shared status runtime.",
+    "layers": ["extension"]
   },
   {
     "id": "knockback_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/knockback_chaos_validation.tres",
-    "description": "Validates that an extension-defined knockback effect can displace a zombie on hit while preserving primary damage."
+    "description": "Validates that an extension-defined knockback effect can displace a zombie on hit while preserving primary damage.",
+    "layers": ["extension"]
   },
   {
     "id": "chain_bounce_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/chain_bounce_chaos_validation.tres",
-    "description": "Validates that an extension-defined chain_bounce effect can jump between clustered targets with falloff damage."
+    "description": "Validates that an extension-defined chain_bounce effect can jump between clustered targets with falloff damage.",
+    "layers": ["extension"]
   },
   {
     "id": "aura_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/aura_chaos_validation.tres",
-    "description": "Validates that an extension-defined aura effect can periodically apply slowed to nearby enemies while leaving distant enemies untouched."
+    "description": "Validates that an extension-defined aura effect can periodically apply slowed to nearby enemies while leaving distant enemies untouched.",
+    "layers": ["extension"]
   },
   {
     "id": "delayed_trigger_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/delayed_trigger_chaos_validation.tres",
-    "description": "Validates that an extension-defined delayed_trigger effect can defer single-target damage until after a configured delay."
+    "description": "Validates that an extension-defined delayed_trigger effect can defer single-target damage until after a configured delay.",
+    "layers": ["extension"]
   },
   {
     "id": "delayed_explode_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/delayed_explode_chaos_validation.tres",
-    "description": "Validates that an extension-defined delayed_explode effect can defer an area explosion and damage clustered enemies after the delay."
+    "description": "Validates that an extension-defined delayed_explode effect can defer an area explosion and damage clustered enemies after the delay.",
+    "layers": ["extension"]
   },
   {
     "id": "mark_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/mark_chaos_validation.tres",
-    "description": "Validates that an extension-defined mark effect can apply a timed mark and emit a removal event on expiry."
+    "description": "Validates that an extension-defined mark effect can apply a timed mark and emit a removal event on expiry.",
+    "layers": ["extension"]
   },
   {
     "id": "extension_manifest_guardrail_validation",
     "scenario": "res://scenes/validation/extension_manifest_guardrail_validation.tres",
-    "description": "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids."
+    "description": "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids.",
+    "layers": ["smoke", "guardrail"]
   },
   {
     "id": "extension_effect_guardrail_validation",
     "scenario": "res://scenes/validation/extension_effect_guardrail_validation.tres",
-    "description": "Validates extension effect guardrails across registry rebuild and spawn-entry binding checks, including duplicate ids, invalid schemas, missing execute entry points, slot mismatches, and missing strategies."
+    "description": "Validates extension effect guardrails across registry rebuild and spawn-entry binding checks, including duplicate ids, invalid schemas, missing execute entry points, slot mismatches, and missing strategies.",
+    "layers": ["guardrail"]
   },
   {
     "id": "target_acquisition_validation",
     "scenario": "res://scenes/validation/target_acquisition_validation.tres",
-    "description": "Validates the first-stage lane_forward detection gate, including same-lane firing, adjacent-lane rejection, and RuleContext target propagation for parabola targeting."
+    "description": "Validates the first-stage lane_forward detection gate, including same-lane firing, adjacent-lane rejection, and RuleContext target propagation for parabola targeting.",
+    "layers": ["core"]
   },
   {
     "id": "chain_explosion_cascade_validation",
     "scenario": "res://scenes/validation/chain_explosion_cascade_validation.tres",
-    "description": "Validates a cascading death-explosion chain where two reactive bombers trigger sequential on_death explosions through spatial proximity."
+    "description": "Validates a cascading death-explosion chain where two reactive bombers trigger sequential on_death explosions through spatial proximity.",
+    "layers": ["core"]
   },
   {
     "id": "splash_zone_cascade_validation",
     "scenario": "res://scenes/validation/splash_zone_cascade_validation.tres",
-    "description": "Validates that a melon lobber terminal explosion can simultaneously damage a tank and a nearby walker through the shared on_hit explode runtime."
+    "description": "Validates that a melon lobber terminal explosion can simultaneously damage a tank and a nearby walker through the shared on_hit explode runtime.",
+    "layers": ["core"]
   },
   {
     "id": "fast_pursuit_cascade_validation",
     "scenario": "res://scenes/validation/fast_pursuit_cascade_validation.tres",
-    "description": "Validates that ground tracking projectiles can reliably pursue and hit a fast-moving brisk runner through the shared tracking runtime."
+    "description": "Validates that ground tracking projectiles can reliably pursue and hit a fast-moving brisk runner through the shared tracking runtime.",
+    "layers": ["core"]
   },
   {
     "id": "multi_lane_retaliation_cascade_validation",
     "scenario": "res://scenes/validation/multi_lane_retaliation_cascade_validation.tres",
-    "description": "Validates that when_damaged retaliation correctly targets the event source in each lane without cross-lane interference."
+    "description": "Validates that when_damaged retaliation correctly targets the event source in each lane without cross-lane interference.",
+    "layers": ["core"]
   }
 ]

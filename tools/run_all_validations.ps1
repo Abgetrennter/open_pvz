@@ -3,8 +3,32 @@ param(
 	[string]$GodotExe = "E:\SDK\Godot\Godot_v4.6.1-stable_win64_console.exe",
 	[string]$OutputRoot = "",
 	[switch]$EnableRuntimeSnapshots,
-	[int]$RuntimeSnapshotInterval = 30
+	[int]$RuntimeSnapshotInterval = 30,
+	[string[]]$Layers = @()
 )
+
+function Get-EntryLayers {
+	param(
+		$Entry
+	)
+
+	$ResolvedLayers = @()
+	if ($Entry.PSObject.Properties.Name -contains "layers" -and $null -ne $Entry.layers) {
+		foreach ($Layer in @($Entry.layers)) {
+			if (-not [string]::IsNullOrWhiteSpace([string]$Layer)) {
+				$ResolvedLayers += [string]$Layer
+			}
+		}
+	} elseif ($Entry.PSObject.Properties.Name -contains "layer" -and -not [string]::IsNullOrWhiteSpace([string]$Entry.layer)) {
+		$ResolvedLayers += [string]$Entry.layer
+	}
+
+	if ($ResolvedLayers.Count -eq 0) {
+		$ResolvedLayers = @("core")
+	}
+
+	return @($ResolvedLayers | Select-Object -Unique)
+}
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($Manifest)) {
@@ -19,10 +43,27 @@ $BatchDir = Join-Path $OutputRoot ("batch_{0}" -f $BatchTimestamp)
 New-Item -ItemType Directory -Path $BatchDir -Force | Out-Null
 
 $ScenarioManifest = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
+$RequestedLayers = @(
+	$Layers | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object { [string]$_ }
+)
+if ($RequestedLayers.Count -gt 0) {
+	$ScenarioManifest = @(
+		$ScenarioManifest | Where-Object {
+			$EntryLayers = Get-EntryLayers $_
+			@($EntryLayers | Where-Object { $RequestedLayers -contains $_ }).Count -gt 0
+		}
+	)
+}
+if ($ScenarioManifest.Count -eq 0) {
+	Write-Host "[ValidationBatch] No validation scenarios matched the requested manifest/layer filter."
+	exit 1
+}
+
 $Results = @()
 
 foreach ($Entry in $ScenarioManifest) {
 	$RunLabel = if ($Entry.id) { [string]$Entry.id } else { [System.IO.Path]::GetFileNameWithoutExtension([string]$Entry.scenario) }
+	$EntryLayers = Get-EntryLayers $Entry
 	$Result = & (Join-Path $PSScriptRoot "run_validation.ps1") `
 		-Scenario ([string]$Entry.scenario) `
 		-GodotExe $GodotExe `
@@ -31,6 +72,7 @@ foreach ($Entry in $ScenarioManifest) {
 		-PassThru `
 		-EnableRuntimeSnapshots:$EnableRuntimeSnapshots `
 		-RuntimeSnapshotInterval $RuntimeSnapshotInterval
+	$Result | Add-Member -NotePropertyName "Layers" -NotePropertyValue $EntryLayers -Force
 	$Results += $Result
 }
 
@@ -47,6 +89,7 @@ $FailedCount = ($Results | Where-Object { $_.Status -ne "passed" }).Count
 $Summary = [pscustomobject]@{
 	generated_at = (Get-Date).ToString("s")
 	manifest = $Manifest
+	requested_layers = $RequestedLayers
 	batch_dir = $BatchDir
 	total = $Results.Count
 	passed = $PassedCount
@@ -64,9 +107,24 @@ $SummaryLines = @(
 	"[ValidationBatch] Failed: $FailedCount"
 	"[ValidationBatch] BatchDir: $BatchDir"
 )
+if ($RequestedLayers.Count -gt 0) {
+	$SummaryLines += "[ValidationBatch] Layers: $([string]::Join(',', $RequestedLayers))"
+}
+$LayerGroups = $Results | Group-Object {
+	$ResultLayers = @($_.Layers)
+	if ($ResultLayers.Count -eq 0) {
+		return "core"
+	}
+	[System.String]::Join("+", $ResultLayers)
+}
+foreach ($LayerGroup in $LayerGroups | Sort-Object Name) {
+	$SummaryLines += "[ValidationBatch] LayerGroup $($LayerGroup.Name): $($LayerGroup.Count)"
+}
 foreach ($Result in $Results) {
 	$Status = [string]$Result.Status
-	$SummaryLines += "[ValidationBatch] $($Result.RunLabel): $($Status.ToUpperInvariant())"
+	$ResultLayers = @($Result.Layers)
+	$LayerLabel = if ($ResultLayers.Count -gt 0) { [string]::Join(",", $ResultLayers) } else { "core" }
+	$SummaryLines += "[ValidationBatch] $($Result.RunLabel): $($Status.ToUpperInvariant()) [$LayerLabel]"
 }
 $SummaryLines | Set-Content -LiteralPath $SummaryTxtPath -Encoding UTF8
 $SummaryLines | ForEach-Object { Write-Host $_ }
@@ -83,6 +141,7 @@ $SummaryLines | Set-Content -LiteralPath $LatestSummaryTxtPath -Encoding UTF8
 $HistoryEntry = [pscustomobject]@{
 	generated_at = $Summary.generated_at
 	manifest = $Summary.manifest
+	requested_layers = $Summary.requested_layers
 	batch_dir = $Summary.batch_dir
 	total = $Summary.total
 	passed = $Summary.passed
@@ -92,6 +151,7 @@ $HistoryEntry = [pscustomobject]@{
 			[pscustomobject]@{
 				id = [string]$_.RunLabel
 				scenario = [string]$_.Scenario
+				layers = @($_.Layers)
 				status = [string]$_.Status
 				exit_code = [int]$_.ExitCode
 				run_dir = [string]$_.RunDir
@@ -166,6 +226,7 @@ foreach ($Entry in $ScenarioManifest) {
 		id = $ScenarioId
 		scenario = [string]$Entry.scenario
 		description = [string]$Entry.description
+		layers = @(Get-EntryLayers $Entry)
 		last_status = $StatusValue
 		last_run_at = $Summary.generated_at
 		last_batch_dir = [string]$BatchDir
@@ -181,6 +242,7 @@ foreach ($Entry in $ScenarioManifest) {
 $StatusPayload = [pscustomobject]@{
 	updated_at = $Summary.generated_at
 	manifest = $Manifest
+	requested_layers = $RequestedLayers
 	batch_dir = $BatchDir
 	batches_recorded = ($RecordedBatchCount + 1)
 	total = $Results.Count
@@ -195,16 +257,18 @@ $MarkdownLines = @(
 	"",
 	"- Updated: $($Summary.generated_at)",
 	"- Manifest: $Manifest",
+	"- Layers: $(if ($RequestedLayers.Count -gt 0) { [string]::Join(',', $RequestedLayers) } else { 'all' })",
 	"- BatchDir: $BatchDir",
 	"- Total: $($Results.Count)",
 	"- Passed: $PassedCount",
 	"- Failed: $FailedCount",
 	"",
-	"| Scenario | Status | Pass | Fail | Consecutive Pass | Consecutive Fail | Last Run |",
-	"|------|------|------|------|------|------|------|"
+	"| Scenario | Layers | Status | Pass | Fail | Consecutive Pass | Consecutive Fail | Last Run |",
+	"|------|------|------|------|------|------|------|------|"
 )
 foreach ($ScenarioStatus in $ScenarioStatuses) {
-	$MarkdownLines += "| $($ScenarioStatus.id) | $($ScenarioStatus.last_status) | $($ScenarioStatus.pass_count) | $($ScenarioStatus.fail_count) | $($ScenarioStatus.consecutive_passes) | $($ScenarioStatus.consecutive_failures) | $($ScenarioStatus.last_run_at) |"
+	$LayerLabel = if (@($ScenarioStatus.layers).Count -gt 0) { [string]::Join(",", @($ScenarioStatus.layers)) } else { "core" }
+	$MarkdownLines += "| $($ScenarioStatus.id) | $LayerLabel | $($ScenarioStatus.last_status) | $($ScenarioStatus.pass_count) | $($ScenarioStatus.fail_count) | $($ScenarioStatus.consecutive_passes) | $($ScenarioStatus.consecutive_failures) | $($ScenarioStatus.last_run_at) |"
 }
 $MarkdownLines | Set-Content -LiteralPath $StatusMarkdownPath -Encoding UTF8
 

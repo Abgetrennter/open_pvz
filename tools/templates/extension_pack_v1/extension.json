@@ -1,0 +1,10 @@
+{
+  "pack_id": "__PACK_ID__",
+  "enabled_by_default": false,
+  "register": [
+    "resources"
+  ],
+  "activation_scenario_ids": [
+    "__SCENARIO_ID__"
+  ]
+}
