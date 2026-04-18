@@ -1,0 +1,92 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/battlefields/phase6/battlefield_water_air_split.tres" id="2_battlefield"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_water_pod.tres" id="5_card_water_pod"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_shooter.tres" id="6_card_shooter"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_air_perch.tres" id="7_card_air_perch"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_wall.tres" id="8_card_wall"]
+
+[sub_resource type="Resource" id="Req_water_pod"]
+script = ExtResource("3_card_request")
+at_time = 0.2
+card_id = &"card_water_pod"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Req_shooter_on_water"]
+script = ExtResource("3_card_request")
+at_time = 0.5
+card_id = &"card_shooter"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Req_shooter_on_air"]
+script = ExtResource("3_card_request")
+at_time = 0.8
+card_id = &"card_wall"
+lane_id = 2
+slot_index = 1
+
+[sub_resource type="Resource" id="Req_air_perch"]
+script = ExtResource("3_card_request")
+at_time = 1.1
+card_id = &"card_air_perch"
+lane_id = 2
+slot_index = 1
+
+[sub_resource type="Resource" id="Rule_water_surface_accept"]
+script = ExtResource("4_rule")
+rule_id = &"battlefield_water_surface_accept"
+description = "water lane should accept surface support plants"
+event_name = &"placement.accepted"
+required_core_values = {
+"entity_template_id": &"plant_water_pod",
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="Rule_primary_on_water_accept"]
+script = ExtResource("4_rule")
+rule_id = &"battlefield_primary_on_water_accept"
+description = "water support should unlock primary placement on water slots"
+event_name = &"placement.accepted"
+required_core_values = {
+"entity_template_id": &"plant_basic_shooter",
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="Rule_ground_reject_air"]
+script = ExtResource("4_rule")
+rule_id = &"battlefield_ground_reject_air"
+description = "standard ground cards should be rejected by air-only slots"
+event_name = &"placement.rejected"
+required_core_values = {
+"entity_template_id": &"plant_wall_barrier",
+"reason": &"slot_tag_mismatch",
+"slot_type": &"air_only"
+}
+
+[sub_resource type="Resource" id="Rule_air_accept"]
+script = ExtResource("4_rule")
+rule_id = &"battlefield_air_accept"
+description = "air-only slots should accept air-perch content"
+event_name = &"placement.accepted"
+required_core_values = {
+"entity_template_id": &"plant_air_perch",
+"slot_type": &"air_only"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"battlefield_phase6_validation"
+display_name = "Battlefield Phase 6 Validation"
+description = "Validates formal battlefield presets by exercising water, ground and air-only placement semantics through the shared card and board runtime."
+goals = PackedStringArray("Verify water slots require surface support before primary content can be placed.", "Verify air-only slots reject ground cards and accept air content.", "Verify battlefield presets can drive formal slot semantics without per-level special cases.")
+validation_time_limit = 3.5
+battlefield_preset = ExtResource("2_battlefield")
+initial_sun = 300
+card_defs = [ExtResource("5_card_water_pod"), ExtResource("6_card_shooter"), ExtResource("7_card_air_perch"), ExtResource("8_card_wall")]
+card_play_requests = [SubResource("Req_water_pod"), SubResource("Req_shooter_on_water"), SubResource("Req_shooter_on_air"), SubResource("Req_air_perch")]
+validation_rules = [SubResource("Rule_water_surface_accept"), SubResource("Rule_primary_on_water_accept"), SubResource("Rule_ground_reject_air"), SubResource("Rule_air_accept")]

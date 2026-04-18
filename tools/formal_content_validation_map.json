@@ -44,7 +44,8 @@
         "roof_slot_validation",
         "air_slot_validation",
         "cover_blocker_validation",
-        "field_object_mower_validation"
+        "field_object_mower_validation",
+        "battlefield_phase6_validation"
       ],
       "showcases": []
     },
@@ -53,11 +54,23 @@
       "description": "Formal wave pacing and playable level structure for reusable battle content.",
       "validations": [
         "wave_flow_validation",
-        "wave_guardrail_validation"
+        "wave_guardrail_validation",
+        "survival_goal_phase6_validation",
+        "protect_goal_phase6_validation"
       ],
       "showcases": [
         "minimal_validation_showcase"
       ]
+    },
+    {
+      "id": "interaction_matrix_v1",
+      "description": "Formal Phase 6 interaction structure that ties roster roles to concrete battle responses.",
+      "validations": [
+        "interaction_matrix_phase6_validation",
+        "plant_roster_phase6_validation",
+        "zombie_roster_phase6_validation"
+      ],
+      "showcases": []
     },
     {
       "id": "extension_and_guardrail_boundaries_v1",

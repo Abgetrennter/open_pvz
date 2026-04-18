@@ -8,14 +8,26 @@ var active_wave_id: StringName = StringName()
 var completed_wave_ids: PackedStringArray = PackedStringArray()
 var victory_reason: StringName = StringName()
 var defeat_reason: StringName = StringName()
+var battle_goal: StringName = &"all_waves_cleared"
+var defeat_conditions: PackedStringArray = PackedStringArray(["zombie_reached_goal"])
+var survival_duration := 0.0
+var protected_template_id: StringName = StringName()
 
 
-func setup(_battle: Node, _scenario: Resource) -> void:
+func setup(_battle: Node, scenario: Resource) -> void:
 	phase = &"preparing"
 	active_wave_id = StringName()
 	completed_wave_ids = PackedStringArray()
 	victory_reason = StringName()
 	defeat_reason = StringName()
+	battle_goal = &"all_waves_cleared" if scenario == null else StringName(scenario.get("battle_goal"))
+	if battle_goal == StringName():
+		battle_goal = &"all_waves_cleared"
+	defeat_conditions = PackedStringArray(["zombie_reached_goal"]) if scenario == null else PackedStringArray(scenario.get("defeat_conditions"))
+	if defeat_conditions.is_empty():
+		defeat_conditions = PackedStringArray(["zombie_reached_goal"])
+	survival_duration = 0.0 if scenario == null else float(scenario.get("survival_duration"))
+	protected_template_id = StringName() if scenario == null else StringName(scenario.get("protected_template_id"))
 
 
 func get_debug_name() -> String:
@@ -38,6 +50,10 @@ func get_debug_snapshot() -> Dictionary:
 			"completed_wave_ids": PackedStringArray(completed_wave_ids),
 			"victory_reason": victory_reason,
 			"defeat_reason": defeat_reason,
+			"battle_goal": battle_goal,
+			"defeat_conditions": PackedStringArray(defeat_conditions),
+			"survival_duration": survival_duration,
+			"protected_template_id": protected_template_id,
 		},
 	}
 

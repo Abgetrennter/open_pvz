@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/battlefields/phase6/battlefield_ground_baseline.tres" id="2_battlefield"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_sunflower.tres" id="3_card_sunflower"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_shooter.tres" id="4_card_shooter"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_wall.tres" id="5_card_wall"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_frost_pea.tres" id="6_card_frost"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_spore_summoner.tres" id="7_card_spore"]
+[ext_resource type="Resource" path="res://data/combat/waves/phase6/wave_phase6_ground_pressure.tres" id="8_wave_ground"]
+[ext_resource type="Resource" path="res://data/combat/waves/phase6/wave_phase6_disrupt_mix.tres" id="9_wave_disrupt"]
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"level_ground_pressure_v1"
+display_name = "Ground Pressure V1"
+description = "Formal Phase 6 level template focused on baseline ground pressure and disruption layering."
+goals = PackedStringArray("Build a stable frontline against runner and tank pressure.", "Use control and summon tools to keep mixed ground lanes from collapsing.")
+battlefield_preset = ExtResource("2_battlefield")
+initial_sun = 150
+card_defs = [ExtResource("3_card_sunflower"), ExtResource("4_card_shooter"), ExtResource("5_card_wall"), ExtResource("6_card_frost"), ExtResource("7_card_spore")]
+wave_defs = [ExtResource("8_wave_ground"), ExtResource("9_wave_disrupt")]
+battle_goal = &"all_waves_cleared"
+defeat_conditions = PackedStringArray("zombie_reached_goal")
+defeat_line_x = 60.0

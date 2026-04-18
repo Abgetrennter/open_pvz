@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_frost_pea"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_frost_pea"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_runner"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_brisk_runner"
+lane_id = 0
+x_position = 410.0
+
+[sub_resource type="Resource" id="Spawn_spore_summoner"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_spore_summoner"
+lane_id = 1
+x_position = 180.0
+
+[sub_resource type="Resource" id="Spawn_repeater"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_repeater_burst"
+lane_id = 1
+x_position = 280.0
+
+[sub_resource type="Resource" id="Spawn_bucket_tank"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_bucket_tank"
+lane_id = 1
+x_position = 460.0
+
+[sub_resource type="Resource" id="Spawn_tar_spitter"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_tar_spitter"
+lane_id = 1
+x_position = 620.0
+
+[sub_resource type="Resource" id="Rule_runner_slowed"]
+script = ExtResource("3_rule")
+rule_id = &"interaction_runner_slowed"
+description = "control plants should slow fast pressure targets"
+event_name = &"entity.status_applied"
+required_core_values = {
+"source_template_id": &"plant_frost_pea",
+"status_id": &"slowed",
+"target_template_id": &"zombie_brisk_runner"
+}
+
+[sub_resource type="Resource" id="Rule_sporeling_hits_tank"]
+script = ExtResource("3_rule")
+rule_id = &"interaction_sporeling_hits_tank"
+description = "summoned units should contribute pressure into armored targets"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_sporeling",
+"target_template_id": &"zombie_bucket_tank"
+}
+
+[sub_resource type="Resource" id="Rule_tar_jams_repeater"]
+script = ExtResource("3_rule")
+rule_id = &"interaction_tar_jams_repeater"
+description = "support disruption should interfere with established ranged plants"
+event_name = &"entity.status_applied"
+required_core_values = {
+"source_template_id": &"zombie_tar_spitter",
+"status_id": &"jammed",
+"target_template_id": &"plant_repeater_burst"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"interaction_matrix_phase6_validation"
+display_name = "Interaction Matrix Phase 6 Validation"
+description = "Validates the first formal Phase 6 interaction matrix across control, summon pressure, armored resistance and ranged disruption."
+goals = PackedStringArray("Verify control plants slow fast pressure targets.", "Verify summoned units contribute against armored zombies.", "Verify support zombies can disrupt established ranged plants.")
+validation_time_limit = 7.0
+validation_rules = [SubResource("Rule_runner_slowed"), SubResource("Rule_sporeling_hits_tank"), SubResource("Rule_tar_jams_repeater")]
+spawns = [SubResource("Spawn_frost_pea"), SubResource("Spawn_runner"), SubResource("Spawn_spore_summoner"), SubResource("Spawn_repeater"), SubResource("Spawn_bucket_tank"), SubResource("Spawn_tar_spitter")]

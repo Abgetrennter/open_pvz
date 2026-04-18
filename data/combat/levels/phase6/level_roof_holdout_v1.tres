@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/battlefields/phase6/battlefield_roof_cover_ops.tres" id="2_battlefield"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_flower_pot_surface.tres" id="3_card_flower_pot"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_shooter.tres" id="4_card_shooter"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_lobber.tres" id="5_card_lobber"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_wall.tres" id="6_card_wall"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_frost_pea.tres" id="7_card_frost"]
+[ext_resource type="Resource" path="res://data/combat/waves/phase6/wave_phase6_ground_pressure.tres" id="8_wave_ground"]
+[ext_resource type="Resource" path="res://data/combat/waves/phase6/wave_phase6_disrupt_mix.tres" id="9_wave_disrupt"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="10_spawn"]
+
+[sub_resource type="Resource" id="ProtectedSunflower"]
+script = ExtResource("10_spawn")
+entity_template_id = &"plant_sunflower"
+lane_id = 1
+x_position = 160.0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"level_roof_holdout_v1"
+display_name = "Roof Holdout V1"
+description = "Formal Phase 6 roof level template that requires surface setup and protecting a key sunflower anchor."
+goals = PackedStringArray("Use roof surface setup before committing primary plants.", "Protect the anchored sunflower while clearing mixed disruption waves.")
+battlefield_preset = ExtResource("2_battlefield")
+initial_sun = 175
+card_defs = [ExtResource("3_card_flower_pot"), ExtResource("4_card_shooter"), ExtResource("5_card_lobber"), ExtResource("6_card_wall"), ExtResource("7_card_frost")]
+wave_defs = [ExtResource("8_wave_ground"), ExtResource("9_wave_disrupt")]
+battle_goal = &"protect_and_clear"
+defeat_conditions = PackedStringArray("zombie_reached_goal", "protect_template")
+protected_template_id = &"plant_sunflower"
+defeat_line_x = 60.0
+spawns = [SubResource("ProtectedSunflower")]

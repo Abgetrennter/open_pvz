@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattlefieldPreset" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="1_preset"]
+
+[resource]
+script = ExtResource("1_preset")
+preset_id = &"battlefield_ground_baseline"
+display_name = "Ground Baseline"
+description = "Five-lane flat battlefield baseline for general roster and wave testing."
+lane_count = 5
+board_slot_count = 9
+board_slot_origin_x = 200.0
+board_slot_spacing = 80.0

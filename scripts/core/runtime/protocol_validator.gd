@@ -9,6 +9,7 @@ const CardDefRef = preload("res://scripts/battle/card_def.gd")
 const BattleCardPlayRequestRef = preload("res://scripts/battle/card_play_request.gd")
 const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
+const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
 const StatusApplicationRequestRef = preload("res://scripts/battle/status_application_request.gd")
 const FieldObjectConfigRef = preload("res://scripts/battle/field_object_config.gd")
 const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
@@ -362,17 +363,33 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		errors.append("BattleScenario.initial_sun must be >= 0.")
 	if float(scenario.get("sun_auto_collect_delay")) < -1.0:
 		errors.append("BattleScenario.sun_auto_collect_delay must be >= -1.")
-	if int(scenario.get("board_slot_count")) <= 0:
+	var battlefield_preset = _resolve_battlefield_preset(scenario)
+	if battlefield_preset != null:
+		errors.append_array(validate_battlefield_preset(battlefield_preset))
+	var resolved_board_slot_count := _resolve_scenario_board_slot_count(scenario, battlefield_preset)
+	if resolved_board_slot_count <= 0:
 		errors.append("BattleScenario.board_slot_count must be > 0.")
-	if float(scenario.get("board_slot_spacing")) <= 0.0:
+	var resolved_board_slot_spacing := _resolve_scenario_board_slot_spacing(scenario, battlefield_preset)
+	if resolved_board_slot_spacing <= 0.0:
 		errors.append("BattleScenario.board_slot_spacing must be > 0.")
 	if float(scenario.get("defeat_line_x")) <= 0.0:
 		errors.append("BattleScenario.defeat_line_x must be > 0.")
+	var battle_goal := StringName(scenario.get("battle_goal"))
+	if battle_goal != StringName() and battle_goal not in [&"all_waves_cleared", &"survive_duration", &"protect_and_clear"]:
+		errors.append("BattleScenario.battle_goal must be all_waves_cleared, survive_duration, or protect_and_clear.")
+	var defeat_conditions := PackedStringArray(scenario.get("defeat_conditions"))
+	for defeat_condition in defeat_conditions:
+		if StringName(defeat_condition) not in [&"zombie_reached_goal", &"protect_template"]:
+			errors.append("BattleScenario.defeat_conditions entries must be zombie_reached_goal or protect_template.")
+	if battle_goal == &"survive_duration" and float(scenario.get("survival_duration")) <= 0.0:
+		errors.append("BattleScenario.survival_duration must be > 0 when battle_goal is survive_duration.")
+	if defeat_conditions.has("protect_template") and StringName(scenario.get("protected_template_id")) == StringName():
+		errors.append("BattleScenario.protected_template_id must not be empty when defeat_conditions includes protect_template.")
 
 	var configured_board_slot_configs: Variant = scenario.get("board_slot_configs")
 	if configured_board_slot_configs is Array:
 		for slot_config in configured_board_slot_configs:
-			errors.append_array(_validate_board_slot_config(slot_config, scenario.scenario_id, int(scenario.get("board_slot_count"))))
+			errors.append_array(_validate_board_slot_config(slot_config, scenario.scenario_id, resolved_board_slot_count))
 
 	var configured_sun_drop_entries: Variant = scenario.get("sun_drop_entries")
 	if configured_sun_drop_entries is Array:
@@ -411,6 +428,30 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 
 	for validation_rule in scenario.validation_rules:
 		errors.append_array(_validate_battle_validation_rule(validation_rule, scenario.scenario_id))
+	return errors
+
+
+static func validate_battlefield_preset(battlefield_preset: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if battlefield_preset == null:
+		errors.append("BattlefieldPreset is null.")
+		return errors
+	if battlefield_preset.get_script() != BattlefieldPresetRef:
+		errors.append("BattlefieldPreset resource must use battlefield_preset.gd.")
+		return errors
+	if StringName(battlefield_preset.get("preset_id")) == StringName():
+		errors.append("BattlefieldPreset.preset_id must not be empty.")
+	if int(battlefield_preset.get("lane_count")) <= 0:
+		errors.append("BattlefieldPreset.lane_count must be > 0.")
+	var board_slot_count := int(battlefield_preset.get("board_slot_count"))
+	if board_slot_count <= 0:
+		errors.append("BattlefieldPreset.board_slot_count must be > 0.")
+	if float(battlefield_preset.get("board_slot_spacing")) <= 0.0:
+		errors.append("BattlefieldPreset.board_slot_spacing must be > 0.")
+	var configured_slot_configs: Variant = battlefield_preset.get("board_slot_configs")
+	if configured_slot_configs is Array:
+		for slot_config in configured_slot_configs:
+			errors.append_array(_validate_board_slot_config(slot_config, StringName(battlefield_preset.get("preset_id")), board_slot_count))
 	return errors
 
 
@@ -1071,6 +1112,27 @@ static func _entity_template_trigger_bindings(entity_template) -> Array:
 		return []
 	var trigger_bindings: Variant = entity_template.get("trigger_bindings")
 	return trigger_bindings if trigger_bindings is Array else []
+
+
+static func _resolve_battlefield_preset(scenario: Resource):
+	if scenario == null:
+		return null
+	var battlefield_preset: Variant = scenario.get("battlefield_preset")
+	if battlefield_preset != null and battlefield_preset.get_script() == BattlefieldPresetRef:
+		return battlefield_preset
+	return null
+
+
+static func _resolve_scenario_board_slot_count(scenario: Resource, battlefield_preset = null) -> int:
+	if battlefield_preset != null and int(battlefield_preset.get("board_slot_count")) > 0:
+		return int(battlefield_preset.get("board_slot_count"))
+	return int(scenario.get("board_slot_count"))
+
+
+static func _resolve_scenario_board_slot_spacing(scenario: Resource, battlefield_preset = null) -> float:
+	if battlefield_preset != null:
+		return float(battlefield_preset.get("board_slot_spacing"))
+	return float(scenario.get("board_slot_spacing"))
 
 
 static func _load_resource_script(resource_script_path: String):

@@ -457,6 +457,9 @@ func _rebuild_lane_config() -> void:
 		lane_y_map = {0: 220.0, 1: 320.0}
 		return
 	var lane_count := int(active_scenario.get("lane_count"))
+	var battlefield_preset: Variant = active_scenario.get("battlefield_preset")
+	if battlefield_preset != null and battlefield_preset.get("lane_count") != null:
+		lane_count = int(battlefield_preset.get("lane_count"))
 	if lane_count <= 0:
 		lane_count = 2
 	if lane_count == 2:

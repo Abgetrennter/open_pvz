@@ -9,6 +9,10 @@ const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight_profile.gd"
 const ProjectileTemplatePath := "res://scripts/core/defs/projectile_template.gd"
 const EXTENSION_EFFECT_DEF_DIR := "data/combat/effects"
+const PROMOTED_EXTENSION_EFFECT_IDS := {
+	&"apply_status": true,
+	&"spawn_entity": true,
+}
 
 var _effect_defs: Dictionary = {}
 var _effect_strategies: Dictionary = {}
@@ -505,6 +509,8 @@ func _register_extension_effect_defs(directory_path: String) -> void:
 			continue
 		var effect_def := load(full_path)
 		if effect_def == null or effect_def.get_script() != EffectDefRef:
+			continue
+		if PROMOTED_EXTENSION_EFFECT_IDS.has(StringName(effect_def.effect_id)):
 			continue
 		var accepted := register_def(effect_def)
 		if accepted:

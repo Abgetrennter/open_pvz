@@ -5,6 +5,7 @@ const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd")
 const BoardSlotRef = preload("res://scripts/battle/board_slot.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
+const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 
 var battle: Node = null
@@ -18,10 +19,15 @@ var _slot_configs: Array[Resource] = []
 
 func setup(battle_node: Node, scenario: Resource) -> void:
 	battle = battle_node
-	board_slot_count = maxi(1, int(scenario.get("board_slot_count")))
-	board_slot_origin_x = float(scenario.get("board_slot_origin_x"))
-	board_slot_spacing = maxf(float(scenario.get("board_slot_spacing")), 1.0)
+	var battlefield_preset = _resolve_battlefield_preset(scenario)
+	board_slot_count = maxi(1, _resolve_board_slot_count(scenario, battlefield_preset))
+	board_slot_origin_x = _resolve_board_slot_origin_x(scenario, battlefield_preset)
+	board_slot_spacing = maxf(_resolve_board_slot_spacing(scenario, battlefield_preset), 1.0)
 	_slot_configs.clear()
+	if battlefield_preset != null:
+		for slot_config in battlefield_preset.board_slot_configs:
+			if slot_config is Resource:
+				_slot_configs.append(slot_config)
 	var configured_slot_configs: Variant = scenario.get("board_slot_configs")
 	if configured_slot_configs is Array:
 		for slot_config in configured_slot_configs:
@@ -317,3 +323,30 @@ func _debug_slot_occupant_name(entity: Node) -> String:
 	if entity.has_method("get_debug_name"):
 		return String(entity.call("get_debug_name"))
 	return entity.name
+
+
+func _resolve_battlefield_preset(scenario: Resource):
+	if scenario == null:
+		return null
+	var preset: Variant = scenario.get("battlefield_preset")
+	if preset != null and preset.get_script() == BattlefieldPresetRef:
+		return preset
+	return null
+
+
+func _resolve_board_slot_count(scenario: Resource, battlefield_preset) -> int:
+	if battlefield_preset != null and int(battlefield_preset.board_slot_count) > 0:
+		return int(battlefield_preset.board_slot_count)
+	return int(scenario.get("board_slot_count"))
+
+
+func _resolve_board_slot_origin_x(scenario: Resource, battlefield_preset) -> float:
+	if battlefield_preset != null:
+		return float(battlefield_preset.board_slot_origin_x)
+	return float(scenario.get("board_slot_origin_x"))
+
+
+func _resolve_board_slot_spacing(scenario: Resource, battlefield_preset) -> float:
+	if battlefield_preset != null:
+		return float(battlefield_preset.board_slot_spacing)
+	return float(scenario.get("board_slot_spacing"))

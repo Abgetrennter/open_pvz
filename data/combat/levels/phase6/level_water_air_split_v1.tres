@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/battlefields/phase6/battlefield_water_air_split.tres" id="2_battlefield"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_water_pod.tres" id="3_card_water_pod"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_shooter.tres" id="4_card_shooter"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_air_perch.tres" id="5_card_air_perch"]
+[ext_resource type="Resource" path="res://data/combat/cards/phase6/card_frost_pea.tres" id="6_card_frost"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_wall.tres" id="7_card_wall"]
+[ext_resource type="Resource" path="res://data/combat/waves/phase6/wave_phase6_air_corridor.tres" id="8_wave_air"]
+[ext_resource type="Resource" path="res://data/combat/waves/phase6/wave_phase6_disrupt_mix.tres" id="9_wave_disrupt"]
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"level_water_air_split_v1"
+display_name = "Water And Air Split V1"
+description = "Formal Phase 6 level template that forces different answers for water, ground and air lanes."
+goals = PackedStringArray("Use water support and air-only placements correctly.", "Survive long enough for mixed air and disruption pressure to pass.")
+battlefield_preset = ExtResource("2_battlefield")
+initial_sun = 200
+card_defs = [ExtResource("3_card_water_pod"), ExtResource("4_card_shooter"), ExtResource("5_card_air_perch"), ExtResource("6_card_frost"), ExtResource("7_card_wall")]
+wave_defs = [ExtResource("8_wave_air"), ExtResource("9_wave_disrupt")]
+battle_goal = &"survive_duration"
+survival_duration = 55.0
+defeat_conditions = PackedStringArray("zombie_reached_goal")
+defeat_line_x = 60.0

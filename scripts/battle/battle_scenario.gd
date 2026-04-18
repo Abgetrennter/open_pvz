@@ -10,6 +10,7 @@ class_name BattleScenario
 @export var sun_auto_collect_delay := -1.0
 @export var sun_drop_entries: Array = []
 @export var resource_spend_requests: Array = []
+@export var battlefield_preset: Resource = null
 @export var board_slot_count := 5
 @export var board_slot_origin_x := 160.0
 @export var board_slot_spacing := 96.0
@@ -20,6 +21,10 @@ class_name BattleScenario
 @export var status_application_requests: Array = []
 @export var field_object_configs: Array = []
 @export var wave_defs: Array = []
+@export var battle_goal: StringName = &"all_waves_cleared"
+@export var defeat_conditions: PackedStringArray = PackedStringArray(["zombie_reached_goal"])
+@export var survival_duration := 0.0
+@export var protected_template_id: StringName = StringName()
 @export var defeat_line_x := 80.0
 @export var validation_rules: Array = []
 @export var spawns: Array = []

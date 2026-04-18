@@ -90,6 +90,30 @@
     "layers": ["core"]
   },
   {
+    "id": "interaction_matrix_phase6_validation",
+    "scenario": "res://scenes/validation/interaction_matrix_phase6_validation.tres",
+    "description": "Validates the first formal Phase 6 interaction matrix across control, summon pressure, armored resistance and ranged disruption.",
+    "layers": ["core"]
+  },
+  {
+    "id": "battlefield_phase6_validation",
+    "scenario": "res://scenes/validation/battlefield_phase6_validation.tres",
+    "description": "Validates formal battlefield presets by exercising water, ground and air-only placement semantics through the shared card and board runtime.",
+    "layers": ["core"]
+  },
+  {
+    "id": "survival_goal_phase6_validation",
+    "scenario": "res://scenes/validation/survival_goal_phase6_validation.tres",
+    "description": "Validates the survive_duration battle goal variant without introducing battle-specific special cases.",
+    "layers": ["core"]
+  },
+  {
+    "id": "protect_goal_phase6_validation",
+    "scenario": "res://scenes/validation/protect_goal_phase6_validation.tres",
+    "description": "Validates the protect_template defeat condition by requiring a sunflower anchor to survive a ranged zombie attack.",
+    "layers": ["core"]
+  },
+  {
     "id": "template_guardrail_validation",
     "scenario": "res://scenes/validation/template_guardrail_validation.tres",
     "description": "Validates that invalid template resources, malformed trigger bindings, and malformed override combinations are rejected through protocol issues before runtime execution.",

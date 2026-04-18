@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+
+[sub_resource type="Resource" id="Spawn_distant_walker"]
+script = ExtResource("3_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 920.0
+
+[sub_resource type="Resource" id="Rule_survival_victory"]
+script = ExtResource("2_rule")
+rule_id = &"survival_goal_victory"
+description = "survival-duration goal should produce battle.victory when the timer elapses"
+event_name = &"battle.victory"
+required_core_values = {
+"reason": &"survival_duration_elapsed"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"survival_goal_phase6_validation"
+display_name = "Survival Goal Phase 6 Validation"
+description = "Validates the survive_duration battle goal variant without introducing battle-specific special cases."
+goals = PackedStringArray("Verify a scenario can win on time survived instead of requiring all waves to clear.")
+validation_time_limit = 3.5
+battle_goal = &"survive_duration"
+survival_duration = 2.0
+defeat_conditions = PackedStringArray("zombie_reached_goal")
+spawns = [SubResource("Spawn_distant_walker")]
+validation_rules = [SubResource("Rule_survival_victory")]

@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+
+[sub_resource type="Resource" id="Spawn_protected_sunflower"]
+script = ExtResource("3_spawn")
+entity_template_id = &"plant_sunflower"
+lane_id = 0
+x_position = 220.0
+
+[sub_resource type="Resource" id="Spawn_bone_thrower"]
+script = ExtResource("3_spawn")
+entity_template_id = &"zombie_bone_thrower"
+lane_id = 0
+x_position = 300.0
+
+[sub_resource type="Resource" id="Rule_protect_defeat"]
+script = ExtResource("2_rule")
+rule_id = &"protect_goal_defeat"
+description = "protect-template defeat condition should trigger when the protected template is lost"
+event_name = &"battle.defeat"
+required_core_values = {
+"reason": &"protected_template_lost"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"protect_goal_phase6_validation"
+display_name = "Protect Goal Phase 6 Validation"
+description = "Validates the protect_template defeat condition by requiring a sunflower anchor to survive a ranged zombie attack."
+goals = PackedStringArray("Verify a scenario can fail when a protected template is destroyed, independent of the goal line.")
+validation_time_limit = 4.5
+battle_goal = &"protect_and_clear"
+defeat_conditions = PackedStringArray("protect_template")
+protected_template_id = &"plant_sunflower"
+spawns = [SubResource("Spawn_protected_sunflower"), SubResource("Spawn_bone_thrower")]
+validation_rules = [SubResource("Rule_protect_defeat")]

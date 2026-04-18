@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="WaveDef" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/wave_def.gd" id="1_wave_def"]
+[ext_resource type="Script" path="res://scripts/battle/wave_spawn_entry.gd" id="2_wave_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+
+[sub_resource type="Resource" id="Spawn_1"]
+script = ExtResource("3_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 900.0
+spawn_overrides = {}
+
+[sub_resource type="Resource" id="Spawn_2"]
+script = ExtResource("3_spawn")
+entity_template_id = &"zombie_brisk_runner"
+lane_id = 1
+x_position = 930.0
+spawn_overrides = {}
+
+[sub_resource type="Resource" id="Spawn_3"]
+script = ExtResource("3_spawn")
+entity_template_id = &"zombie_bucket_tank"
+lane_id = 2
+x_position = 910.0
+spawn_overrides = {}
+
+[sub_resource type="Resource" id="WaveSpawn_1"]
+script = ExtResource("2_wave_spawn")
+spawn_time_offset = 0.0
+spawn_entry = SubResource("Spawn_1")
+
+[sub_resource type="Resource" id="WaveSpawn_2"]
+script = ExtResource("2_wave_spawn")
+spawn_time_offset = 2.0
+spawn_entry = SubResource("Spawn_2")
+
+[sub_resource type="Resource" id="WaveSpawn_3"]
+script = ExtResource("2_wave_spawn")
+spawn_time_offset = 4.0
+spawn_entry = SubResource("Spawn_3")
+
+[resource]
+script = ExtResource("1_wave_def")
+wave_id = &"wave_phase6_ground_pressure"
+start_time = 10.0
+spawn_entries = [SubResource("WaveSpawn_1"), SubResource("WaveSpawn_2"), SubResource("WaveSpawn_3")]
