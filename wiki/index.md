@@ -103,6 +103,10 @@ wiki/
 
 - [扩展与数据包](04-roadmap-reference/11-扩展性与社区生态.md)
 - [扩展包新增效果与效果外置策略](04-roadmap-reference/37-扩展包新增效果与效果外置策略.md)
+- [扩展系统总体规划-v1](04-roadmap-reference/38-扩展系统总体规划-v1.md)
+- [素材包系统设计草案](04-roadmap-reference/39-素材包系统设计草案.md)
+- [扩展包边界与依赖规则-v1](04-roadmap-reference/40-扩展包边界与依赖规则-v1.md)
+- [扩展包 manifest 规范-v1](04-roadmap-reference/41-扩展包-manifest-规范-v1.md)
 - [第四阶段前置清单](../plans/第四阶段前置清单.md)
 - [第四阶段第一批可执行任务清单](../plans/第四阶段第一批可执行任务清单.md)
 - [第四阶段-战斗玩法层系统清单](../plans/第四阶段-战斗玩法层系统清单.md)
