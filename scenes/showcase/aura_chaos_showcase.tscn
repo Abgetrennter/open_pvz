@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/scenes/validation/aura_chaos_validation.tres" id="2_scenario"]
+
+[node name="AuraChaosShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = true
+showcase_title = "光环错误技展示"
+showcase_summary = "扩展 aura 会周期扫描附近敌人并施加减速，展示持续范围控制如何复用现有状态系统。"
