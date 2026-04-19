@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://scenes/validation/sunflower_sun_production_validation.tres" id="2_scenario"]
+
+[node name="SunflowerSunProductionShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = false
+showcase_title = "向日葵阳光生产展示"
+showcase_summary = "三条车道各放置一棵向日葵，以不同间隔（2s/3s/2.5s）和价值（25/25/50）并行产出阳光，同时演示天降阳光和自动收集。"

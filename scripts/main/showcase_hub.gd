@@ -80,6 +80,11 @@ const GROUPS := [
 				"summary": "基础、快跑、坦克和重型僵尸共同测试统一的 bite 运行时。",
 				"scene": "res://scenes/showcase/zombie_roster_showcase.tscn",
 			},
+			{
+				"title": "向日葵阳光生产",
+				"summary": "三条车道各一棵向日葵，以不同间隔和价值并行产出阳光，同时演示天降阳光和自动收集。",
+				"scene": "res://scenes/showcase/sunflower_sun_production_showcase.tscn",
+			},
 		],
 	},
 	{

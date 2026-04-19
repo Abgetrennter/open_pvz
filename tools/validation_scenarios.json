@@ -132,6 +132,12 @@
     "layers": ["smoke", "core"]
   },
   {
+    "id": "sunflower_sun_production_validation",
+    "scenario": "res://scenes/validation/sunflower_sun_production_validation.tres",
+    "description": "Validates sunflower sun production using the actual plant_sunflower template across multiple lanes, including plant-generated sun with different intervals and values, sky-drop sun, automatic collection, and resource state changes.",
+    "layers": ["smoke", "core"]
+  },
+  {
     "id": "card_flow_validation",
     "scenario": "res://scenes/validation/card_flow_validation.tres",
     "description": "Validates the first-stage card runtime, including sun spending via try_spend_sun, placement acceptance, entity spawn, cooldown rejection, and insufficient-resource rejection.",

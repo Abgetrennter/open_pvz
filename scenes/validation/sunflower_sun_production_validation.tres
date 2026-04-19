@@ -1,0 +1,114 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/sun_drop_entry.gd" id="3_sun_drop"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="BattleSpawnEntry_sunflower_lane0"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_sunflower"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"sun_production_interval": 2.0,
+"sun_production_start_delay": 1.0,
+"sun_production_value": 25
+}
+
+[sub_resource type="Resource" id="BattleSpawnEntry_sunflower_lane1"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_sunflower"
+lane_id = 1
+x_position = 280.0
+spawn_overrides = {
+"sun_production_interval": 3.0,
+"sun_production_start_delay": 2.0,
+"sun_production_value": 25
+}
+
+[sub_resource type="Resource" id="BattleSpawnEntry_sunflower_lane2"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_sunflower"
+lane_id = 2
+x_position = 400.0
+spawn_overrides = {
+"sun_production_interval": 2.5,
+"sun_production_start_delay": 1.5,
+"sun_production_value": 50
+}
+
+[sub_resource type="Resource" id="SunDropEntry_sky_drop"]
+script = ExtResource("3_sun_drop")
+at_time = 0.5
+lane_id = 0
+x_position = 260.0
+value = 25
+source_type = &"sky_drop"
+auto_collect_delay = 0.3
+
+[sub_resource type="Resource" id="BattleValidationRule_tick"]
+script = ExtResource("4_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="BattleValidationRule_plant_sun_spawn"]
+script = ExtResource("4_rule")
+rule_id = &"plant_sun_spawn"
+description = "plant-generated sun spawns at least 3 times from multiple sunflowers"
+event_name = &"sun.spawned"
+min_count = 3
+required_core_values = {
+"source_type": &"plant_generated"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_sky_sun_spawn"]
+script = ExtResource("4_rule")
+rule_id = &"sky_sun_spawn"
+description = "sky-drop sun spawns at least once"
+event_name = &"sun.spawned"
+required_core_values = {
+"source_type": &"sky_drop"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_sun_collect"]
+script = ExtResource("4_rule")
+rule_id = &"sun_collect"
+description = "at least 3 sun collectibles are collected"
+event_name = &"sun.collected"
+min_count = 3
+
+[sub_resource type="Resource" id="BattleValidationRule_collect_resource_change"]
+script = ExtResource("4_rule")
+rule_id = &"collect_resource_change"
+description = "collecting sun changes the resource state at least 3 times"
+event_name = &"resource.changed"
+min_count = 3
+required_core_values = {
+"reason": &"collect",
+"resource_id": &"sun"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_resource_increase"]
+script = ExtResource("4_rule")
+rule_id = &"resource_increase"
+description = "total sun resource increases from zero after collections"
+event_name = &"resource.changed"
+required_core_values = {
+"resource_id": &"sun"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"sunflower_sun_production_validation"
+display_name = "Sunflower Sun Production Validation"
+description = "Validates sunflower sun production using the actual plant_sunflower template across three lanes. Three sunflowers produce sun at different intervals (2s/3s/2.5s) and values (25/25/50), alongside a sky-drop sun. All sun is auto-collected to verify resource state changes."
+goals = PackedStringArray("Observe three sunflowers across three lanes each producing sun at different rates.", "Verify sky-drop sun also enters the battle.", "Verify all sun collectibles are auto-collected and change the authoritative resource state.")
+validation_time_limit = 10.0
+initial_sun = 0
+sun_auto_collect_delay = 0.3
+sun_drop_entries = [SubResource("SunDropEntry_sky_drop")]
+lane_count = 3
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_plant_sun_spawn"), SubResource("BattleValidationRule_sky_sun_spawn"), SubResource("BattleValidationRule_sun_collect"), SubResource("BattleValidationRule_collect_resource_change"), SubResource("BattleValidationRule_resource_increase")]
+spawns = [SubResource("BattleSpawnEntry_sunflower_lane0"), SubResource("BattleSpawnEntry_sunflower_lane1"), SubResource("BattleSpawnEntry_sunflower_lane2")]
