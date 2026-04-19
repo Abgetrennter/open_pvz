@@ -9,7 +9,7 @@
 
 ## Context
 
-Open PVZ 的规则引擎骨架（事件 → 触发 → 效果 → 执行链）已成熟，战斗子系统（经济、棋盘、卡片、波次、流程）均有状态类实现。当前存在一套 `scripts/demo/` 下的原型 UI（CardBar、SunCounter、BoardVisual、WaveIndicator、InputBridge、BattleResultOverlay），功能基本可用但缺乏框架层抽象——无基类、无生命周期管理、无统一状态绑定模式。
+Open PVZ 的规则引擎骨架（事件 → 触发 → 效果 → 执行链）已成熟，战斗子系统（经济、棋盘、卡片、波次、流程）均有状态类实现。当前第一批 UI / 输入原型已经迁入 `scripts/ui/` 与 `scripts/input/`，并在 demo 场景与输入验证场景中替换旧实现；`scripts/demo/` 只保留场景编排器和仍被复用的格子可视节点。
 
 本方案的目标：**将 demo 原型提升为可组合、可测试、与引擎解耦的 UI 框架层**，作为当前阶段的**支撑层规范化方案**，为后续内容开发和表现层扩展奠定基础。
 
@@ -102,7 +102,7 @@ BattleScene (Node2D)
 **BoardOverlay 定位**：世界空间 Node2D，与 BattleManager、实体处于同一坐标系。原因：
 - `BattleBoardState.get_slot_world_position()` 返回世界坐标，BoardOverlay 直接消费，零转换开销
 - BoardCellVisual 用 Area2D 碰撞检测，与世界空间实体天然匹配
-- 与现有 `demo/board_visual.gd` 模式一致
+- 与此前原型 `board_visual.gd` 的世界空间模式一致
 - 未来 Camera 移动/缩放时，世界空间节点自动跟随
 
 BattleHUD 根节点使用 `MOUSE_FILTER_IGNORE`，点击事件穿透到世界空间，仅子控件拦截。
@@ -277,7 +277,7 @@ InputRouter.cell_unhovered(lane,slot) → BoardOverlay 清除高亮
 
 ## 6. 组件规格
 
-### 6.1 CardBar（迁移自 `scripts/demo/card_bar.gd`）
+### 6.1 CardBar（已迁入 `scripts/ui/panels/card_bar.gd`）
 
 | 项目 | 说明 |
 |------|------|
@@ -288,7 +288,17 @@ InputRouter.cell_unhovered(lane,slot) → BoardOverlay 清除高亮
 | 子控件 | PanelContainer × N（卡片槽），每槽含 ColorRect + Label(名称) + Label(费用) + ColorRect(冷却覆盖) |
 | 迁移要点 | setup() → panel_setup()；直接订阅 → _track_subscribe()；新增 _battle 引用 |
 
-### 6.2 SunCounter（迁移自 `scripts/demo/sun_counter.gd`）
+补充参考：
+
+- 原版 `de-pvz` 的 `SeedPacket / SeedBank` 值得借的不是界面样式，而是“卡槽状态是正式模型”这件事。
+- 它把激活、冷却刷新、可拾取、传送带、老虎机等都建成了正式状态字段和更新逻辑。
+- 对 Open PVZ 的启发是：后续 `CardBar` 不应长期停留在“若干按钮 + 局部动画”的层级，而应逐步形成明确的 packet state model，至少覆盖：
+  - 可选中 / 不可选中
+  - 冷却中
+  - 费用不足
+  - 特殊来源（未来如传送带或临时卡）
+
+### 6.2 SunCounter（已迁入 `scripts/ui/panels/sun_counter.gd`）
 
 | 项目 | 说明 |
 |------|------|
@@ -297,7 +307,7 @@ InputRouter.cell_unhovered(lane,slot) → BoardOverlay 清除高亮
 | 子控件 | HBoxContainer（图标 ColorRect + Label） |
 | 动画 | 数值变化时 scale tween |
 
-### 6.3 BoardOverlay（迁移自 `scripts/demo/board_visual.gd`）
+### 6.3 BoardOverlay（已迁入 `scripts/ui/panels/board_overlay.gd`）
 
 | 项目 | 说明 |
 |------|------|
@@ -308,7 +318,7 @@ InputRouter.cell_unhovered(lane,slot) → BoardOverlay 清除高亮
 | 状态 | normal / hover_valid / occupied / invalid |
 | 迁移要点 | 保留 setup() 接口（世界空间面板不走 panel_setup），增加 _track_subscribe() |
 
-### 6.4 WaveProgress（迁移自 `scripts/demo/wave_indicator.gd`）
+### 6.4 WaveProgress（已迁入 `scripts/ui/panels/wave_progress.gd`）
 
 | 项目 | 说明 |
 |------|------|
@@ -317,7 +327,7 @@ InputRouter.cell_unhovered(lane,slot) → BoardOverlay 清除高亮
 | 子控件 | Label（文本），未来增加 ProgressBar |
 | 特殊行为 | 最终波次变色 + scale 脉冲 |
 
-### 6.5 PhaseScreen（迁移自 `scripts/demo/battle_result_overlay.gd`）
+### 6.5 PhaseScreen（已迁入 `scripts/ui/screens/phase_screen.gd`）
 
 | 项目 | 说明 |
 |------|------|
@@ -387,18 +397,17 @@ scripts/
 │   │   └── board_overlay.gd         # 棋盘渲染（世界空间）
 │   └── screens/                     # 全屏覆盖
 │       └── phase_screen.gd          # 阶段过渡屏
-├── demo/                            # 现有原型（保留，不破坏）
+├── input/                           # 新增：输入交互层
+│   └── input_router.gd
+├── validation/                      # 新增：验证脚本层
+│   ├── card_place_validation.gd
+│   └── sun_click_validation.gd
+├── demo/                            # 场景编排与少量复用节点
 │   ├── demo_battle_scene.gd
-│   ├── card_bar.gd
-│   ├── sun_counter.gd
-│   ├── board_visual.gd
-│   ├── wave_indicator.gd
-│   ├── input_bridge.gd
-│   ├── board_cell_visual.gd
-│   └── battle_result_overlay.gd
+│   └── board_cell_visual.gd
 ```
 
-**迁移策略**：demo/ 目录完整保留。新的 `scripts/ui/` 独立添加。未来 DemoBattleScene 可逐步切换到新框架，但不需要删除旧代码。
+**迁移策略**：第一批旧 demo UI / 输入脚本已完成替换并清理。后续若仍需保留原型代码，应只保留仍被新层复用或确有历史价值的最小节点。
 
 ---
 
@@ -413,7 +422,7 @@ scripts/
 
 **验证**：新文件可实例化无报错，现有验证场景全部通过。
 
-### Phase 1：迁移 SunCounter（最简单面板）
+### Phase 1：迁移 SunCounter（最简单面板，已完成）
 
 - `scripts/ui/panels/sun_counter.gd` 继承 UIPanelBase
 - 从 demo/sun_counter.gd 迁移逻辑
@@ -421,7 +430,7 @@ scripts/
 
 **验证**：Demo 场景用新 SunCounter 表现一致。
 
-### Phase 2：迁移 WaveProgress
+### Phase 2：迁移 WaveProgress（已完成）
 
 - `scripts/ui/panels/wave_progress.gd`
 - 从 demo/wave_indicator.gd 迁移
@@ -429,7 +438,7 @@ scripts/
 
 **验证**：波次显示正确。
 
-### Phase 3：迁移 CardBar（最复杂面板）
+### Phase 3：迁移 CardBar（最复杂面板，已完成）
 
 - `scripts/ui/panels/card_bar.gd`
 - 多子控件、多事件订阅、信号发射
@@ -437,7 +446,7 @@ scripts/
 
 **验证**：卡片选择、放置、冷却、可购性表现一致。
 
-### Phase 4：迁移 BoardOverlay
+### Phase 4：迁移 BoardOverlay（已完成）
 
 - `scripts/ui/panels/board_overlay.gd`
 - 世界空间渲染，分离背景与交互
@@ -445,7 +454,7 @@ scripts/
 
 **验证**：格网渲染、hover/occupied/invalid 状态正确。
 
-### Phase 5：迁移 PhaseScreen
+### Phase 5：迁移 PhaseScreen（已完成）
 
 - `scripts/ui/screens/phase_screen.gd`
 - 从 demo/battle_result_overlay.gd 迁移
@@ -453,14 +462,14 @@ scripts/
 
 **验证**：胜利/失败画面正确显示。
 
-### Phase 6：BattleHUD 编排集成
+### Phase 6：BattleHUD 编排集成（已完成）
 
 - 创建使用新框架的 DemoBattleScene 变体
 - 所有面板通过 BattleHUD 统一管理
 
 **验证**：新场景与现有 demo 功能等价。
 
-### Phase 7：InputRouter 集成
+### Phase 7：InputRouter 集成（已完成）
 
 - 替换 InputBridge 为 InputRouter
 - CardBar/BoardOverlay 信号接入 InputRouter
@@ -501,13 +510,14 @@ scripts/
 
 | 文件 | 角色 |
 |------|------|
-| `scripts/demo/demo_battle_scene.gd` | 当前场景编排器，UI 接线参考 |
-| `scripts/demo/card_bar.gd` | 最复杂 UI 组件，EventBus 订阅模式参考 |
-| `scripts/demo/sun_counter.gd` | 最简单 UI 组件，状态绑定模式参考 |
-| `scripts/demo/board_visual.gd` | 世界空间 UI 参考，BoardCellVisual 复用 |
-| `scripts/demo/wave_indicator.gd` | 波次 UI 参考 |
-| `scripts/demo/input_bridge.gd` | 输入桥接参考，将被 InputRouter 替代 |
-| `scripts/demo/battle_result_overlay.gd` | 全屏覆盖参考 |
+| `scripts/demo/demo_battle_scene.gd` | 当前场景编排器与接线参考 |
+| `scripts/ui/panels/card_bar.gd` | 现行卡片面板实现 |
+| `scripts/ui/panels/sun_counter.gd` | 现行阳光计数器实现 |
+| `scripts/ui/panels/board_overlay.gd` | 现行世界空间棋盘层实现 |
+| `scripts/ui/panels/wave_progress.gd` | 现行波次面板实现 |
+| `scripts/input/input_router.gd` | 现行输入路由器实现 |
+| `scripts/ui/screens/phase_screen.gd` | 现行结果覆盖层实现 |
+| `scripts/demo/board_cell_visual.gd` | 当前仍被 BoardOverlay 复用的格子可视节点 |
 | `autoload/EventBus.gd` | 事件总线，UI 订阅/退订的契约 |
 | `scripts/battle/battle_card_state.gd` | 卡片状态事件源 |
 | `scripts/battle/battle_economy_state.gd` | 经济状态事件源 |

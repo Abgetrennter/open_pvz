@@ -1,5 +1,5 @@
 extends Node2D
-class_name BoardVisual
+class_name UIBoardOverlay
 
 const BoardCellVisualRef = preload("res://scripts/demo/board_cell_visual.gd")
 
@@ -10,6 +10,7 @@ var _board_state: Node = null
 var _lane_count := 5
 var _slot_count := 9
 var _cell_size := Vector2(80.0, 56.0)
+var _subscriptions: Array[Dictionary] = []
 
 
 func setup(board_state: Node, lane_count: int, slot_count: int, cell_size: Vector2) -> void:
@@ -18,9 +19,19 @@ func setup(board_state: Node, lane_count: int, slot_count: int, cell_size: Vecto
 	_slot_count = slot_count
 	_cell_size = cell_size
 	_rebuild_cells()
-	EventBus.subscribe(&"placement.accepted", Callable(self, "_on_placement_accepted"))
-	EventBus.subscribe(&"placement.rejected", Callable(self, "_on_placement_rejected"))
-	EventBus.subscribe(&"entity.died", Callable(self, "_on_entity_died"))
+	_track_subscribe(&"placement.accepted", Callable(self, "_on_placement_accepted"))
+	_track_subscribe(&"placement.rejected", Callable(self, "_on_placement_rejected"))
+	_track_subscribe(&"entity.died", Callable(self, "_on_entity_died"))
+
+
+func teardown() -> void:
+	for tracked in _subscriptions:
+		var event_name := StringName(tracked.get("event_name", StringName()))
+		var callback: Callable = tracked.get("callback", Callable())
+		if event_name == StringName() or not callback.is_valid():
+			continue
+		EventBus.unsubscribe(event_name, callback)
+	_subscriptions.clear()
 
 
 func highlight_slot(lane_id: int, slot_index: int, highlight: bool) -> void:
@@ -44,6 +55,16 @@ func get_slot_at_world_pos(world_pos: Vector2) -> Dictionary:
 		if cell_rect.has_point(world_pos):
 			return {"lane_id": cell.lane_id, "slot_index": cell.slot_index}
 	return {}
+
+
+func _track_subscribe(event_name: StringName, callback: Callable) -> void:
+	if event_name == StringName() or not callback.is_valid():
+		return
+	EventBus.subscribe(event_name, callback)
+	_subscriptions.append({
+		"event_name": event_name,
+		"callback": callback,
+	})
 
 
 func _rebuild_cells() -> void:

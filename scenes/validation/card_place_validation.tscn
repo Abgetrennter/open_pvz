@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/demo/validation_card_place.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/validation/card_place_validation.gd" id="1_script"]
 
 [node name="CardPlaceValidation" type="Node2D"]
 script = ExtResource("1_script")

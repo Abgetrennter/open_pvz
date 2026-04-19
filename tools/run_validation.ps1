@@ -1,6 +1,6 @@
 param(
 	[string]$Scenario = "res://scenes/validation/parabola_long_range_validation.tres",
-	[string]$GodotExe = "E:\SDK\Godot\Godot_v4.6.1-stable_win64_console.exe",
+	[string]$GodotExe = "E:\Code\open_pvz\Godot_v4.6.1-stable_win64_console.exe",
 	[string]$OutputRoot = "",
 	[string]$RunLabel = "",
 	[switch]$EnableRuntimeSnapshots,

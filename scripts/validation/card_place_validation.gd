@@ -2,16 +2,16 @@ extends Node2D
 class_name CardPlaceValidation
 
 const BattleManagerRef = preload("res://scripts/battle/battle_manager.gd")
-const BoardVisualRef = preload("res://scripts/demo/board_visual.gd")
-const CardBarRef = preload("res://scripts/demo/card_bar.gd")
-const InputBridgeRef = preload("res://scripts/demo/input_bridge.gd")
-const SunCounterRef = preload("res://scripts/demo/sun_counter.gd")
-const WaveIndicatorRef = preload("res://scripts/demo/wave_indicator.gd")
+const BattleHUDRef = preload("res://scripts/ui/battle_hud.gd")
+const BoardVisualRef = preload("res://scripts/ui/panels/board_overlay.gd")
+const CardBarRef = preload("res://scripts/ui/panels/card_bar.gd")
+const InputRouterRef = preload("res://scripts/input/input_router.gd")
 
 var _battle: Node2D = null
+var _battle_hud: Control = null
 var _card_bar: Control = null
 var _board_visual: Node2D = null
-var _input_bridge: Node = null
+var _input_router: Node = null
 var _card_clicked := false
 var _validation_passed := false
 var _validation_failed := false
@@ -45,18 +45,38 @@ func _setup_demo_ui(scenario: Resource) -> void:
 	var board_state = _battle.get_node_or_null("BattleBoardState")
 	var card_state = _battle.get_node_or_null("BattleCardState")
 	var flow_state = _battle.get_node_or_null("BattleFlowState")
+
+	var hud_canvas := CanvasLayer.new()
+	hud_canvas.layer = 50
+	add_child(hud_canvas)
+
+	_battle_hud = BattleHUDRef.new()
+	_battle_hud.name = "BattleHUD"
+	_battle_hud.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_battle_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hud_canvas.add_child(_battle_hud)
+
 	_board_visual = BoardVisualRef.new()
-	_board_visual.name = "BoardVisual"
+	_board_visual.name = "BoardOverlay"
 	add_child(_board_visual)
-	_board_visual.call("setup", board_state, 2, 5, Vector2(80.0, 56.0))
 	_card_bar = CardBarRef.new()
 	_card_bar.name = "CardBar"
-	add_child(_card_bar)
-	_card_bar.call("setup", scenario)
-	_input_bridge = InputBridgeRef.new()
-	_input_bridge.name = "InputBridge"
-	add_child(_input_bridge)
-	_input_bridge.call("setup", _card_bar, _board_visual, card_state, flow_state)
+	_card_bar.set_anchor(SIDE_LEFT, 0.0)
+	_card_bar.set_anchor(SIDE_RIGHT, 1.0)
+	_card_bar.set_anchor(SIDE_TOP, 0.0)
+	_card_bar.set_anchor(SIDE_BOTTOM, 0.0)
+	_card_bar.offset_top = 4.0
+	_card_bar.offset_left = 220.0
+	_card_bar.offset_bottom = 100.0
+	_battle_hud.add_child(_card_bar)
+
+	_board_visual.call("setup", board_state, 2, 5, Vector2(80.0, 56.0))
+	_battle_hud.call("setup", _battle, scenario)
+
+	_input_router = InputRouterRef.new()
+	_input_router.name = "InputRouter"
+	add_child(_input_router)
+	_input_router.call("setup", _card_bar, _board_visual, card_state, flow_state)
 
 
 func _on_game_tick(_event_data: Variant) -> void:
@@ -66,7 +86,7 @@ func _on_game_tick(_event_data: Variant) -> void:
 		return
 	if _card_bar.call("get_selected_card_id") != StringName():
 		return
-	if not _card_bar.has_method("_on_slot_input"):
+	if not _card_bar.has_method("get_card_ids"):
 		return
 	yield(get_tree().create_timer(0.3), "timeout")
 	_inject_card_click()

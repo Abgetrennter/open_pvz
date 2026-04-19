@@ -1,10 +1,8 @@
-extends Control
-class_name CardBar
+extends "res://scripts/ui/ui_panel_base.gd"
+class_name UICardBar
 
 signal card_selected(card_id: StringName)
 signal card_deselected
-
-const CardDefRef = preload("res://scripts/battle/card_def.gd")
 
 var _card_defs: Array = []
 var _selected_card_id: StringName = StringName()
@@ -13,24 +11,47 @@ var _current_sun := 0
 var _cooldown_ready_times: Dictionary = {}
 
 
-func setup(scenario: Resource) -> void:
+func panel_setup(battle: Node, scenario: Resource) -> void:
+	super.panel_setup(battle, scenario)
 	_card_defs.clear()
 	_card_slots.clear()
 	_selected_card_id = StringName()
 	_cooldown_ready_times.clear()
-	_current_sun = int(scenario.get("initial_sun"))
-	var configured: Variant = scenario.get("card_defs")
+	_current_sun = _resolve_initial_sun(battle, scenario)
+	var configured: Variant = null if scenario == null else scenario.get("card_defs")
 	if configured is Array:
 		_card_defs = configured
 	_rebuild_ui()
-	EventBus.subscribe(&"resource.changed", Callable(self, "_on_resource_changed"))
-	EventBus.subscribe(&"card.cooldown_started", Callable(self, "_on_cooldown_started"))
-	EventBus.subscribe(&"card.play_rejected", Callable(self, "_on_card_play_rejected"))
-	EventBus.subscribe(&"card.play_requested", Callable(self, "_on_card_play_requested"))
+	_track_subscribe(&"resource.changed", Callable(self, "_on_resource_changed"))
+	_track_subscribe(&"card.cooldown_started", Callable(self, "_on_cooldown_started"))
+	_track_subscribe(&"card.play_rejected", Callable(self, "_on_card_play_rejected"))
+	_track_subscribe(&"card.play_requested", Callable(self, "_on_card_play_requested"))
+
+
+func panel_teardown() -> void:
+	super.panel_teardown()
 
 
 func get_selected_card_id() -> StringName:
 	return _selected_card_id
+
+
+func get_card_ids() -> Array[StringName]:
+	var card_ids: Array[StringName] = []
+	for card_def in _card_defs:
+		card_ids.append(StringName(card_def.get("card_id")))
+	return card_ids
+
+
+func select_card(card_id: StringName) -> void:
+	if card_id == StringName():
+		deselect_card()
+		return
+	if _selected_card_id == card_id:
+		return
+	_selected_card_id = card_id
+	_refresh_selection()
+	card_selected.emit(card_id)
 
 
 func deselect_card() -> void:
@@ -41,6 +62,14 @@ func deselect_card() -> void:
 	card_deselected.emit()
 
 
+func _resolve_initial_sun(battle: Node, scenario: Resource) -> int:
+	if battle != null and is_instance_valid(battle) and battle.has_method("get_current_sun"):
+		return int(battle.call("get_current_sun"))
+	if scenario != null:
+		return int(scenario.get("initial_sun"))
+	return 0
+
+
 func _rebuild_ui() -> void:
 	for child in get_children():
 		remove_child(child)
@@ -49,8 +78,7 @@ func _rebuild_ui() -> void:
 	var layout := HBoxContainer.new()
 	layout.add_theme_constant_override("separation", 6)
 	add_child(layout)
-	for i in range(_card_defs.size()):
-		var card_def = _card_defs[i]
+	for card_def in _card_defs:
 		var card_id := StringName(card_def.get("card_id"))
 		var slot := _build_card_slot(card_def, card_id)
 		layout.add_child(slot)
@@ -79,8 +107,8 @@ func _build_card_slot(card_def: Resource, card_id: StringName) -> Control:
 	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(color_rect)
 	var name_label := Label.new()
-	var dn = card_def.get("display_name")
-	name_label.text = String(dn if dn != null else String(card_id))
+	var display_name = card_def.get("display_name")
+	name_label.text = String(display_name if display_name != null else String(card_id))
 	name_label.add_theme_font_size_override("font_size", 11)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -112,9 +140,7 @@ func _on_slot_input(event: InputEvent, card_id: StringName) -> void:
 	if _selected_card_id == card_id:
 		deselect_card()
 		return
-	_selected_card_id = card_id
-	_refresh_selection()
-	card_selected.emit(card_id)
+	select_card(card_id)
 
 
 func _refresh_selection() -> void:
@@ -144,11 +170,11 @@ func _on_cooldown_started(event_data: Variant) -> void:
 	_start_cooldown_overlay(card_id, cooldown_seconds)
 
 
-func _on_card_play_rejected(event_data: Variant) -> void:
+func _on_card_play_rejected(_event_data: Variant) -> void:
 	pass
 
 
-func _on_card_play_requested(event_data: Variant) -> void:
+func _on_card_play_requested(_event_data: Variant) -> void:
 	pass
 
 
@@ -160,7 +186,9 @@ func _start_cooldown_overlay(card_id: StringName, duration: float) -> void:
 	if overlay == null:
 		return
 	overlay.visible = true
-	var tween := create_tween()
+	var tween := _track_tween(create_tween())
+	if tween == null:
+		return
 	tween.tween_property(overlay, "color:a", 0.0, duration).set_trans(Tween.TRANS_LINEAR)
 	tween.tween_callback(func():
 		overlay.visible = false
