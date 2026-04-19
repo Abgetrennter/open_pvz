@@ -1,3 +1,12 @@
 [submodule "vendor/PVZ-Godot-Dream"]
 	path = vendor/PVZ-Godot-Dream
 	url = https://github.com/hsk-dream/PVZ-Godot-Dream.git
+[submodule "vendor/Godot-PVZ"]
+	path = vendor/Godot-PVZ
+	url = https://github.com/HYTommm/Godot-PVZ
+[submodule "vendor/cpp-pvz"]
+	path = vendor/cpp-pvz
+	url = https://github.com/Patoke/re-plants-vs-zombies
+[submodule "vendor/de-pvz"]
+	path = vendor/de-pvz
+	url = https://github.com/ruslan831/PlantsVsZombies-decompilation

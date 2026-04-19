@@ -8,7 +8,8 @@
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'已注册场景数: {len\\(d.get\\(\\\\\"scenarios\\\\\", d\\) if isinstance\\(d, list\\) else d.get\\(\\\\\"scenarios\\\\\", []\\)\\)}'\\)\")",
       "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); scenarios=d if isinstance\\(d,list\\) else d.get\\('scenarios',[]\\); print\\(f'已注册场景数: {len\\(scenarios\\)}'\\)\")",
       "Bash(pwsh -NoProfile -Command \"& 'E:\\\\Code\\\\open_pvz\\\\tools\\\\run_all_validations.ps1'\")",
-      "Bash(grep -E \"\\\\.\\(gd|tscn|tres\\)$\")"
+      "Bash(grep -E \"\\\\.\\(gd|tscn|tres\\)$\")",
+      "mcp__context7__query-docs"
     ]
   }
 }

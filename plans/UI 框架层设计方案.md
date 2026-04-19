@@ -11,7 +11,7 @@
 
 Open PVZ 的规则引擎骨架（事件 → 触发 → 效果 → 执行链）已成熟，战斗子系统（经济、棋盘、卡片、波次、流程）均有状态类实现。当前存在一套 `scripts/demo/` 下的原型 UI（CardBar、SunCounter、BoardVisual、WaveIndicator、InputBridge、BattleResultOverlay），功能基本可用但缺乏框架层抽象——无基类、无生命周期管理、无统一状态绑定模式。
 
-本方案的目标：**将 demo 原型提升为可组合、可测试、与引擎解耦的 UI 框架层**，为后续内容开发和表现层扩展奠定基础。
+本方案的目标：**将 demo 原型提升为可组合、可测试、与引擎解耦的 UI 框架层**，作为当前阶段的**支撑层规范化方案**，为后续内容开发和表现层扩展奠定基础。
 
 **不包含**：具体视觉美化、素材集成、动画资源、音频 UI 反馈。
 
@@ -470,7 +470,7 @@ scripts/
 
 ### Phase 8：验证兼容性检查
 
-- 运行全部 30+ 验证场景
+- 运行全部 52 个验证场景
 - 创建 `ui_framework_validation` 专用验证场景
 - 确认 UI 可完全禁用
 
@@ -482,7 +482,7 @@ scripts/
 
 ### 10.1 现有场景为何安全
 
-30+ 验证场景均使用编程驱动模式：
+当前 52 个验证场景均使用编程驱动模式：
 - 创建 BattleManager，加载 BattleScenario .tres
 - 通过 `card_play_requests` 和 `resource_spend_requests` 驱动
 - **不创建任何 UI 组件**
