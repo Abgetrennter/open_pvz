@@ -1,135 +1,95 @@
 # Open PVZ Wiki
 
-> 这套 wiki 现在围绕一个主目标组织：把 `Open PVZ` 作为开放式 PVZ-like 规则引擎来设计，并把“错误技”作为它当前优先实现的旗舰验证场景。
+> 本 Wiki 以 2026-04-20 的仓库现状为准，目标是把“当前已经落地的实现”和“仍然只是规划或归档的内容”明确分开。
 
 ---
 
-## 先读这个
+## 当前项目状态
 
-如果你第一次进入这个仓库，建议按下面顺序阅读：
+当前 `Open PVZ` 已经不是概念验证骨架，而是一个可运行、可验证、可扩展的 PVZ-like 战斗引擎主干。
 
-1. [项目定位与总体架构](01-overview/00-核心架构总览.md)
-2. [核心设计哲学](01-overview/01-核心设计哲学.md)
-3. [系统架构](01-overview/02-系统架构.md)
+已经可以确认的事实包括：
+
+- 默认启动场景是 [`scenes/main/main.tscn`](../scenes/main/main.tscn)，进入 Showcase Hub。
+- 仓库包含一个可操作的最小可玩关卡 [`scenes/demo/demo_level.tscn`](../scenes/demo/demo_level.tscn)。
+- `data/combat/` 已经形成正式内容目录，而不只是验证场景附属资源：
+  - `battlefields/`
+  - `cards/`
+  - `entity_templates/`
+  - `height_bands/`
+  - `levels/`
+  - `projectile_profiles/`
+  - `projectile_templates/`
+  - `trigger_bindings/`
+  - `waves/`
+- 当前主仓正式内容已经具备第一轮基线：
+  - 16 个植物模板
+  - 9 个僵尸模板
+  - 10 个投射物模板
+  - 10 张卡片
+  - 3 个 Phase 6 战场模板
+  - 3 个 Phase 6 波次模板
+  - 3 个 Phase 6 关卡模板
+- 扩展侧已经有 3 个明确入口：
+  - `extensions/minimal_chaos_pack`
+  - `extensions/phase5_chaos_pack`
+  - `extensions/phase5_guardrail_pack`
+- 验证体系已经进入持续回归状态：
+  - [`tools/validation_scenarios.json`](../tools/validation_scenarios.json) 当前共 53 个验证场景
+  - 分层为 `smoke / core / extension / guardrail`
+  - 当前分层计数分别为 `9 / 38 / 10 / 5`
+
+一句话判断：
+
+> 第一到第六阶段已经沉淀为当前主干，项目当前处于“第七阶段输入准备”语境，主线是继续扩展正式关卡、正式内容组合与回归覆盖，而不是回到早期主干搭建阶段。
+
+---
+
+## 推荐阅读顺序
+
+如果你第一次进入仓库，建议按下面顺序看：
+
+1. [核心架构总览](01-overview/00-核心架构总览.md)
+2. [系统架构](01-overview/02-系统架构.md)
+3. [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
 4. [Open PVZ 系统版图与规划分层](01-overview/34-Open PVZ 系统版图与规划分层.md)
-5. [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
-
-这 5 篇负责回答最重要的问题：
-
-- 项目到底要做什么
-- 错误技和规则引擎是什么关系
-- 当前架构怎么理解
-- 当前阶段到底该先做什么
-
----
-
-## 文档状态说明
-
-阅读这套 wiki 时，建议先区分下面 3 种文档状态：
-
-- 当前主文档：描述当前实现、当前边界和当前建议，是日常开发的优先入口。
-- 规划文档：描述未来方向或后续可能接入的能力，不应直接当成当前事实。
-- 审查记录：保留治理和整理过程，帮助理解“为什么这样收口”，但不覆盖当前正文。
-
-当前项目状态补充说明：
-
-- 第一到第四阶段已经完成并进入归档视角。
-- 第五阶段核心起步与 `v1` 规范化已经完成核心收口。
-- 第六阶段正式战斗内容开发已经形成第一轮正式输出。
-- 当前文档口径应以 [第七阶段输入清单](../plans/archive/第七阶段输入清单.md) 为上限参考，理解为“已进入第七阶段输入准备”。
-
----
-
-## 物理目录结构
-
-当前 `wiki/` 已按层次拆成物理子目录：
-
-```text
-wiki/
-├── index.md
-├── 01-overview/
-├── 02-runtime-protocol/
-├── 03-content-validation/
-├── 04-roadmap-reference/
-└── 05-governance/
-```
-
-以后新增文档时，先判断它属于哪一层，再决定放入哪个目录，而不是先写出来再找地方塞。
+5. [开发路线图](04-roadmap-reference/26-开发路线图.md)
+6. [验证清单](03-content-validation/15-验证清单.md)
+7. [验证矩阵](03-content-validation/32-验证矩阵.md)
 
 ---
 
 ## 文档分层
 
-### A. 项目总纲
+### 1. 当前主文档
 
-- [项目定位与总体架构](01-overview/00-核心架构总览.md)
+这些页面用于描述“现在仓库里已经成立的事实”：
+
+- [核心架构总览](01-overview/00-核心架构总览.md)
 - [核心设计哲学](01-overview/01-核心设计哲学.md)
 - [系统架构](01-overview/02-系统架构.md)
-- [Open PVZ 系统版图与规划分层](01-overview/34-Open PVZ 系统版图与规划分层.md)
 - [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
-
-### B. 协议与运行时层
-
-- [触发器系统](02-runtime-protocol/03-触发器系统.md)
-- [效果系统](02-runtime-protocol/04-效果系统.md)
-- [执行机制](02-runtime-protocol/06-执行机制.md)
-- [事件模型](02-runtime-protocol/07-事件模型.md)
-- [连续行为模型](02-runtime-protocol/08-连续行为模型.md)
-- [性能与安全防护](02-runtime-protocol/10-性能与安全防护.md)
-- [模板与装配边界](02-runtime-protocol/11-模板与装配边界.md)
-
-### C. 内容与验证层
-
-当前主文档：
-
+- [Open PVZ 系统版图与规划分层](01-overview/34-Open PVZ 系统版图与规划分层.md)
+- [开发路线图](04-roadmap-reference/26-开发路线图.md)
 - [完整工作流](03-content-validation/12-完整工作流.md)
 - [验证清单](03-content-validation/15-验证清单.md)
 - [验证矩阵](03-content-validation/32-验证矩阵.md)
 
-规划与辅助文档：
+### 2. 参考与规划文档
 
-- [三层生成器](03-content-validation/05-三层生成器.md)
-- [命名与可视化](03-content-validation/09-命名与可视化.md)
+这些页面仍然有价值，但不应直接当作“当前事实”：
 
-### D. 路线、扩展与外部参考
-
-当前主线入口：
-
-- [开发路线图](04-roadmap-reference/26-开发路线图.md)
-- [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
-- [第五阶段阶段总结](../plans/archive/第五阶段/第五阶段阶段总结.md)
-- [第五阶段-v1现状盘点](../plans/archive/第五阶段/第五阶段-v1现状盘点.md)
-- [第六阶段-阶段总结](../plans/archive/第六阶段/第六阶段-阶段总结.md)
-- [第七阶段输入清单](../plans/archive/第七阶段输入清单.md)
-- [第一至第四阶段归档总览](../plans/archive/第一至第四阶段归档总览.md)
-
-阶段归档与历史参考：
-
-- [扩展与数据包](04-roadmap-reference/11-扩展性与社区生态.md)
+- [扩展性与社区生态](04-roadmap-reference/11-扩展性与社区生态.md)
+- [外部项目调研：PVZ-Godot-Dream](04-roadmap-reference/24-外部项目调研-PVZ-Godot-Dream.md)
+- [参考实现迁移策略](04-roadmap-reference/25-参考实现迁移策略.md)
 - [扩展包新增效果与效果外置策略](04-roadmap-reference/37-扩展包新增效果与效果外置策略.md)
 - [扩展系统总体规划-v1](04-roadmap-reference/38-扩展系统总体规划-v1.md)
 - [素材包系统设计草案](04-roadmap-reference/39-素材包系统设计草案.md)
 - [扩展包边界与依赖规则-v1](04-roadmap-reference/40-扩展包边界与依赖规则-v1.md)
 - [扩展包 manifest 规范-v1](04-roadmap-reference/41-扩展包-manifest-规范-v1.md)
-- [第四阶段前置清单](../plans/第四阶段前置清单.md)
-- [第四阶段第一批可执行任务清单](../plans/第四阶段第一批可执行任务清单.md)
-- [第四阶段-战斗玩法层系统清单](../plans/第四阶段-战斗玩法层系统清单.md)
-- [第四阶段-阳光与资源最小概念草案](../plans/第四阶段-阳光与资源最小概念草案.md)
-- [第四阶段-棋盘占位放置最小概念草案](../plans/第四阶段-棋盘占位放置最小概念草案.md)
-- [第四阶段-卡片手牌费用最小概念草案](../plans/第四阶段-卡片手牌费用最小概念草案.md)
-- [第四阶段-波次战局阶段胜负条件最小概念草案](../plans/第四阶段-波次战局阶段胜负条件最小概念草案.md)
-- [第二阶段可执行任务清单](../plans/第二阶段可执行任务清单.md)
-- [第三阶段可执行任务清单](../plans/第三阶段可执行任务清单.md)
-- [MVP Demo 实现计划](../plans/MVP-Demo-实现计划.md)
-- [外部项目调研：PVZ-Godot-Dream](04-roadmap-reference/24-外部项目调研-PVZ-Godot-Dream.md)
-- [参考实现迁移策略](04-roadmap-reference/25-参考实现迁移策略.md)
-- [PVZ-Godot-Dream 代码索引](04-roadmap-reference/pvz-godot-dream/00-代码索引总表.md)
-- **[PVZ-Godot-Dream 代码索引子 Wiki](04-roadmap-reference/pvz-godot-dream/00-代码索引总表.md)** — 面向 AI Agent 的快速查找索引
 - [参考项目综合对比分析](04-roadmap-reference/42-参考项目综合对比分析.md)
 
-### E. 开发治理与规范
-
-当前规范与操作文档：
+### 3. 治理与维护文档
 
 - [项目开发方法论](05-governance/27-项目开发方法论.md)
 - [文档规范与维护约定](05-governance/29-文档规范与维护约定.md)
@@ -137,45 +97,11 @@ wiki/
 - [术语表](05-governance/33-术语表.md)
 - [模板编写约定](05-governance/35-模板编写约定.md)
 
-审查与整理记录：
+### 4. 阶段归档与历史资料
 
-- [Wiki 审查与规范化建议](05-governance/28-Wiki审查与规范化建议.md)
-- [Wiki 内容审查报告](05-governance/30-Wiki内容审查报告.md)
-- [第三阶段协议冻结输入清单](../plans/archive/第三阶段协议冻结输入清单.md)
-- [第三阶段第一轮冻结范围与兼容计划](../plans/archive/第三阶段第一轮冻结范围与兼容计划.md)
-
----
-
-## 当前阅读建议
-
-### 如果你要梳理项目方向
-
-- [项目定位与总体架构](01-overview/00-核心架构总览.md)
-- [Open PVZ 系统版图与规划分层](01-overview/34-Open PVZ 系统版图与规划分层.md)
-- [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
-
-### 如果你要开始搭运行时
-
-- [系统架构](01-overview/02-系统架构.md)
-- [触发器系统](02-runtime-protocol/03-触发器系统.md)
-- [效果系统](02-runtime-protocol/04-效果系统.md)
-- [执行机制](02-runtime-protocol/06-执行机制.md)
-- [连续行为模型](02-runtime-protocol/08-连续行为模型.md)
-- [模板与装配边界](02-runtime-protocol/11-模板与装配边界.md)
-
-### 如果你要看内容怎么接到引擎和验证上
-
-- [完整工作流](03-content-validation/12-完整工作流.md)
-- [验证清单](03-content-validation/15-验证清单.md)
-- [验证矩阵](03-content-validation/32-验证矩阵.md)
-- [模板编写约定](05-governance/35-模板编写约定.md)
-- [三层生成器](03-content-validation/05-三层生成器.md) — 未来内容装配方向
-
-### 如果你要看当前阶段、阶段总结和历史归档
+这里保留“为什么会演进成今天这样”的历史语境：
 
 - [第一至第四阶段归档总览](../plans/archive/第一至第四阶段归档总览.md)
-- [开发路线图](04-roadmap-reference/26-开发路线图.md)
-- [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
 - [第五阶段阶段总结](../plans/archive/第五阶段/第五阶段阶段总结.md)
 - [第五阶段-v1现状盘点](../plans/archive/第五阶段/第五阶段-v1现状盘点.md)
 - [第六阶段-阶段总结](../plans/archive/第六阶段/第六阶段-阶段总结.md)
@@ -184,43 +110,64 @@ wiki/
 - [第六阶段-正式战场语义说明-v1](../plans/archive/第六阶段/第六阶段-正式战场语义说明-v1.md)
 - [第六阶段-正式波次与关卡模板集-v1](../plans/archive/第六阶段/第六阶段-正式波次与关卡模板集-v1.md)
 - [第七阶段输入清单](../plans/archive/第七阶段输入清单.md)
-- [扩展与数据包](04-roadmap-reference/11-扩展性与社区生态.md)
-- [扩展包新增效果与效果外置策略](04-roadmap-reference/37-扩展包新增效果与效果外置策略.md)
-- [参考实现迁移策略](04-roadmap-reference/25-参考实现迁移策略.md)
-
-### 如果你要规范项目开发方式
-
-- [项目开发方法论](05-governance/27-项目开发方法论.md)
-- [文档规范与维护约定](05-governance/29-文档规范与维护约定.md)
-- [术语表](05-governance/33-术语表.md)
-- [重大决策记录模板](05-governance/31-重大决策记录模板.md)
-- [模板编写约定](05-governance/35-模板编写约定.md)
-
-### 如果你要维护或新增 wiki
-
-- [文档规范与维护约定](05-governance/29-文档规范与维护约定.md)
-- [术语表](05-governance/33-术语表.md)
-- [重大决策记录模板](05-governance/31-重大决策记录模板.md)
-- [Wiki 审查与规范化建议](05-governance/28-Wiki审查与规范化建议.md) — 结构整理背景
-- [Wiki 内容审查报告](05-governance/30-Wiki内容审查报告.md) — 审查记录
 
 ---
 
-## 文档维护原则
+## 当前实现索引
 
-- 先区分“引擎层”“内容层”“当前阶段”，再写文档
-- 先区分概念层、协议层、实现层、验证层、内容层，再决定文档位置
-- 明确区分“已决定”“当前建议”“未来方向”
-- 规划文档和审查记录不得覆盖当前主文档
-- 不要把错误技写成整个项目的全部定义
-- 不要把未来愿景写成当前已经决定的实现方案
-- 不要让 ECS、渲染、社区平台等远期主题继续主导当前主线
+### 运行与展示入口
+
+- [`project.godot`](../project.godot)
+- [`scenes/main/main.tscn`](../scenes/main/main.tscn)
+- [`scenes/demo/demo_level.tscn`](../scenes/demo/demo_level.tscn)
+- [`scenes/showcase/README.md`](../scenes/showcase/README.md)
+
+### 核心运行时
+
+- [`autoload/`](../autoload)
+- [`scripts/core/`](../scripts/core)
+- [`scripts/entities/`](../scripts/entities)
+- [`scripts/projectile/`](../scripts/projectile)
+- [`scripts/components/`](../scripts/components)
+
+### 正式内容资源
+
+- [`data/combat/README.md`](../data/combat/README.md)
+- [`data/combat/entity_templates/`](../data/combat/entity_templates)
+- [`data/combat/projectile_templates/`](../data/combat/projectile_templates)
+- [`data/combat/cards/`](../data/combat/cards)
+- [`data/combat/battlefields/`](../data/combat/battlefields)
+- [`data/combat/waves/`](../data/combat/waves)
+- [`data/combat/levels/`](../data/combat/levels)
+
+### 验证与回归
+
+- [`scenes/validation/`](../scenes/validation)
+- [`tools/run_validation.ps1`](../tools/run_validation.ps1)
+- [`tools/run_all_validations.ps1`](../tools/run_all_validations.ps1)
+- [`tools/validation_scenarios.json`](../tools/validation_scenarios.json)
+- [`tools/formal_content_validation_map.json`](../tools/formal_content_validation_map.json)
+
+### 扩展包
+
+- [`extensions/minimal_chaos_pack`](../extensions/minimal_chaos_pack)
+- [`extensions/phase5_chaos_pack`](../extensions/phase5_chaos_pack)
+- [`extensions/phase5_guardrail_pack`](../extensions/phase5_guardrail_pack)
 
 ---
 
-## 来源文档
+## 维护原则
 
+- 当前主文档优先描述“已落地实现”，不要混入历史阶段切换叙事。
+- 规划文档可以保留，但必须明确是规划、草案还是归档。
+- 历史阶段总结只作为背景资料，不覆盖当前状态判断。
+- 验证事实以 [`tools/validation_scenarios.json`](../tools/validation_scenarios.json) 和相关脚本为准。
+- 正式内容事实以 `data/combat/` 与 `extensions/` 当前资源树为准。
+
+---
+
+## 来源与补充阅读
+
+- [项目 README](../README.md)
 - [早期引擎设计稿](../plans/pvz_like_engine_design_doc_v_1.md)
 - [整合版设计稿](../plans/错误技系统完整设计思路（整合版）.md)
-- [第一至第四阶段归档总览](../plans/archive/第一至第四阶段归档总览.md)
-- [项目 README](../README.md)
