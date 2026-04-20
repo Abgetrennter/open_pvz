@@ -16,8 +16,8 @@ That means the default priority order is:
 
 ## Godot Paths
 
-- Console: `E:\SDK\Godot\Godot_v4.6.1-stable_win64_console.exe`
-- GUI: `E:\SDK\Godot\Godot_v4.6.1-stable_win64.exe`
+- Console: `E:\Code\open_pvz\Godot_v4.6.1-stable_win64_console.exe`
+- GUI: `E:\Code\open_pvz\Godot_v4.6.1-stable_win64.exe`
 
 ## Default Read Order
 
@@ -116,7 +116,7 @@ After major changes:
 ## Validation Commands
 
 - Headless startup:
-  - `& 'E:\SDK\Godot\Godot_v4.6.1-stable_win64_console.exe' --headless --path 'E:\Code\open_pvz' --quit-after 3`
+  - `& 'E:\Code\open_pvz\Godot_v4.6.1-stable_win64_console.exe' --headless --path 'E:\Code\open_pvz' --quit-after 3`
 - Default single validation run:
   - `& 'E:\Code\open_pvz\tools\run_validation.ps1'`
 - Minimal battle validation:

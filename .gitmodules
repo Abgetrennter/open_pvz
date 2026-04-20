@@ -10,3 +10,6 @@
 [submodule "vendor/de-pvz"]
 	path = vendor/de-pvz
 	url = https://github.com/ruslan831/PlantsVsZombies-decompilation
+[submodule "vendor/r2ga"]
+	path = vendor/r2ga
+	url = https://github.com/hsk-dream/PVZ_reanim2godot_animation
