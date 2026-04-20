@@ -49,7 +49,7 @@ If you are entering for a specific task, use this shorter route:
   - `plans/第五阶段可执行任务清单.md`
   - `wiki/04-roadmap-reference/26-开发路线图.md`
 - Runtime and protocol work:
-  - `wiki/01-overview/02-系统架构.md`
+  - `wiki/01-overview/00-架构总览.md`
   - `wiki/02-runtime-protocol/03-触发器系统.md`
   - `wiki/02-runtime-protocol/04-效果系统.md`
   - `wiki/02-runtime-protocol/06-执行机制.md`
@@ -66,7 +66,7 @@ If you are entering for a specific task, use this shorter route:
   - `wiki/05-governance/33-术语表.md`
   - `plans/archive/第一至第四阶段归档总览.md`
 
-Use `wiki/05-governance/28-Wiki审查与规范化建议.md` and `wiki/05-governance/30-Wiki内容审查报告.md` as historical review records, not as default current-state entry points.
+Wiki 自审查类历史记录已归档到 `plans/archive/wiki-governance/`，仅在追溯治理演进时查阅，不作为当前入口。
 
 `wiki/05-governance/27-项目开发方法论.md` is the default process guide for this repository. If there is ambiguity about workflow, wiki structure, terminology, or what should be updated together, use the governance docs as the source of truth.
 

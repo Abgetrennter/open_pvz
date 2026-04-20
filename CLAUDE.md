@@ -4,15 +4,14 @@
 
 ## 变更记录 (Changelog)
 
-| 时间 | 操作 | 说明 |
-|------|------|------|
-| 2026-04-15 21:39:03 | init-architect 全仓扫描 | 增量更新：新增模块结构图、模块索引表、模块级 CLAUDE.md、覆盖率报告 |
+- **2026-04-15 21:39:03** — init-architect 全仓扫描：新增模块结构图、模块索引表、模块级 CLAUDE.md、覆盖率报告
+- **2026-04-21** — wiki 瘦身：同步阶段口径至 Phase 7 输入准备；归档 wiki 自审文档；压缩扩展系统规划；合并 00/02 架构双写
 
 ## 项目愿景
 
 Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规则"成为核心玩法驱动力。项目以四层模型（语义事件 -> 行为效果 -> 组合装配 -> 连续行为）为骨架，用 Resource-based 模板系统实现无代码的内容扩展。
 
-当前阶段：**Phase 4** -- 玩法系统集成（资源经济、棋盘/卡片系统、波次系统）。Phase 1-3（骨架搭建、模板系统、协议冻结）已完成。
+当前阶段：**第七阶段输入准备**。Phase 1-6 已沉淀为主干：骨架搭建、模板系统、协议冻结、战斗玩法层（资源/棋盘/卡片/波次/状态/场上物件）、扩展入口与守卫、正式内容 v1 基线（16 植物 / 9 僵尸 / 10 投射物 / 10 卡片 / 3 战场 / 3 波次 / 3 关卡）。当前主线是继续扩展正式关卡与内容谱系，并保持回归同步。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)。
 
 ## 架构总览
 
@@ -256,10 +255,9 @@ Before doing substantial coding or "vibe coding" in this repo, read these docs f
 4. `wiki/04-roadmap-reference/26-开发路线图.md`
 5. `wiki/03-content-validation/32-验证矩阵.md`
 6. `wiki/05-governance/27-项目开发方法论.md`
-7. `wiki/05-governance/28-Wiki审查与规范化建议.md`
-8. `wiki/05-governance/29-文档规范与维护约定.md`
-9. `wiki/05-governance/31-重大决策记录模板.md`
-10. `wiki/05-governance/33-术语表.md`
+7. `wiki/05-governance/29-文档规范与维护约定.md`
+8. `wiki/05-governance/31-重大决策记录模板.md`
+9. `wiki/05-governance/33-术语表.md`
 
 The wiki is physically organized by layer under `01-overview`, `02-runtime-protocol`, `03-content-validation`, `04-roadmap-reference`, and `05-governance`.
 
@@ -270,7 +268,7 @@ If you are entering for a specific task, use this shorter route:
   - `wiki/01-overview/23-当前阶段与实现路线.md`
   - `wiki/04-roadmap-reference/26-开发路线图.md`
 - Runtime and protocol work:
-  - `wiki/01-overview/02-系统架构.md`
+  - `wiki/01-overview/00-架构总览.md`
   - `wiki/02-runtime-protocol/03-触发器系统.md`
   - `wiki/02-runtime-protocol/04-效果系统.md`
   - `wiki/02-runtime-protocol/06-执行机制.md`
@@ -282,7 +280,6 @@ If you are entering for a specific task, use this shorter route:
   - `wiki/03-content-validation/32-验证矩阵.md`
 - Documentation and governance work:
   - `wiki/05-governance/27-项目开发方法论.md`
-  - `wiki/05-governance/28-Wiki审查与规范化建议.md`
   - `wiki/05-governance/29-文档规范与维护约定.md`
   - `wiki/05-governance/31-重大决策记录模板.md`
   - `wiki/05-governance/33-术语表.md`
