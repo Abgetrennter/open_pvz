@@ -9,6 +9,7 @@ var event_name: StringName = StringName()
 var condition_values: Dictionary = {}
 var effect_roots: Array = []
 var last_triggered_time := -1000000.0
+var bind_time := 0.0
 var owner_entity: Node = null
 var pending_context_overrides: Dictionary = {}
 

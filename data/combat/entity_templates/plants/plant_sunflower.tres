@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/trigger_bindings/plant_produce_sun.tres" id="3_binding"]
 
 [resource]
 script = ExtResource("1_template")
@@ -16,7 +17,4 @@ required_empty_roles = PackedStringArray("blocker")
 max_health = 60
 hitbox_size = Vector2(38, 50)
 hit_height_band = ExtResource("2_height")
-default_params = {
-"sun_production_interval": 10.0,
-"sun_production_value": 25
-}
+trigger_bindings = [ExtResource("3_binding")]

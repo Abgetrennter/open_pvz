@@ -290,6 +290,31 @@ func _register_builtin_defs() -> void:
 	spawn_entity.allow_extra_children = false
 	register_def(spawn_entity)
 
+	var produce_sun = EffectDefRef.new()
+	produce_sun.effect_id = &"produce_sun"
+	produce_sun.tags = PackedStringArray(["resource", "sun", "production"])
+	var produce_sun_param_defs: Array[Dictionary] = [{
+		"name": "value",
+		"type": "int",
+		"min": 1,
+		"max": 999,
+		"default": 25,
+	}, {
+		"name": "source_type",
+		"type": "string_name",
+		"default": &"plant_generated",
+	}, {
+		"name": "offset_y",
+		"type": "float",
+		"min": -200.0,
+		"max": 200.0,
+		"default": -36.0,
+	}]
+	produce_sun.param_defs = produce_sun_param_defs
+	produce_sun.allow_extra_params = false
+	produce_sun.allow_extra_children = false
+	register_def(produce_sun)
+
 
 func _register_builtin_strategies() -> void:
 	register_strategy(&"damage", func(context, params: Dictionary, _node) -> Variant:
@@ -393,6 +418,31 @@ func _register_builtin_strategies() -> void:
 		if spawned_entity == null:
 			result.success = false
 			result.notes.append("Entity spawn failed.")
+		return result
+	)
+
+	register_strategy(&"produce_sun", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		if GameState.current_battle == null:
+			result.success = false
+			result.notes.append("No active battle manager available.")
+			return result
+
+		var economy: Node = GameState.current_battle.get_economy_state()
+		if economy == null:
+			result.success = false
+			result.notes.append("No economy state available.")
+			return result
+
+		var value := int(params.get("value", 25))
+		var source_type := StringName(params.get("source_type", &"plant_generated"))
+		var offset_y := float(params.get("offset_y", -36.0))
+		var spawn_pos: Vector2 = context.position + Vector2(0.0, offset_y)
+		var lane_id := -1
+		if context.owner_entity != null and context.owner_entity.get("lane_id") != null:
+			lane_id = int(context.owner_entity.get("lane_id"))
+
+		economy.spawn_sun(spawn_pos, value, context.owner_entity, source_type, lane_id)
 		return result
 	)
 

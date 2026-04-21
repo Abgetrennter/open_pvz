@@ -11,9 +11,9 @@ entity_template_id = &"plant_sunflower"
 lane_id = 0
 x_position = 160.0
 spawn_overrides = {
-"sun_production_interval": 2.0,
-"sun_production_start_delay": 1.0,
-"sun_production_value": 25
+"interval": 2.0,
+"start_delay": 1.0,
+"value": 25
 }
 
 [sub_resource type="Resource" id="BattleSpawnEntry_sunflower_lane1"]
@@ -22,9 +22,9 @@ entity_template_id = &"plant_sunflower"
 lane_id = 1
 x_position = 280.0
 spawn_overrides = {
-"sun_production_interval": 3.0,
-"sun_production_start_delay": 2.0,
-"sun_production_value": 25
+"interval": 3.0,
+"start_delay": 2.0,
+"value": 25
 }
 
 [sub_resource type="Resource" id="BattleSpawnEntry_sunflower_lane2"]
@@ -33,9 +33,9 @@ entity_template_id = &"plant_sunflower"
 lane_id = 2
 x_position = 400.0
 spawn_overrides = {
-"sun_production_interval": 2.5,
-"sun_production_start_delay": 1.5,
-"sun_production_value": 50
+"interval": 2.5,
+"start_delay": 1.5,
+"value": 50
 }
 
 [sub_resource type="Resource" id="SunDropEntry_sky_drop"]
@@ -103,7 +103,7 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"sunflower_sun_production_validation"
 display_name = "Sunflower Sun Production Validation"
-description = "Validates sunflower sun production using the actual plant_sunflower template across three lanes. Three sunflowers produce sun at different intervals (2s/3s/2.5s) and values (25/25/50), alongside a sky-drop sun. All sun is auto-collected to verify resource state changes."
+description = "Validates sunflower sun production via trigger-based produce_sun effect across three lanes. Three sunflowers produce sun at different intervals (2s/3s/2.5s) and values (25/25/50), alongside a sky-drop sun. All sun is auto-collected to verify resource state changes."
 goals = PackedStringArray("Observe three sunflowers across three lanes each producing sun at different rates.", "Verify sky-drop sun also enters the battle.", "Verify all sun collectibles are auto-collected and change the authoritative resource state.")
 validation_time_limit = 10.0
 initial_sun = 0

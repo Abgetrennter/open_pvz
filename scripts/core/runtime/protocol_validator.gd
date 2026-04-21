@@ -69,10 +69,11 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"attack_interval": true,
 	"max_health": true,
 	"hitbox_size": true,
-	"sun_production_interval": true,
-	"sun_production_value": true,
-	"sun_production_start_delay": true,
 	"detection_radius": true,
+	"start_delay": true,
+	"value": true,
+	"source_type": true,
+	"offset_y": true,
 }
 
 

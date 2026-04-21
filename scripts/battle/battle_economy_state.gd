@@ -15,7 +15,6 @@ var _scheduled_drops: Array[Resource] = []
 var _scheduled_spends: Array[Resource] = []
 var _processed_drop_indices: Dictionary = {}
 var _processed_spend_indices: Dictionary = {}
-var _producer_next_times: Dictionary = {}
 
 
 func setup(battle_node: Node, collectible_parent: Node, scenario: Resource) -> void:
@@ -27,7 +26,6 @@ func setup(battle_node: Node, collectible_parent: Node, scenario: Resource) -> v
 	_scheduled_spends.clear()
 	_processed_drop_indices.clear()
 	_processed_spend_indices.clear()
-	_producer_next_times.clear()
 	active_suns.clear()
 	_next_sun_id = 1
 
@@ -146,7 +144,6 @@ func spawn_sun(position: Vector2, value: int, source_node: Node = null, source_t
 func _on_game_tick(event_data: Variant) -> void:
 	var game_time := float(event_data.core.get("game_time", GameState.current_time))
 	_process_scheduled_drops(game_time)
-	_process_producers(game_time)
 	_process_scheduled_spends(game_time)
 
 
@@ -171,44 +168,6 @@ func _process_scheduled_drops(game_time: float) -> void:
 			lane_id,
 			float(drop_entry.get("auto_collect_delay"))
 		)
-
-
-func _process_producers(game_time: float) -> void:
-	var seen_entities: Dictionary = {}
-	if battle == null or not is_instance_valid(battle):
-		return
-	for entity in battle.get_runtime_combat_entities():
-		if entity == null or not is_instance_valid(entity):
-			continue
-		if not entity.has_method("get_entity_id"):
-			continue
-		if not entity.has_method("get_entity_state_ref"):
-			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
-			continue
-		var entity_id := int(entity.call("get_entity_id"))
-		seen_entities[entity_id] = true
-		var entity_state = entity.call("get_entity_state_ref")
-		var interval := float(entity_state.get_value(&"sun_production_interval", -1.0))
-		if interval <= 0.0:
-			continue
-		var value := int(entity_state.get_value(&"sun_production_value", 25))
-		var start_delay := float(entity_state.get_value(&"sun_production_start_delay", interval))
-		var next_time := float(_producer_next_times.get(entity_id, start_delay))
-		while game_time + 0.001 >= next_time:
-			spawn_sun(
-				entity.global_position + Vector2(0.0, -36.0),
-				value,
-				entity,
-				&"plant_generated",
-				int(entity.get("lane_id"))
-			)
-			next_time += interval
-		_producer_next_times[entity_id] = next_time
-
-	for entity_id in _producer_next_times.keys():
-		if not seen_entities.has(entity_id):
-			_producer_next_times.erase(entity_id)
 
 
 func _process_scheduled_spends(game_time: float) -> void:

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="TriggerBinding" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/trigger_binding.gd" id="1_binding"]
+
+[resource]
+script = ExtResource("1_binding")
+binding_id = &"plant_produce_sun"
+behavior_key = &"attack"
+trigger_id = &"periodically"
+event_name = &"game.tick"
+condition_values = {
+"detection_id": &"always",
+"interval": 10.0,
+"start_delay": 10.0
+}
+effect_id = &"produce_sun"
+effect_params = {
+"value": 25,
+"source_type": &"plant_generated",
+"offset_y": -36.0
+}

@@ -8,13 +8,13 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_sunflower_proxy"]
 script = ExtResource("2_spawn")
-entity_template_id = &"plant_wall_barrier"
+entity_template_id = &"plant_sunflower"
 lane_id = 0
 x_position = 160.0
 spawn_overrides = {
-"sun_production_interval": 1.0,
-"sun_production_start_delay": 0.5,
-"sun_production_value": 25
+"interval": 1.0,
+"start_delay": 0.5,
+"value": 25
 }
 
 [sub_resource type="Resource" id="SunDropEntry_sky_drop"]
@@ -106,7 +106,7 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"sun_resource_validation"
 display_name = "Sun Resource Validation"
-description = "Validates the first-stage sun economy loop: plant-generated sun, sky-drop sun, automatic collection, resource changes, and spend failure/success semantics."
+description = "Validates the first-stage sun economy loop: plant-generated sun via trigger-based produce_sun effect, sky-drop sun, automatic collection, resource changes, and spend failure/success semantics."
 goals = PackedStringArray("Observe plant-generated and sky-drop sun enter the battle.", "Verify collected sun changes the authoritative resource state.", "Verify insufficient sun emits resource.spend_failed and later successful spending emits resource.changed.")
 validation_time_limit = 4.0
 sun_auto_collect_delay = 0.3

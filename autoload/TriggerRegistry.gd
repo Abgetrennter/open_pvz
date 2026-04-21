@@ -66,6 +66,12 @@ func _register_builtin_defs() -> void:
 		"min": 1.0,
 		"max": 4000.0,
 		"default": 900.0,
+	}, {
+		"name": "start_delay",
+		"type": "float",
+		"min": 0.0,
+		"max": 30.0,
+		"default": 0.0,
 	}]
 	periodically.trigger_id = &"periodically"
 	periodically.event_name = &"game.tick"
@@ -103,6 +109,12 @@ func _register_builtin_strategies() -> void:
 	register_strategy(&"periodically", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
 		var interval := float(condition_values.get("interval", 1.0))
 		var game_time := float(event_data.core.get("game_time", 0.0))
+
+		var start_delay := float(condition_values.get("start_delay", 0.0))
+		if start_delay > 0.0 and instance.last_triggered_time < -999999.0:
+			if game_time - instance.bind_time < start_delay:
+				return false
+
 		if game_time - instance.last_triggered_time < interval:
 			return false
 

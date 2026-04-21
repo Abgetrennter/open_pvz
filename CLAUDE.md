@@ -43,7 +43,7 @@ EventBus -> TriggerComponent -> TriggerInstance -> RuleContext -> EffectExecutor
 
 | 子系统 | 类名 | 职责 |
 |--------|------|------|
-| 经济状态 | `BattleEconomyState` | 阳光资源管理、天降阳光、植物产阳光、消费验证 |
+| 经济状态 | `BattleEconomyState` | 阳光资源管理、天降阳光、消费验证 |
 | 棋盘状态 | `BattleBoardState` | 格子系统、放置验证、槽位类型/标签、角色占位 |
 | 卡片状态 | `BattleCardState` | 卡片手牌、费用消耗、冷却管理、放置请求流程 |
 | 流程状态 | `BattleFlowState` | 战斗阶段管理（preparing / running / victory / defeat） |

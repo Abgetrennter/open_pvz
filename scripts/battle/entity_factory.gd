@@ -281,15 +281,6 @@ func _apply_runtime_param_metadata(entity: Node, params: Dictionary) -> void:
 		return
 	if not entity.has_method("set_state_value"):
 		return
-	for param_name in [&"sun_production_interval", &"sun_production_value", &"sun_production_start_delay"]:
-		var resolved_key: Variant = null
-		if params.has(param_name):
-			resolved_key = param_name
-		elif params.has(String(param_name)):
-			resolved_key = String(param_name)
-		if resolved_key == null:
-			continue
-		entity.call("set_state_value", param_name, params[resolved_key])
 
 
 func _make_trigger_component():
@@ -381,6 +372,7 @@ func _build_triggers_from_bindings(
 		trigger.def_id = StringName(binding.trigger_id)
 		trigger.event_name = StringName(binding.event_name)
 		trigger.condition_values = _merge_binding_condition_values(binding, params)
+		trigger.bind_time = GameState.current_time
 		var effect_node = _build_effect_node_from_binding(binding, entity_kind, params, projectile_flight_profile, projectile_template)
 		if effect_node != null:
 			trigger.effect_roots = [effect_node]
