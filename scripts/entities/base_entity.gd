@@ -6,6 +6,7 @@ const EntityStateRef = preload("res://scripts/core/runtime/entity_state.gd")
 @export var entity_kind: StringName = &"entity"
 @export var team: StringName = &"neutral"
 @export var lane_id := -1
+@export var archetype_id: StringName = StringName()
 var entity_id := -1
 var template_id: StringName = StringName()
 var entity_state: Variant = EntityStateRef.new()
@@ -182,6 +183,7 @@ func _sync_entity_state() -> void:
 	entity_state.position = global_position
 	entity_state.combat_active = is_combat_active()
 	entity_state.status_effects = _active_statuses.duplicate(true)
+	entity_state.set_value(&"archetype_id", archetype_id)
 	entity_state.set_value(&"active_marks", PackedStringArray(_active_marks.keys()))
 
 

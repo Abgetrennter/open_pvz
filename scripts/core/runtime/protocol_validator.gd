@@ -1,6 +1,8 @@
 extends RefCounted
 class_name ProtocolValidator
 
+const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
+const CombatMechanicRef = preload("res://scripts/core/defs/combat_mechanic.gd")
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
@@ -35,6 +37,7 @@ const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 
 const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"interval": true,
+	"amount": true,
 	"damage": true,
 	"speed": true,
 	"effect_overrides": true,
@@ -43,6 +46,7 @@ const SPAWN_ENTRY_RESERVED_PARAMS := {
 }
 const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"interval": true,
+	"amount": true,
 	"damage": true,
 	"speed": true,
 	"effect_overrides": true,
@@ -66,10 +70,12 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"hitbox_radius": true,
 	"turn_rate": true,
 	"move_speed": true,
+	"attack_damage": true,
 	"attack_interval": true,
 	"max_health": true,
 	"hitbox_size": true,
 	"detection_radius": true,
+	"scan_range": true,
 	"start_delay": true,
 	"value": true,
 	"source_type": true,
@@ -237,6 +243,64 @@ static func validate_projectile_template(projectile_template: Resource) -> Array
 		errors.append("ProjectileTemplate.lifetime must be -1 or greater than zero.")
 	if float(projectile_template.hitbox_radius) <= 0.0:
 		errors.append("ProjectileTemplate.hitbox_radius must be greater than zero.")
+	return errors
+
+
+static func validate_combat_mechanic(mechanic: Resource) -> Array[String]:
+	# TODO(mechanic-first): Tighten this validator once the first-stage family/type
+	# protocol is frozen into dedicated registry data instead of permissive skeletons.
+	var errors: Array[String] = []
+	if mechanic == null:
+		errors.append("CombatMechanic is null.")
+		return errors
+	if not (mechanic is CombatMechanicRef):
+		errors.append("CombatMechanic resource must use combat_mechanic.gd or a subclass.")
+		return errors
+	if StringName(mechanic.mechanic_id) == StringName():
+		errors.append("CombatMechanic.mechanic_id must not be empty.")
+	if StringName(mechanic.family) == StringName():
+		errors.append("CombatMechanic.family must not be empty.")
+	elif String(mechanic.family) not in CombatMechanicRef.ALLOWED_FAMILIES:
+		errors.append("CombatMechanic.family must be one of %s." % _join_strings(CombatMechanicRef.ALLOWED_FAMILIES))
+	if StringName(mechanic.type_id) == StringName():
+		errors.append("CombatMechanic.type_id must not be empty.")
+	if not (mechanic.params is Dictionary):
+		errors.append("CombatMechanic.params must be a Dictionary.")
+	return errors
+
+
+static func validate_combat_archetype(archetype: Resource) -> Array[String]:
+	# TODO(mechanic-first): Restore stronger structural guarantees after backend
+	# template fallback is no longer required for every archetype.
+	var errors: Array[String] = []
+	if archetype == null:
+		errors.append("CombatArchetype is null.")
+		return errors
+	if not (archetype is CombatArchetypeRef):
+		errors.append("CombatArchetype resource must use combat_archetype.gd or a subclass.")
+		return errors
+	if StringName(archetype.archetype_id) == StringName():
+		errors.append("CombatArchetype.archetype_id must not be empty.")
+	if String(archetype.entity_kind) not in ["plant", "zombie", "field_object", "projectile"]:
+		errors.append("CombatArchetype.entity_kind must be plant, zombie, field_object, or projectile.")
+	if not (archetype.default_params is Dictionary):
+		errors.append("CombatArchetype.default_params must be a Dictionary.")
+	if not (archetype.compiler_hints is Dictionary):
+		errors.append("CombatArchetype.compiler_hints must be a Dictionary.")
+	if not (archetype.mechanics is Array):
+		errors.append("CombatArchetype.mechanics must be an Array.")
+	else:
+		for mechanic in archetype.mechanics:
+			for error in validate_combat_mechanic(mechanic):
+				errors.append("CombatArchetype mechanics: %s" % error)
+	var backend_template = CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
+	if StringName(archetype.get("backend_entity_template_id")) != StringName() and backend_template == null:
+		errors.append("CombatArchetype.backend_entity_template_id must resolve through SceneRegistry.")
+	if backend_template == null:
+		errors.append("CombatArchetype must currently resolve a backend entity template for the runtime skeleton.")
+	if backend_template != null:
+		for error in validate_entity_template(backend_template):
+			errors.append("CombatArchetype backend_entity_template: %s" % error)
 	return errors
 
 
@@ -466,12 +530,20 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	if scenario_id != StringName():
 		scope = "%s in scenario %s" % [scope, String(scenario_id)]
 
+	var resolved_archetype = CombatContentResolverRef.resolve_spawn_entry_archetype(spawn_entry)
 	var resolved_template = CombatContentResolverRef.resolve_spawn_entry_template(spawn_entry)
 	var entity_kind := String(spawn_entry.entity_kind)
-	if resolved_template == null:
-		errors.append("%s must resolve an entity template through entity_template or entity_template_id." % scope)
+	if resolved_template == null and resolved_archetype == null:
+		errors.append("%s must resolve an archetype through archetype/archetype_id or an entity template through entity_template/entity_template_id." % scope)
+	if StringName(spawn_entry.get("archetype_id")) != StringName() and resolved_archetype == null:
+		errors.append("%s.archetype_id must resolve through SceneRegistry." % scope)
 	if StringName(spawn_entry.get("entity_template_id")) != StringName() and resolved_template == null:
 		errors.append("%s.entity_template_id must resolve through SceneRegistry." % scope)
+	if resolved_archetype != null:
+		for error in validate_combat_archetype(resolved_archetype):
+			errors.append("%s archetype: %s" % [scope, error])
+		if StringName(resolved_archetype.get("entity_kind")) != StringName():
+			entity_kind = String(resolved_archetype.get("entity_kind"))
 	if resolved_template != null:
 		for error in validate_entity_template(resolved_template):
 			errors.append("%s entity_template: %s" % [scope, error])
@@ -500,24 +572,24 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	if spawn_entry.get("projectile_flight_profile_override") != null:
 		for error in validate_projectile_flight_profile(spawn_entry.get("projectile_flight_profile_override")):
 			errors.append("%s projectile_flight_profile_override: %s" % [scope, error])
-	var projectile_template = CombatContentResolverRef.resolve_projectile_template(spawn_entry, resolved_template)
+	var projectile_template = CombatContentResolverRef.resolve_projectile_template(spawn_entry, resolved_template, resolved_archetype)
 	if projectile_template != null:
 		for error in validate_projectile_template(projectile_template):
 			errors.append("%s projectile_template: %s" % [scope, error])
 	errors.append_array(_validate_projectile_config_consistency(
-		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template),
+		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template, resolved_archetype),
 		projectile_template,
 		"%s params" % scope
 	))
 
 	errors.append_array(_validate_entity_runtime_params(
 		entity_kind,
-		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template),
+		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template, resolved_archetype),
 		"%s params" % scope
 	))
 	if resolved_template != null:
-		var merged_params := CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template)
-		var resolved_profile: Resource = CombatContentResolverRef.resolve_projectile_flight_profile(spawn_entry, resolved_template, projectile_template)
+		var merged_params := CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template, resolved_archetype)
+		var resolved_profile: Resource = CombatContentResolverRef.resolve_projectile_flight_profile(spawn_entry, resolved_template, projectile_template, resolved_archetype)
 		errors.append_array(_validate_trigger_bindings_runtime(
 			StringName(entity_kind),
 			resolved_template,

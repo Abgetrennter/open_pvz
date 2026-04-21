@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_wall_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_zombie_archetype"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_basic_zombie_skeleton"
+lane_id = 0
+x_position = 210.0
+spawn_overrides = {
+"attack_damage": 10,
+"attack_interval": 0.3,
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_zombie_archetype_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"zombie_archetype_spawned"
+description = "basic zombie archetype should spawn with both archetype identity and backend template identity"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_basic_zombie_skeleton",
+"target_template_id": &"zombie_basic_walker",
+"target_kind": &"zombie"
+}
+
+[sub_resource type="Resource" id="Rule_zombie_bite_damage"]
+script = ExtResource("3_rule")
+rule_id = &"zombie_bite_damage"
+description = "basic zombie archetype should still use the shared zombie bite runtime against the wall barrier"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("bite")
+required_core_values = {
+"source_archetype_id": &"archetype_basic_zombie_skeleton",
+"source_template_id": &"zombie_basic_walker",
+"target_template_id": &"plant_wall_barrier",
+"target_kind": &"plant"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"archetype_zombie_runtime_validation"
+display_name = "Archetype Zombie Runtime Validation"
+description = "Validates that a zombie archetype can enter the battle through archetype_id and still reuse the existing continuous bite runtime from the backend entity template."
+goals = PackedStringArray("Verify a zombie archetype can be instantiated through BattleSpawnEntry.archetype_id.", "Verify the spawned zombie carries archetype identity into events.", "Verify the archetype path can still reuse the existing zombie bite runtime.")
+validation_time_limit = 1.6
+validation_rules = [SubResource("Rule_zombie_archetype_spawned"), SubResource("Rule_zombie_bite_damage")]
+spawns = [SubResource("Spawn_wall_target"), SubResource("Spawn_zombie_archetype")]

@@ -83,6 +83,7 @@
 - [项目开发方法论](05-governance/27-项目开发方法论.md)
 - [文档规范与维护约定](05-governance/29-文档规范与维护约定.md)
 - [重大决策记录模板](05-governance/31-重大决策记录模板.md)
+- [决策记录目录](decisions/README.md)
 - [术语表](05-governance/33-术语表.md)
 - [模板编写约定](05-governance/35-模板编写约定.md)
 

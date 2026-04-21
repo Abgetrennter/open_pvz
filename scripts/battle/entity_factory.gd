@@ -1,6 +1,7 @@
 extends RefCounted
 class_name EntityFactory
 
+const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
 const PlantRootRef = preload("res://scripts/entities/plant_root.gd")
 const ZombieRootRef = preload("res://scripts/entities/zombie_root.gd")
 const FieldObjectRootRef = preload("res://scripts/entities/field_object_root.gd")
@@ -52,6 +53,9 @@ const SPAWN_ENTRY_RESERVED_PARAMS := {
 }
 
 func instantiate_spawn_entry(spawn_entry: Resource, position: Vector2) -> Dictionary:
+	var runtime_spec = CombatContentResolverRef.resolve_spawn_entry_runtime_spec(spawn_entry)
+	if runtime_spec != null:
+		return _instantiate_runtime_spec(spawn_entry, position, runtime_spec)
 	var entity_template = _resolve_template(spawn_entry)
 	if entity_template == null:
 		return {}
@@ -71,6 +75,51 @@ func instantiate_spawn_entry(spawn_entry: Resource, position: Vector2) -> Dictio
 		"projectile_template": projectile_template,
 		"projectile_flight_profile": projectile_flight_profile,
 		"trigger_instances": build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template),
+	}
+
+
+func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime_spec) -> Dictionary:
+	# TODO(mechanic-first): Re-introduce a typed RuntimeSpec bridge after the
+	# first-stage compiler output stabilizes and parse-order issues are gone.
+	if runtime_spec == null or not runtime_spec.has_method("has_backend_entity_template"):
+		return {}
+	if not bool(runtime_spec.has_backend_entity_template()):
+		return {}
+	var entity_template: Resource = runtime_spec.backend_entity_template
+	var entity_kind: StringName = StringName(runtime_spec.entity_kind)
+	var params: Dictionary = {}
+	if runtime_spec.params is Dictionary:
+		params = runtime_spec.params.duplicate(true)
+	var projectile_template: Resource = runtime_spec.projectile_template
+	var projectile_flight_profile: Resource = runtime_spec.projectile_flight_profile
+	var entity = instantiate_entity(entity_kind, position, entity_template, params)
+	if entity == null:
+		return {}
+	if runtime_spec.source_archetype_id != StringName():
+		entity.set("archetype_id", runtime_spec.source_archetype_id)
+	if entity.has_method("set_state_value") and runtime_spec.runtime_state_values is Dictionary:
+		for key: Variant in runtime_spec.runtime_state_values.keys():
+			entity.call("set_state_value", StringName(str(key)), runtime_spec.runtime_state_values[key])
+	var trigger_instances: Array = []
+	if runtime_spec.compiled_trigger_bindings is Array and not Array(runtime_spec.compiled_trigger_bindings).is_empty():
+		trigger_instances = build_runtime_triggers_from_bindings(
+			entity_kind,
+			Array(runtime_spec.compiled_trigger_bindings),
+			params,
+			projectile_flight_profile,
+			projectile_template
+		)
+	else:
+		trigger_instances = build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template)
+	return {
+		"entity": entity,
+		"entity_kind": entity_kind,
+		"entity_template": entity_template,
+		"params": params,
+		"hit_height_band": runtime_spec.hit_height_band,
+		"projectile_template": projectile_template,
+		"projectile_flight_profile": projectile_flight_profile,
+		"trigger_instances": trigger_instances,
 	}
 
 
@@ -119,6 +168,16 @@ func build_runtime_triggers(
 	return _build_triggers_from_bindings(trigger_bindings, entity_kind, params, projectile_flight_profile, projectile_template)
 
 
+func build_runtime_triggers_from_bindings(
+	entity_kind: StringName,
+	trigger_bindings: Array,
+	params: Dictionary = {},
+	projectile_flight_profile: Resource = null,
+	projectile_template = null
+) -> Array:
+	return _build_triggers_from_bindings(trigger_bindings, entity_kind, params, projectile_flight_profile, projectile_template)
+
+
 func _resolve_template(spawn_entry: Resource):
 	return CombatContentResolverRef.resolve_spawn_entry_template(spawn_entry)
 
@@ -162,11 +221,17 @@ func _resolve_spawn_overrides(spawn_entry: Resource) -> Dictionary:
 
 
 func _instantiate_root(entity_kind: StringName, template = null):
-	if template is EntityTemplateRef and template.root_scene != null:
-		var instantiated = template.root_scene.instantiate()
+	var root_scene: PackedScene = null
+	if template is EntityTemplateRef:
+		root_scene = template.root_scene
+	elif template is CombatArchetypeRef:
+		root_scene = template.root_scene
+	if root_scene != null:
+		var instantiated = root_scene.instantiate()
 		if instantiated is Node2D:
 			return instantiated
-		push_warning("EntityTemplate %s root_scene must instantiate a Node2D." % String(template.template_id))
+		var owner_id := String(template.template_id) if template is EntityTemplateRef else String(template.archetype_id)
+		push_warning("Template %s root_scene must instantiate a Node2D." % owner_id)
 	return _instantiate_builtin_root(entity_kind, template)
 
 
@@ -339,6 +404,13 @@ func _apply_template_metadata(entity: Node, template) -> void:
 			entity.call("set_state_value", &"template_tags", template.tags)
 			entity.call("set_state_value", &"template_required_components", template.required_components)
 			entity.call("set_state_value", &"template_optional_components", template.optional_components)
+	elif template is CombatArchetypeRef and template.archetype_id != StringName():
+		entity.set("archetype_id", template.archetype_id)
+		if entity.has_method("set_state_value"):
+			entity.call("set_state_value", &"archetype_id", template.archetype_id)
+			entity.call("set_state_value", &"archetype_tags", template.tags)
+			entity.call("set_state_value", &"archetype_required_components", template.required_components)
+			entity.call("set_state_value", &"archetype_optional_components", template.optional_components)
 
 
 func _build_simple_effect_node(effect_id: StringName, effect_params: Dictionary):

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/entity_templates/plants/plant_cabbage_lobber.tres" id="2_backend"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="3_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_projectile_payload_cabbage.tres" id="4_payload"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_cabbage_skeleton"
+display_name = "Cabbage Archetype Skeleton"
+tags = PackedStringArray("archetype", "plant", "attack", "projectile", "lobber", "skeleton")
+default_params = {
+"damage": 40,
+"interval": 0.7,
+"scan_range": 900.0,
+"speed": 260.0,
+"start_delay": 0.2
+}
+compiler_hints = {
+"skeleton_only": true
+}
+mechanics = [ExtResource("3_trigger"), ExtResource("4_payload")]
+backend_entity_template = ExtResource("2_backend")
+backend_entity_template_id = &"plant_cabbage_lobber"

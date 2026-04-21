@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.produce_sun_payload"
+display_name = "Produce Sun Payload"
+family = &"Payload"
+type_id = &"core.produce_sun"
+priority = 20
+tags = PackedStringArray("skeleton", "economy", "sun")
+params = {
+"offset_y": -36.0,
+"source_type": &"plant_generated",
+"value": 25
+}

@@ -47,6 +47,8 @@ static func create(
 		"target_id": _extract_entity_id(target_node),
 		"source_template_id": _extract_template_id(source_node),
 		"target_template_id": _extract_template_id(target_node),
+		"source_archetype_id": _extract_archetype_id(source_node),
+		"target_archetype_id": _extract_archetype_id(target_node),
 		"source_kind": _extract_entity_kind(source_node),
 		"target_kind": _extract_entity_kind(target_node),
 		"source_lane": _extract_lane_id(source_node),
@@ -92,6 +94,17 @@ static func _extract_template_id(node: Node) -> StringName:
 		return template_value
 	if template_value is String:
 		return StringName(template_value)
+	return StringName()
+
+
+static func _extract_archetype_id(node: Node) -> StringName:
+	if node == null:
+		return StringName()
+	var archetype_value: Variant = node.get("archetype_id")
+	if archetype_value is StringName:
+		return archetype_value
+	if archetype_value is String:
+		return StringName(archetype_value)
 	return StringName()
 
 

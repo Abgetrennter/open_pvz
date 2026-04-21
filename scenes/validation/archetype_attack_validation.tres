@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_archetype_striker"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_striker_skeleton"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"amount": 20,
+"interval": 0.4,
+"scan_range": 900.0,
+"start_delay": 0.2
+}
+
+[sub_resource type="Resource" id="Spawn_target_dummy"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 280.0
+spawn_overrides = {
+"max_health": 40
+}
+
+[sub_resource type="Resource" id="Rule_archetype_attack_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"archetype_attack_spawned"
+description = "attack archetype should spawn with archetype identity and backend template identity"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_striker_skeleton",
+"target_template_id": &"plant_wall_barrier",
+"target_kind": &"plant"
+}
+
+[sub_resource type="Resource" id="Rule_archetype_attack_damage"]
+script = ExtResource("3_rule")
+rule_id = &"archetype_attack_damage"
+description = "compiled trigger plus direct damage payload should damage the zombie target without a bespoke plant script"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_striker_skeleton",
+"source_template_id": &"plant_wall_barrier",
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+
+[sub_resource type="Resource" id="Rule_archetype_attack_death"]
+script = ExtResource("3_rule")
+rule_id = &"archetype_attack_death"
+description = "repeated compiled direct-damage attacks should kill the zombie target on its reduced health budget"
+event_name = &"entity.died"
+required_core_values = {
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"archetype_attack_validation"
+display_name = "Archetype Attack Validation"
+description = "Validates the first attack-side Mechanic-first skeleton path: a trigger mechanic and a payload mechanic compile into runtime trigger bindings that damage and kill a target."
+goals = PackedStringArray("Verify BattleSpawnEntry can resolve an attack archetype through archetype_id.", "Verify MechanicCompiler can compile a periodic trigger plus direct damage payload into runtime trigger bindings.", "Verify the archetype path can damage and kill a zombie target without relying on a template-defined attack binding.")
+validation_time_limit = 1.6
+validation_rules = [SubResource("Rule_archetype_attack_spawned"), SubResource("Rule_archetype_attack_damage"), SubResource("Rule_archetype_attack_death")]
+spawns = [SubResource("Spawn_archetype_striker"), SubResource("Spawn_target_dummy")]

@@ -39,6 +39,33 @@ const GROUPS := [
 		],
 	},
 	{
+		"group_title": "Mechanic-first 骨架",
+		"group_summary": "展示新 archetype / mechanic / compiler 骨架已经如何接回现有运行时主链，当前覆盖资源生产、直接伤害、投射物攻击和基础僵尸路径。",
+		"color": Color("8e9aee"),
+		"items": [
+			{
+				"title": "产阳骨架展示",
+				"summary": "一个资源生产型 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 trigger binding，并沿共享产阳链生成和收集阳光。",
+				"scene": "res://scenes/showcase/archetype_sunflower_showcase.tscn",
+			},
+			{
+				"title": "攻击骨架展示",
+				"summary": "一个攻击型 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 trigger binding，并直接伤害和击杀目标。",
+				"scene": "res://scenes/showcase/archetype_attack_showcase.tscn",
+			},
+			{
+				"title": "投射物骨架展示",
+				"summary": "两个 projectile archetype 分别生成直线和抛物线攻击，展示第一版编译器已经接回共享 spawn_projectile 运行时。",
+				"scene": "res://scenes/showcase/archetype_projectile_showcase.tscn",
+			},
+			{
+				"title": "僵尸骨架展示",
+				"summary": "一个 zombie archetype 通过 archetype 入口生成，并继续复用现有 bite 连续运行时。",
+				"scene": "res://scenes/showcase/archetype_zombie_showcase.tscn",
+			},
+		],
+	},
+	{
 		"group_title": "投射体系统",
 		"group_summary": "高度带、终点爆炸、扫掠碰撞等投射体运行时的展示。",
 		"color": Color("4fc3f7"),

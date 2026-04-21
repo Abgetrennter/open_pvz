@@ -48,6 +48,30 @@
     "layers": ["smoke", "core"]
   },
   {
+    "id": "archetype_instantiation_validation",
+    "scenario": "res://scenes/validation/archetype_instantiation_validation.tres",
+    "description": "Validates the first Mechanic-first skeleton path from archetype resolution to compiled trigger binding execution.",
+    "layers": ["core"]
+  },
+  {
+    "id": "archetype_attack_validation",
+    "scenario": "res://scenes/validation/archetype_attack_validation.tres",
+    "description": "Validates the first attack-side Mechanic-first skeleton path from archetype resolution to compiled trigger binding damage execution.",
+    "layers": ["core"]
+  },
+  {
+    "id": "archetype_projectile_validation",
+    "scenario": "res://scenes/validation/archetype_projectile_validation.tres",
+    "description": "Validates the first projectile-side Mechanic-first skeleton path for linear and parabola projectile attacks.",
+    "layers": ["core"]
+  },
+  {
+    "id": "archetype_zombie_runtime_validation",
+    "scenario": "res://scenes/validation/archetype_zombie_runtime_validation.tres",
+    "description": "Validates that a zombie archetype can enter through archetype_id and still reuse the existing continuous bite runtime.",
+    "layers": ["core"]
+  },
+  {
     "id": "spawn_override_priority_validation",
     "scenario": "res://scenes/validation/spawn_override_priority_validation.tres",
     "description": "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides win over template projectile defaults.",
