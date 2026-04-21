@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.sweep_controller"
+display_name = "Sweep Controller"
+family = &"Controller"
+type_id = &"core.sweep"
+priority = 10
+tags = PackedStringArray("skeleton", "controller", "sweep", "field_object")
+params = {
+"detection_radius": 50.0,
+"move_speed": 300.0
+}

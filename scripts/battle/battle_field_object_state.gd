@@ -3,6 +3,9 @@ class_name BattleFieldObjectState
 
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
+const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
+const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
+const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 
 var battle: Node = null
@@ -51,12 +54,7 @@ func get_field_objects() -> Array:
 
 
 func _spawn_field_object(config: Resource, scenario: Resource) -> void:
-	var template_id := StringName(config.get("object_template_id"))
-	if template_id == StringName():
-		return
-	var entity_template = _resolve_template(template_id)
-	if entity_template == null:
-		return
+	var archetype_id := StringName(config.get("archetype_id"))
 	var lane_id_value: Variant = config.get("lane_id")
 	var lane_id := int(lane_id_value) if lane_id_value != null else 0
 	var x_position_value: Variant = config.get("x_position")
@@ -66,6 +64,35 @@ func _spawn_field_object(config: Resource, scenario: Resource) -> void:
 	if raw_overrides is Dictionary:
 		spawn_overrides = raw_overrides
 	var position := _build_spawn_position(lane_id, x_position)
+	if archetype_id != StringName() and SceneRegistry.has_archetype(archetype_id):
+		var entry = BattleSpawnEntryRef.new()
+		entry.entity_kind = &"field_object"
+		entry.archetype_id = archetype_id
+		entry.lane_id = lane_id
+		entry.x_position = x_position
+		entry.spawn_overrides = spawn_overrides
+		var spawn_resolution: Dictionary = _entity_factory.instantiate_spawn_entry(entry, position)
+		if spawn_resolution.is_empty():
+			return
+		var entity = spawn_resolution.get("entity", null)
+		if entity == null:
+			return
+		if entity.has_method("set_battle_ref"):
+			entity.call("set_battle_ref", battle)
+		battle.finalize_spawned_entity(entity, lane_id, spawn_resolution.get("hit_height_band", null), spawn_resolution.get("trigger_instances", []), null, {
+			"spawn_reason": &"field_object_spawn",
+			"archetype_id": archetype_id,
+			"object_template_id": StringName(entity.get("template_id")),
+		})
+		_field_objects.append(entity)
+		_emit_field_object_spawned(entity, lane_id, StringName(entity.get("template_id")), archetype_id)
+		return
+	var template_id := StringName(config.get("object_template_id"))
+	if template_id == StringName():
+		return
+	var entity_template = _resolve_template(template_id)
+	if entity_template == null:
+		return
 	var params: Dictionary = {}
 	if entity_template.default_params is Dictionary:
 		params = entity_template.default_params.duplicate(true)
@@ -99,10 +126,11 @@ func _build_spawn_position(lane_id: int, x_position: float) -> Vector2:
 	return Vector2(x_position, lane_y)
 
 
-func _emit_field_object_spawned(entity: Node, lane_id: int, template_id: StringName) -> void:
+func _emit_field_object_spawned(entity: Node, lane_id: int, template_id: StringName, archetype_id: StringName = StringName()) -> void:
 	var spawned_event: Variant = EventDataRef.create(null, entity, null, PackedStringArray(["field_object", "spawned"]))
 	spawned_event.core["lane_id"] = lane_id
 	if entity.has_method("get_entity_id"):
 		spawned_event.core["entity_id"] = int(entity.call("get_entity_id"))
 	spawned_event.core["object_template_id"] = template_id
+	spawned_event.core["archetype_id"] = archetype_id
 	EventBus.push_event(&"field_object.spawned", spawned_event)

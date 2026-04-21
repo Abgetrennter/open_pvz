@@ -13,6 +13,7 @@ var entity_state: Variant = EntityStateRef.new()
 var _hit_height_range := Vector2(0.0, 24.0)
 var _active_statuses: Dictionary = {}
 var _active_marks: Dictionary = {}
+@onready var state_component: Variant = get_node_or_null("StateComponent")
 
 
 func _ready() -> void:
@@ -172,6 +173,11 @@ func get_debug_snapshot() -> Dictionary:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSFORM_CHANGED:
 		_sync_entity_state()
+
+
+func _physics_process(_delta: float) -> void:
+	if state_component != null and state_component.has_method("has_active_states") and bool(state_component.call("has_active_states")):
+		state_component.call("physics_process_states")
 
 
 func _sync_entity_state() -> void:

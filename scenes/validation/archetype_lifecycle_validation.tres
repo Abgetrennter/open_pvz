@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_archetype_sunburst"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_spawned_sunburst_skeleton"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"value": 50
+}
+
+[sub_resource type="Resource" id="Rule_lifecycle_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"lifecycle_spawned"
+description = "lifecycle archetype should spawn with archetype identity and backend template identity"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_spawned_sunburst_skeleton",
+"target_template_id": &"plant_sunflower",
+"target_kind": &"plant"
+}
+
+[sub_resource type="Resource" id="Rule_lifecycle_sun_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"lifecycle_sun_spawn"
+description = "on_spawned lifecycle mechanic should immediately produce sun exactly once through the shared runtime"
+event_name = &"sun.spawned"
+required_core_values = {
+"source_archetype_id": &"archetype_spawned_sunburst_skeleton",
+"source_template_id": &"plant_sunflower",
+"source_type": &"plant_generated",
+"value": 50
+}
+
+[sub_resource type="Resource" id="Rule_lifecycle_collect"]
+script = ExtResource("3_rule")
+rule_id = &"lifecycle_collect"
+description = "the spawned lifecycle sun should be auto-collected and change the sun resource"
+event_name = &"resource.changed"
+required_core_values = {
+"reason": &"collect",
+"resource_id": &"sun"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"archetype_lifecycle_validation"
+display_name = "Archetype Lifecycle Validation"
+description = "Validates the second-stage lifecycle path: an on_spawned lifecycle mechanic compiles into a runtime trigger that fires when the archetype entity enters the battle."
+goals = PackedStringArray("Verify a lifecycle archetype can be instantiated through archetype_id.", "Verify the on_spawned lifecycle mechanic compiles into a shared runtime trigger.", "Verify the lifecycle trigger can immediately produce and collect sun.")
+validation_time_limit = 1.2
+initial_sun = 0
+sun_auto_collect_delay = 0.2
+validation_rules = [SubResource("Rule_lifecycle_spawned"), SubResource("Rule_lifecycle_sun_spawn"), SubResource("Rule_lifecycle_collect")]
+spawns = [SubResource("Spawn_archetype_sunburst")]

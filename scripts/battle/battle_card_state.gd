@@ -3,6 +3,8 @@ class_name BattleCardState
 
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const BattlePlacementRequestRef = preload("res://scripts/battle/placement_request.gd")
+const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
+const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 
 var battle: Node = null
@@ -134,9 +136,10 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 
 	var spawned_entity: Node = null
 	if battle != null and is_instance_valid(battle):
-		spawned_entity = battle.spawn_card_entity(StringName(card_def.get("entity_template_id")), lane_id, slot_index, {
+		spawned_entity = battle.spawn_card_actor(card_def, lane_id, slot_index, {
 			"card_id": card_id,
 			"request_id": StringName(placement_request.get("request_id")),
+			"archetype_id": StringName(card_def.get("archetype_id")),
 		})
 	if spawned_entity == null:
 		_emit_card_rejected(card_id, lane_id, slot_index, &"spawn_failed")
@@ -162,6 +165,7 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 			"slot_index": slot_index,
 			"slot_type": slot_type,
 			"slot_tags": slot_tags,
+			"archetype_id": StringName(card_def.get("archetype_id")),
 			"entity_template_id": StringName(card_def.get("entity_template_id")),
 		})
 	var cooldown_seconds := float(card_def.get("cooldown_seconds"))
@@ -198,17 +202,27 @@ func _build_placement_request(card_id: StringName, lane_id: int, slot_index: int
 	request.request_id = StringName("%s_%d_%d_%d" % [String(card_id), lane_id, slot_index, int(round(GameState.current_time * 1000.0))])
 	request.card_id = card_id
 	request.source_id = &"card_runtime"
+	request.archetype_id = StringName(card_def.get("archetype_id"))
 	request.entity_template_id = StringName(card_def.get("entity_template_id"))
 	request.lane_id = lane_id
 	request.slot_index = slot_index
 	var placement_tags: Variant = card_def.get("placement_tags")
 	request.placement_tags = PackedStringArray() if not (placement_tags is PackedStringArray) else PackedStringArray(placement_tags)
-	var entity_template: Resource = _resolve_entity_template(request.entity_template_id)
+	var entity_template: Resource = _resolve_entity_template_from_card(card_def)
 	if entity_template != null:
 		request.placement_role = StringName(entity_template.get("placement_role"))
 		if request.placement_tags.is_empty():
 			request.placement_tags = PackedStringArray(entity_template.get("required_placement_tags"))
 	return request
+
+
+func _resolve_entity_template_from_card(card_def: Resource):
+	var archetype_id := StringName(card_def.get("archetype_id"))
+	if archetype_id != StringName() and SceneRegistry.has_archetype(archetype_id):
+		var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
+		if archetype is CombatArchetypeRef:
+			return CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
+	return _resolve_entity_template(StringName(card_def.get("entity_template_id")))
 
 
 func _resolve_entity_template(entity_template_id: StringName):

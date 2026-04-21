@@ -72,6 +72,9 @@ func _register_builtin_defs() -> void:
 		"min": 0.0,
 		"max": 30.0,
 		"default": 0.0,
+	}, {
+		"name": "required_state",
+		"type": "string_name",
 	}]
 	periodically.trigger_id = &"periodically"
 	periodically.event_name = &"game.tick"
@@ -104,11 +107,32 @@ func _register_builtin_defs() -> void:
 	on_death.allow_extra_conditions = false
 	register_def(on_death)
 
+	var on_spawned = TriggerDefRef.new()
+	on_spawned.trigger_id = &"on_spawned"
+	on_spawned.event_name = &"entity.spawned"
+	on_spawned.weight = 20
+	on_spawned.max_bound_effects = 1
+	on_spawned.allow_extra_conditions = false
+	register_def(on_spawned)
+
+	var on_place = TriggerDefRef.new()
+	on_place.trigger_id = &"on_place"
+	on_place.event_name = &"placement.accepted"
+	on_place.weight = 25
+	on_place.max_bound_effects = 1
+	on_place.allow_extra_conditions = false
+	register_def(on_place)
+
 
 func _register_builtin_strategies() -> void:
 	register_strategy(&"periodically", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
 		var interval := float(condition_values.get("interval", 1.0))
 		var game_time := float(event_data.core.get("game_time", 0.0))
+		var required_state := StringName(condition_values.get("required_state", StringName()))
+		if required_state != StringName():
+			var current_state := StringName(_entity_state.get("values", {}).get(&"state_stage", StringName()))
+			if current_state != required_state:
+				return false
 
 		var start_delay := float(condition_values.get("start_delay", 0.0))
 		if start_delay > 0.0 and instance.last_triggered_time < -999999.0:
@@ -148,5 +172,13 @@ func _register_builtin_strategies() -> void:
 	)
 
 	register_strategy(&"on_death", func(event_data, _condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
+		return event_data.core.get("target_node", null) == instance.owner_entity
+	)
+
+	register_strategy(&"on_spawned", func(event_data, _condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
+		return event_data.core.get("target_node", null) == instance.owner_entity
+	)
+
+	register_strategy(&"on_place", func(event_data, _condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
 		return event_data.core.get("target_node", null) == instance.owner_entity
 	)

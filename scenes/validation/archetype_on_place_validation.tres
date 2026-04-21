@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_archetype_on_place_sunburst.tres" id="4_card"]
+
+[sub_resource type="Resource" id="CardPlayRequest_place_archetype"]
+script = ExtResource("2_request")
+at_time = 0.1
+card_id = &"card_archetype_on_place_sunburst"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_on_place_accept"]
+script = ExtResource("3_rule")
+rule_id = &"on_place_accept"
+description = "archetype-backed card should be accepted through the placement layer and carry archetype identity"
+event_name = &"placement.accepted"
+required_core_values = {
+"archetype_id": &"archetype_on_place_sunburst_skeleton",
+"entity_template_id": &"plant_sunflower"
+}
+
+[sub_resource type="Resource" id="Rule_on_place_sun_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"on_place_sun_spawn"
+description = "on_place lifecycle mechanic should immediately produce sun after placement acceptance"
+event_name = &"sun.spawned"
+required_core_values = {
+"source_archetype_id": &"archetype_on_place_sunburst_skeleton",
+"source_template_id": &"plant_sunflower",
+"source_type": &"plant_generated",
+"value": 25
+}
+
+[sub_resource type="Resource" id="Rule_on_place_collect"]
+script = ExtResource("3_rule")
+rule_id = &"on_place_collect"
+description = "the on_place sun should be auto-collected and update the sun resource"
+event_name = &"resource.changed"
+required_core_values = {
+"reason": &"collect",
+"resource_id": &"sun"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"archetype_on_place_validation"
+display_name = "Archetype On Place Validation"
+description = "Validates the second-stage on_place lifecycle path through the card and placement runtime: an archetype-backed card is placed, emits placement.accepted, and immediately executes a shared payload."
+goals = PackedStringArray("Verify card_def can resolve an archetype-backed card into a placement request.", "Verify the placement layer preserves archetype identity in placement.accepted.", "Verify the on_place lifecycle mechanic can fire immediately after placement and produce a sun collectible.")
+validation_time_limit = 1.4
+initial_sun = 0
+sun_auto_collect_delay = 0.2
+card_defs = [ExtResource("4_card")]
+card_play_requests = [SubResource("CardPlayRequest_place_archetype")]
+validation_rules = [SubResource("Rule_on_place_accept"), SubResource("Rule_on_place_sun_spawn"), SubResource("Rule_on_place_collect")]

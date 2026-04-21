@@ -136,6 +136,10 @@ func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index:
 	return _spawner.spawn_card_entity(entity_template_id, lane_id, slot_index, metadata)
 
 
+func spawn_card_actor(card_def: Resource, lane_id: int, slot_index: int, metadata: Dictionary = {}) -> Node:
+	return _spawner.spawn_card_actor(card_def, lane_id, slot_index, metadata)
+
+
 func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName()):
 	return _spawner.spawn_wave_entry(spawn_entry, wave_id)
 

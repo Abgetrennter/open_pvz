@@ -6,6 +6,8 @@ const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd"
 const BoardSlotRef = preload("res://scripts/battle/board_slot.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
 const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
+const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
+const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 
 var battle: Node = null
@@ -88,6 +90,7 @@ func reject_request(request: Resource, reason: StringName) -> void:
 	rejected_event.core["request_id"] = StringName(request.get("request_id"))
 	rejected_event.core["card_id"] = StringName(request.get("card_id"))
 	rejected_event.core["source_id"] = StringName(request.get("source_id"))
+	rejected_event.core["archetype_id"] = StringName(request.get("archetype_id"))
 	rejected_event.core["entity_template_id"] = StringName(request.get("entity_template_id"))
 	rejected_event.core["lane_id"] = int(request.get("lane_id"))
 	rejected_event.core["slot_index"] = int(request.get("slot_index"))
@@ -116,6 +119,7 @@ func commit_request(request: Resource, entity: Node) -> bool:
 	accepted_event.core["request_id"] = StringName(request.get("request_id"))
 	accepted_event.core["card_id"] = StringName(request.get("card_id"))
 	accepted_event.core["source_id"] = StringName(request.get("source_id"))
+	accepted_event.core["archetype_id"] = StringName(request.get("archetype_id"))
 	accepted_event.core["entity_template_id"] = StringName(request.get("entity_template_id"))
 	accepted_event.core["lane_id"] = int(request.get("lane_id"))
 	accepted_event.core["slot_index"] = int(request.get("slot_index"))
@@ -260,6 +264,13 @@ func _apply_slot_configs() -> void:
 func _resolve_entity_template(request: Resource) -> Resource:
 	if request == null:
 		return null
+	var archetype_id := StringName(request.get("archetype_id"))
+	if archetype_id != StringName():
+		if not SceneRegistry.has_archetype(archetype_id):
+			return null
+		var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
+		if archetype is CombatArchetypeRef:
+			return CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
 	var entity_template_id := StringName(request.get("entity_template_id"))
 	if entity_template_id == StringName():
 		return null

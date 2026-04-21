@@ -1,0 +1,74 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/field_object_config.gd" id="3_field_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="FieldObjectConfig_mower_archetype"]
+script = ExtResource("3_field_config")
+archetype_id = &"archetype_lawn_mower_skeleton"
+object_template_id = &"field_object_lawn_mower"
+lane_id = 0
+x_position = 80.0
+
+[sub_resource type="Resource" id="BattleSpawnEntry_zombie"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 200.0
+spawn_overrides = {
+"move_speed": 55.0
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_mower_spawned"]
+script = ExtResource("4_rule")
+rule_id = &"mower_spawned"
+description = "archetype-backed lawn mower should spawn as a field object with archetype identity"
+event_name = &"field_object.spawned"
+required_core_values = {
+"archetype_id": &"archetype_lawn_mower_skeleton",
+"object_template_id": &"field_object_lawn_mower"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_mower_activated"]
+script = ExtResource("4_rule")
+rule_id = &"mower_activated"
+description = "controller-backed mower should activate when the zombie approaches"
+event_name = &"field_object.activated"
+
+[sub_resource type="Resource" id="BattleValidationRule_zombie_killed"]
+script = ExtResource("4_rule")
+rule_id = &"zombie_killed"
+description = "zombie killed by controller-backed mower sweep"
+event_name = &"entity.died"
+required_core_values = {
+"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_lawn_mower_skeleton"
+}
+
+[sub_resource type="Resource" id="BattleValidationRule_mower_expired"]
+script = ExtResource("4_rule")
+rule_id = &"mower_expired"
+description = "controller-backed mower expires after sweeping off-screen"
+event_name = &"field_object.expired"
+
+[sub_resource type="Resource" id="BattleValidationRule_no_defeat"]
+script = ExtResource("4_rule")
+rule_id = &"no_defeat"
+description = "no defeat triggered"
+event_name = &"battle.defeat"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"archetype_mower_runtime_validation"
+display_name = "Archetype Mower Runtime Validation"
+description = "Validates that an archetype-backed lawn mower field object uses the new sweep controller path instead of only the old dedicated root logic."
+goals = PackedStringArray("Observe the archetype-backed mower spawn as a field object.", "Observe the mower activate when the zombie approaches.", "Observe the zombie killed by the controller-backed sweep.", "Observe the mower expire after sweeping off-screen.", "Confirm no battle.defeat event is emitted.")
+validation_time_limit = 6.0
+defeat_line_x = 80.0
+spawns = [SubResource("BattleSpawnEntry_zombie")]
+field_object_configs = [SubResource("FieldObjectConfig_mower_archetype")]
+validation_rules = [SubResource("BattleValidationRule_mower_spawned"), SubResource("BattleValidationRule_mower_activated"), SubResource("BattleValidationRule_zombie_killed"), SubResource("BattleValidationRule_mower_expired"), SubResource("BattleValidationRule_no_defeat")]

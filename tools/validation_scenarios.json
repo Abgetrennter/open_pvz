@@ -66,9 +66,33 @@
     "layers": ["core"]
   },
   {
+    "id": "archetype_lifecycle_validation",
+    "scenario": "res://scenes/validation/archetype_lifecycle_validation.tres",
+    "description": "Validates the second-stage lifecycle path for on_spawned mechanics compiled into shared runtime triggers.",
+    "layers": ["core"]
+  },
+  {
+    "id": "archetype_on_place_validation",
+    "scenario": "res://scenes/validation/archetype_on_place_validation.tres",
+    "description": "Validates the second-stage on_place lifecycle path through the card and placement runtime.",
+    "layers": ["core"]
+  },
+  {
+    "id": "archetype_state_validation",
+    "scenario": "res://scenes/validation/archetype_state_validation.tres",
+    "description": "Validates the third-stage state path for arming -> active gating before shared runtime damage begins.",
+    "layers": ["core"]
+  },
+  {
     "id": "archetype_zombie_runtime_validation",
     "scenario": "res://scenes/validation/archetype_zombie_runtime_validation.tres",
     "description": "Validates that a zombie archetype can enter through archetype_id and still reuse the existing continuous bite runtime.",
+    "layers": ["core"]
+  },
+  {
+    "id": "archetype_mower_runtime_validation",
+    "scenario": "res://scenes/validation/archetype_mower_runtime_validation.tres",
+    "description": "Validates that an archetype-backed lawn mower field object uses the new sweep controller path.",
     "layers": ["core"]
   },
   {

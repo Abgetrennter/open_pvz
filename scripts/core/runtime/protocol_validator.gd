@@ -33,6 +33,14 @@ const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 		"trigger_id": &"on_death",
 		"event_name": &"entity.died",
 	},
+	&"on_spawned": {
+		"trigger_id": &"on_spawned",
+		"event_name": &"entity.spawned",
+	},
+	&"on_place": {
+		"trigger_id": &"on_place",
+		"event_name": &"placement.accepted",
+	},
 }
 
 const SPAWN_ENTRY_RESERVED_PARAMS := {
@@ -76,6 +84,7 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"hitbox_size": true,
 	"detection_radius": true,
 	"scan_range": true,
+	"required_state": true,
 	"start_delay": true,
 	"value": true,
 	"source_type": true,
@@ -262,8 +271,15 @@ static func validate_combat_mechanic(mechanic: Resource) -> Array[String]:
 		errors.append("CombatMechanic.family must not be empty.")
 	elif String(mechanic.family) not in CombatMechanicRef.ALLOWED_FAMILIES:
 		errors.append("CombatMechanic.family must be one of %s." % _join_strings(CombatMechanicRef.ALLOWED_FAMILIES))
+	elif typeof(MechanicFamilyRegistry) != TYPE_NIL and not MechanicFamilyRegistry.has_family(StringName(mechanic.family)):
+		errors.append("CombatMechanic.family %s must be registered in MechanicFamilyRegistry." % String(mechanic.family))
 	if StringName(mechanic.type_id) == StringName():
 		errors.append("CombatMechanic.type_id must not be empty.")
+	elif typeof(MechanicTypeRegistry) != TYPE_NIL:
+		if MechanicTypeRegistry.has_type(StringName(mechanic.type_id)):
+			var registered_family := MechanicTypeRegistry.get_family_id(StringName(mechanic.type_id))
+			if registered_family != StringName() and registered_family != StringName(mechanic.family):
+				errors.append("CombatMechanic.type_id %s must belong to family %s." % [String(mechanic.type_id), String(registered_family)])
 	if not (mechanic.params is Dictionary):
 		errors.append("CombatMechanic.params must be a Dictionary.")
 	return errors

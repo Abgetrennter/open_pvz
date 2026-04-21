@@ -20,9 +20,13 @@ config/icon="res://icon.svg"
 EventBus="*res://autoload/EventBus.gd"
 DebugService="*res://autoload/DebugService.gd"
 SceneRegistry="*res://autoload/SceneRegistry.gd"
+MechanicFamilyRegistry="*res://autoload/MechanicFamilyRegistry.gd"
+MechanicTypeRegistry="*res://autoload/MechanicTypeRegistry.gd"
+MechanicCompilerRegistry="*res://autoload/MechanicCompilerRegistry.gd"
 DetectionRegistry="*res://autoload/DetectionRegistry.gd"
 TriggerRegistry="*res://autoload/TriggerRegistry.gd"
 EffectRegistry="*res://autoload/EffectRegistry.gd"
+ControllerRegistry="*res://autoload/ControllerRegistry.gd"
 GameState="*res://autoload/GameState.gd"
 
 [display]

@@ -11,6 +11,35 @@ const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
 const COMPILER_VERSION := &"mechanic_first_v0"
 
 
+static func register_builtin_mechanic_types() -> void:
+	if typeof(MechanicTypeRegistry) == TYPE_NIL:
+		return
+	var type_specs := {
+		&"core.periodic": &"Trigger",
+		&"core.when_damaged": &"Trigger",
+		&"core.on_death": &"Trigger",
+		&"core.on_spawned": &"Lifecycle",
+		&"core.on_place": &"Lifecycle",
+		&"core.produce_sun": &"Payload",
+		&"core.damage": &"Payload",
+		&"core.spawn_projectile": &"Payload",
+		&"core.explode": &"Payload",
+		&"core.apply_status": &"Payload",
+		&"core.spawn_entity": &"Payload",
+		&"core.bite": &"Controller",
+		&"core.sweep": &"Controller",
+		&"core.arming": &"State",
+	}
+	for type_id in type_specs.keys():
+		MechanicTypeRegistry.register_type(StringName(type_id), StringName(type_specs[type_id]), {
+			"compiler_version": COMPILER_VERSION,
+		})
+		if typeof(MechanicCompilerRegistry) != TYPE_NIL:
+			MechanicCompilerRegistry.register_compiler(StringName(type_id), {
+				"compiler_version": COMPILER_VERSION,
+			})
+
+
 # TODO(mechanic-first): Restore explicit return annotations after the compiler
 # runtime is no longer blocked by GDScript parse-order limitations.
 func compile_spawn_entry(spawn_entry: Resource, archetype):
@@ -41,6 +70,8 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 		runtime_spec.projectile_template
 	)
 	runtime_spec.compiled_trigger_bindings = _compile_trigger_payload_bindings(normalized, archetype)
+	runtime_spec.controller_specs = _compile_controller_specs(normalized, archetype)
+	runtime_spec.state_specs = _compile_state_specs(normalized, archetype)
 	runtime_spec.runtime_state_values = {
 		&"archetype_id": archetype.archetype_id,
 		&"mechanic_compiler_version": COMPILER_VERSION,
@@ -89,6 +120,8 @@ static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 			continue
 		match StringName(mechanic.family):
 			CombatMechanicRef.FAMILY_TRIGGER:
+				trigger_mechanics.append(mechanic)
+			CombatMechanicRef.FAMILY_LIFECYCLE:
 				trigger_mechanics.append(mechanic)
 			CombatMechanicRef.FAMILY_PAYLOAD:
 				payload_mechanics.append(mechanic)
@@ -151,6 +184,18 @@ static func _map_trigger_type(type_id: StringName) -> Dictionary:
 				"trigger_id": &"on_death",
 				"event_name": &"entity.died",
 			}
+		&"core.on_spawned":
+			return {
+				"behavior_key": &"on_spawned",
+				"trigger_id": &"on_spawned",
+				"event_name": &"entity.spawned",
+			}
+		&"core.on_place":
+			return {
+				"behavior_key": &"on_place",
+				"trigger_id": &"on_place",
+				"event_name": &"placement.accepted",
+			}
 		_:
 			return {}
 
@@ -169,6 +214,70 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"apply_status"}
 		&"core.spawn_entity":
 			return {"effect_id": &"spawn_entity"}
+		_:
+			return {}
+
+
+static func _compile_controller_specs(normalized, archetype) -> Array:
+	var compiled: Array = []
+	for mechanic in normalized.mechanics:
+		if not (mechanic is CombatMechanicRef):
+			continue
+		if StringName(mechanic.family) != CombatMechanicRef.FAMILY_CONTROLLER:
+			continue
+		var controller_spec := _build_controller_spec(archetype, mechanic)
+		if not controller_spec.is_empty():
+			compiled.append(controller_spec)
+	return compiled
+
+
+static func _build_controller_spec(archetype, mechanic) -> Dictionary:
+	match mechanic.type_id:
+		&"core.bite":
+			return {
+				"controller_id": &"core.bite",
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"params": Dictionary(mechanic.params).duplicate(true),
+			}
+		&"core.sweep":
+			return {
+				"controller_id": &"core.sweep",
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"params": Dictionary(mechanic.params).duplicate(true),
+			}
+		_:
+			return {}
+
+
+static func _compile_state_specs(normalized, archetype) -> Array:
+	var compiled: Array = []
+	for mechanic in normalized.mechanics:
+		if not (mechanic is CombatMechanicRef):
+			continue
+		if StringName(mechanic.family) != CombatMechanicRef.FAMILY_STATE:
+			continue
+		var state_spec := _build_state_spec(archetype, mechanic)
+		if not state_spec.is_empty():
+			compiled.append(state_spec)
+	return compiled
+
+
+static func _build_state_spec(archetype, mechanic) -> Dictionary:
+	match mechanic.type_id:
+		&"core.arming":
+			return {
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"initial_state": &"arming",
+				"transitions": [{
+					"transition_id": StringName("%s__arming_to_active" % String(mechanic.mechanic_id)),
+					"from_state": &"arming",
+					"to_state": &"active",
+					"after": float(mechanic.params.get("arming_time", 0.5)),
+				}],
+			}
 		_:
 			return {}
 

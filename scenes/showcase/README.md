@@ -19,9 +19,13 @@ project's default startup scene:
 - `template_instantiation_showcase.tscn`
 - `template_factory_showcase.tscn`
 - `archetype_sunflower_showcase.tscn`
+- `archetype_lifecycle_showcase.tscn`
+- `archetype_on_place_showcase.tscn`
+- `archetype_state_showcase.tscn`
 - `archetype_attack_showcase.tscn`
 - `archetype_projectile_showcase.tscn`
 - `archetype_zombie_showcase.tscn`
+- `archetype_mower_showcase.tscn`
 - `height_hit_showcase.tscn`
 - `terminal_explode_showcase.tscn`
 - `chain_explosion_cascade_showcase.tscn`

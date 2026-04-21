@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/entity_templates/zombies/zombie_basic_walker.tres" id="2_backend"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="3_controller"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -11,5 +12,6 @@ tags = PackedStringArray("archetype", "zombie", "continuous", "skeleton")
 compiler_hints = {
 "skeleton_only": true
 }
+mechanics = [ExtResource("3_controller")]
 backend_entity_template = ExtResource("2_backend")
 backend_entity_template_id = &"zombie_basic_walker"

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.bite_controller"
+display_name = "Bite Controller"
+family = &"Controller"
+type_id = &"core.bite"
+priority = 10
+tags = PackedStringArray("skeleton", "controller", "bite", "zombie")
+params = {
+"attack_damage": 10,
+"attack_interval": 0.3,
+"attack_range": 56.0,
+"move_speed": 0.0
+}

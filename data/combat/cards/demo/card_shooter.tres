@@ -6,6 +6,7 @@
 script = ExtResource("1_card_def")
 card_id = &"card_shooter"
 display_name = "Shooter"
+archetype_id = &"archetype_peashooter_skeleton"
 entity_template_id = &"plant_basic_shooter"
 sun_cost = 100
 cooldown_seconds = 5.0

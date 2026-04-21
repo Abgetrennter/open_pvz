@@ -40,13 +40,28 @@ const GROUPS := [
 	},
 	{
 		"group_title": "Mechanic-first 骨架",
-		"group_summary": "展示新 archetype / mechanic / compiler 骨架已经如何接回现有运行时主链，当前覆盖资源生产、直接伤害、投射物攻击和基础僵尸路径。",
+		"group_summary": "展示新 archetype / mechanic / compiler 骨架已经如何接回现有运行时主链，当前覆盖资源生产、直接伤害、投射物攻击、生命周期和基础僵尸路径。",
 		"color": Color("8e9aee"),
 		"items": [
 			{
 				"title": "产阳骨架展示",
 				"summary": "一个资源生产型 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 trigger binding，并沿共享产阳链生成和收集阳光。",
 				"scene": "res://scenes/showcase/archetype_sunflower_showcase.tscn",
+			},
+			{
+				"title": "生命周期骨架展示",
+				"summary": "一个 lifecycle archetype 通过 on_spawned + produce_sun skeleton mechanic 编译出运行时触发器，并在进入战场时立即执行一次效果。",
+				"scene": "res://scenes/showcase/archetype_lifecycle_showcase.tscn",
+			},
+			{
+				"title": "放置生命周期展示",
+				"summary": "一个 archetype-backed 卡片通过放置链进入战场，并在 placement.accepted 后立即触发 on_place lifecycle。",
+				"scene": "res://scenes/showcase/archetype_on_place_showcase.tscn",
+			},
+			{
+				"title": "状态阶段展示",
+				"summary": "一个攻击 archetype 先处于 arming，再进入 active 后才开始伤害目标。",
+				"scene": "res://scenes/showcase/archetype_state_showcase.tscn",
 			},
 			{
 				"title": "攻击骨架展示",
@@ -62,6 +77,11 @@ const GROUPS := [
 				"title": "僵尸骨架展示",
 				"summary": "一个 zombie archetype 通过 archetype 入口生成，并继续复用现有 bite 连续运行时。",
 				"scene": "res://scenes/showcase/archetype_zombie_showcase.tscn",
+			},
+			{
+				"title": "Sweep 控制器展示",
+				"summary": "一个 archetype-backed mower 通过 sweep controller 检测并清扫来袭僵尸。",
+				"scene": "res://scenes/showcase/archetype_mower_showcase.tscn",
 			},
 		],
 	},

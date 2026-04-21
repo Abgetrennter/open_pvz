@@ -6,6 +6,7 @@
 script = ExtResource("1_card_def")
 card_id = &"card_flower_pot_surface"
 display_name = "Flower Pot"
+archetype_id = &"archetype_flower_pot_surface_skeleton"
 entity_template_id = &"plant_flower_pot_surface"
 sun_cost = 25
 cooldown_seconds = 3.0

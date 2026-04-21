@@ -11,6 +11,7 @@ const ENTITY_TEMPLATE_DIRS := [
 const ARCHETYPE_DIRS := [
 	"res://data/combat/archetypes/plants",
 	"res://data/combat/archetypes/zombies",
+	"res://data/combat/archetypes/field_objects",
 	"res://data/combat/archetypes/projectiles",
 ]
 const PROJECTILE_TEMPLATE_DIR := "res://data/combat/projectile_templates"
@@ -24,6 +25,7 @@ const EXTENSION_ENTITY_TEMPLATE_DIRS := [
 const EXTENSION_ARCHETYPE_DIRS := [
 	"data/combat/archetypes/plants",
 	"data/combat/archetypes/zombies",
+	"data/combat/archetypes/field_objects",
 	"data/combat/archetypes/projectiles",
 ]
 const EXTENSION_PROJECTILE_TEMPLATE_DIR := "data/combat/projectile_templates"

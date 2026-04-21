@@ -10,6 +10,8 @@ const ProjectileRootRef = preload("res://scripts/entities/projectile_root.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
 const TriggerComponentRef = preload("res://scripts/components/trigger_component.gd")
+const ControllerComponentRef = preload("res://scripts/components/controller_component.gd")
+const StateComponentRef = preload("res://scripts/components/state_component.gd")
 const HealthComponentRef = preload("res://scripts/components/health_component.gd")
 const MovementComponentRef = preload("res://scripts/components/movement_component.gd")
 const HitboxComponentRef = preload("res://scripts/components/hitbox_component.gd")
@@ -100,6 +102,10 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	if entity.has_method("set_state_value") and runtime_spec.runtime_state_values is Dictionary:
 		for key: Variant in runtime_spec.runtime_state_values.keys():
 			entity.call("set_state_value", StringName(str(key)), runtime_spec.runtime_state_values[key])
+	if runtime_spec.controller_specs is Array and not Array(runtime_spec.controller_specs).is_empty():
+		_bind_runtime_controllers(entity, Array(runtime_spec.controller_specs))
+	if runtime_spec.state_specs is Array and not Array(runtime_spec.state_specs).is_empty():
+		_bind_runtime_states(entity, Array(runtime_spec.state_specs))
 	var trigger_instances: Array = []
 	if runtime_spec.compiled_trigger_bindings is Array and not Array(runtime_spec.compiled_trigger_bindings).is_empty():
 		trigger_instances = build_runtime_triggers_from_bindings(
@@ -351,6 +357,18 @@ func _apply_runtime_param_metadata(entity: Node, params: Dictionary) -> void:
 func _make_trigger_component():
 	var component: Variant = TriggerComponentRef.new()
 	component.name = "TriggerComponent"
+	return component
+
+
+func _make_controller_component():
+	var component: Variant = ControllerComponentRef.new()
+	component.name = "ControllerComponent"
+	return component
+
+
+func _make_state_component():
+	var component: Variant = StateComponentRef.new()
+	component.name = "StateComponent"
 	return component
 
 
@@ -621,9 +639,25 @@ func _ensure_required_template_components(entity: Node, template) -> void:
 		match String(component_name):
 			"TriggerComponent":
 				_ensure_named_child(entity, "TriggerComponent", func(): return _make_trigger_component())
+			"ControllerComponent":
+				_ensure_named_child(entity, "ControllerComponent", func(): return _make_controller_component())
+			"StateComponent":
+				_ensure_named_child(entity, "StateComponent", func(): return _make_state_component())
 			"MovementComponent":
 				_ensure_named_child(entity, "MovementComponent", func(): return _make_movement_component())
 			"DebugViewComponent":
 				_ensure_named_child(entity, "DebugViewComponent", func(): return _make_debug_component())
 			_:
 				pass
+
+
+func _bind_runtime_controllers(entity: Node, controller_specs: Array) -> void:
+	var controller_component := _ensure_named_child(entity, "ControllerComponent", func(): return _make_controller_component())
+	if controller_component != null and controller_component.has_method("bind_controller_specs"):
+		controller_component.call("bind_controller_specs", controller_specs)
+
+
+func _bind_runtime_states(entity: Node, state_specs: Array) -> void:
+	var state_component := _ensure_named_child(entity, "StateComponent", func(): return _make_state_component())
+	if state_component != null and state_component.has_method("bind_state_specs"):
+		state_component.call("bind_state_specs", state_specs)

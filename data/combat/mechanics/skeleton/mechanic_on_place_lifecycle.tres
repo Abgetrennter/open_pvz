@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.on_place_lifecycle"
+display_name = "On Place Lifecycle"
+family = &"Lifecycle"
+type_id = &"core.on_place"
+priority = 10
+tags = PackedStringArray("skeleton", "lifecycle", "place")
+params = {}

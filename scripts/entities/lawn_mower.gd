@@ -3,6 +3,8 @@ class_name LawnMower
 
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 
+@onready var controller_component: Variant = get_node_or_null("ControllerComponent")
+
 var move_speed := 300.0
 var detection_radius := 50.0
 var _mower_state: StringName = &"idle"
@@ -20,6 +22,9 @@ func set_battle_ref(battle: Node) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if controller_component != null and controller_component.has_method("has_active_controllers") and bool(controller_component.call("has_active_controllers")):
+		controller_component.call("physics_process_controllers", delta)
+		return
 	match _mower_state:
 		&"idle":
 			_check_zombie_proximity()
@@ -106,3 +111,52 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2(14, -8), Vector2(10, 16)), body_color.darkened(0.1))
 	draw_rect(Rect2(Vector2(-16, 14), Vector2(12, 6)), OUTLINE_COLOR)
 	draw_rect(Rect2(Vector2(4, 14), Vector2(12, 6)), OUTLINE_COLOR)
+
+
+func perform_sweep_cycle_for_controller(spec: Dictionary, delta: float) -> void:
+	var params: Dictionary = Dictionary(spec.get("params", {}))
+	var resolved_move_speed := float(params.get("move_speed", move_speed))
+	var resolved_detection_radius := float(params.get("detection_radius", detection_radius))
+	match _mower_state:
+		&"idle":
+			_check_zombie_proximity_with_radius(resolved_detection_radius)
+		&"triggered":
+			_sweep_with_speed(delta, resolved_move_speed)
+
+
+func _check_zombie_proximity_with_radius(resolved_detection_radius: float) -> void:
+	for entity in _get_combat_entities():
+		if entity == null or not is_instance_valid(entity):
+			continue
+		if not entity.has_method("is_combat_active"):
+			continue
+		if not bool(entity.call("is_combat_active")):
+			continue
+		if StringName(entity.get("team")) != &"zombie":
+			continue
+		if int(entity.get("lane_id")) != lane_id:
+			continue
+		var zombie_x: float = float(entity.get("global_position").x) if entity.get("global_position") != null else 0.0
+		if zombie_x <= global_position.x + resolved_detection_radius:
+			_trigger()
+			return
+
+
+func _sweep_with_speed(delta: float, resolved_move_speed: float) -> void:
+	global_position.x += resolved_move_speed * delta
+	for entity in _get_combat_entities():
+		if entity == null or not is_instance_valid(entity):
+			continue
+		if not entity.has_method("is_combat_active"):
+			continue
+		if not bool(entity.call("is_combat_active")):
+			continue
+		if StringName(entity.get("team")) != &"zombie":
+			continue
+		if int(entity.get("lane_id")) != lane_id:
+			continue
+		var zombie_x: float = float(entity.get("global_position").x) if entity.get("global_position") != null else 0.0
+		if zombie_x <= global_position.x + 20.0:
+			entity.call("take_damage", 9999, self, PackedStringArray(["mower", "sweep"]))
+	if global_position.x > 1000.0:
+		_expire()

@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_archetype_arming_striker"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_arming_striker_skeleton"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"amount": 20,
+"interval": 0.3,
+"required_state": &"active",
+"scan_range": 900.0
+}
+
+[sub_resource type="Resource" id="Spawn_target_dummy"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 280.0
+spawn_overrides = {
+"max_health": 40
+}
+
+[sub_resource type="Resource" id="Rule_state_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"state_spawned"
+description = "stateful archetype should spawn with archetype identity and backend template identity"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_arming_striker_skeleton",
+"target_template_id": &"plant_wall_barrier",
+"target_kind": &"plant"
+}
+
+[sub_resource type="Resource" id="Rule_state_entered_active"]
+script = ExtResource("3_rule")
+rule_id = &"state_entered_active"
+description = "arming state should transition into active after the configured delay"
+event_name = &"entity.state_entered"
+required_core_values = {
+"state_id": &"active",
+"target_archetype_id": &"archetype_arming_striker_skeleton"
+}
+
+[sub_resource type="Resource" id="Rule_state_damage_after_active"]
+script = ExtResource("3_rule")
+rule_id = &"state_damage_after_active"
+description = "once active, the archetype should start damaging the zombie target through the shared runtime"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_arming_striker_skeleton",
+"source_template_id": &"plant_wall_barrier",
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"archetype_state_validation"
+display_name = "Archetype State Validation"
+description = "Validates the third-stage state skeleton path: a stateful archetype starts in arming, transitions into active, and only then begins emitting shared runtime damage."
+goals = PackedStringArray("Verify a state archetype can be instantiated through archetype_id.", "Verify the arming state transitions to active through the shared state runtime.", "Verify trigger execution can be gated by required_state and begin after activation.")
+validation_time_limit = 1.6
+validation_rules = [SubResource("Rule_state_spawned"), SubResource("Rule_state_entered_active"), SubResource("Rule_state_damage_after_active")]
+spawns = [SubResource("Spawn_archetype_arming_striker"), SubResource("Spawn_target_dummy")]

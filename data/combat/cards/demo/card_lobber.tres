@@ -6,6 +6,7 @@
 script = ExtResource("1_card_def")
 card_id = &"card_lobber"
 display_name = "Lobber"
+archetype_id = &"archetype_cabbage_skeleton"
 entity_template_id = &"plant_cabbage_lobber"
 sun_cost = 150
 cooldown_seconds = 5.0

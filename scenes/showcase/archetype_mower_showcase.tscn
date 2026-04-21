@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://scenes/validation/archetype_mower_runtime_validation.tres" id="2_scenario"]
+
+[node name="ArchetypeMowerShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = false
+showcase_title = "Mechanic-first Sweep 控制器展示"
+showcase_summary = "一个 archetype-backed 场上物件通过 sweep controller 检测并清扫来袭僵尸，展示第二阶段 controller 已覆盖 bite 之外的场上物件连续行为。"

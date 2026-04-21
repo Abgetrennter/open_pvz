@@ -3,6 +3,7 @@ class_name BattleSpawner
 
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
+const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
@@ -102,6 +103,32 @@ func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index:
 	return entity
 
 
+func spawn_card_actor(card_def: Resource, lane_id: int, slot_index: int, metadata: Dictionary = {}) -> Node:
+	if card_def == null:
+		return null
+	var archetype_id := StringName(card_def.get("archetype_id"))
+	if archetype_id != StringName():
+		if not SceneRegistry.has_archetype(archetype_id):
+			return null
+		var board_state: Node = _battle.get_board_state()
+		var spawn_position := _build_board_slot_position(lane_id, slot_index)
+		if board_state != null and is_instance_valid(board_state):
+			spawn_position = Vector2(board_state.get_slot_world_position(lane_id, slot_index))
+		var entry = BattleSpawnEntryRef.new()
+		entry.entity_kind = &"plant"
+		entry.archetype_id = archetype_id
+		entry.lane_id = lane_id
+		entry.x_position = spawn_position.x
+		return _spawn_entry_internal(entry, metadata.merged({
+			"spawn_reason": &"card_play",
+			"slot_index": slot_index,
+			"archetype_id": archetype_id,
+			"entity_template_id": StringName(card_def.get("entity_template_id")),
+		}), null, spawn_position)
+	var entity_template_id := StringName(card_def.get("entity_template_id"))
+	return spawn_card_entity(entity_template_id, lane_id, slot_index, metadata)
+
+
 func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName()):
 	return _spawn_entry_internal(spawn_entry, {
 		"spawn_reason": &"wave_spawn",
@@ -172,7 +199,7 @@ func bind_runtime_triggers(entity: Node, trigger_instances: Array) -> void:
 	trigger_component.bind_triggers(trigger_instances)
 
 
-func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: Node = null):
+func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: Node = null, position_override: Variant = null):
 	if spawn_entry == null:
 		return null
 	var active_scenario = _battle.resolve_scenario()
@@ -184,7 +211,7 @@ func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: 
 
 	var spawn_resolution: Dictionary = _entity_factory.instantiate_spawn_entry(
 		spawn_entry,
-		_build_spawn_entry_position(spawn_entry)
+		Vector2(position_override) if position_override is Vector2 else _build_spawn_entry_position(spawn_entry)
 	)
 	if spawn_resolution.is_empty():
 		return null

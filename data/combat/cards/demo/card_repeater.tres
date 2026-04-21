@@ -6,6 +6,7 @@
 script = ExtResource("1_card_def")
 card_id = &"card_repeater"
 display_name = "Repeater"
+archetype_id = &"archetype_repeater_skeleton"
 entity_template_id = &"plant_repeater_burst"
 sun_cost = 200
 cooldown_seconds = 5.0
