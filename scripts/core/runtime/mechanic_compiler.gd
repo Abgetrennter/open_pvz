@@ -334,7 +334,6 @@ static func _build_controller_spec_inline(archetype, mechanic) -> Dictionary:
 		_:
 			return {}
 
-
 static func _build_state_spec_inline(archetype, mechanic) -> Dictionary:
 	match mechanic.type_id:
 		&"core.arming":
@@ -388,21 +387,30 @@ static func _build_state_spec_inline(archetype, mechanic) -> Dictionary:
 			return {}
 
 
-static var _compile_controller_bite: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
+static var _compile_controller_bite: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
+	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	_merge_controller_overrides(base_params, merged_params, [&"attack_damage", &"attack_interval", &"attack_range", &"move_speed", &"scan_range", &"detection_id"])
 	return {
 		"controller_id": &"core.bite",
 		"mechanic_id": mechanic.mechanic_id,
 		"source_archetype_id": archetype.archetype_id,
-		"params": Dictionary(mechanic.params).duplicate(true),
+		"params": base_params,
 	}
 
-static var _compile_controller_sweep: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
+static var _compile_controller_sweep: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
+	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"detection_radius"])
 	return {
 		"controller_id": &"core.sweep",
 		"mechanic_id": mechanic.mechanic_id,
 		"source_archetype_id": archetype.archetype_id,
-		"params": Dictionary(mechanic.params).duplicate(true),
+		"params": base_params,
 	}
+
+static func _merge_controller_overrides(base_params: Dictionary, merged_params: Dictionary, keys: Array) -> void:
+	for key in keys:
+		if merged_params.has(key):
+			base_params[key] = merged_params[key]
 
 static var _compile_state_arming: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
 	return {

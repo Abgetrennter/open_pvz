@@ -136,7 +136,7 @@ func _on_state_event(event_data, event_name: StringName) -> void:
 		var required_state := StringName(transition.get("required_state_id", StringName()))
 		if required_state != StringName():
 			var event_state_id := StringName(event_data.core.get("state_id", StringName())) if event_data is Dictionary and event_data.get("core") is Dictionary else StringName()
-			if event_state_id != required_state_id:
+			if event_state_id != required_state:
 				continue
 		var from_state := StringName(transition.get("from_state", current_state))
 		if current_state != from_state:

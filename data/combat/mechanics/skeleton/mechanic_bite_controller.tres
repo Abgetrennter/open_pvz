@@ -14,5 +14,6 @@ params = {
 "attack_damage": 10,
 "attack_interval": 0.3,
 "attack_range": 56.0,
-"move_speed": 0.0
+"move_speed": 0.0,
+"detection_id": "lane_backward"
 }
