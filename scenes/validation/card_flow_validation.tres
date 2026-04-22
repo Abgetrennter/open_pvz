@@ -9,6 +9,7 @@
 script = ExtResource("2_card_def")
 card_id = &"basic_shooter_card"
 display_name = "Basic Shooter Card"
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 sun_cost = 25
 cooldown_seconds = 1.0
@@ -18,6 +19,7 @@ placement_tags = PackedStringArray("ground")
 script = ExtResource("2_card_def")
 card_id = &"expensive_wall_card"
 display_name = "Expensive Wall Card"
+archetype_id = &"archetype_wall_barrier"
 entity_template_id = &"plant_wall_barrier"
 sun_cost = 100
 cooldown_seconds = 0.0
@@ -150,3 +152,4 @@ card_defs = [SubResource("CardDef_basic_shooter"), SubResource("CardDef_expensiv
 card_play_requests = [SubResource("BattleCardPlayRequest_success"), SubResource("BattleCardPlayRequest_cooldown_fail"), SubResource("BattleCardPlayRequest_resource_fail")]
 validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_card_selected"), SubResource("BattleValidationRule_card_requested"), SubResource("BattleValidationRule_spend_success"), SubResource("BattleValidationRule_placement_accept"), SubResource("BattleValidationRule_entity_spawned"), SubResource("BattleValidationRule_cooldown_started"), SubResource("BattleValidationRule_cooldown_rejected"), SubResource("BattleValidationRule_resource_failed"), SubResource("BattleValidationRule_resource_rejected")]
 spawns = []
+

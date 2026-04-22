@@ -86,30 +86,35 @@ auto_collect_delay = 12.0
 
 [sub_resource type="Resource" id="FieldObj_mower_0"]
 script = ExtResource("11_field_obj")
+archetype_id = &"archetype_lawn_mower"
 object_template_id = &"field_object_lawn_mower"
 lane_id = 0
 x_position = 80.0
 
 [sub_resource type="Resource" id="FieldObj_mower_1"]
 script = ExtResource("11_field_obj")
+archetype_id = &"archetype_lawn_mower"
 object_template_id = &"field_object_lawn_mower"
 lane_id = 1
 x_position = 80.0
 
 [sub_resource type="Resource" id="FieldObj_mower_2"]
 script = ExtResource("11_field_obj")
+archetype_id = &"archetype_lawn_mower"
 object_template_id = &"field_object_lawn_mower"
 lane_id = 2
 x_position = 80.0
 
 [sub_resource type="Resource" id="FieldObj_mower_3"]
 script = ExtResource("11_field_obj")
+archetype_id = &"archetype_lawn_mower"
 object_template_id = &"field_object_lawn_mower"
 lane_id = 3
 x_position = 80.0
 
 [sub_resource type="Resource" id="FieldObj_mower_4"]
 script = ExtResource("11_field_obj")
+archetype_id = &"archetype_lawn_mower"
 object_template_id = &"field_object_lawn_mower"
 lane_id = 4
 x_position = 80.0
@@ -133,3 +138,4 @@ wave_defs = [ExtResource("7_wave_1"), ExtResource("8_wave_2"), ExtResource("9_wa
 field_object_configs = [SubResource("FieldObj_mower_0"), SubResource("FieldObj_mower_1"), SubResource("FieldObj_mower_2"), SubResource("FieldObj_mower_3"), SubResource("FieldObj_mower_4")]
 defeat_line_x = 60.0
 validation_rules = []
+

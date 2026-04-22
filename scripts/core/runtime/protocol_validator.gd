@@ -815,13 +815,22 @@ static func _validate_card_def(card_def: Resource, scenario_id: StringName) -> A
 		return errors
 	if StringName(card_def.get("card_id")) == StringName():
 		errors.append("BattleScenario %s card def must define card_id." % String(scenario_id))
-	if StringName(card_def.get("entity_template_id")) == StringName():
-		errors.append("BattleScenario %s card def %s must define entity_template_id." % [String(scenario_id), String(card_def.get("card_id"))])
-	elif not SceneRegistry.has_entity_template(StringName(card_def.get("entity_template_id"))):
+	var archetype_id := StringName(card_def.get("archetype_id"))
+	var entity_template_id := StringName(card_def.get("entity_template_id"))
+	if archetype_id == StringName() and entity_template_id == StringName():
+		errors.append("BattleScenario %s card def %s must define archetype_id or entity_template_id." % [String(scenario_id), String(card_def.get("card_id"))])
+	elif archetype_id != StringName():
+		if not SceneRegistry.has_archetype(archetype_id):
+			errors.append("BattleScenario %s card def %s references unknown archetype_id %s." % [
+				String(scenario_id),
+				String(card_def.get("card_id")),
+				String(archetype_id),
+			])
+	elif not SceneRegistry.has_entity_template(entity_template_id):
 		errors.append("BattleScenario %s card def %s references unknown entity_template_id %s." % [
 			String(scenario_id),
 			String(card_def.get("card_id")),
-			String(card_def.get("entity_template_id")),
+			String(entity_template_id),
 		])
 	if int(card_def.get("sun_cost")) < 0:
 		errors.append("BattleScenario %s card def %s sun_cost must be >= 0." % [String(scenario_id), String(card_def.get("card_id"))])
@@ -940,9 +949,20 @@ static func _validate_field_object_config(field_object_config: Resource, scenari
 	if field_object_config.get_script() != FieldObjectConfigRef:
 		errors.append("BattleScenario %s field_object_configs must use field_object_config.gd." % String(scenario_id))
 		return errors
+	var archetype_id := StringName(field_object_config.get("archetype_id"))
 	var template_id := StringName(field_object_config.get("object_template_id"))
-	if template_id == StringName():
-		errors.append("BattleScenario %s field object config must define object_template_id." % String(scenario_id))
+	if archetype_id == StringName() and template_id == StringName():
+		errors.append("BattleScenario %s field object config must define archetype_id or object_template_id." % String(scenario_id))
+	elif archetype_id != StringName():
+		if not SceneRegistry.has_archetype(archetype_id):
+			errors.append("BattleScenario %s field object config references unknown archetype_id %s." % [String(scenario_id), String(archetype_id)])
+		else:
+			var archetype = SceneRegistry.get_archetype(archetype_id)
+			if archetype != null:
+				for error in validate_combat_archetype(archetype):
+					errors.append("BattleScenario %s field object config archetype: %s" % [String(scenario_id), error])
+				if StringName(archetype.get("entity_kind")) != &"field_object":
+					errors.append("BattleScenario %s field object config archetype %s must have entity_kind field_object." % [String(scenario_id), String(archetype_id)])
 	elif not SceneRegistry.has_entity_template(template_id):
 		errors.append("BattleScenario %s field object config references unknown object_template_id %s." % [String(scenario_id), String(template_id)])
 	else:

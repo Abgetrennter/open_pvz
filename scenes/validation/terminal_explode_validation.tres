@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="Spawn_bomber_plant"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_melon_lobber"
 entity_template_id = &"plant_melon_lobber"
 lane_id = 0
 x_position = 160.0
@@ -27,6 +28,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_primary_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 520.0
@@ -36,6 +38,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_secondary_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 590.0
@@ -85,3 +88,4 @@ goals = PackedStringArray("Verify terminal hit strategies still emit projectile.
 validation_time_limit = 1.8
 validation_rules = [SubResource("Rule_spawn"), SubResource("Rule_terminal_hit"), SubResource("Rule_explode_damage")]
 spawns = [SubResource("Spawn_bomber_plant"), SubResource("Spawn_primary_target"), SubResource("Spawn_secondary_target")]
+

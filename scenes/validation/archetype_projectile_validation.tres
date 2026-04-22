@@ -32,6 +32,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_target_lane0"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 320.0
@@ -41,6 +42,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_target_lane1"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 360.0
@@ -108,3 +110,4 @@ validation_time_limit = 2.4
 lane_count = 2
 validation_rules = [SubResource("Rule_pea_projectile_spawn"), SubResource("Rule_pea_projectile_hit"), SubResource("Rule_cabbage_projectile_spawn"), SubResource("Rule_cabbage_projectile_hit")]
 spawns = [SubResource("Spawn_archetype_peashooter"), SubResource("Spawn_archetype_cabbage"), SubResource("Spawn_target_lane0"), SubResource("Spawn_target_lane1")]
+

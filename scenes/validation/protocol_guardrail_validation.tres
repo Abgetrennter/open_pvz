@@ -7,6 +7,7 @@
 
 [sub_resource type="Resource" id="Spawn_invalid_on_hit"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
@@ -19,6 +20,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_invalid_profile"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 160.0
@@ -31,6 +33,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_invalid_effect_param"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 240.0
@@ -43,6 +46,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_invalid_trigger_condition"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 240.0
@@ -54,6 +58,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_unknown_on_hit_effect"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 320.0
@@ -66,6 +71,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_invalid_on_hit_params_shape"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 320.0
@@ -79,6 +85,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_invalid_effect_overrides_shape"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 400.0
@@ -91,6 +98,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_invalid_target_mode"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 400.0
@@ -139,3 +147,4 @@ goals = PackedStringArray("Verify spawn-entry protocol validation emits protocol
 validation_time_limit = 1.0
 validation_rules = [SubResource("Rule_protocol_issues"), SubResource("Rule_no_projectiles"), SubResource("Rule_no_damage")]
 spawns = [SubResource("Spawn_invalid_on_hit"), SubResource("Spawn_invalid_profile"), SubResource("Spawn_invalid_effect_param"), SubResource("Spawn_invalid_trigger_condition"), SubResource("Spawn_unknown_on_hit_effect"), SubResource("Spawn_invalid_on_hit_params_shape"), SubResource("Spawn_invalid_effect_overrides_shape"), SubResource("Spawn_invalid_target_mode")]
+

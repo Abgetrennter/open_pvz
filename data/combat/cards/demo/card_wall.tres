@@ -6,8 +6,11 @@
 script = ExtResource("1_card_def")
 card_id = &"card_wall"
 display_name = "Wall"
-archetype_id = &"archetype_wall_barrier_skeleton"
+archetype_id = &"archetype_wall_barrier"
 entity_template_id = &"plant_wall_barrier"
 sun_cost = 50
 cooldown_seconds = 10.0
 placement_tags = PackedStringArray("supports_primary")
+
+
+

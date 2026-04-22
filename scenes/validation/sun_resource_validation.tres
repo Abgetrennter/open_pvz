@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_sunflower_proxy"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_sunflower"
 entity_template_id = &"plant_sunflower"
 lane_id = 0
 x_position = 160.0
@@ -114,3 +115,4 @@ sun_drop_entries = [SubResource("SunDropEntry_sky_drop")]
 resource_spend_requests = [SubResource("BattleResourceSpendRequest_fail"), SubResource("BattleResourceSpendRequest_success")]
 validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_plant_sun_spawn"), SubResource("BattleValidationRule_sky_sun_spawn"), SubResource("BattleValidationRule_sun_collect"), SubResource("BattleValidationRule_collect_resource_change"), SubResource("BattleValidationRule_spend_failed"), SubResource("BattleValidationRule_spend_success")]
 spawns = [SubResource("BattleSpawnEntry_sunflower_proxy")]
+

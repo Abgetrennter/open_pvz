@@ -7,12 +7,14 @@
 
 [sub_resource type="Resource" id="FieldObjectConfig_mower"]
 script = ExtResource("3_field_config")
+archetype_id = &"archetype_lawn_mower"
 object_template_id = &"field_object_lawn_mower"
 lane_id = 0
 x_position = 80.0
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 200.0
@@ -63,3 +65,5 @@ defeat_line_x = 80.0
 spawns = [SubResource("BattleSpawnEntry_zombie")]
 field_object_configs = [SubResource("FieldObjectConfig_mower")]
 validation_rules = [SubResource("BattleValidationRule_mower_spawned"), SubResource("BattleValidationRule_mower_activated"), SubResource("BattleValidationRule_zombie_killed"), SubResource("BattleValidationRule_mower_expired"), SubResource("BattleValidationRule_no_defeat")]
+
+

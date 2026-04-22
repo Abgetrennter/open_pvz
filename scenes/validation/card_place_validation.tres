@@ -7,6 +7,7 @@
 script = ExtResource("2_card_def")
 card_id = &"card_shooter"
 display_name = "Shooter"
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 sun_cost = 0
 cooldown_seconds = 1.0
@@ -29,3 +30,4 @@ card_defs = [SubResource("CardDef_shooter")]
 wave_defs = []
 defeat_line_x = 80.0
 validation_rules = []
+

@@ -6,12 +6,14 @@
 
 [sub_resource type="Resource" id="Spawn_delayed_caster"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_extension_delayed_caster"
 entity_template_id = &"plant_extension_delayed_caster"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 420.0
@@ -51,3 +53,4 @@ goals = PackedStringArray("Verify delayed_trigger emits a dedicated delayed even
 validation_time_limit = 2.0
 validation_rules = [SubResource("Rule_delayed_event"), SubResource("Rule_delayed_damage")]
 spawns = [SubResource("Spawn_delayed_caster"), SubResource("Spawn_target")]
+

@@ -6,12 +6,14 @@
 
 [sub_resource type="Resource" id="Spawn_summoner"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_extension_summoner"
 entity_template_id = &"plant_extension_summoner"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_tank_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
 entity_template_id = &"zombie_bucket_tank"
 lane_id = 0
 x_position = 650.0
@@ -23,7 +25,7 @@ description = "extension spawn_entity should periodically summon shardlings thro
 event_name = &"entity.spawned"
 min_count = 2
 required_core_values = {
-"entity_template_id": &"plant_extension_shardling",
+"archetype_id": &"archetype_extension_shardling",
 "source_template_id": &"plant_extension_summoner",
 "spawn_reason": &"extension_summon"
 }
@@ -61,3 +63,5 @@ goals = PackedStringArray("Verify the extension spawn_entity effect periodically
 validation_time_limit = 3.6
 validation_rules = [SubResource("Rule_summoned_entities"), SubResource("Rule_summoned_projectiles"), SubResource("Rule_summoned_damage")]
 spawns = [SubResource("Spawn_summoner"), SubResource("Spawn_tank_target")]
+
+

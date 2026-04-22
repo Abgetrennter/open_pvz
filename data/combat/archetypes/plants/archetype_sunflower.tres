@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/entity_templates/plants/plant_sunflower.tres" id="2_backend"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_sunflower"
+ display_name = "Sunflower"
+tags = PackedStringArray("archetype", "plant", "migrated", "template", "producer", "sun")
+compiler_hints = {
+"migrated_wrapper": true
+}
+backend_entity_template = ExtResource("2_backend")
+backend_entity_template_id = &"plant_sunflower"

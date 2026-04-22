@@ -14,7 +14,8 @@ condition_values = {
 }
 effect_id = &"spawn_entity"
 effect_params = {
-"entity_template_id": &"plant_extension_shardling",
+"archetype_id": &"archetype_extension_shardling",
 "spawn_reason": &"extension_summon",
 "x_offset": 90.0
 }
+

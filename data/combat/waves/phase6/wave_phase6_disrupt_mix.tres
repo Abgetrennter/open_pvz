@@ -6,6 +6,7 @@
 
 [sub_resource type="Resource" id="Spawn_1"]
 script = ExtResource("3_spawn")
+archetype_id = &"archetype_bone_thrower"
 entity_template_id = &"zombie_bone_thrower"
 lane_id = 0
 x_position = 920.0
@@ -13,6 +14,7 @@ spawn_overrides = {}
 
 [sub_resource type="Resource" id="Spawn_2"]
 script = ExtResource("3_spawn")
+archetype_id = &"archetype_tar_spitter"
 entity_template_id = &"zombie_tar_spitter"
 lane_id = 1
 x_position = 930.0
@@ -20,6 +22,7 @@ spawn_overrides = {}
 
 [sub_resource type="Resource" id="Spawn_3"]
 script = ExtResource("3_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 2
 x_position = 910.0
@@ -45,3 +48,4 @@ script = ExtResource("1_wave_def")
 wave_id = &"wave_phase6_disrupt_mix"
 start_time = 28.0
 spawn_entries = [SubResource("WaveSpawn_1"), SubResource("WaveSpawn_2"), SubResource("WaveSpawn_3")]
+

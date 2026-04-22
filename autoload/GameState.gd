@@ -18,7 +18,7 @@ func begin_battle(battle: Node) -> void:
 	current_battle = battle
 	current_time = 0.0
 	_next_entity_id = 1
-	battle_seed = Time.get_ticks_usec() as int
+	battle_seed = _derive_default_battle_seed(battle)
 
 
 func end_battle(battle: Node) -> void:
@@ -38,6 +38,16 @@ func advance_time(delta: float) -> void:
 
 func set_battle_seed(seed: int) -> void:
 	battle_seed = seed
+
+
+func _derive_default_battle_seed(battle: Node) -> int:
+	if battle != null and battle.has_method("resolve_scenario"):
+		var scenario = battle.call("resolve_scenario")
+		if scenario != null and scenario.get("scenario_id") != null:
+			return hash(String(scenario.get("scenario_id")))
+	if battle != null:
+		return hash(String(battle.name))
+	return 0
 
 
 static func derive_entity_seed(battle_seed_val: int, entity_id: int) -> int:

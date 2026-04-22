@@ -6,8 +6,11 @@
 script = ExtResource("1_card_def")
 card_id = &"card_air_perch"
 display_name = "Air Perch"
-archetype_id = &"archetype_air_perch_skeleton"
+archetype_id = &"archetype_air_perch"
 entity_template_id = &"plant_air_perch"
 sun_cost = 75
 cooldown_seconds = 4.0
 placement_tags = PackedStringArray("supports_air")
+
+
+

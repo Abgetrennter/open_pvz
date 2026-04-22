@@ -20,10 +20,6 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.on_death": &"Trigger",
 		&"core.on_spawned": &"Lifecycle",
 		&"core.on_place": &"Lifecycle",
-		&"core.on_armed": &"Lifecycle",
-		&"core.on_state_enter": &"Lifecycle",
-		&"core.on_expire": &"Lifecycle",
-		&"core.on_removed": &"Lifecycle",
 		&"core.produce_sun": &"Payload",
 		&"core.damage": &"Payload",
 		&"core.spawn_projectile": &"Payload",
@@ -194,12 +190,36 @@ static func _build_binding_from_mechanics(archetype, trigger_mechanic, payload_m
 		String(payload_mechanic.mechanic_id),
 	])
 	binding.behavior_key = StringName(trigger_mapping.get("behavior_key", &"attack"))
-	binding.trigger_id = StringName(trigger_mapping.get("trigger_id", StringName()))
+	var trigger_id := StringName(trigger_mapping.get("trigger_id", StringName()))
+	binding.trigger_id = trigger_id
 	binding.event_name = StringName(trigger_mapping.get("event_name", StringName()))
-	binding.condition_values = Dictionary(trigger_mechanic.params).duplicate(true)
+	binding.condition_values = _merge_trigger_condition_values(trigger_id, Dictionary(trigger_mechanic.params).duplicate(true), archetype.default_params)
 	binding.effect_id = StringName(payload_mapping.get("effect_id", StringName()))
 	binding.effect_params = Dictionary(payload_mechanic.params).duplicate(true)
 	return binding
+
+
+static func _merge_trigger_condition_values(trigger_id: StringName, base_conditions: Dictionary, merged_params: Dictionary) -> Dictionary:
+	var merged: Dictionary = base_conditions.duplicate(true)
+	if merged_params.is_empty():
+		return merged
+	var trigger_def = TriggerRegistry.get_def(trigger_id)
+	if trigger_def == null:
+		return merged
+	var condition_param_names: Dictionary = {}
+	for param_def in trigger_def.condition_params:
+		if not (param_def is Dictionary):
+			continue
+		var param_name := String(param_def.get("name", "")).strip_edges()
+		if param_name.is_empty():
+			continue
+		condition_param_names[param_name] = true
+	for key: Variant in merged_params.keys():
+		var key_str := String(key)
+		if not condition_param_names.has(key_str):
+			continue
+		merged[key_str] = merged_params[key]
+	return merged
 
 
 static func _map_trigger_type(type_id: StringName) -> Dictionary:
@@ -233,30 +253,6 @@ static func _map_trigger_type(type_id: StringName) -> Dictionary:
 				"behavior_key": &"on_place",
 				"trigger_id": &"on_place",
 				"event_name": &"placement.accepted",
-			}
-		&"core.on_armed":
-			return {
-				"behavior_key": &"on_armed",
-				"trigger_id": &"on_armed",
-				"event_name": &"entity.state_entered",
-			}
-		&"core.on_state_enter":
-			return {
-				"behavior_key": &"on_state_enter",
-				"trigger_id": &"on_state_enter",
-				"event_name": &"entity.state_entered",
-			}
-		&"core.on_expire":
-			return {
-				"behavior_key": &"on_expire",
-				"trigger_id": &"on_expire",
-				"event_name": &"entity.expired",
-			}
-		&"core.on_removed":
-			return {
-				"behavior_key": &"on_removed",
-				"trigger_id": &"on_removed",
-				"event_name": &"entity.removed",
 			}
 		_:
 			return {}

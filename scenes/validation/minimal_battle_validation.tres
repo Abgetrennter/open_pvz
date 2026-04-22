@@ -10,6 +10,7 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_linear"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
@@ -21,6 +22,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_track"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_track_bomber"
 entity_template_id = &"plant_track_bomber"
 lane_id = 0
 x_position = 250.0
@@ -34,6 +36,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_parabola"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_cabbage_lobber"
 entity_template_id = &"plant_cabbage_lobber"
 lane_id = 1
 x_position = 160.0
@@ -47,6 +50,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_a"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_reactive_bomber"
 entity_template_id = &"zombie_reactive_bomber"
 lane_id = 0
 x_position = 330.0
@@ -56,12 +60,14 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_b"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 650.0
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_c"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 520.0
@@ -131,3 +137,4 @@ goals = PackedStringArray("Observe a full event chain from game.tick to projecti
 validation_time_limit = 8.0
 validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_linear_spawn"), SubResource("BattleValidationRule_track_spawn"), SubResource("BattleValidationRule_parabola_hit"), SubResource("BattleValidationRule_projectile_damage"), SubResource("BattleValidationRule_death_chain"), SubResource("BattleValidationRule_explode_damage")]
 spawns = [SubResource("BattleSpawnEntry_linear"), SubResource("BattleSpawnEntry_track"), SubResource("BattleSpawnEntry_parabola"), SubResource("BattleSpawnEntry_zombie_a"), SubResource("BattleSpawnEntry_zombie_b"), SubResource("BattleSpawnEntry_zombie_c")]
+

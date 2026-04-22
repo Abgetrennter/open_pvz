@@ -16,8 +16,8 @@ Open one of these in Godot to inspect a specific sample set without changing the
 project's default startup scene:
 
 - `minimal_validation_showcase.tscn`
-- `template_instantiation_showcase.tscn`
-- `template_factory_showcase.tscn`
+- `template_instantiation_showcase.tscn` (legacy migration view)
+- `template_factory_showcase.tscn` (legacy migration view)
 - `archetype_sunflower_showcase.tscn`
 - `archetype_lifecycle_showcase.tscn`
 - `archetype_on_place_showcase.tscn`

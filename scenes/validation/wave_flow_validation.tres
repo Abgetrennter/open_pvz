@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_wave_plant"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
@@ -19,6 +20,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_wave_zombie"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 520.0
@@ -93,3 +95,4 @@ validation_time_limit = 5.0
 spawns = [SubResource("BattleSpawnEntry_wave_plant")]
 wave_defs = [SubResource("WaveDef_basic")]
 validation_rules = [SubResource("BattleValidationRule_phase_running"), SubResource("BattleValidationRule_wave_started"), SubResource("BattleValidationRule_wave_spawned"), SubResource("BattleValidationRule_wave_completed"), SubResource("BattleValidationRule_battle_victory")]
+

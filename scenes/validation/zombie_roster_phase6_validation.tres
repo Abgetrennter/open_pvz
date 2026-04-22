@@ -6,18 +6,21 @@
 
 [sub_resource type="Resource" id="Spawn_wall_barrier"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_wall_barrier"
 entity_template_id = &"plant_wall_barrier"
 lane_id = 0
 x_position = 200.0
 
 [sub_resource type="Resource" id="Spawn_bone_thrower"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_bone_thrower"
 entity_template_id = &"zombie_bone_thrower"
 lane_id = 0
 x_position = 500.0
 
 [sub_resource type="Resource" id="Spawn_tar_spitter"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_tar_spitter"
 entity_template_id = &"zombie_tar_spitter"
 lane_id = 0
 x_position = 620.0
@@ -62,3 +65,4 @@ goals = PackedStringArray("Verify a ranged zombie can attack backward through sh
 validation_time_limit = 6.5
 validation_rules = [SubResource("Rule_bone_projectile"), SubResource("Rule_bone_damage"), SubResource("Rule_tar_status")]
 spawns = [SubResource("Spawn_wall_barrier"), SubResource("Spawn_bone_thrower"), SubResource("Spawn_tar_spitter")]
+

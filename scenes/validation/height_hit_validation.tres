@@ -10,6 +10,7 @@
 
 [sub_resource type="Resource" id="Spawn_low_ground_plant"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
@@ -22,6 +23,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_air_plant"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 250.0
@@ -34,6 +36,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_air_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 620.0
@@ -96,3 +99,4 @@ goals = PackedStringArray("Verify bounded validation rules can express forbidden
 validation_time_limit = 5.5
 validation_rules = [SubResource("Rule_low_spawn"), SubResource("Rule_low_hit_blocked"), SubResource("Rule_air_spawn"), SubResource("Rule_air_hit")]
 spawns = [SubResource("Spawn_low_ground_plant"), SubResource("Spawn_air_plant"), SubResource("Spawn_air_target")]
+

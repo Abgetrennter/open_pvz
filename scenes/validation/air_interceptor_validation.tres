@@ -7,24 +7,28 @@
 
 [sub_resource type="Resource" id="Spawn_air_interceptor_lane0"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_air_interceptor"
 entity_template_id = &"plant_air_interceptor"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_air_target_low"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_air_scout"
 entity_template_id = &"zombie_air_scout"
 lane_id = 0
 x_position = 420.0
 
 [sub_resource type="Resource" id="Spawn_air_interceptor_lane1"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_air_interceptor"
 entity_template_id = &"plant_air_interceptor"
 lane_id = 1
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_air_target_medium"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 420.0
@@ -78,3 +82,4 @@ goals = PackedStringArray("Verify plant_air_interceptor can be resolved through 
 validation_time_limit = 3.0
 validation_rules = [SubResource("Rule_air_spawn"), SubResource("Rule_air_hit_low"), SubResource("Rule_air_hit_medium")]
 spawns = [SubResource("Spawn_air_interceptor_lane0"), SubResource("Spawn_air_target_low"), SubResource("Spawn_air_interceptor_lane1"), SubResource("Spawn_air_target_medium")]
+

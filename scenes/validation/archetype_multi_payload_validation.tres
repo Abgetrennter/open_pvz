@@ -19,6 +19,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_target_dummy"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 280.0
@@ -69,3 +70,4 @@ goals = PackedStringArray("Verify MechanicCompiler compiles multiple payloads pe
 validation_time_limit = 1.6
 validation_rules = [SubResource("Rule_multi_payload_spawned"), SubResource("Rule_multi_payload_damage"), SubResource("Rule_multi_payload_death")]
 spawns = [SubResource("Spawn_multi_payload_plant"), SubResource("Spawn_target_dummy")]
+

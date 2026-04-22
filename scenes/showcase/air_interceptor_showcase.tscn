@@ -10,4 +10,4 @@ allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
 showcase_title = "空中拦截展示"
-showcase_summary = "空中追踪投射物通过模板链发射，并分别命中低空与中空目标。"
+showcase_summary = "空中追踪投射物通过共享 archetype/runtime 链发射，并分别命中低空与中空目标。"

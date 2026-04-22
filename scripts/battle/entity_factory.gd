@@ -90,6 +90,10 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	var params: Dictionary = {}
 	if runtime_spec.params is Dictionary:
 		params = runtime_spec.params.duplicate(true)
+	var resolved_archetype = CombatContentResolverRef.resolve_spawn_entry_archetype(spawn_entry)
+	var merged_spawn_params := CombatContentResolverRef.merge_spawn_params(spawn_entry, entity_template, resolved_archetype)
+	for key: Variant in merged_spawn_params.keys():
+		params[key] = merged_spawn_params[key]
 	var projectile_template: Resource = runtime_spec.projectile_template
 	var projectile_flight_profile: Resource = runtime_spec.projectile_flight_profile
 	var archetype_for_root = null

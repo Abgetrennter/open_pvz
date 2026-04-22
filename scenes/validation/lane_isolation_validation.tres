@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="Spawn_lane0_plant"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_cabbage_lobber"
 entity_template_id = &"plant_cabbage_lobber"
 lane_id = 0
 x_position = 160.0
@@ -21,12 +22,14 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_lane0_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 560.0
 
 [sub_resource type="Resource" id="Spawn_lane1_crossing"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 360.0
@@ -74,3 +77,4 @@ goals = PackedStringArray("Verify lane metadata is present on validation events.
 validation_time_limit = 5.0
 validation_rules = [SubResource("Rule_spawn"), SubResource("Rule_lane0_hit"), SubResource("Rule_lane1_hit_blocked")]
 spawns = [SubResource("Spawn_lane0_plant"), SubResource("Spawn_lane0_target"), SubResource("Spawn_lane1_crossing")]
+

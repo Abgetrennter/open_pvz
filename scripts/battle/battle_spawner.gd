@@ -53,12 +53,13 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 
 
 func spawn_entity_from_effect(context, params: Dictionary, metadata: Dictionary = {}) -> Node:
-	var entity_template_id := StringName(params.get("entity_template_id", StringName()))
-	if entity_template_id == StringName():
-		_battle.report_protocol_issues(["spawn_entity effect must provide entity_template_id."], &"spawn_entity")
-		return null
-
 	var entry = BattleSpawnEntryRef.new()
+	var archetype_id := StringName(params.get("archetype_id", StringName()))
+	var entity_template_id := StringName(params.get("entity_template_id", StringName()))
+	if archetype_id == StringName() and entity_template_id == StringName():
+		_battle.report_protocol_issues(["spawn_entity effect must provide archetype_id or entity_template_id."], &"spawn_entity")
+		return null
+	entry.archetype_id = archetype_id
 	entry.entity_template_id = entity_template_id
 	entry.lane_id = _resolve_effect_spawn_lane(context, params)
 	entry.x_position = _resolve_effect_spawn_x_position(context, params)
@@ -73,7 +74,7 @@ func spawn_entity_from_effect(context, params: Dictionary, metadata: Dictionary 
 	return _spawn_entry_internal(entry, metadata, context.source_node)
 
 
-func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index: int, metadata: Dictionary = {}) -> Node:
+func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index: int, metadata: Dictionary = {}, emit_spawn_event: bool = false) -> Node:
 	if not SceneRegistry.has_entity_template(entity_template_id):
 		return null
 	var entity_template: Resource = SceneRegistry.get_entity_template(entity_template_id)
@@ -98,12 +99,14 @@ func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index:
 	_battle.finalize_spawned_entity(entity, lane_id, entity_template.hit_height_band, trigger_instances, null, metadata.merged({
 		"spawn_reason": &"card_play",
 		"slot_index": slot_index,
+		"card_id": StringName(metadata.get("card_id", StringName())),
+		"request_id": StringName(metadata.get("request_id", StringName())),
 		"entity_template_id": entity_template_id,
-	}), false)
+	}), emit_spawn_event)
 	return entity
 
 
-func spawn_card_actor(card_def: Resource, lane_id: int, slot_index: int, metadata: Dictionary = {}) -> Node:
+func spawn_card_actor(card_def: Resource, lane_id: int, slot_index: int, metadata: Dictionary = {}, emit_spawn_event: bool = false) -> Node:
 	if card_def == null:
 		return null
 	var archetype_id := StringName(card_def.get("archetype_id"))
@@ -124,9 +127,9 @@ func spawn_card_actor(card_def: Resource, lane_id: int, slot_index: int, metadat
 			"slot_index": slot_index,
 			"archetype_id": archetype_id,
 			"entity_template_id": StringName(card_def.get("entity_template_id")),
-		}), null, spawn_position)
+		}), null, spawn_position, emit_spawn_event)
 	var entity_template_id := StringName(card_def.get("entity_template_id"))
-	return spawn_card_entity(entity_template_id, lane_id, slot_index, metadata)
+	return spawn_card_entity(entity_template_id, lane_id, slot_index, metadata, emit_spawn_event)
 
 
 func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName()):
@@ -174,6 +177,10 @@ func emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, m
 		spawned_event.core["entity_id"] = int(entity.call("get_entity_id"))
 	if entity.get("template_id") != null:
 		spawned_event.core["entity_template_id"] = StringName(entity.get("template_id"))
+	if entity.get("archetype_id") != null:
+		var spawned_archetype_id := StringName(entity.get("archetype_id"))
+		if spawned_archetype_id != StringName():
+			spawned_event.core["archetype_id"] = spawned_archetype_id
 	for key: Variant in metadata.keys():
 		spawned_event.core[key] = metadata[key]
 	EventBus.push_event(&"entity.spawned", spawned_event)
@@ -199,7 +206,7 @@ func bind_runtime_triggers(entity: Node, trigger_instances: Array) -> void:
 	trigger_component.bind_triggers(trigger_instances)
 
 
-func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: Node = null, position_override: Variant = null):
+func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: Node = null, position_override: Variant = null, emit_spawn_event: bool = true):
 	if spawn_entry == null:
 		return null
 	var active_scenario = _battle.resolve_scenario()
@@ -226,7 +233,7 @@ func _spawn_entry_internal(spawn_entry, metadata: Dictionary = {}, source_node: 
 		return null
 	if entity == null or not entity.has_method("assign_lane"):
 		return null
-	_battle.finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata)
+	_battle.finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata, emit_spawn_event)
 	return entity
 
 

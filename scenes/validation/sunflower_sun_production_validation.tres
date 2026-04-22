@@ -7,6 +7,7 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_sunflower_lane0"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_sunflower"
 entity_template_id = &"plant_sunflower"
 lane_id = 0
 x_position = 160.0
@@ -18,6 +19,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_sunflower_lane1"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_sunflower"
 entity_template_id = &"plant_sunflower"
 lane_id = 1
 x_position = 280.0
@@ -29,6 +31,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_sunflower_lane2"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_sunflower"
 entity_template_id = &"plant_sunflower"
 lane_id = 2
 x_position = 400.0
@@ -112,3 +115,4 @@ sun_drop_entries = [SubResource("SunDropEntry_sky_drop")]
 lane_count = 3
 validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_plant_sun_spawn"), SubResource("BattleValidationRule_sky_sun_spawn"), SubResource("BattleValidationRule_sun_collect"), SubResource("BattleValidationRule_collect_resource_change"), SubResource("BattleValidationRule_resource_increase")]
 spawns = [SubResource("BattleSpawnEntry_sunflower_lane0"), SubResource("BattleSpawnEntry_sunflower_lane1"), SubResource("BattleSpawnEntry_sunflower_lane2")]
+

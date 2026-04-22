@@ -6,24 +6,28 @@
 
 [sub_resource type="Resource" id="Spawn_chain_bouncer"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_extension_chain_bouncer"
 entity_template_id = &"plant_extension_chain_bouncer"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_target_a"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 430.0
 
 [sub_resource type="Resource" id="Spawn_target_b"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 520.0
 
 [sub_resource type="Resource" id="Spawn_target_c"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 610.0
@@ -73,3 +77,4 @@ goals = PackedStringArray("Verify the chain_bounce effect damages the first targ
 validation_time_limit = 2.4
 validation_rules = [SubResource("Rule_bounce_damage_a"), SubResource("Rule_bounce_damage_b"), SubResource("Rule_bounce_damage_c")]
 spawns = [SubResource("Spawn_chain_bouncer"), SubResource("Spawn_target_a"), SubResource("Spawn_target_b"), SubResource("Spawn_target_c")]
+

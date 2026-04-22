@@ -6,18 +6,21 @@
 
 [sub_resource type="Resource" id="Spawn_repeater_left"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_repeater_burst"
 entity_template_id = &"plant_repeater_burst"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_repeater_mid"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_repeater_burst"
 entity_template_id = &"plant_repeater_burst"
 lane_id = 0
 x_position = 240.0
 
 [sub_resource type="Resource" id="Spawn_reactive_bomber"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_reactive_bomber"
 entity_template_id = &"zombie_reactive_bomber"
 lane_id = 0
 x_position = 420.0
@@ -66,3 +69,4 @@ goals = PackedStringArray("Verify repeated burst-fire damage still flows through
 validation_time_limit = 2.8
 validation_rules = [SubResource("Rule_burst_hits_bomber"), SubResource("Rule_bomber_retaliates"), SubResource("Rule_bomber_dies")]
 spawns = [SubResource("Spawn_repeater_left"), SubResource("Spawn_repeater_mid"), SubResource("Spawn_reactive_bomber")]
+

@@ -140,7 +140,7 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 			"card_id": card_id,
 			"request_id": StringName(placement_request.get("request_id")),
 			"archetype_id": StringName(card_def.get("archetype_id")),
-		})
+		}, false)
 	if spawned_entity == null:
 		_emit_card_rejected(card_id, lane_id, slot_index, &"spawn_failed")
 		selected_card_id = StringName()

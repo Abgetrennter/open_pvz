@@ -15,7 +15,7 @@ condition_values = {
 }
 effect_id = &"spawn_entity"
 effect_params = {
-"entity_template_id": &"plant_sporeling",
+"archetype_id": &"archetype_sporeling",
 "spawn_reason": &"summon",
 "x_offset": 42.0
 }

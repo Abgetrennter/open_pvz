@@ -9,5 +9,5 @@ scenario = ExtResource("2_scenario")
 allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
-showcase_title = "模板工厂展示"
-showcase_summary = "攻击、受伤反击和死亡爆炸都由模板资源生成，而不是依赖 BattleManager 的专用分支。"
+showcase_title = "Legacy 模板工厂展示"
+showcase_summary = "攻击、受伤反击和死亡爆炸仍可由旧模板兼容层生成，但正式作者入口已经切到 archetype。"

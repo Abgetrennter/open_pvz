@@ -6,12 +6,14 @@
 
 [sub_resource type="Resource" id="Spawn_aura_keeper"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_extension_aura_keeper"
 entity_template_id = &"plant_extension_aura_keeper"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_near_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 260.0
@@ -21,6 +23,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_far_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
 entity_template_id = &"zombie_brisk_runner"
 lane_id = 0
 x_position = 520.0
@@ -67,3 +70,4 @@ goals = PackedStringArray("Verify aura applies slowed to nearby enemies in the s
 validation_time_limit = 1.8
 validation_rules = [SubResource("Rule_near_status_applied"), SubResource("Rule_far_status_blocked"), SubResource("Rule_near_movement_scaled")]
 spawns = [SubResource("Spawn_aura_keeper"), SubResource("Spawn_near_target"), SubResource("Spawn_far_target")]
+

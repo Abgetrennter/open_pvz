@@ -13,6 +13,7 @@
 
 [sub_resource type="Resource" id="ProtectedSunflower"]
 script = ExtResource("10_spawn")
+archetype_id = &"archetype_sunflower"
 entity_template_id = &"plant_sunflower"
 lane_id = 1
 x_position = 160.0
@@ -32,3 +33,4 @@ defeat_conditions = PackedStringArray("zombie_reached_goal", "protect_template")
 protected_template_id = &"plant_sunflower"
 defeat_line_x = 60.0
 spawns = [SubResource("ProtectedSunflower")]
+

@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_archetype_arming_striker_guard"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_arming_striker_skeleton"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"amount": 20,
+"interval": 0.3,
+"required_state": &"active",
+"scan_range": 900.0
+}
+
+[sub_resource type="Resource" id="Spawn_target_dummy_guard"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 280.0
+spawn_overrides = {
+"max_health": 40
+}
+
+[sub_resource type="Resource" id="Rule_no_damage_before_active"]
+script = ExtResource("3_rule")
+rule_id = &"no_damage_before_active"
+description = "arming archetype should not damage the target before the active state is entered"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_arming_striker_skeleton",
+"target_template_id": &"zombie_lane_dummy"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"archetype_state_guard_validation"
+display_name = "Archetype State Guard Validation"
+description = "Negative validation for required_state gating. The scenario ends before arming_time elapses, so the archetype must not damage its target."
+goals = PackedStringArray("Verify the stateful archetype stays in arming throughout the short scenario window.", "Verify no entity.damaged event is emitted from the archetype before the active state is reached.")
+validation_time_limit = 0.45
+validation_rules = [SubResource("Rule_no_damage_before_active")]
+spawns = [SubResource("Spawn_archetype_arming_striker_guard"), SubResource("Spawn_target_dummy_guard")]
+

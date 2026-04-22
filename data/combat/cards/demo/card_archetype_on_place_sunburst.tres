@@ -11,3 +11,6 @@ entity_template_id = &"plant_sunflower"
 sun_cost = 0
 cooldown_seconds = 0.1
 placement_tags = PackedStringArray("supports_primary")
+
+
+

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/entity_templates/field_objects/field_object_lawn_mower.tres" id="2_backend"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_lawn_mower"
+entity_kind = &"field_object"
+display_name = "Lawn Mower"
+tags = PackedStringArray("archetype", "field_object", "migrated", "mower")
+compiler_hints = {
+"migrated_wrapper": true
+}
+backend_entity_template = ExtResource("2_backend")
+backend_entity_template_id = &"field_object_lawn_mower"

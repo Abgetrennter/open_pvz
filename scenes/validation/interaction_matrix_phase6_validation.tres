@@ -6,36 +6,42 @@
 
 [sub_resource type="Resource" id="Spawn_frost_pea"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_frost_pea"
 entity_template_id = &"plant_frost_pea"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_runner"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
 entity_template_id = &"zombie_brisk_runner"
 lane_id = 0
 x_position = 410.0
 
 [sub_resource type="Resource" id="Spawn_spore_summoner"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_spore_summoner"
 entity_template_id = &"plant_spore_summoner"
 lane_id = 1
 x_position = 180.0
 
 [sub_resource type="Resource" id="Spawn_repeater"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_repeater_burst"
 entity_template_id = &"plant_repeater_burst"
 lane_id = 1
 x_position = 280.0
 
 [sub_resource type="Resource" id="Spawn_bucket_tank"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
 entity_template_id = &"zombie_bucket_tank"
 lane_id = 1
 x_position = 460.0
 
 [sub_resource type="Resource" id="Spawn_tar_spitter"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_tar_spitter"
 entity_template_id = &"zombie_tar_spitter"
 lane_id = 1
 x_position = 620.0
@@ -81,3 +87,4 @@ goals = PackedStringArray("Verify control plants slow fast pressure targets.", "
 validation_time_limit = 7.0
 validation_rules = [SubResource("Rule_runner_slowed"), SubResource("Rule_sporeling_hits_tank"), SubResource("Rule_tar_jams_repeater")]
 spawns = [SubResource("Spawn_frost_pea"), SubResource("Spawn_runner"), SubResource("Spawn_spore_summoner"), SubResource("Spawn_repeater"), SubResource("Spawn_bucket_tank"), SubResource("Spawn_tar_spitter")]
+

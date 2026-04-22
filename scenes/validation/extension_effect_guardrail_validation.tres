@@ -51,7 +51,7 @@ effect_params = {
 }
 on_hit_effect_id = &"spawn_entity"
 on_hit_effect_params = {
-"entity_template_id": &"plant_extension_shardling"
+"archetype_id": &"archetype_extension_shardling"
 }
 projectile_template = ExtResource("7_projectile_template")
 
@@ -168,3 +168,4 @@ goals = PackedStringArray("Verify invalid extension effect definitions emit prot
 validation_time_limit = 0.9
 validation_rules = [SubResource("Rule_effect_def_issues"), SubResource("Rule_effect_strategy_issues"), SubResource("Rule_spawn_guardrail_issues"), SubResource("Rule_no_projectile_spawn"), SubResource("Rule_no_damage_events")]
 spawns = [SubResource("Spawn_invalid_split_bad_param"), SubResource("Spawn_invalid_slot_mismatch"), SubResource("Spawn_invalid_missing_strategy")]
+

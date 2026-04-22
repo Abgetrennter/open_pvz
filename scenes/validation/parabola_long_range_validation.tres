@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_parabola"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_cabbage_lobber"
 entity_template_id = &"plant_cabbage_lobber"
 lane_id = 1
 x_position = 140.0
@@ -22,6 +23,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_far_zombie"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 790.0
@@ -68,3 +70,4 @@ goals = PackedStringArray("Spawn a long-range parabola projectile against a dist
 validation_time_limit = 7.5
 validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_parabola_spawn"), SubResource("BattleValidationRule_parabola_hit"), SubResource("BattleValidationRule_projectile_damage")]
 spawns = [SubResource("BattleSpawnEntry_parabola"), SubResource("BattleSpawnEntry_far_zombie")]
+

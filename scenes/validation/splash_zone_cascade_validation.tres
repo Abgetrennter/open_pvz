@@ -6,6 +6,7 @@
 
 [sub_resource type="Resource" id="Spawn_melon"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_melon_lobber"
 entity_template_id = &"plant_melon_lobber"
 lane_id = 0
 x_position = 160.0
@@ -15,12 +16,14 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_tank"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
 entity_template_id = &"zombie_bucket_tank"
 lane_id = 0
 x_position = 520.0
 
 [sub_resource type="Resource" id="Spawn_walker"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 570.0
@@ -68,3 +71,4 @@ goals = PackedStringArray("Verify the melon lobber fires a parabola projectile t
 validation_time_limit = 3.0
 validation_rules = [SubResource("Rule_melon_fired"), SubResource("Rule_splash_hits_tank"), SubResource("Rule_splash_hits_walker")]
 spawns = [SubResource("Spawn_melon"), SubResource("Spawn_tank"), SubResource("Spawn_walker")]
+

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://extensions/minimal_chaos_pack/data/combat/entity_templates/plants/plant_extension_glass_cannon.tres" id="2_backend"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_extension_glass_cannon"
+ display_name = "Extension Glass Cannon"
+tags = PackedStringArray("archetype", "plant", "migrated", "template", "extension", "glass_cannon")
+compiler_hints = {
+"migrated_wrapper": true
+}
+backend_entity_template = ExtResource("2_backend")
+backend_entity_template_id = &"plant_extension_glass_cannon"

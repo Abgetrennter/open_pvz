@@ -9,5 +9,5 @@ scenario = ExtResource("2_scenario")
 allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
-showcase_title = "模板实例化展示"
-showcase_summary = "模板驱动的植物和僵尸通过统一运行时生成，并把模板身份带进事件链。"
+showcase_title = "Legacy 模板实例化展示"
+showcase_summary = "旧模板兼容层中的植物和僵尸仍可通过统一运行时生成，并把 legacy 模板身份带进事件链。"

@@ -58,7 +58,28 @@ static func resolve_spawn_entry_runtime_spec(spawn_entry: Resource):
 	# TODO(mechanic-first): Replace reflective call() with a typed compiler
 	# bridge after the new compiler graph is fully loaded in stable parse order.
 	var compiler = MechanicCompilerRef.new()
-	return compiler.call("compile_spawn_entry", spawn_entry, archetype)
+	var runtime_spec = compiler.call("compile_spawn_entry", spawn_entry, archetype)
+	if runtime_spec == null:
+		return null
+	var backend_template = resolve_archetype_backend_entity_template(archetype)
+	var resolved_params = merge_spawn_params(spawn_entry, backend_template, archetype)
+	if resolved_params is Dictionary:
+		runtime_spec.params = resolved_params
+	var resolved_projectile_template = resolve_projectile_template(spawn_entry, backend_template, archetype)
+	if resolved_projectile_template != null:
+		runtime_spec.projectile_template = resolved_projectile_template
+	var resolved_projectile_flight_profile = resolve_projectile_flight_profile(
+		spawn_entry,
+		backend_template,
+		resolved_projectile_template,
+		archetype
+	)
+	if resolved_projectile_flight_profile != null:
+		runtime_spec.projectile_flight_profile = resolved_projectile_flight_profile
+	var resolved_hit_height_band = resolve_hit_height_band(spawn_entry, backend_template, archetype)
+	if resolved_hit_height_band != null:
+		runtime_spec.hit_height_band = resolved_hit_height_band
+	return runtime_spec
 
 
 static func resolve_spawn_overrides(spawn_entry: Resource) -> Dictionary:

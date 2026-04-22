@@ -18,7 +18,7 @@ const GROUPS := [
 	},
 	{
 		"group_title": "引擎核心",
-		"group_summary": "事件链、模板装配、工厂触发等引擎骨架的基础展示。",
+		"group_summary": "事件链、archetype 装配与迁移兼容层的基础展示；旧模板路径仅作为 legacy 对照保留。",
 		"color": Color("4db6ac"),
 		"items": [
 			{
@@ -27,13 +27,13 @@ const GROUPS := [
 				"scene": "res://scenes/showcase/minimal_validation_showcase.tscn",
 			},
 			{
-				"title": "模板实例化",
-				"summary": "观察模板驱动实体生成，以及模板 ID 如何进入运行时事件链。",
+				"title": "Legacy 模板实例化",
+				"summary": "观察旧模板兼容层如何继续生成实体，并把 legacy 模板身份带进事件链。",
 				"scene": "res://scenes/showcase/template_instantiation_showcase.tscn",
 			},
 			{
-				"title": "模板工厂",
-				"summary": "观察攻击、受伤反击和死亡爆炸如何由模板资源生成，而不是写死在管理器里。",
+				"title": "Legacy 模板工厂",
+				"summary": "观察旧模板工厂如何作为迁移兼容层继续工作，而主作者入口已经切到 archetype。",
 				"scene": "res://scenes/showcase/template_factory_showcase.tscn",
 			},
 		],

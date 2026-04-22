@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="Spawn_fast_plant"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
@@ -20,6 +21,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_stationary_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 320.0
@@ -70,3 +72,4 @@ goals = PackedStringArray("Verify high-speed linear shots still resolve hits thr
 validation_time_limit = 1.0
 validation_rules = [SubResource("Rule_spawn"), SubResource("Rule_hit"), SubResource("Rule_no_expire")]
 spawns = [SubResource("Spawn_fast_plant"), SubResource("Spawn_stationary_target")]
+

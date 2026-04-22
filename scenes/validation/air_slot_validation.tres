@@ -10,6 +10,7 @@
 script = ExtResource("2_card_def")
 card_id = &"ground_fail_air_card"
 display_name = "Ground Fail Air Card"
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 sun_cost = 25
 cooldown_seconds = 0.0
@@ -19,6 +20,7 @@ placement_tags = PackedStringArray("air_only")
 script = ExtResource("2_card_def")
 card_id = &"air_perch_card"
 display_name = "Air Perch Card"
+archetype_id = &"archetype_air_perch"
 entity_template_id = &"plant_air_perch"
 sun_cost = 25
 cooldown_seconds = 0.0
@@ -99,3 +101,4 @@ card_defs = [SubResource("CardDef_ground_fail_air"), SubResource("CardDef_air_pe
 card_play_requests = [SubResource("BattleCardPlayRequest_ground_fail_air"), SubResource("BattleCardPlayRequest_air_perch")]
 validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_ground_fail"), SubResource("BattleValidationRule_air_accept"), SubResource("BattleValidationRule_air_spawn")]
 spawns = []
+

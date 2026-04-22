@@ -7,12 +7,14 @@
 
 [sub_resource type="Resource" id="BattleSpawnEntry_wall"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_wall_barrier"
 entity_template_id = &"plant_wall_barrier"
 lane_id = 0
 x_position = 220.0
 
 [sub_resource type="Resource" id="BattleSpawnEntry_stunned_zombie"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 260.0
@@ -23,6 +25,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="BattleSpawnEntry_slowed_zombie"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
 entity_template_id = &"zombie_brisk_runner"
 lane_id = 1
 x_position = 520.0
@@ -100,3 +103,4 @@ validation_time_limit = 2.0
 spawns = [SubResource("BattleSpawnEntry_wall"), SubResource("BattleSpawnEntry_stunned_zombie"), SubResource("BattleSpawnEntry_slowed_zombie")]
 status_application_requests = [SubResource("StatusApplication_stunned"), SubResource("StatusApplication_slowed")]
 validation_rules = [SubResource("BattleValidationRule_status_applied"), SubResource("BattleValidationRule_stunned_attack_blocked"), SubResource("BattleValidationRule_slowed_movement_scaled"), SubResource("BattleValidationRule_no_bite_damage"), SubResource("BattleValidationRule_status_removed")]
+

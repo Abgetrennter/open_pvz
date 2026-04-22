@@ -18,8 +18,7 @@ rule_id = &"on_place_accept"
 description = "archetype-backed card should be accepted through the placement layer and carry archetype identity"
 event_name = &"placement.accepted"
 required_core_values = {
-"archetype_id": &"archetype_on_place_sunburst_skeleton",
-"entity_template_id": &"plant_sunflower"
+"archetype_id": &"archetype_on_place_sunburst_skeleton"
 }
 
 [sub_resource type="Resource" id="Rule_on_place_sun_spawn"]
@@ -56,3 +55,4 @@ sun_auto_collect_delay = 0.2
 card_defs = [ExtResource("4_card")]
 card_play_requests = [SubResource("CardPlayRequest_place_archetype")]
 validation_rules = [SubResource("Rule_on_place_accept"), SubResource("Rule_on_place_sun_spawn"), SubResource("Rule_on_place_collect")]
+

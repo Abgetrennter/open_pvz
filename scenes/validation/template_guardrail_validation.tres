@@ -125,12 +125,14 @@ x_position = 320.0
 
 [sub_resource type="Resource" id="Spawn_unresolved_template_id"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_missing_template_id"
 entity_template_id = &"missing_template_id"
 lane_id = 1
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_invalid_override_shape"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 240.0
@@ -138,6 +140,7 @@ projectile_template_override = ExtResource("5_ground_height")
 
 [sub_resource type="Resource" id="Spawn_mismatched_override"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 320.0
@@ -181,3 +184,4 @@ goals = PackedStringArray("Verify entity templates without template_id are rejec
 validation_time_limit = 1.0
 validation_rules = [SubResource("Rule_template_protocol_issues"), SubResource("Rule_no_projectiles"), SubResource("Rule_no_damage")]
 spawns = [SubResource("Spawn_missing_template_id"), SubResource("Spawn_invalid_binding"), SubResource("Spawn_invalid_binding_contract"), SubResource("Spawn_invalid_binding_extra_condition"), SubResource("Spawn_unresolved_template_id"), SubResource("Spawn_invalid_override_shape"), SubResource("Spawn_mismatched_override")]
+

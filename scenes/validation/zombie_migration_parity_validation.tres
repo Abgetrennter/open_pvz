@@ -6,18 +6,21 @@
 
 [sub_resource type="Resource" id="Spawn_template_wall"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_wall_barrier"
 entity_template_id = &"plant_wall_barrier"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_archetype_wall"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_wall_barrier"
 entity_template_id = &"plant_wall_barrier"
 lane_id = 1
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_template_zombie"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 210.0
@@ -75,3 +78,4 @@ lane_count = 2
 validation_time_limit = 1.6
 validation_rules = [SubResource("Rule_template_bite"), SubResource("Rule_archetype_bite")]
 spawns = [SubResource("Spawn_template_wall"), SubResource("Spawn_archetype_wall"), SubResource("Spawn_template_zombie"), SubResource("Spawn_archetype_zombie")]
+

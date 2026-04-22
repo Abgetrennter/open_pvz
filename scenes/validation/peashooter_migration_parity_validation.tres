@@ -7,6 +7,7 @@
 [sub_resource type="Resource" id="Spawn_template_shooter"]
 script = ExtResource("2_spawn")
 entity_kind = &"plant"
+archetype_id = &"archetype_basic_shooter"
 entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
@@ -30,6 +31,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_template_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 280.0
@@ -39,6 +41,7 @@ spawn_overrides = {
 
 [sub_resource type="Resource" id="Spawn_archetype_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
 entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 280.0
@@ -82,3 +85,4 @@ lane_count = 2
 validation_time_limit = 1.6
 validation_rules = [SubResource("Rule_template_damage"), SubResource("Rule_archetype_damage")]
 spawns = [SubResource("Spawn_template_shooter"), SubResource("Spawn_archetype_shooter"), SubResource("Spawn_template_target"), SubResource("Spawn_archetype_target")]
+

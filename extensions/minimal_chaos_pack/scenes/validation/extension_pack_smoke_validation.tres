@@ -6,12 +6,14 @@
 
 [sub_resource type="Resource" id="Spawn_extension_plant"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_extension_glass_cannon"
 entity_template_id = &"plant_extension_glass_cannon"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_extension_target"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
 entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 420.0
@@ -43,7 +45,8 @@ script = ExtResource("1_scenario")
 scenario_id = &"extension_pack_smoke_validation"
 display_name = "Extension Pack Smoke Validation"
 description = "Validates that a minimal external content pack can register a template and validation scenario without modifying the main runtime after the extension contract is in place."
-goals = PackedStringArray("Verify extension validation scenarios can load from the extension directory tree.", "Verify extension entity templates register through SceneRegistry by template_id.", "Verify extension content still runs on the shared projectile and damage runtime.")
+goals = PackedStringArray("Verify extension validation scenarios can load from the extension directory tree.", "Verify extension archetypes register through SceneRegistry by archetype_id.", "Verify extension content still runs on the shared projectile and damage runtime.")
 validation_time_limit = 2.2
 validation_rules = [SubResource("Rule_extension_spawn"), SubResource("Rule_extension_damage")]
 spawns = [SubResource("Spawn_extension_plant"), SubResource("Spawn_extension_target")]
+

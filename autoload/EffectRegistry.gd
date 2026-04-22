@@ -264,6 +264,9 @@ func _register_builtin_defs() -> void:
 	spawn_entity.effect_id = &"spawn_entity"
 	spawn_entity.tags = PackedStringArray(["summon", "spawn"])
 	var spawn_entity_param_defs: Array[Dictionary] = [{
+		"name": "archetype_id",
+		"type": "string_name",
+	}, {
 		"name": "entity_template_id",
 		"type": "string_name",
 	}, {

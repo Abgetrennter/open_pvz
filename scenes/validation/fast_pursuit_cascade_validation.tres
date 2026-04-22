@@ -6,12 +6,14 @@
 
 [sub_resource type="Resource" id="Spawn_track_bomber"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_track_bomber"
 entity_template_id = &"plant_track_bomber"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_brisk_runner"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
 entity_template_id = &"zombie_brisk_runner"
 lane_id = 0
 x_position = 500.0
@@ -62,3 +64,4 @@ goals = PackedStringArray("Verify the track bomber spawns multiple tracking proj
 validation_time_limit = 3.5
 validation_rules = [SubResource("Rule_track_spawn"), SubResource("Rule_track_hit"), SubResource("Rule_damage_accumulated")]
 spawns = [SubResource("Spawn_track_bomber"), SubResource("Spawn_brisk_runner")]
+

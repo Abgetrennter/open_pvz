@@ -38,13 +38,13 @@
   {
     "id": "template_instantiation_validation",
     "scenario": "res://scenes/validation/template_instantiation_validation.tres",
-    "description": "Validates that BattleScenario spawn entries can instantiate entities from EntityTemplate resources and preserve template identity through runtime events.",
+    "description": "Validates that BattleScenario spawn entries can instantiate legacy template-backed entities and preserve identity through runtime events during migration.",
     "layers": ["core"]
   },
   {
     "id": "template_factory_validation",
     "scenario": "res://scenes/validation/template_factory_validation.tres",
-    "description": "Validates that EntityFactory can build template-defined runtime triggers so attack, retaliation, and death behaviors come from template resources instead of BattleManager branches.",
+    "description": "Validates that EntityFactory can still build legacy template-defined runtime triggers while the main authoring path has switched to archetypes.",
     "layers": ["smoke", "core"]
   },
   {
@@ -82,6 +82,12 @@
     "scenario": "res://scenes/validation/archetype_state_validation.tres",
     "description": "Validates the third-stage state path for arming -> active gating before shared runtime damage begins.",
     "layers": ["core"]
+  },
+  {
+    "id": "archetype_state_guard_validation",
+    "scenario": "res://scenes/validation/archetype_state_guard_validation.tres",
+    "description": "Negative validation for required_state gating before the active state is reached.",
+    "layers": ["guardrail"]
   },
   {
     "id": "archetype_zombie_runtime_validation",

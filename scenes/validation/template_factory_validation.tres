@@ -8,12 +8,14 @@
 
 [sub_resource type="Resource" id="Spawn_factory_plant"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_track_bomber"
 entity_template_id = &"plant_track_bomber"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_factory_zombie"]
 script = ExtResource("2_spawn")
+archetype_id = &"archetype_reactive_bomber"
 entity_template_id = &"zombie_reactive_bomber"
 lane_id = 0
 x_position = 250.0
@@ -73,3 +75,4 @@ goals = PackedStringArray("Verify template-defined attack behavior is built by E
 validation_time_limit = 2.2
 validation_rules = [SubResource("Rule_factory_attack"), SubResource("Rule_factory_retaliation"), SubResource("Rule_factory_death"), SubResource("Rule_factory_death_explode")]
 spawns = [SubResource("Spawn_factory_plant"), SubResource("Spawn_factory_zombie")]
+
