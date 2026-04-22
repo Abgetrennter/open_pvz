@@ -1,6 +1,6 @@
 # ADR 输入 - Mechanic-first 重构未决事项清单
 
-- 状态：提议中
+- 状态：已归档（正式 ADR 已落地，主线实现已切主）
 - 日期：2026-04-21
 - 作者：Codex / Abget
 - 关联阶段：路线切换评估
@@ -50,6 +50,30 @@
 - ADR 目录导航
 - 讨论到正式决策之间的桥接记录
 
+截至 2026-04-22，代码主线已经完成到下面这个实际状态：
+
+- `Archetype + Mechanic[]` 已经成为主线作者入口，`cards / waves / levels / validation / showcase / extensions` 都已补齐 `archetype_id` 主路径。
+- 扩展包迁移已打通，`minimal_chaos_pack`、`phase5_chaos_pack`、`phase5_guardrail_pack` 的正式验证均可通过新主链运行。
+- 运行时桥接与装配链已经落地到：
+  - `CombatContentResolver`
+  - `EntityFactory`
+  - `BattleSpawner`
+  - `BattleCardState`
+  - `BattleBoardState`
+- 当前整仓批量验证已全绿：
+  - `tools/run_all_validations.ps1`
+  - `66 / 66 passed`
+- 旧 `EntityTemplate / TriggerBinding` **尚未物理删除**，但已经降级为：
+  - legacy 兼容层
+  - 后端素材
+  - 迁移对照验证入口
+
+也就是说，这份文档中的“未决事项”已经不再对应当前主线的真实状态；当前仓库状态更接近：
+
+- 逻辑上已经切主
+- 工程上仍保留有限兼容层
+- 是否进一步“物理删除旧入口资源与兼容代码”将是新的收尾决策，而不是本清单里的原始未决问题
+
 ---
 
 ## 2. 未决事项总览
@@ -66,6 +90,17 @@
 | D8 | 随机与机制私有状态协议 | P1 | 已决定：见 [ADR-004](ADR-004-连续行为-状态与生命周期正式化.md) |
 | D9 | 扩展包注册与信任边界 | P1 | 已决定：见 [ADR-005](ADR-005-扩展包接入与迁移策略.md) |
 | D10 | 迁移策略与验证闭环 | P1 | 已决定：见 [ADR-005](ADR-005-扩展包接入与迁移策略.md) |
+
+### 当前实施状态补充
+
+| 项目 | 当前状态 | 说明 |
+|----|----|----|
+| 主线作者入口 | 已切主 | 主线内容入口已切到 `Archetype + Mechanic[]` |
+| 运行时编译链 | 已落地 | `Archetype -> RuntimeSpec -> RuntimeAssembler/Factory` 已接通 |
+| 扩展包迁移 | 已完成主线迁移 | 现有正式扩展包已能通过新主链验证 |
+| showcase / validation | 已切主 | 主页面与正式验证已以 archetype-first 为主 |
+| 旧作者入口 | 未物理删除 | 仅作为 legacy 兼容层 / 后端素材继续存在 |
+| 整仓回归 | 已通过 | `run_all_validations.ps1` 当前为 `66 / 66 passed` |
 
 ---
 
