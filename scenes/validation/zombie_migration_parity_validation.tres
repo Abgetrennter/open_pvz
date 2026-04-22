@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_template_wall"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_archetype_wall"]
+script = ExtResource("2_spawn")
+entity_template_id = &"plant_wall_barrier"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_template_zombie"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_basic_walker"
+lane_id = 0
+x_position = 210.0
+spawn_overrides = {
+"attack_damage": 10,
+"attack_interval": 0.3,
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_archetype_zombie"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_basic_zombie_skeleton"
+lane_id = 1
+x_position = 210.0
+spawn_overrides = {
+"attack_damage": 10,
+"attack_interval": 0.3,
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_template_bite"]
+script = ExtResource("3_rule")
+rule_id = &"template_zombie_bite"
+description = "template-based zombie should bite the wall"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("bite")
+required_core_values = {
+"source_template_id": &"zombie_basic_walker",
+"target_template_id": &"plant_wall_barrier"
+}
+min_count = 1
+max_count = 20
+
+[sub_resource type="Resource" id="Rule_archetype_bite"]
+script = ExtResource("3_rule")
+rule_id = &"archetype_zombie_bite"
+description = "archetype-based zombie should bite the wall with the same damage"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("bite")
+required_core_values = {
+"source_archetype_id": &"archetype_basic_zombie_skeleton",
+"target_template_id": &"plant_wall_barrier"
+}
+min_count = 1
+max_count = 20
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_migration_parity_validation"
+display_name = "Zombie Migration Parity Validation"
+description = "Compares the old template path and the new archetype path for the basic zombie. Both zombies should bite their wall targets with equivalent damage."
+goals = PackedStringArray("Verify template-based zombie bites in lane 0.", "Verify archetype-based zombie bites in lane 1.", "Both paths should produce equivalent bite behavior.")
+lane_count = 2
+validation_time_limit = 1.6
+validation_rules = [SubResource("Rule_template_bite"), SubResource("Rule_archetype_bite")]
+spawns = [SubResource("Spawn_template_wall"), SubResource("Spawn_archetype_wall"), SubResource("Spawn_template_zombie"), SubResource("Spawn_archetype_zombie")]

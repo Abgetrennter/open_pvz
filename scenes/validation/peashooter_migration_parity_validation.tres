@@ -1,0 +1,84 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_template_shooter"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+entity_template_id = &"plant_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 0.5,
+"start_delay": 0.2
+}
+
+[sub_resource type="Resource" id="Spawn_archetype_shooter"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_peashooter_skeleton"
+lane_id = 1
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 0.5,
+"start_delay": 0.2
+}
+
+[sub_resource type="Resource" id="Spawn_template_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 280.0
+spawn_overrides = {
+"max_health": 40
+}
+
+[sub_resource type="Resource" id="Spawn_archetype_target"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 1
+x_position = 280.0
+spawn_overrides = {
+"max_health": 40
+}
+
+[sub_resource type="Resource" id="Rule_template_damage"]
+script = ExtResource("3_rule")
+rule_id = &"template_path_damage"
+description = "template-based shooter should damage its target"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_basic_shooter",
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+min_count = 1
+max_count = 20
+
+[sub_resource type="Resource" id="Rule_archetype_damage"]
+script = ExtResource("3_rule")
+rule_id = &"archetype_path_damage"
+description = "archetype-based shooter should damage its target with the same effectiveness"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_peashooter_skeleton",
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+min_count = 1
+max_count = 20
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"peashooter_migration_parity_validation"
+display_name = "Peashooter Migration Parity Validation"
+description = "Compares the old template path and the new archetype path for the peashooter. Both shooters should deal damage to their respective targets in different lanes."
+goals = PackedStringArray("Verify template-based peashooter deals damage in lane 0.", "Verify archetype-based peashooter deals damage in lane 1.", "Both paths should produce equivalent combat behavior.")
+lane_count = 2
+validation_time_limit = 1.6
+validation_rules = [SubResource("Rule_template_damage"), SubResource("Rule_archetype_damage")]
+spawns = [SubResource("Spawn_template_shooter"), SubResource("Spawn_archetype_shooter"), SubResource("Spawn_template_target"), SubResource("Spawn_archetype_target")]

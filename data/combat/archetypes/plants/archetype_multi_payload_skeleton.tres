@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/entity_templates/plants/plant_wall_barrier.tres" id="2_backend"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="3_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_direct_damage_payload.tres" id="4_payload_heavy"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_damage_payload_light.tres" id="5_payload_light"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_multi_payload_skeleton"
+display_name = "Multi-Payload Archetype Skeleton"
+tags = PackedStringArray("archetype", "plant", "attack", "multi-payload", "skeleton")
+default_params = {
+"amount": 20,
+"interval": 0.4,
+"scan_range": 900.0,
+"start_delay": 0.2
+}
+compiler_hints = {
+"skeleton_only": true
+}
+mechanics = [ExtResource("3_trigger"), ExtResource("4_payload_heavy"), ExtResource("5_payload_light")]
+backend_entity_template = ExtResource("2_backend")
+backend_entity_template_id = &"plant_wall_barrier"

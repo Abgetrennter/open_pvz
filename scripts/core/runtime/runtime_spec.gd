@@ -16,6 +16,10 @@ var controller_specs: Array = []
 var state_specs: Array = []
 var runtime_state_values: Dictionary = {}
 var mechanic_ids: PackedStringArray = PackedStringArray()
+var mechanic_runtime_states: Dictionary = {}
+var root_scene: PackedScene = null
+var max_health: int = -1
+var hitbox_size: Vector2 = Vector2.ZERO
 var notes: PackedStringArray = PackedStringArray()
 
 

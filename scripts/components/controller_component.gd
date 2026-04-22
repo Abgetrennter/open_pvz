@@ -2,10 +2,12 @@ extends Node
 class_name ControllerComponent
 
 var controller_specs: Array[Dictionary] = []
+var blackboard: Dictionary = {}
 
 
 func bind_controller_specs(specs: Array) -> void:
 	controller_specs.clear()
+	blackboard.clear()
 	for spec in specs:
 		if spec is Dictionary:
 			controller_specs.append(spec.duplicate(true))
@@ -25,4 +27,8 @@ func physics_process_controllers(delta: float) -> void:
 		var controller_id := StringName(spec.get("controller_id", StringName()))
 		if controller_id == StringName():
 			continue
-		ControllerRegistry.process_controller(controller_id, owner, spec, delta)
+		var mechanic_id := StringName(spec.get("mechanic_id", controller_id))
+		if not blackboard.has(mechanic_id):
+			blackboard[mechanic_id] = {}
+		var mechanic_bb: Dictionary = blackboard[mechanic_id]
+		ControllerRegistry.process_controller(controller_id, owner, spec, delta, mechanic_bb)

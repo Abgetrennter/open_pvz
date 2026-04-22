@@ -85,8 +85,6 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	# first-stage compiler output stabilizes and parse-order issues are gone.
 	if runtime_spec == null or not runtime_spec.has_method("has_backend_entity_template"):
 		return {}
-	if not bool(runtime_spec.has_backend_entity_template()):
-		return {}
 	var entity_template: Resource = runtime_spec.backend_entity_template
 	var entity_kind: StringName = StringName(runtime_spec.entity_kind)
 	var params: Dictionary = {}
@@ -94,9 +92,17 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 		params = runtime_spec.params.duplicate(true)
 	var projectile_template: Resource = runtime_spec.projectile_template
 	var projectile_flight_profile: Resource = runtime_spec.projectile_flight_profile
-	var entity = instantiate_entity(entity_kind, position, entity_template, params)
+	var archetype_for_root = null
+	if entity_template != null:
+		archetype_for_root = entity_template
+	elif runtime_spec.get("root_scene") != null and runtime_spec.root_scene is PackedScene:
+		archetype_for_root = _make_minimal_archetype_for_root(runtime_spec)
+	var entity = instantiate_entity(entity_kind, position, archetype_for_root, params)
 	if entity == null:
-		return {}
+		if entity_template == null:
+			entity = _instantiate_builtin_entity(entity_kind, position, params, runtime_spec)
+		if entity == null:
+			return {}
 	if runtime_spec.source_archetype_id != StringName():
 		entity.set("archetype_id", runtime_spec.source_archetype_id)
 	if entity.has_method("set_state_value") and runtime_spec.runtime_state_values is Dictionary:
@@ -115,7 +121,7 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 			projectile_flight_profile,
 			projectile_template
 		)
-	else:
+	elif entity_template != null:
 		trigger_instances = build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template)
 	return {
 		"entity": entity,
@@ -661,3 +667,36 @@ func _bind_runtime_states(entity: Node, state_specs: Array) -> void:
 	var state_component := _ensure_named_child(entity, "StateComponent", func(): return _make_state_component())
 	if state_component != null and state_component.has_method("bind_state_specs"):
 		state_component.call("bind_state_specs", state_specs)
+
+
+func _make_minimal_archetype_for_root(runtime_spec) -> Resource:
+	var archetype = CombatArchetypeRef.new()
+	archetype.root_scene = runtime_spec.root_scene
+	archetype.archetype_id = runtime_spec.source_archetype_id
+	archetype.entity_kind = runtime_spec.entity_kind
+	return archetype
+
+
+func _instantiate_builtin_entity(entity_kind: StringName, position: Vector2, params: Dictionary, runtime_spec) -> Node:
+	var entity = _instantiate_builtin_root(entity_kind, null)
+	if entity == null:
+		return null
+	if entity is Node2D:
+		(entity as Node2D).position = position
+	var resolved_max_health := int(runtime_spec.max_health) if runtime_spec.get("max_health") is int and int(runtime_spec.max_health) > 0 else int(_default_config_for_kind(entity_kind).get("max_health", 100))
+	if params.has("max_health"):
+		resolved_max_health = int(params["max_health"])
+	_ensure_health_component(entity, resolved_max_health)
+	var resolved_hitbox_size: Vector2 = runtime_spec.hitbox_size if runtime_spec.get("hitbox_size") is Vector2 and runtime_spec.hitbox_size != Vector2.ZERO else Vector2(_default_config_for_kind(entity_kind).get("hitbox_size", Vector2(40.0, 40.0)))
+	if params.has("hitbox_size") and params["hitbox_size"] is Vector2:
+		resolved_hitbox_size = params["hitbox_size"]
+	_ensure_passive_hitbox(entity, resolved_hitbox_size)
+	var trigger_config := _default_config_for_kind(entity_kind)
+	if bool(trigger_config.get("trigger_component", false)):
+		_ensure_named_child(entity, "TriggerComponent", func(): return _make_trigger_component())
+	if bool(trigger_config.get("movement_component", false)):
+		_ensure_named_child(entity, "MovementComponent", func(): return _make_movement_component())
+	if bool(trigger_config.get("debug_view_component", false)):
+		_ensure_named_child(entity, "DebugViewComponent", func(): return _make_debug_component())
+	_apply_entity_property_overrides(entity, params)
+	return entity

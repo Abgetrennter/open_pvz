@@ -6,12 +6,13 @@
 
 - **2026-04-15 21:39:03** — init-architect 全仓扫描：新增模块结构图、模块索引表、模块级 CLAUDE.md、覆盖率报告
 - **2026-04-21** — wiki 瘦身：同步阶段口径至 Phase 7 输入准备；归档 wiki 自审文档；压缩扩展系统规划；合并 00/02 架构双写
+- **2026-04-22** — Mechanic-first 重构第三阶段完成：multi-payload 编译、per-type compiler dispatch、Controller/State/Lifecycle 扩展、确定性随机协议、Archetype 独立实例化、迁移对照验证
 
 ## 项目愿景
 
-Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规则"成为核心玩法驱动力。项目以四层模型（语义事件 -> 行为效果 -> 组合装配 -> 连续行为）为骨架，用 Resource-based 模板系统实现无代码的内容扩展。
+Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规则"成为核心玩法驱动力。项目已从旧作者模型（`EntityTemplate / TriggerBinding`）切换到 **Mechanic-first** 架构：`Archetype + Mechanic[]` + 多阶段编译链。
 
-当前阶段：**第七阶段输入准备**。Phase 1-6 已沉淀为主干：骨架搭建、模板系统、协议冻结、战斗玩法层（资源/棋盘/卡片/波次/状态/场上物件）、扩展入口与守卫、正式内容 v1 基线（16 植物 / 9 僵尸 / 10 投射物 / 10 卡片 / 3 战场 / 3 波次 / 3 关卡）。当前主线是继续扩展正式关卡与内容谱系，并保持回归同步。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)。
+当前阶段：**Mechanic-first 重构阶段**。已完成：编译链最小闭环、Controller/State/Lifecycle 扩展、multi-payload、per-type compiler dispatch、确定性随机协议、Archetype 独立实例化、迁移对照验证。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md) 和 [wiki/decisions/](wiki/decisions/README.md)。
 
 ## 架构总览
 
@@ -35,9 +36,14 @@ EventBus -> TriggerComponent -> TriggerInstance -> RuleContext -> EffectExecutor
 | `EventBus` | 事件分发，优先级订阅，历史追踪（最多 256 条） |
 | `DebugService` | 集中式日志：事件/触发器/效果 |
 | `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/` |
+| `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
+| `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id） |
+| `MechanicCompilerRegistry` | Mechanic per-type 编译器注册与分发 |
+| `DetectionRegistry` | 目标发现策略注册（always / lane_forward / lane_backward） |
 | `TriggerRegistry` | 触发器定义与策略注册（periodically / when_damaged / on_death） |
 | `EffectRegistry` | 效果定义与策略注册（damage / spawn_projectile / explode） |
-| `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配） |
+| `ControllerRegistry` | Controller 策略注册（core.bite / core.sweep） |
+| `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
 
 ### 战斗运行时子系统 (Phase 4)
 
@@ -91,14 +97,14 @@ graph TD
 | 模块路径 | 语言 | 文件数 | 职责概述 |
 |----------|------|--------|----------|
 | `autoload/` | GDScript | 6 | 全局单例：事件总线、注册表、游戏状态 |
-| `scripts/core/defs/` | GDScript | 8 | 资源定义类：TriggerDef, EffectDef, EntityTemplate, ProjectileTemplate 等 |
-| `scripts/core/runtime/` | GDScript | 7 | 运行时执行：EffectExecutor, ProtocolValidator, RuleContext, EntityState 等 |
+| `scripts/core/defs/` | GDScript | 12 | 资源定义类：TriggerDef, EffectDef, EntityTemplate, CombatArchetype, CombatMechanic 等 |
+| `scripts/core/runtime/` | GDScript | 9 | 运行时执行：EffectExecutor, MechanicCompiler, RuntimeSpec, ShuffleBag 等 |
 | `scripts/battle/` | GDScript | 22 | 战斗协调：BattleManager, EntityFactory, 经济/棋盘/卡片/波次子系统 |
 | `scripts/entities/` | GDScript | 4 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot |
-| `scripts/components/` | GDScript | 6 | 可复用组件：HealthComponent, TriggerComponent, HitboxComponent 等 |
+| `scripts/components/` | GDScript | 8 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
 | `scripts/projectile/` | GDScript | 5 | 抛射体运动系统：linear / parabola / track 运动模式 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
-| `data/combat/` | .tres | ~46 | 战斗数据资源：实体模板、抛射体模板、飞行配置、触发绑定 |
+| `data/combat/` | .tres | ~75 | 战斗数据资源：实体模板、archetype、mechanic、抛射体模板、飞行配置、触发绑定 |
 | `scenes/validation/` | .tres/.tscn | 30 | 自动化验证场景（29 个场景 + 1 个通用 tscn） |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |
@@ -167,6 +173,18 @@ pwsh tools/run_validation.ps1 -ScenarioId <id>
 | `splash_zone_cascade_validation` | 溅射打击型错误技（终端爆炸多目标溅射） |
 | `fast_pursuit_cascade_validation` | 高速追踪型错误技（追踪高速移动目标） |
 | `multi_lane_retaliation_cascade_validation` | 多车道反击型错误技（跨车道反击隔离） |
+| `archetype_instantiation_validation` | Archetype 向日葵编译链验证 |
+| `archetype_attack_validation` | Archetype 攻击链编译验证 |
+| `archetype_projectile_validation` | Archetype 抛射体编译验证 |
+| `archetype_lifecycle_validation` | Archetype lifecycle on_spawned 验证 |
+| `archetype_on_place_validation` | Archetype lifecycle on_place 验证 |
+| `archetype_state_validation` | Archetype state arming 验证 |
+| `archetype_zombie_runtime_validation` | Archetype 僵尸 bite controller 验证 |
+| `archetype_mower_runtime_validation` | Archetype 割草机 sweep controller 验证 |
+| `archetype_multi_payload_validation` | Archetype 多 payload 编译验证 |
+| `peashooter_migration_parity_validation` | 豌豆射手迁移对照验证 |
+| `sunflower_migration_parity_validation` | 向日葵迁移对照验证 |
+| `zombie_migration_parity_validation` | 基础僵尸迁移对照验证 |
 
 ## 冻结协议 (Phase 3)
 

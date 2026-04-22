@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_template_sunflower"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+entity_template_id = &"plant_sunflower"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"interval": 0.5,
+"start_delay": 0.3,
+"value": 25
+}
+
+[sub_resource type="Resource" id="Spawn_archetype_sunflower"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_sunflower_skeleton"
+lane_id = 1
+x_position = 160.0
+spawn_overrides = {
+"interval": 0.5,
+"start_delay": 0.3,
+"value": 25
+}
+
+[sub_resource type="Resource" id="Rule_template_sun"]
+script = ExtResource("3_rule")
+rule_id = &"template_sun_production"
+description = "template-based sunflower should produce sun"
+event_name = &"sun.spawned"
+required_core_values = {
+"source_template_id": &"plant_sunflower",
+"source_type": &"plant_generated"
+}
+min_count = 1
+max_count = 10
+
+[sub_resource type="Resource" id="Rule_archetype_sun"]
+script = ExtResource("3_rule")
+rule_id = &"archetype_sun_production"
+description = "archetype-based sunflower should produce sun with the same effectiveness"
+event_name = &"sun.spawned"
+required_core_values = {
+"source_archetype_id": &"archetype_sunflower_skeleton",
+"source_type": &"plant_generated"
+}
+min_count = 1
+max_count = 10
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"sunflower_migration_parity_validation"
+display_name = "Sunflower Migration Parity Validation"
+description = "Compares the old template path and the new archetype path for the sunflower. Both sunflowers should produce sun at the same rate in different lanes."
+goals = PackedStringArray("Verify template-based sunflower produces sun in lane 0.", "Verify archetype-based sunflower produces sun in lane 1.", "Both paths should produce equivalent economy behavior.")
+lane_count = 2
+initial_sun = 0
+sun_auto_collect_delay = 0.2
+validation_time_limit = 2.0
+validation_rules = [SubResource("Rule_template_sun"), SubResource("Rule_archetype_sun")]
+spawns = [SubResource("Spawn_template_sunflower"), SubResource("Spawn_archetype_sunflower")]

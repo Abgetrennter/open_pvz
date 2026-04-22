@@ -1,0 +1,71 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_multi_payload_plant"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_multi_payload_skeleton"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"amount": 20,
+"interval": 0.4,
+"scan_range": 900.0,
+"start_delay": 0.2
+}
+
+[sub_resource type="Resource" id="Spawn_target_dummy"]
+script = ExtResource("2_spawn")
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 280.0
+spawn_overrides = {
+"max_health": 30
+}
+
+[sub_resource type="Resource" id="Rule_multi_payload_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"multi_payload_spawned"
+description = "multi-payload archetype should spawn with archetype identity"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_multi_payload_skeleton",
+"target_template_id": &"plant_wall_barrier",
+"target_kind": &"plant"
+}
+
+[sub_resource type="Resource" id="Rule_multi_payload_damage"]
+script = ExtResource("3_rule")
+rule_id = &"multi_payload_damage"
+description = "both payload mechanics should fire: light damage (10) and heavy damage (20) each occur at least once"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_multi_payload_skeleton",
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+min_count = 2
+max_count = 10
+
+[sub_resource type="Resource" id="Rule_multi_payload_death"]
+script = ExtResource("3_rule")
+rule_id = &"multi_payload_death"
+description = "combined damage from both payloads should kill the zombie"
+event_name = &"entity.died"
+required_core_values = {
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"archetype_multi_payload_validation"
+display_name = "Archetype Multi-Payload Validation"
+description = "Validates that a single trigger mechanic can compile and execute multiple payload mechanics: both a heavy damage and a light damage payload fire from the same periodic trigger."
+goals = PackedStringArray("Verify MechanicCompiler compiles multiple payloads per trigger into separate trigger bindings.", "Verify both payload effects execute independently when the trigger fires.", "Verify the combined damage from both payloads kills the target.")
+validation_time_limit = 1.6
+validation_rules = [SubResource("Rule_multi_payload_spawned"), SubResource("Rule_multi_payload_damage"), SubResource("Rule_multi_payload_death")]
+spawns = [SubResource("Spawn_multi_payload_plant"), SubResource("Spawn_target_dummy")]

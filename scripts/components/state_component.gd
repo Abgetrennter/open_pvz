@@ -6,11 +6,17 @@ var current_state: StringName = StringName()
 var transitions: Array[Dictionary] = []
 var bind_time := 0.0
 var _processed_transition_ids: Dictionary = {}
+var _event_callables: Dictionary = {}
+
+
+func _exit_tree() -> void:
+	_unsubscribe_all()
 
 
 func bind_state_specs(specs: Array) -> void:
 	transitions.clear()
 	_processed_transition_ids.clear()
+	_unsubscribe_all()
 	initial_state = StringName()
 	current_state = StringName()
 	bind_time = GameState.current_time
@@ -26,8 +32,15 @@ func bind_state_specs(specs: Array) -> void:
 				if transition is Dictionary:
 					transitions.append(transition.duplicate(true))
 	transitions.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return float(a.get("after", 0.0)) < float(b.get("after", 0.0))
+		var a_trigger: String = String(a.get("trigger", "time"))
+		var b_trigger: String = String(b.get("trigger", "time"))
+		if a_trigger == "time" and b_trigger == "time":
+			return float(a.get("after", 0.0)) < float(b.get("after", 0.0))
+		if a_trigger == "time":
+			return true
+		return false
 	)
+	_subscribe_event_transitions()
 	_sync_owner_state()
 
 
@@ -50,21 +63,95 @@ func physics_process_states() -> void:
 	if owner == null or not is_instance_valid(owner):
 		return
 	var elapsed := GameState.current_time - bind_time
+	_process_time_transitions(owner, elapsed)
+
+
+func _process_time_transitions(owner: Node, elapsed: float) -> void:
 	for transition in transitions:
+		var trigger_type: String = String(transition.get("trigger", "time"))
+		if trigger_type != "time":
+			continue
+		if not _try_execute_transition(transition, elapsed):
+			break
+
+
+func _try_execute_transition(transition: Dictionary, elapsed: float = 0.0) -> bool:
+	var transition_id := StringName(transition.get("transition_id", StringName("%s_%s" % [
+		String(transition.get("from_state", "")),
+		String(transition.get("to_state", "")),
+	])))
+	if _processed_transition_ids.has(transition_id):
+		return true
+	var from_state := StringName(transition.get("from_state", current_state))
+	if current_state != from_state:
+		return true
+	var trigger_type: String = String(transition.get("trigger", "time"))
+	if trigger_type == "time":
+		if elapsed + 0.001 < float(transition.get("after", 0.0)):
+			return false
+	elif trigger_type == "event":
+		return true
+	var owner := get_parent()
+	if owner == null or not is_instance_valid(owner):
+		return true
+	current_state = StringName(transition.get("to_state", current_state))
+	_processed_transition_ids[transition_id] = true
+	_sync_owner_state()
+	_emit_state_entered(owner, current_state)
+	return true
+
+
+func _subscribe_event_transitions() -> void:
+	for transition in transitions:
+		var trigger_type: String = String(transition.get("trigger", "time"))
+		if trigger_type != "event":
+			continue
+		var listen_event := StringName(transition.get("event_name", StringName()))
+		if listen_event == StringName():
+			continue
+		if _event_callables.has(listen_event):
+			continue
+		var callback := Callable(self, "_on_state_event").bind(listen_event)
+		_event_callables[listen_event] = callback
+		EventBus.subscribe(listen_event, callback)
+
+
+func _unsubscribe_all() -> void:
+	for event_name: Variant in _event_callables.keys():
+		EventBus.unsubscribe(event_name, _event_callables[event_name])
+	_event_callables.clear()
+
+
+func _on_state_event(event_data, event_name: StringName) -> void:
+	var owner := get_parent()
+	if owner == null or not is_instance_valid(owner):
+		return
+	for transition in transitions:
+		var trigger_type: String = String(transition.get("trigger", "time"))
+		if trigger_type != "event":
+			continue
+		var listen_event := StringName(transition.get("event_name", StringName()))
+		if listen_event != event_name:
+			continue
+		var required_state := StringName(transition.get("required_state_id", StringName()))
+		if required_state != StringName():
+			var event_state_id := StringName(event_data.core.get("state_id", StringName())) if event_data is Dictionary and event_data.get("core") is Dictionary else StringName()
+			if event_state_id != required_state_id:
+				continue
+		var from_state := StringName(transition.get("from_state", current_state))
+		if current_state != from_state:
+			continue
 		var transition_id := StringName(transition.get("transition_id", StringName("%s_%s" % [
 			String(transition.get("from_state", "")),
 			String(transition.get("to_state", "")),
 		])))
 		if _processed_transition_ids.has(transition_id):
 			continue
-		if current_state != StringName(transition.get("from_state", current_state)):
-			continue
-		if elapsed + 0.001 < float(transition.get("after", 0.0)):
-			continue
 		current_state = StringName(transition.get("to_state", current_state))
 		_processed_transition_ids[transition_id] = true
 		_sync_owner_state()
 		_emit_state_entered(owner, current_state)
+		break
 
 
 func _sync_owner_state() -> void:

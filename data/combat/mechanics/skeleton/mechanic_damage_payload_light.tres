@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.damage_payload_light"
+display_name = "Light Damage Payload"
+family = &"Payload"
+type_id = &"core.damage"
+priority = 20
+tags = PackedStringArray("skeleton", "attack", "damage", "light")
+params = {
+"amount": 10,
+"target_mode": &"context_target"
+}

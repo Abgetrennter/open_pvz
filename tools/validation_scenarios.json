@@ -96,6 +96,30 @@
     "layers": ["core"]
   },
   {
+    "id": "archetype_multi_payload_validation",
+    "scenario": "res://scenes/validation/archetype_multi_payload_validation.tres",
+    "description": "Validates that a single trigger mechanic compiles and executes multiple payload mechanics independently.",
+    "layers": ["core"]
+  },
+  {
+    "id": "peashooter_migration_parity_validation",
+    "scenario": "res://scenes/validation/peashooter_migration_parity_validation.tres",
+    "description": "Compares old template path and new archetype path for peashooter combat behavior.",
+    "layers": ["core", "migration"]
+  },
+  {
+    "id": "sunflower_migration_parity_validation",
+    "scenario": "res://scenes/validation/sunflower_migration_parity_validation.tres",
+    "description": "Compares old template path and new archetype path for sunflower economy behavior.",
+    "layers": ["core", "migration"]
+  },
+  {
+    "id": "zombie_migration_parity_validation",
+    "scenario": "res://scenes/validation/zombie_migration_parity_validation.tres",
+    "description": "Compares old template path and new archetype path for basic zombie bite behavior.",
+    "layers": ["core", "migration"]
+  },
+  {
     "id": "spawn_override_priority_validation",
     "scenario": "res://scenes/validation/spawn_override_priority_validation.tres",
     "description": "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides win over template projectile defaults.",
