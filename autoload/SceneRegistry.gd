@@ -15,7 +15,6 @@ const ARCHETYPE_DIRS := [
 	"res://data/combat/archetypes/projectiles",
 ]
 const PROJECTILE_TEMPLATE_DIR := "res://data/combat/projectile_templates"
-const TRIGGER_BINDING_DIR := "res://data/combat/trigger_bindings"
 const EXTENSION_VALIDATION_DIR := "scenes/validation"
 const EXTENSION_ENTITY_TEMPLATE_DIRS := [
 	"data/combat/entity_templates/plants",
@@ -29,14 +28,12 @@ const EXTENSION_ARCHETYPE_DIRS := [
 	"data/combat/archetypes/projectiles",
 ]
 const EXTENSION_PROJECTILE_TEMPLATE_DIR := "data/combat/projectile_templates"
-const EXTENSION_TRIGGER_BINDING_DIR := "data/combat/trigger_bindings"
 var _scene_cache: Dictionary = {}
 var _resource_cache: Dictionary = {}
 var _validation_scenario_paths: Dictionary = {}
 var _entity_template_paths: Dictionary = {}
 var _archetype_paths: Dictionary = {}
 var _projectile_template_paths: Dictionary = {}
-var _trigger_binding_paths: Dictionary = {}
 
 
 func _ready() -> void:
@@ -68,7 +65,6 @@ func rebuild_content_registries() -> void:
 	_entity_template_paths.clear()
 	_archetype_paths.clear()
 	_projectile_template_paths.clear()
-	_trigger_binding_paths.clear()
 
 	_register_resources_by_id(VALIDATION_SCENARIO_DIR, &"scenario_id", _validation_scenario_paths)
 	for directory_path in ENTITY_TEMPLATE_DIRS:
@@ -76,7 +72,6 @@ func rebuild_content_registries() -> void:
 	for directory_path in ARCHETYPE_DIRS:
 		_register_resources_by_id(directory_path, &"archetype_id", _archetype_paths)
 	_register_resources_by_id(PROJECTILE_TEMPLATE_DIR, &"template_id", _projectile_template_paths)
-	_register_resources_by_id(TRIGGER_BINDING_DIR, &"binding_id", _trigger_binding_paths)
 	_register_extension_content()
 
 
@@ -108,13 +103,6 @@ func get_projectile_template(template_id: StringName) -> Resource:
 	return load_resource(path)
 
 
-func get_trigger_binding(binding_id: StringName) -> Resource:
-	var path := String(_trigger_binding_paths.get(binding_id, ""))
-	if path.is_empty():
-		return null
-	return load_resource(path)
-
-
 func list_validation_scenario_ids() -> PackedStringArray:
 	return _sorted_keys(_validation_scenario_paths)
 
@@ -131,10 +119,6 @@ func list_projectile_template_ids() -> PackedStringArray:
 	return _sorted_keys(_projectile_template_paths)
 
 
-func list_trigger_binding_ids() -> PackedStringArray:
-	return _sorted_keys(_trigger_binding_paths)
-
-
 func has_validation_scenario(scenario_id: StringName) -> bool:
 	return _validation_scenario_paths.has(scenario_id)
 
@@ -149,10 +133,6 @@ func has_archetype(archetype_id: StringName) -> bool:
 
 func has_projectile_template(template_id: StringName) -> bool:
 	return _projectile_template_paths.has(template_id)
-
-
-func has_trigger_binding(binding_id: StringName) -> bool:
-	return _trigger_binding_paths.has(binding_id)
 
 
 func _register_resources_by_id(directory_path: String, id_property: StringName, registry: Dictionary) -> void:
@@ -211,7 +191,6 @@ func _register_extension_root(extension_root: String) -> void:
 	for relative_dir in EXTENSION_ARCHETYPE_DIRS:
 		_register_resources_by_id(extension_root.path_join(relative_dir), &"archetype_id", _archetype_paths)
 	_register_resources_by_id(extension_root.path_join(EXTENSION_PROJECTILE_TEMPLATE_DIR), &"template_id", _projectile_template_paths)
-	_register_resources_by_id(extension_root.path_join(EXTENSION_TRIGGER_BINDING_DIR), &"binding_id", _trigger_binding_paths)
 
 
 func _report_duplicate_resource_id(resource_id: StringName, existing_path: String, duplicate_path: String, id_property: StringName) -> void:

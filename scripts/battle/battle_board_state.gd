@@ -91,7 +91,6 @@ func reject_request(request: Resource, reason: StringName) -> void:
 	rejected_event.core["card_id"] = StringName(request.get("card_id"))
 	rejected_event.core["source_id"] = StringName(request.get("source_id"))
 	rejected_event.core["archetype_id"] = StringName(request.get("archetype_id"))
-	rejected_event.core["entity_template_id"] = StringName(request.get("entity_template_id"))
 	rejected_event.core["lane_id"] = int(request.get("lane_id"))
 	rejected_event.core["slot_index"] = int(request.get("slot_index"))
 	rejected_event.core["reason"] = reason
@@ -120,7 +119,6 @@ func commit_request(request: Resource, entity: Node) -> bool:
 	accepted_event.core["card_id"] = StringName(request.get("card_id"))
 	accepted_event.core["source_id"] = StringName(request.get("source_id"))
 	accepted_event.core["archetype_id"] = StringName(request.get("archetype_id"))
-	accepted_event.core["entity_template_id"] = StringName(request.get("entity_template_id"))
 	accepted_event.core["lane_id"] = int(request.get("lane_id"))
 	accepted_event.core["slot_index"] = int(request.get("slot_index"))
 	accepted_event.core["placement_role"] = placement_role
@@ -272,12 +270,7 @@ func _resolve_entity_template(request: Resource) -> Resource:
 		var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
 		if archetype is CombatArchetypeRef:
 			return CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
-	var entity_template_id := StringName(request.get("entity_template_id"))
-	if entity_template_id == StringName():
-		return null
-	if not SceneRegistry.has_entity_template(entity_template_id):
-		return null
-	return SceneRegistry.get_entity_template(entity_template_id)
+	return null
 
 
 func _resolve_archetype(request: Resource) -> Resource:

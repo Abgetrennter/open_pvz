@@ -7,7 +7,6 @@ script = ExtResource("1_card_def")
 card_id = &"card_frost_pea"
 display_name = "Frost Pea"
 archetype_id = &"archetype_frost_pea"
-entity_template_id = &"plant_frost_pea"
 sun_cost = 125
 cooldown_seconds = 6.0
 placement_tags = PackedStringArray("supports_primary")

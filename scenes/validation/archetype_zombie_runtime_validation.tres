@@ -7,7 +7,6 @@
 [sub_resource type="Resource" id="Spawn_wall_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_wall_barrier"
-entity_template_id = &"plant_wall_barrier"
 lane_id = 0
 x_position = 160.0
 

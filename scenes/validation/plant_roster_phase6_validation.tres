@@ -7,21 +7,18 @@
 [sub_resource type="Resource" id="Spawn_frost_pea"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_frost_pea"
-entity_template_id = &"plant_frost_pea"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_spore_summoner"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_spore_summoner"
-entity_template_id = &"plant_spore_summoner"
 lane_id = 0
 x_position = 250.0
 
 [sub_resource type="Resource" id="Spawn_target_dummy"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 430.0
 

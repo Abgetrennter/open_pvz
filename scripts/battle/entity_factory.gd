@@ -595,7 +595,7 @@ func _build_binding_on_hit_effect_node(binding, params: Dictionary):
 	if on_hit_effect_def != null and on_hit_effect_def.has_method("get_param_def"):
 		supports_amount = not Dictionary(on_hit_effect_def.call("get_param_def", &"amount")).is_empty()
 	if supports_amount:
-		if params.has("damage") and not override_on_hit_params.has("amount"):
+		if params.has("damage") and not override_on_hit_params.has("amount") and not effect_params.has("amount"):
 			effect_params["amount"] = params.get("damage")
 		elif not effect_params.has("amount"):
 			effect_params["amount"] = params.get("damage", binding.effect_params.get("damage", 10))

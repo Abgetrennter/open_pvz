@@ -10,14 +10,6 @@ const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_templa
 static func resolve_spawn_entry_template(spawn_entry: Resource):
 	if spawn_entry == null:
 		return null
-	var direct_template = spawn_entry.get("entity_template")
-	if direct_template is EntityTemplateRef:
-		return direct_template
-	var template_id := StringName(spawn_entry.get("entity_template_id"))
-	if template_id != StringName() and SceneRegistry.has_entity_template(template_id):
-		var registered_template = SceneRegistry.get_entity_template(template_id)
-		if registered_template is EntityTemplateRef:
-			return registered_template
 	var resolved_archetype = resolve_spawn_entry_archetype(spawn_entry)
 	if resolved_archetype != null:
 		return resolve_archetype_backend_entity_template(resolved_archetype)

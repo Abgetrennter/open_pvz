@@ -26,6 +26,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.explode": &"Payload",
 		&"core.apply_status": &"Payload",
 		&"core.spawn_entity": &"Payload",
+		&"core.invoke_effect": &"Payload",
 		&"core.bite": &"Controller",
 		&"core.sweep": &"Controller",
 		&"core.arming": &"State",
@@ -195,20 +196,100 @@ static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 		return []
 
 	var compiled: Array = []
-	if payload_mechanics.size() > 1:
+	var has_pairing_groups := false
+	for trigger_mechanic in trigger_mechanics:
+		if _binding_group_for_mechanic(trigger_mechanic) != StringName():
+			has_pairing_groups = true
+			break
+	if not has_pairing_groups:
+		for payload_mechanic in payload_mechanics:
+			if _binding_group_for_mechanic(payload_mechanic) != StringName():
+				has_pairing_groups = true
+				break
+	if payload_mechanics.size() > 1 and not has_pairing_groups:
 		normalized.warnings.append("Archetype %s compiles multiple payload mechanics per trigger (%d payloads)." % [String(archetype.archetype_id), payload_mechanics.size()])
+	if has_pairing_groups:
+		var keyed_triggers := _group_mechanics_by_binding_group(trigger_mechanics)
+		var keyed_payloads := _group_mechanics_by_binding_group(payload_mechanics)
+		var group_keys: Dictionary = {}
+		for group_key in keyed_triggers.keys():
+			group_keys[group_key] = true
+		for group_key in keyed_payloads.keys():
+			group_keys[group_key] = true
+		for group_key in group_keys.keys():
+			var grouped_triggers: Array = Array(keyed_triggers.get(group_key, []))
+			var grouped_payloads: Array = Array(keyed_payloads.get(group_key, []))
+			if grouped_triggers.is_empty() or grouped_payloads.is_empty():
+				if StringName(group_key) != StringName():
+					normalized.warnings.append("Archetype %s has unmatched trigger/payload binding_group %s." % [String(archetype.archetype_id), String(group_key)])
+				continue
+			if grouped_payloads.size() > 1 and StringName(group_key) == StringName():
+				normalized.warnings.append("Archetype %s compiles multiple ungrouped payload mechanics per trigger (%d payloads)." % [String(archetype.archetype_id), grouped_payloads.size()])
+			_compile_binding_pairs(
+				archetype,
+				grouped_triggers,
+				grouped_payloads,
+				targeting_params,
+				trajectory_params,
+				hit_policy_params,
+				emission_params,
+				normalized.merged_params,
+				compiled
+			)
+		return compiled
+	_compile_binding_pairs(
+		archetype,
+		trigger_mechanics,
+		payload_mechanics,
+		targeting_params,
+		trajectory_params,
+		hit_policy_params,
+		emission_params,
+		normalized.merged_params,
+		compiled
+	)
+	return compiled
 
+
+static func _compile_binding_pairs(
+	archetype,
+	trigger_mechanics: Array,
+	payload_mechanics: Array,
+	targeting_params: Dictionary,
+	trajectory_params: Dictionary,
+	hit_policy_params: Dictionary,
+	emission_params: Dictionary,
+	merged_params: Dictionary,
+	compiled: Array
+) -> void:
 	for trigger_mechanic in trigger_mechanics:
 		for payload_mechanic in payload_mechanics:
 			var trigger_binding = _build_binding_from_mechanics(archetype, trigger_mechanic, payload_mechanic)
 			if trigger_binding == null:
 				continue
-			_inject_targeting(trigger_binding, targeting_params, normalized.merged_params)
+			_inject_targeting(trigger_binding, targeting_params, merged_params)
 			_inject_trajectory(trigger_binding, trajectory_params)
 			_inject_hit_policy(trigger_binding, hit_policy_params)
 			_inject_emission(trigger_binding, emission_params)
 			compiled.append(trigger_binding)
-	return compiled
+
+
+static func _group_mechanics_by_binding_group(mechanics: Array) -> Dictionary:
+	var grouped := {}
+	for mechanic in mechanics:
+		var binding_group := _binding_group_for_mechanic(mechanic)
+		if not grouped.has(binding_group):
+			grouped[binding_group] = []
+		grouped[binding_group].append(mechanic)
+	return grouped
+
+
+static func _binding_group_for_mechanic(mechanic) -> StringName:
+	if mechanic == null or not (mechanic is CombatMechanicRef):
+		return StringName()
+	if not (mechanic.params is Dictionary):
+		return StringName()
+	return StringName(mechanic.params.get("binding_group", StringName()))
 
 
 static func _build_binding_from_mechanics(archetype, trigger_mechanic, payload_mechanic):
@@ -229,9 +310,19 @@ static func _build_binding_from_mechanics(archetype, trigger_mechanic, payload_m
 	var trigger_id := StringName(trigger_mapping.get("trigger_id", StringName()))
 	binding.trigger_id = trigger_id
 	binding.event_name = StringName(trigger_mapping.get("event_name", StringName()))
-	binding.condition_values = _merge_trigger_condition_values(trigger_id, Dictionary(trigger_mechanic.params).duplicate(true), archetype.default_params)
-	binding.effect_id = StringName(payload_mapping.get("effect_id", StringName()))
+	var trigger_params := Dictionary(trigger_mechanic.params).duplicate(true)
+	_strip_compile_only_params(trigger_params)
+	binding.condition_values = _merge_trigger_condition_values(trigger_id, trigger_params, archetype.default_params)
 	var payload_params := Dictionary(payload_mechanic.params).duplicate(true)
+	_strip_compile_only_params(payload_params)
+	var effect_id := StringName(payload_mapping.get("effect_id", StringName()))
+	var effect_id_param := StringName(payload_mapping.get("effect_id_param", StringName()))
+	if effect_id == StringName() and effect_id_param != StringName():
+		effect_id = StringName(payload_params.get(String(effect_id_param), StringName()))
+		payload_params.erase(String(effect_id_param))
+	if effect_id == StringName():
+		return null
+	binding.effect_id = effect_id
 	if payload_params.has("on_hit_effect_id"):
 		binding.on_hit_effect_id = StringName(payload_params["on_hit_effect_id"])
 		payload_params.erase("on_hit_effect_id")
@@ -240,6 +331,12 @@ static func _build_binding_from_mechanics(archetype, trigger_mechanic, payload_m
 		payload_params.erase("on_hit_effect_params")
 	binding.effect_params = payload_params
 	return binding
+
+
+static func _strip_compile_only_params(params: Dictionary) -> void:
+	for compile_only_key in [&"binding_group"]:
+		params.erase(String(compile_only_key))
+		params.erase(compile_only_key)
 
 
 static func _merge_trigger_condition_values(trigger_id: StringName, base_conditions: Dictionary, merged_params: Dictionary) -> Dictionary:
@@ -371,6 +468,8 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"apply_status"}
 		&"core.spawn_entity":
 			return {"effect_id": &"spawn_entity"}
+		&"core.invoke_effect":
+			return {"effect_id_param": &"effect_id"}
 		_:
 			return {}
 

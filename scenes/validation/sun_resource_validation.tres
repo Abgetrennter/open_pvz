@@ -9,7 +9,6 @@
 [sub_resource type="Resource" id="BattleSpawnEntry_sunflower_proxy"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_sunflower"
-entity_template_id = &"plant_sunflower"
 lane_id = 0
 x_position = 160.0
 spawn_overrides = {

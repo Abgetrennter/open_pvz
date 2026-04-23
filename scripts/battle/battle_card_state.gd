@@ -166,7 +166,6 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 			"slot_type": slot_type,
 			"slot_tags": slot_tags,
 			"archetype_id": StringName(card_def.get("archetype_id")),
-			"entity_template_id": StringName(card_def.get("entity_template_id")),
 		})
 	var cooldown_seconds := float(card_def.get("cooldown_seconds"))
 	_cooldown_ready_times[card_id] = game_time + maxf(cooldown_seconds, 0.0)
@@ -203,7 +202,6 @@ func _build_placement_request(card_id: StringName, lane_id: int, slot_index: int
 	request.card_id = card_id
 	request.source_id = &"card_runtime"
 	request.archetype_id = StringName(card_def.get("archetype_id"))
-	request.entity_template_id = StringName(card_def.get("entity_template_id"))
 	request.lane_id = lane_id
 	request.slot_index = slot_index
 	var placement_tags: Variant = card_def.get("placement_tags")
@@ -226,18 +224,7 @@ func _resolve_entity_template_from_card(card_def: Resource):
 		var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
 		if archetype is CombatArchetypeRef:
 			return CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
-	return _resolve_entity_template(StringName(card_def.get("entity_template_id")))
-
-
-func _resolve_entity_template(entity_template_id: StringName):
-	if entity_template_id == StringName():
-		return null
-	if not SceneRegistry.has_entity_template(entity_template_id):
-		return null
-	var entity_template: Resource = SceneRegistry.get_entity_template(entity_template_id)
-	if entity_template == null or entity_template.get_script() != EntityTemplateRef:
-		return null
-	return entity_template
+	return null
 
 
 func _resolve_placement_tags_from_archetype_or_template(card_def: Resource) -> PackedStringArray:

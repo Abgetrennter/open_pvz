@@ -33,7 +33,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_target_lane0"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_lane_dummy"
-entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 320.0
 spawn_overrides = {
@@ -43,7 +42,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_target_lane1"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_lane_dummy"
-entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 360.0
 spawn_overrides = {

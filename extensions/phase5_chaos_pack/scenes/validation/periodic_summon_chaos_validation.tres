@@ -7,14 +7,12 @@
 [sub_resource type="Resource" id="Spawn_summoner"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_extension_summoner"
-entity_template_id = &"plant_extension_summoner"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_tank_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_bucket_tank"
-entity_template_id = &"zombie_bucket_tank"
 lane_id = 0
 x_position = 650.0
 

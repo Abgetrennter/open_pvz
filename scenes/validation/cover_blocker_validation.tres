@@ -10,7 +10,6 @@ script = ExtResource("2_card_def")
 card_id = &"primary_card"
 display_name = "Primary Card"
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 sun_cost = 25
 cooldown_seconds = 0.0
 
@@ -19,7 +18,6 @@ script = ExtResource("2_card_def")
 card_id = &"cover_card"
 display_name = "Cover Card"
 archetype_id = &"archetype_pumpkin_cover"
-entity_template_id = &"plant_pumpkin_cover"
 sun_cost = 25
 cooldown_seconds = 0.0
 
@@ -28,7 +26,6 @@ script = ExtResource("2_card_def")
 card_id = &"blocker_card"
 display_name = "Blocker Card"
 archetype_id = &"archetype_tombstone_blocker"
-entity_template_id = &"plant_tombstone_blocker"
 sun_cost = 25
 cooldown_seconds = 0.0
 

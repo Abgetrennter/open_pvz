@@ -7,7 +7,6 @@
 [sub_resource type="Resource" id="Spawn_cabbage_lobber"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_cabbage_lobber"
-entity_template_id = &"plant_cabbage_lobber"
 lane_id = 0
 x_position = 160.0
 spawn_overrides = {
@@ -18,14 +17,12 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_bucket_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_bucket_tank"
-entity_template_id = &"zombie_bucket_tank"
 lane_id = 0
 x_position = 480.0
 
 [sub_resource type="Resource" id="Spawn_melon_lobber"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_melon_lobber"
-entity_template_id = &"plant_melon_lobber"
 lane_id = 1
 x_position = 160.0
 spawn_overrides = {
@@ -36,7 +33,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_cluster_target_a"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 1
 x_position = 520.0
 spawn_overrides = {
@@ -46,7 +42,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_cluster_target_b"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
-entity_template_id = &"zombie_brisk_runner"
 lane_id = 1
 x_position = 580.0
 spawn_overrides = {

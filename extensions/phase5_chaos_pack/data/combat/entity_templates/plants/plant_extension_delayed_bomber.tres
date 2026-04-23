@@ -1,10 +1,9 @@
-[gd_resource type="Resource" script_class="EntityTemplate" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
 [ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="3_profile"]
 [ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_linear.tres" id="4_projectile_template"]
-[ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/data/combat/trigger_bindings/plant_attack_extension_delayed_bomber.tres" id="5_binding"]
 
 [resource]
 script = ExtResource("1_template")
@@ -19,4 +18,4 @@ hitbox_size = Vector2(42, 54)
 hit_height_band = ExtResource("2_height")
 projectile_flight_profile = ExtResource("3_profile")
 projectile_template = ExtResource("4_projectile_template")
-trigger_bindings = [ExtResource("5_binding")]
+trigger_bindings = []

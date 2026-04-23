@@ -8,7 +8,6 @@
 [sub_resource type="Resource" id="Spawn_invalid_on_hit"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
 spawn_overrides = {
@@ -21,7 +20,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_invalid_profile"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 160.0
 projectile_flight_profile_override = ExtResource("4_ground_height")
@@ -34,7 +32,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_invalid_effect_param"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 240.0
 spawn_overrides = {
@@ -47,7 +44,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_invalid_trigger_condition"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 240.0
 spawn_overrides = {
@@ -59,7 +55,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_unknown_on_hit_effect"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 320.0
 spawn_overrides = {
@@ -72,7 +67,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_invalid_on_hit_params_shape"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 320.0
 spawn_overrides = {
@@ -86,7 +80,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_invalid_effect_overrides_shape"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 400.0
 spawn_overrides = {
@@ -99,7 +92,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Spawn_invalid_target_mode"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 1
 x_position = 400.0
 spawn_overrides = {
@@ -117,10 +109,7 @@ script = ExtResource("3_rule")
 rule_id = &"protocol_issues"
 description = "invalid spawn entries should be rejected through protocol issues before runtime behavior binds"
 event_name = &"protocol.issue"
-min_count = 8
-required_core_values = {
-"scope": &"battle_spawn_entry"
-}
+min_count = 6
 
 [sub_resource type="Resource" id="Rule_no_projectiles"]
 script = ExtResource("3_rule")

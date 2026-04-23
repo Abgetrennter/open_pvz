@@ -12,7 +12,7 @@
 |------|------|------|
 | `EventBus.gd` | -- (extends Node) | 事件分发中枢。支持优先级订阅、oneshot、过滤器、历史追踪（最多 256 条）。核心方法：`push_event()`, `subscribe()`, `subscribe_ex()` |
 | `GameState.gd` | -- (extends Node) | 游戏状态：当前战斗引用、游戏时间、实体 ID 分配器。核心方法：`begin_battle()`, `advance_time()`, `next_entity_id()` |
-| `SceneRegistry.gd` | -- (extends Node) | 资源注册表。自动扫描 `data/combat/` 下的 `.tres`，按 ID 属性索引。提供 `get_entity_template()`, `get_projectile_template()`, `get_trigger_binding()` 等 |
+| `SceneRegistry.gd` | -- (extends Node) | 资源注册表。自动扫描 `data/combat/` 下的 `.tres`，按 ID 属性索引。提供 `get_entity_template()`, `get_projectile_template()`, `get_archetype()` 等 |
 | `TriggerRegistry.gd` | -- (extends Node) | 触发器定义与策略注册。内置 3 个冻结触发器：`periodically`, `when_damaged`, `on_death`。策略为 lambda 函数 |
 | `EffectRegistry.gd` | -- (extends Node) | 效果定义与策略注册。内置 3 个冻结效果：`damage`, `spawn_projectile`, `explode`。策略为 lambda 函数 |
 | `DebugService.gd` | -- (extends Node) | 集中式调试日志。记录事件执行、触发器匹配、效果执行、协议问题 |

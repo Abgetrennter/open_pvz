@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.reactive_bomber.death_explode"
+display_name = "Reactive Bomber Death Explode"
+family = &"Payload"
+type_id = &"core.explode"
+priority = 20
+tags = PackedStringArray("reactive", "death", "explode")
+params = {
+"amount": 21,
+"binding_group": &"death_burst",
+"radius": 120.0,
+"target_mode": &"enemies_in_radius"
+}

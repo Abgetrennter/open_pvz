@@ -10,9 +10,6 @@ param_defs = [{
 "name": "archetype_id",
 "type": "string_name"
 }, {
-"name": "entity_template_id",
-"type": "string_name"
-}, {
 "name": "lane_id",
 "type": "int",
 "min": -1,

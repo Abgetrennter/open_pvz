@@ -7,28 +7,24 @@
 [sub_resource type="Resource" id="Spawn_splitter"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_extension_splitter"
-entity_template_id = &"plant_extension_splitter"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_front_tank"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_bucket_tank"
-entity_template_id = &"zombie_bucket_tank"
 lane_id = 0
 x_position = 500.0
 
 [sub_resource type="Resource" id="Spawn_split_target_a"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 610.0
 
 [sub_resource type="Resource" id="Spawn_split_target_b"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 700.0
 

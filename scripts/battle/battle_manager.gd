@@ -132,8 +132,8 @@ func spawn_entity_from_effect(context, params: Dictionary, metadata: Dictionary 
 	return _spawner.spawn_entity_from_effect(context, params, metadata)
 
 
-func spawn_card_entity(entity_template_id: StringName, lane_id: int, slot_index: int, metadata: Dictionary = {}) -> Node:
-	return _spawner.spawn_card_entity(entity_template_id, lane_id, slot_index, metadata)
+func spawn_card_entity(archetype_id: StringName, lane_id: int, slot_index: int, metadata: Dictionary = {}) -> Node:
+	return _spawner.spawn_card_entity(archetype_id, lane_id, slot_index, metadata)
 
 
 func spawn_card_actor(card_def: Resource, lane_id: int, slot_index: int, metadata: Dictionary = {}, emit_spawn_event: bool = false) -> Node:
@@ -281,12 +281,12 @@ func _build_default_scenario():
 	return build_default_scenario()
 
 
-func make_spawn_entry(entity_template_id: StringName, lane_id: int, x_position: float, params: Dictionary):
-	return _scenario_provider.make_spawn_entry(entity_template_id, lane_id, x_position, params)
+func make_spawn_entry(archetype_id: StringName, lane_id: int, x_position: float, params: Dictionary):
+	return _scenario_provider.make_spawn_entry(archetype_id, lane_id, x_position, params)
 
 
-func _make_spawn_entry(entity_template_id: StringName, lane_id: int, x_position: float, params: Dictionary):
-	return make_spawn_entry(entity_template_id, lane_id, x_position, params)
+func _make_spawn_entry(archetype_id: StringName, lane_id: int, x_position: float, params: Dictionary):
+	return make_spawn_entry(archetype_id, lane_id, x_position, params)
 
 
 func make_validation_rule(

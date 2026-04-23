@@ -7,14 +7,12 @@
 [sub_resource type="Resource" id="Spawn_protected_sunflower"]
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_sunflower"
-entity_template_id = &"plant_sunflower"
 lane_id = 0
 x_position = 220.0
 
 [sub_resource type="Resource" id="Spawn_bone_thrower"]
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_bone_thrower"
-entity_template_id = &"zombie_bone_thrower"
 lane_id = 0
 x_position = 300.0
 

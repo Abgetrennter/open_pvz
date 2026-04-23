@@ -10,8 +10,6 @@ This directory stores combat-facing Resource content for the runtime and validat
   - Flight and hit-strategy resources.
 - `projectile_templates/`
   - Projectile content templates.
-- `trigger_bindings/`
-  - Template behavior binding resources.
 - `cards/`
   - Formal card definitions and reusable card rosters.
 - `waves/`
@@ -30,7 +28,7 @@ This directory stores combat-facing Resource content for the runtime and validat
 - New entity templates must not be added back into a flat `templates/` directory.
 - `EntityTemplate` resources should be split by major entity kind at minimum.
 - `ProjectileTemplate` resources should describe the projectile itself, not the firing entity.
-- `TriggerBinding` resources should describe when a template triggers an effect, not long-lived entity stats.
+- `TriggerBinding` resources are legacy backend artifacts only and should not be used as formal authoring inputs.
 - Formal battle content should prefer `data/combat/*` trees over `scenes/validation` or `scenes/showcase`.
 - `scenes/validation/` is for verification scenarios.
 - `scenes/showcase/` is for display wrappers only.

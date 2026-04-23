@@ -7,7 +7,6 @@ script = ExtResource("1_card_def")
 card_id = &"card_spore_summoner"
 display_name = "Spore Summoner"
 archetype_id = &"archetype_spore_summoner"
-entity_template_id = &"plant_spore_summoner"
 sun_cost = 175
 cooldown_seconds = 8.0
 placement_tags = PackedStringArray("supports_primary")

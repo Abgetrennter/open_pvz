@@ -7,7 +7,6 @@
 [sub_resource type="Resource" id="Spawn_distant_walker"]
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 920.0
 

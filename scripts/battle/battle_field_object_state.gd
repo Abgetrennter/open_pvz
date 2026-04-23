@@ -5,8 +5,6 @@ const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
-const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
-const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 
 var battle: Node = null
 var _entity_factory: RefCounted = EntityFactoryRef.new()
@@ -87,36 +85,7 @@ func _spawn_field_object(config: Resource, scenario: Resource) -> void:
 		_field_objects.append(entity)
 		_emit_field_object_spawned(entity, lane_id, StringName(entity.get("template_id")), archetype_id)
 		return
-	var template_id := StringName(config.get("object_template_id"))
-	if template_id == StringName():
-		return
-	var entity_template = _resolve_template(template_id)
-	if entity_template == null:
-		return
-	var params: Dictionary = {}
-	if entity_template.default_params is Dictionary:
-		params = entity_template.default_params.duplicate(true)
-	for key: Variant in spawn_overrides.keys():
-		params[key] = spawn_overrides[key]
-	var entity = _entity_factory.instantiate_entity(&"field_object", position, entity_template, params)
-	if entity == null:
-		return
-	if entity.has_method("set_battle_ref"):
-		entity.call("set_battle_ref", battle)
-	battle.finalize_spawned_entity(entity, lane_id, entity_template.hit_height_band, [], null, {
-		"spawn_reason": &"field_object_spawn",
-	})
-	_field_objects.append(entity)
-	_emit_field_object_spawned(entity, lane_id, template_id)
-
-
-func _resolve_template(template_id: StringName):
-	if not SceneRegistry.has_entity_template(template_id):
-		return null
-	var registered_template = SceneRegistry.get_entity_template(template_id)
-	if registered_template != null and registered_template.get_script() == EntityTemplateRef:
-		return registered_template
-	return null
+	return
 
 
 func _build_spawn_position(lane_id: int, x_position: float) -> Vector2:

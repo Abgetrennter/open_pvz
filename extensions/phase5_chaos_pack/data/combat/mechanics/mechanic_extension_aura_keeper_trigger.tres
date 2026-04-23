@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"phase5.extension_aura_keeper.trigger"
+display_name = "Extension Aura Keeper Trigger"
+family = &"Trigger"
+type_id = &"core.periodic"
+priority = 10
+tags = PackedStringArray("extension", "aura", "trigger")
+params = {
+"detection_id": &"always",
+"interval": 0.25
+}

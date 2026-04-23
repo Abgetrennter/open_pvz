@@ -11,7 +11,6 @@
 [sub_resource type="Resource" id="BattleSpawnEntry_linear"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
 spawn_overrides = {
@@ -23,7 +22,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="BattleSpawnEntry_track"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_track_bomber"
-entity_template_id = &"plant_track_bomber"
 lane_id = 0
 x_position = 250.0
 spawn_overrides = {
@@ -37,7 +35,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="BattleSpawnEntry_parabola"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_cabbage_lobber"
-entity_template_id = &"plant_cabbage_lobber"
 lane_id = 1
 x_position = 160.0
 projectile_flight_profile_override = ExtResource("7_parabola_profile")
@@ -51,7 +48,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_a"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_reactive_bomber"
-entity_template_id = &"zombie_reactive_bomber"
 lane_id = 0
 x_position = 330.0
 spawn_overrides = {
@@ -61,14 +57,12 @@ spawn_overrides = {
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_b"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_lane_dummy"
-entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 650.0
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_c"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_lane_dummy"
-entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 520.0
 
