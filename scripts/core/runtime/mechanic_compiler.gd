@@ -107,6 +107,8 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 		runtime_spec.entity_kind = backend_template.entity_kind
 	runtime_spec.display_name = archetype.display_name
 	runtime_spec.tags = archetype.tags
+	runtime_spec.required_components = PackedStringArray(archetype.required_components)
+	runtime_spec.optional_components = PackedStringArray(archetype.optional_components)
 	runtime_spec.backend_entity_template = backend_template
 	runtime_spec.params = normalized.merged_params.duplicate(true)
 	runtime_spec.hit_height_band = _resolve_hit_height_band(archetype, backend_template)

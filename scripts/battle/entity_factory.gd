@@ -310,6 +310,8 @@ func _resolve_max_health(entity_kind: StringName, template = null, params: Dicti
 		return int(params.get("max_health", default_value))
 	if template is EntityTemplateRef and int(template.max_health) > 0:
 		return int(template.max_health)
+	if template is CombatArchetypeRef and int(template.max_health) > 0:
+		return int(template.max_health)
 	return default_value
 
 
@@ -318,6 +320,8 @@ func _resolve_hitbox_size(entity_kind: StringName, template = null, params: Dict
 	if params.has("hitbox_size") and params["hitbox_size"] is Vector2:
 		return params["hitbox_size"]
 	if template is EntityTemplateRef and template.hitbox_size != Vector2.ZERO:
+		return template.hitbox_size
+	if template is CombatArchetypeRef and template.hitbox_size != Vector2.ZERO:
 		return template.hitbox_size
 	return default_value
 
@@ -652,9 +656,12 @@ func _apply_projectile_property_overrides(projectile: Node, projectile_template,
 
 
 func _ensure_required_template_components(entity: Node, template) -> void:
-	if entity == null or not (template is EntityTemplateRef):
+	if entity == null or template == null:
 		return
-	for component_name in template.required_components:
+	var required_components: PackedStringArray = PackedStringArray()
+	if template is EntityTemplateRef or template is CombatArchetypeRef:
+		required_components = PackedStringArray(template.required_components)
+	for component_name in required_components:
 		match String(component_name):
 			"TriggerComponent":
 				_ensure_named_child(entity, "TriggerComponent", func(): return _make_trigger_component())
@@ -687,6 +694,12 @@ func _make_minimal_archetype_for_root(runtime_spec) -> Resource:
 	archetype.root_scene = runtime_spec.root_scene
 	archetype.archetype_id = runtime_spec.source_archetype_id
 	archetype.entity_kind = runtime_spec.entity_kind
+	archetype.display_name = runtime_spec.display_name
+	archetype.tags = PackedStringArray(runtime_spec.tags)
+	archetype.required_components = PackedStringArray(runtime_spec.required_components)
+	archetype.optional_components = PackedStringArray(runtime_spec.optional_components)
+	archetype.max_health = runtime_spec.max_health
+	archetype.hitbox_size = runtime_spec.hitbox_size
 	return archetype
 
 

@@ -4,8 +4,6 @@ class_name BattleCardState
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const BattlePlacementRequestRef = preload("res://scripts/battle/placement_request.gd")
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
-const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
-const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 
 var battle: Node = null
 var board_slot_count := 5
@@ -210,34 +208,27 @@ func _build_placement_request(card_id: StringName, lane_id: int, slot_index: int
 		var resolved_tags := _resolve_placement_tags_from_archetype_or_template(card_def)
 		if not resolved_tags.is_empty():
 			request.placement_tags = resolved_tags
-	var entity_template: Resource = _resolve_entity_template_from_card(card_def)
-	if entity_template != null:
-		request.placement_role = StringName(entity_template.get("placement_role"))
+	var archetype = _resolve_archetype_from_card(card_def)
+	if archetype != null:
+		request.placement_role = StringName(archetype.get("placement_role"))
 		if request.placement_tags.is_empty():
-			request.placement_tags = PackedStringArray(entity_template.get("required_placement_tags"))
+			request.placement_tags = PackedStringArray(archetype.get("required_placement_tags"))
 	return request
 
 
-func _resolve_entity_template_from_card(card_def: Resource):
+func _resolve_archetype_from_card(card_def: Resource):
 	var archetype_id := StringName(card_def.get("archetype_id"))
 	if archetype_id != StringName() and SceneRegistry.has_archetype(archetype_id):
 		var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
 		if archetype is CombatArchetypeRef:
-			return CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
+			return archetype
 	return null
 
 
 func _resolve_placement_tags_from_archetype_or_template(card_def: Resource) -> PackedStringArray:
-	var archetype_id := StringName(card_def.get("archetype_id"))
-	if archetype_id != StringName() and SceneRegistry.has_archetype(archetype_id):
-		var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
-		if archetype != null:
-			var tags := PackedStringArray(archetype.required_placement_tags)
-			if tags != PackedStringArray(["supports_primary"]) and not tags.is_empty():
-				return tags
-			var backend: Resource = CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
-			if backend != null and backend.get_script() == EntityTemplateRef:
-				var backend_tags := PackedStringArray(backend.get("required_placement_tags"))
-				if not backend_tags.is_empty():
-					return backend_tags
+	var archetype = _resolve_archetype_from_card(card_def)
+	if archetype != null:
+		var tags := PackedStringArray(archetype.required_placement_tags)
+		if not tags.is_empty():
+			return tags
 	return PackedStringArray()
