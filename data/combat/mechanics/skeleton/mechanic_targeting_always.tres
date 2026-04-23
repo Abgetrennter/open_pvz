@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.targeting_always"
+display_name = "Targeting Always"
+family = &"Targeting"
+type_id = &"core.always_target"
+priority = 5
+tags = PackedStringArray("skeleton", "targeting", "always")
+params = {
+"detection_id": &"always"
+}

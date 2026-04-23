@@ -192,24 +192,25 @@ func _placement_reason(request: Resource) -> StringName:
 	var template: Resource = _resolve_entity_template(request)
 	if template == null:
 		return &"template_missing"
-	if template.get_script() == EntityTemplateRef and String(template.get("entity_kind")) == "plant":
+	var placement_constraints := _resolve_placement_constraints(request, template)
+	if String(placement_constraints.get("entity_kind")) == "plant":
 		var placement_role := _resolve_placement_role(request)
 		if placement_role == StringName():
 			return &"missing_placement_role"
-		var allowed_slot_types := PackedStringArray(template.get("allowed_slot_types"))
+		var allowed_slot_types: PackedStringArray = placement_constraints.get("allowed_slot_types", PackedStringArray())
 		if not allowed_slot_types.is_empty() and not allowed_slot_types.has(slot.slot_type):
 			return &"template_slot_type_mismatch"
-		var required_placement_tags := PackedStringArray(template.get("required_placement_tags"))
+		var required_placement_tags: PackedStringArray = placement_constraints.get("required_placement_tags", PackedStringArray())
 		for required_tag in required_placement_tags:
 			if not effective_tags.has(required_tag):
 				return &"template_tag_mismatch"
-		var required_present_roles := PackedStringArray(template.get("required_present_roles"))
+		var required_present_roles: PackedStringArray = placement_constraints.get("required_present_roles", PackedStringArray())
 		for required_role in required_present_roles:
 			if not slot.is_role_occupied(required_role):
 				return &"required_present_role_missing"
 		if slot.is_role_occupied(placement_role):
 			return &"placement_role_occupied"
-		var required_empty_roles := PackedStringArray(template.get("required_empty_roles"))
+		var required_empty_roles: PackedStringArray = placement_constraints.get("required_empty_roles", PackedStringArray())
 		for required_empty_role in required_empty_roles:
 			if slot.is_role_occupied(required_empty_role):
 				return &"required_empty_role_occupied"
@@ -279,16 +280,60 @@ func _resolve_entity_template(request: Resource) -> Resource:
 	return SceneRegistry.get_entity_template(entity_template_id)
 
 
+func _resolve_archetype(request: Resource) -> Resource:
+	var archetype_id := StringName(request.get("archetype_id"))
+	if archetype_id == StringName():
+		return null
+	if not SceneRegistry.has_archetype(archetype_id):
+		return null
+	var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
+	if archetype is CombatArchetypeRef:
+		return archetype
+	return null
+
+
+func _resolve_placement_constraints(request: Resource, template: Resource) -> Dictionary:
+	var template_constraints := _extract_template_placement(template)
+	var archetype: Resource = _resolve_archetype(request)
+	if archetype == null:
+		return template_constraints
+	var has_explicit_placement := not PackedStringArray(archetype.allowed_slot_types).is_empty() or PackedStringArray(archetype.required_placement_tags) != PackedStringArray(["supports_primary"]) or not PackedStringArray(archetype.granted_placement_tags).is_empty()
+	if has_explicit_placement:
+		return {
+			"entity_kind": StringName(archetype.entity_kind) if StringName(archetype.entity_kind) != StringName() else template_constraints.get("entity_kind", StringName()),
+			"allowed_slot_types": PackedStringArray(archetype.allowed_slot_types),
+			"required_placement_tags": PackedStringArray(archetype.required_placement_tags),
+			"granted_placement_tags": PackedStringArray(archetype.granted_placement_tags),
+			"placement_role": StringName(archetype.placement_role),
+			"required_present_roles": PackedStringArray(archetype.required_present_roles),
+			"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
+		}
+	return template_constraints
+
+
+func _extract_template_placement(template: Resource) -> Dictionary:
+	if template != null and template.get_script() == EntityTemplateRef:
+		return {
+			"entity_kind": StringName(template.get("entity_kind")),
+			"allowed_slot_types": PackedStringArray(template.get("allowed_slot_types")),
+			"required_placement_tags": PackedStringArray(template.get("required_placement_tags")),
+			"granted_placement_tags": PackedStringArray(template.get("granted_placement_tags")),
+			"placement_role": StringName(template.get("placement_role")),
+			"required_present_roles": PackedStringArray(template.get("required_present_roles")),
+			"required_empty_roles": PackedStringArray(template.get("required_empty_roles")),
+		}
+	return {"entity_kind": StringName()}
+
+
 func _append_template_constraint_fields(core: Dictionary, request: Resource) -> void:
 	var template: Resource = _resolve_entity_template(request)
-	if template == null or template.get_script() != EntityTemplateRef:
-		return
+	var constraints := _resolve_placement_constraints(request, template)
 	core["placement_role"] = _resolve_placement_role(request)
-	core["template_allowed_slot_types"] = PackedStringArray(template.get("allowed_slot_types"))
-	core["template_required_placement_tags"] = PackedStringArray(template.get("required_placement_tags"))
-	core["template_granted_placement_tags"] = PackedStringArray(template.get("granted_placement_tags"))
-	core["template_required_present_roles"] = PackedStringArray(template.get("required_present_roles"))
-	core["template_required_empty_roles"] = PackedStringArray(template.get("required_empty_roles"))
+	core["template_allowed_slot_types"] = constraints.get("allowed_slot_types", PackedStringArray())
+	core["template_required_placement_tags"] = constraints.get("required_placement_tags", PackedStringArray())
+	core["template_granted_placement_tags"] = constraints.get("granted_placement_tags", PackedStringArray())
+	core["template_required_present_roles"] = constraints.get("required_present_roles", PackedStringArray())
+	core["template_required_empty_roles"] = constraints.get("required_empty_roles", PackedStringArray())
 
 
 func _resolve_placement_role(request: Resource) -> StringName:
@@ -297,13 +342,19 @@ func _resolve_placement_role(request: Resource) -> StringName:
 	var explicit_role := StringName(request.get("placement_role"))
 	if explicit_role != StringName():
 		return explicit_role
+	var archetype: Resource = _resolve_archetype(request)
+	if archetype != null and StringName(archetype.placement_role) != &"primary":
+		return StringName(archetype.placement_role)
 	var template: Resource = _resolve_entity_template(request)
-	if template == null or template.get_script() != EntityTemplateRef:
-		return StringName()
-	return StringName(template.get("placement_role"))
+	if template != null and template.get_script() == EntityTemplateRef:
+		return StringName(template.get("placement_role"))
+	return &"primary"
 
 
 func _resolve_granted_placement_tags(request: Resource) -> PackedStringArray:
+	var archetype: Resource = _resolve_archetype(request)
+	if archetype != null and not PackedStringArray(archetype.granted_placement_tags).is_empty():
+		return PackedStringArray(archetype.granted_placement_tags)
 	var template: Resource = _resolve_entity_template(request)
 	if template == null or template.get_script() != EntityTemplateRef:
 		return PackedStringArray()

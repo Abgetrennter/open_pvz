@@ -31,25 +31,39 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 	elif context.source_node != null and context.source_node is Node2D:
 		spawn_position = context.source_node.global_position + direction.normalized() * 34.0
 
-	var projectile_template = resolved_params.get("projectile_template", null)
-	var projectile: Variant = _entity_factory.create_projectile(spawn_position, projectile_template, resolved_params)
-	var speed := float(resolved_params.get("speed", 300.0))
-	var damage := int(resolved_params.get("damage", 10))
-	var movement_params: Dictionary = resolver.build_projectile_movement_params(
-		context,
-		resolved_params,
-		spawn_position,
-		direction,
-		speed
-	)
-	projectile.launch(direction, speed, context.source_node, on_hit_effect, damage, movement_params, {
-		"depth": int(context.runtime.get("depth", context.depth)),
-		"chain_id": context.chain_id,
-		"origin_event_name": context.event_name,
-	})
-	var entity_root: Node2D = _battle.get_entity_root()
-	entity_root.add_child(projectile)
-	return projectile
+	var burst_count := int(resolved_params.get("burst_count", 1))
+	var spread_count := int(resolved_params.get("spread_count", 1))
+	var spread_angle_deg := float(resolved_params.get("spread_angle", 0.0))
+	var total_emissions := maxi(burst_count, 1) * maxi(spread_count, 1)
+	var first_projectile: Node = null
+	var base_angle := direction.angle()
+	for burst_i in range(maxi(burst_count, 1)):
+		for spread_i in range(maxi(spread_count, 1)):
+			var spread_offset := 0.0
+			if spread_count > 1:
+				spread_offset = deg_to_rad(spread_angle_deg) * (float(spread_i) - float(spread_count - 1) / 2.0)
+			var emission_dir := Vector2.from_angle(base_angle + spread_offset)
+			var projectile_template = resolved_params.get("projectile_template", null)
+			var projectile: Variant = _entity_factory.create_projectile(spawn_position, projectile_template, resolved_params)
+			var speed := float(resolved_params.get("speed", 300.0))
+			var damage := int(resolved_params.get("damage", 10))
+			var movement_params: Dictionary = resolver.build_projectile_movement_params(
+				context,
+				resolved_params,
+				spawn_position,
+				emission_dir,
+				speed
+			)
+			projectile.launch(emission_dir, speed, context.source_node, on_hit_effect, damage, movement_params, {
+				"depth": int(context.runtime.get("depth", context.depth)),
+				"chain_id": context.chain_id,
+				"origin_event_name": context.event_name,
+			})
+			var entity_root: Node2D = _battle.get_entity_root()
+			entity_root.add_child(projectile)
+			if first_projectile == null:
+				first_projectile = projectile
+	return first_projectile
 
 
 func spawn_entity_from_effect(context, params: Dictionary, metadata: Dictionary = {}) -> Node:

@@ -185,6 +185,38 @@ func _register_builtin_defs() -> void:
 		"name": "projectile_template",
 		"type": "resource",
 		"resource_script": ProjectileTemplatePath,
+	}, {
+		"name": "hit_strategy",
+		"type": "string_name",
+		"options": PackedStringArray(["overlap", "swept_segment", "terminal_hitbox", "terminal_radius", "overlap_and_terminal_hitbox", "overlap_and_terminal_radius", "swept_segment_and_terminal_hitbox", "swept_segment_and_terminal_radius"]),
+	}, {
+		"name": "terminal_hit_strategy",
+		"type": "string_name",
+		"options": PackedStringArray(["impact_hitbox", "impact_radius", "none"]),
+	}, {
+		"name": "burst_count",
+		"type": "int",
+		"min": 1,
+		"max": 20,
+		"default": 1,
+	}, {
+		"name": "burst_interval",
+		"type": "float",
+		"min": 0.0,
+		"max": 1.0,
+		"default": 0.08,
+	}, {
+		"name": "spread_count",
+		"type": "int",
+		"min": 1,
+		"max": 20,
+		"default": 1,
+	}, {
+		"name": "spread_angle",
+		"type": "float",
+		"min": 0.0,
+		"max": 90.0,
+		"default": 15.0,
 	}]
 	spawn_projectile.param_defs = spawn_projectile_param_defs
 	var on_hit_slot = EffectSlotDefRef.new()

@@ -63,6 +63,14 @@ func build_projectile_movement_params(
 			ignored_ids.append(int(raw_id))
 		movement_params["ignored_entity_ids"] = ignored_ids
 	var move_mode: StringName = movement_params["move_mode"]
+	var hit_strategy_default: Variant = movement_params.get("hit_strategy", &"")
+	movement_params["hit_strategy"] = StringName(params.get("hit_strategy", hit_strategy_default))
+	var terminal_default: Variant = movement_params.get("terminal_hit_strategy", &"")
+	movement_params["terminal_hit_strategy"] = StringName(params.get("terminal_hit_strategy", terminal_default))
+	if params.has("impact_radius"):
+		movement_params["impact_radius"] = float(params.get("impact_radius"))
+	if params.has("collision_padding"):
+		movement_params["collision_padding"] = float(params.get("collision_padding"))
 
 	match move_mode:
 		&"parabola":

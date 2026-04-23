@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.hit_policy_overlap"
+display_name = "Hit Policy Overlap"
+family = &"HitPolicy"
+type_id = &"core.overlap"
+priority = 20
+tags = PackedStringArray("skeleton", "hit_policy", "overlap")
+params = {
+"hit_strategy": &"overlap"
+}

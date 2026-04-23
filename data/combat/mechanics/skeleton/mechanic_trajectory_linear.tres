@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.trajectory_linear"
+display_name = "Trajectory Linear"
+family = &"Trajectory"
+type_id = &"core.linear"
+priority = 15
+tags = PackedStringArray("skeleton", "trajectory", "linear")
+params = {
+"movement_mode": &"linear"
+}

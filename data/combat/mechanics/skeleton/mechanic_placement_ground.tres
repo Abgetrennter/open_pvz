@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.placement_ground"
+display_name = "Placement Ground"
+family = &"Placement"
+type_id = &"core.ground_slot"
+priority = 1
+tags = PackedStringArray("skeleton", "placement", "ground")
+params = {
+"slot_type": &"ground",
+"required_placement_tags": ["supports_primary"],
+"placement_role": &"primary",
+"required_empty_roles": ["blocker"]
+}

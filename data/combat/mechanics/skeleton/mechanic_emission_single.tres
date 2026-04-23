@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.emission_single"
+display_name = "Emission Single"
+family = &"Emission"
+type_id = &"core.single"
+priority = 12
+tags = PackedStringArray("skeleton", "emission", "single")
+params = {
+"burst_count": 1
+}

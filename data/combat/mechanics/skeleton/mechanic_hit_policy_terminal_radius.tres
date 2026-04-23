@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.hit_policy_terminal_radius"
+display_name = "Hit Policy Terminal Radius"
+family = &"HitPolicy"
+type_id = &"core.terminal_radius"
+priority = 20
+tags = PackedStringArray("skeleton", "hit_policy", "terminal", "radius")
+params = {
+"hit_strategy": &"terminal_radius",
+"terminal_hit_strategy": &"impact_radius",
+"impact_radius": 36.0
+}

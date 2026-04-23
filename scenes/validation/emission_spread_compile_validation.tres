@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_spread_shooter"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_spread_shooter_skeleton"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 0.5,
+"scan_range": 900.0,
+"speed": 320.0
+}
+
+[sub_resource type="Resource" id="Spawn_target_dummy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 800.0
+spawn_overrides = {
+"max_health": 200
+}
+
+[sub_resource type="Resource" id="Rule_spread_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"spread_spawned"
+description = "spread shooter should spawn with archetype identity"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_spread_shooter_skeleton",
+"target_kind": &"plant"
+}
+
+[sub_resource type="Resource" id="Rule_spread_projectiles"]
+script = ExtResource("3_rule")
+rule_id = &"spread_projectiles"
+description = "spread emission should spawn multiple projectiles"
+event_name = &"projectile.hit"
+required_core_values = {
+"source_archetype_id": &"archetype_spread_shooter_skeleton"
+}
+min_count = 2
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"emission_spread_compile_validation"
+display_name = "Emission Spread Compile Validation"
+description = "Validates that an independent Emission spread mechanic spawns multiple projectiles in a fan pattern."
+goals = PackedStringArray("Verify the spread Emission mechanic injects spread_count/spread_angle into effect_params.", "Verify multiple projectiles spawn and hit.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_spread_spawned"), SubResource("Rule_spread_projectiles")]
+spawns = [SubResource("Spawn_spread_shooter"), SubResource("Spawn_target_dummy")]

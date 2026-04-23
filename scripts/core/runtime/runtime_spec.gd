@@ -21,6 +21,7 @@ var root_scene: PackedScene = null
 var max_health: int = -1
 var hitbox_size: Vector2 = Vector2.ZERO
 var notes: PackedStringArray = PackedStringArray()
+var placement_spec: Dictionary = {}
 
 
 func has_backend_entity_template() -> bool:

@@ -31,6 +31,24 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.arming": &"State",
 		&"core.growth": &"State",
 		&"core.rage": &"State",
+		&"core.lane_forward": &"Targeting",
+		&"core.lane_backward": &"Targeting",
+		&"core.always_target": &"Targeting",
+		&"core.linear": &"Trajectory",
+		&"core.parabola": &"Trajectory",
+		&"core.track": &"Trajectory",
+		&"core.swept_segment": &"HitPolicy",
+		&"core.terminal_hitbox": &"HitPolicy",
+		&"core.terminal_radius": &"HitPolicy",
+		&"core.overlap": &"HitPolicy",
+		&"core.single": &"Emission",
+		&"core.burst": &"Emission",
+		&"core.shuffle_cycle": &"Emission",
+		&"core.spread": &"Emission",
+		&"core.ground_slot": &"Placement",
+		&"core.water_slot": &"Placement",
+		&"core.roof_slot": &"Placement",
+		&"core.air_slot": &"Placement",
 	}
 	for type_id in type_specs.keys():
 		MechanicTypeRegistry.register_type(StringName(type_id), StringName(type_specs[type_id]), {
@@ -100,6 +118,7 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 	runtime_spec.compiled_trigger_bindings = _compile_trigger_payload_bindings(normalized, archetype)
 	runtime_spec.controller_specs = _compile_controller_specs(normalized, archetype)
 	runtime_spec.state_specs = _compile_state_specs(normalized, archetype)
+	runtime_spec.placement_spec = _compile_placement_spec(normalized, archetype)
 	runtime_spec.runtime_state_values = {
 		&"archetype_id": archetype.archetype_id,
 		&"mechanic_compiler_version": COMPILER_VERSION,
@@ -149,6 +168,10 @@ static func normalize_archetype(archetype, spawn_overrides: Dictionary = {}):
 static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 	var trigger_mechanics: Array = []
 	var payload_mechanics: Array = []
+	var targeting_params: Dictionary = {}
+	var trajectory_params: Dictionary = {}
+	var hit_policy_params: Dictionary = {}
+	var emission_params: Dictionary = {}
 	for mechanic in normalized.mechanics:
 		if not (mechanic is CombatMechanicRef):
 			continue
@@ -159,6 +182,14 @@ static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 				trigger_mechanics.append(mechanic)
 			CombatMechanicRef.FAMILY_PAYLOAD:
 				payload_mechanics.append(mechanic)
+			CombatMechanicRef.FAMILY_TARGETING:
+				_collect_mod_params(mechanic.params, targeting_params)
+			CombatMechanicRef.FAMILY_TRAJECTORY:
+				_collect_mod_params(mechanic.params, trajectory_params)
+			CombatMechanicRef.FAMILY_HIT_POLICY:
+				_collect_mod_params(mechanic.params, hit_policy_params)
+			CombatMechanicRef.FAMILY_EMISSION:
+				_collect_mod_params(mechanic.params, emission_params)
 
 	if trigger_mechanics.is_empty() or payload_mechanics.is_empty():
 		return []
@@ -170,8 +201,13 @@ static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 	for trigger_mechanic in trigger_mechanics:
 		for payload_mechanic in payload_mechanics:
 			var trigger_binding = _build_binding_from_mechanics(archetype, trigger_mechanic, payload_mechanic)
-			if trigger_binding != null:
-				compiled.append(trigger_binding)
+			if trigger_binding == null:
+				continue
+			_inject_targeting(trigger_binding, targeting_params, normalized.merged_params)
+			_inject_trajectory(trigger_binding, trajectory_params)
+			_inject_hit_policy(trigger_binding, hit_policy_params)
+			_inject_emission(trigger_binding, emission_params)
+			compiled.append(trigger_binding)
 	return compiled
 
 
@@ -220,6 +256,62 @@ static func _merge_trigger_condition_values(trigger_id: StringName, base_conditi
 			continue
 		merged[key_str] = merged_params[key]
 	return merged
+
+
+const _TARGETING_CONDITION_KEYS: Dictionary = {
+	&"detection_id": true,
+	&"scan_range": true,
+	&"required_state": true,
+	&"start_delay": true,
+}
+
+
+static func _collect_mod_params(mechanic_params: Dictionary, out_params: Dictionary) -> void:
+	if not (mechanic_params is Dictionary):
+		return
+	for key: Variant in mechanic_params.keys():
+		out_params[key] = mechanic_params[key]
+
+
+static func _inject_targeting(binding, targeting_params: Dictionary, merged_params: Dictionary) -> void:
+	if targeting_params.is_empty():
+		return
+	var trigger_id := StringName(binding.trigger_id)
+	var trigger_def = TriggerRegistry.get_def(trigger_id)
+	var condition_param_names: Dictionary = {}
+	if trigger_def != null:
+		for param_def in trigger_def.condition_params:
+			if not (param_def is Dictionary):
+				continue
+			var param_name := String(param_def.get("name", "")).strip_edges()
+			if not param_name.is_empty():
+				condition_param_names[param_name] = true
+	for key: Variant in _TARGETING_CONDITION_KEYS.keys():
+		if targeting_params.has(key):
+			binding.condition_values[key] = targeting_params[key]
+		elif merged_params.has(key) and condition_param_names.has(String(key)):
+			binding.condition_values[key] = merged_params[key]
+
+
+static func _inject_trajectory(binding, trajectory_params: Dictionary) -> void:
+	if trajectory_params.is_empty():
+		return
+	for key: Variant in trajectory_params.keys():
+		binding.effect_params[key] = trajectory_params[key]
+
+
+static func _inject_hit_policy(binding, hit_policy_params: Dictionary) -> void:
+	if hit_policy_params.is_empty():
+		return
+	for key: Variant in hit_policy_params.keys():
+		binding.effect_params[key] = hit_policy_params[key]
+
+
+static func _inject_emission(binding, emission_params: Dictionary) -> void:
+	if emission_params.is_empty():
+		return
+	for key: Variant in emission_params.keys():
+		binding.effect_params[key] = emission_params[key]
 
 
 static func _map_trigger_type(type_id: StringName) -> Dictionary:
@@ -282,6 +374,90 @@ static func _compile_controller_specs(normalized, archetype) -> Array:
 
 static func _compile_state_specs(normalized, archetype) -> Array:
 	return _compile_family_specs(normalized, archetype, CombatMechanicRef.FAMILY_STATE)
+
+
+static func _compile_placement_spec(normalized, archetype) -> Dictionary:
+	var placement_mechanics: Array = []
+	for mechanic in normalized.mechanics:
+		if mechanic is CombatMechanicRef and StringName(mechanic.family) == CombatMechanicRef.FAMILY_PLACEMENT:
+			placement_mechanics.append(mechanic)
+	if placement_mechanics.is_empty():
+		var slot_type := _resolve_archetype_slot_type(archetype)
+		if slot_type != StringName():
+			return {
+				"source": &"archetype_field",
+				"allowed_slot_types": PackedStringArray(archetype.allowed_slot_types),
+				"required_placement_tags": PackedStringArray(archetype.required_placement_tags),
+				"granted_placement_tags": PackedStringArray(archetype.granted_placement_tags),
+				"placement_role": StringName(archetype.placement_role),
+				"required_present_roles": PackedStringArray(archetype.required_present_roles),
+				"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
+				"slot_type_hint": slot_type,
+			}
+		return {}
+	var mechanic = placement_mechanics[0]
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	var slot_type_hint := StringName(params.get("slot_type", StringName()))
+	if slot_type_hint == StringName():
+		slot_type_hint = _slot_type_from_type_id(mechanic.type_id)
+	var allowed_slot_types: Variant = params.get("allowed_slot_types", archetype.allowed_slot_types)
+	if allowed_slot_types is PackedStringArray:
+		allowed_slot_types = PackedStringArray(allowed_slot_types)
+	elif allowed_slot_types is Array:
+		allowed_slot_types = PackedStringArray(allowed_slot_types)
+	else:
+		allowed_slot_types = PackedStringArray(archetype.allowed_slot_types)
+	var required_tags: Variant = params.get("required_placement_tags", archetype.required_placement_tags)
+	if required_tags is PackedStringArray:
+		required_tags = PackedStringArray(required_tags)
+	elif required_tags is Array:
+		required_tags = PackedStringArray(required_tags)
+	else:
+		required_tags = PackedStringArray(archetype.required_placement_tags)
+	var granted_tags: Variant = params.get("granted_placement_tags", archetype.granted_placement_tags)
+	if granted_tags is PackedStringArray:
+		granted_tags = PackedStringArray(granted_tags)
+	elif granted_tags is Array:
+		granted_tags = PackedStringArray(granted_tags)
+	else:
+		granted_tags = PackedStringArray(archetype.granted_placement_tags)
+	return {
+		"source": &"placement_mechanic",
+		"mechanic_id": StringName(mechanic.mechanic_id),
+		"allowed_slot_types": allowed_slot_types,
+		"required_placement_tags": required_tags,
+		"granted_placement_tags": granted_tags,
+		"placement_role": StringName(params.get("placement_role", archetype.placement_role)),
+		"required_present_roles": PackedStringArray(archetype.required_present_roles),
+		"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
+		"slot_type_hint": slot_type_hint,
+	}
+
+
+static func _resolve_archetype_slot_type(archetype) -> StringName:
+	if not archetype.allowed_slot_types.is_empty():
+		return StringName(archetype.allowed_slot_types[0])
+	if archetype.required_placement_tags.has(&"supports_air"):
+		return &"air"
+	if archetype.required_placement_tags.has(&"supports_roof"):
+		return &"roof"
+	if archetype.required_placement_tags.has(&"supports_water"):
+		return &"water"
+	return &"ground"
+
+
+static func _slot_type_from_type_id(type_id: StringName) -> StringName:
+	match type_id:
+		&"core.ground_slot":
+			return &"ground"
+		&"core.water_slot":
+			return &"water"
+		&"core.roof_slot":
+			return &"roof"
+		&"core.air_slot":
+			return &"air"
+		_:
+			return &"ground"
 
 
 static func _compile_family_specs(normalized, archetype, family_id: StringName) -> Array:

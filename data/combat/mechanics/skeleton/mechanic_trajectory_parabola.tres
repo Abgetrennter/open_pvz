@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.trajectory_parabola"
+display_name = "Trajectory Parabola"
+family = &"Trajectory"
+type_id = &"core.parabola"
+priority = 15
+tags = PackedStringArray("skeleton", "trajectory", "parabola")
+params = {
+"movement_mode": &"parabola",
+"arc_height": 72.0
+}

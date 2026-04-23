@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.hit_policy_swept_segment"
+display_name = "Hit Policy Swept Segment"
+family = &"HitPolicy"
+type_id = &"core.swept_segment"
+priority = 20
+tags = PackedStringArray("skeleton", "hit_policy", "swept_segment")
+params = {
+"hit_strategy": &"swept_segment"
+}

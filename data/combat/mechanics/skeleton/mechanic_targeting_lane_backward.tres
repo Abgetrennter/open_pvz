@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.targeting_lane_backward"
+display_name = "Targeting Lane Backward"
+family = &"Targeting"
+type_id = &"core.lane_backward"
+priority = 5
+tags = PackedStringArray("skeleton", "targeting", "lane", "backward")
+params = {
+"detection_id": &"lane_backward",
+"scan_range": 900.0
+}

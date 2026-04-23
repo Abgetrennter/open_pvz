@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_hit_policy_shooter"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_hit_policy_shooter_skeleton"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 0.5,
+"scan_range": 900.0,
+"speed": 320.0
+}
+
+[sub_resource type="Resource" id="Spawn_target_dummy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+entity_template_id = &"zombie_lane_dummy"
+lane_id = 0
+x_position = 800.0
+spawn_overrides = {
+"max_health": 40
+}
+
+[sub_resource type="Resource" id="Rule_hit_policy_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"hit_policy_spawned"
+description = "hit policy shooter should spawn with archetype identity"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_hit_policy_shooter_skeleton",
+"target_kind": &"plant"
+}
+
+[sub_resource type="Resource" id="Rule_hit_policy_damage"]
+script = ExtResource("3_rule")
+rule_id = &"hit_policy_damage"
+description = "hit policy mechanic should inject hit_strategy into effect_params and the projectile should hit and damage"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_hit_policy_shooter_skeleton",
+"target_template_id": &"zombie_lane_dummy",
+"target_kind": &"zombie"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"hit_policy_compile_validation"
+display_name = "Hit Policy Compile Validation"
+description = "Validates that an independent HitPolicy mechanic compiles hit_strategy into effect_params and the projectile damages the target."
+goals = PackedStringArray("Verify the HitPolicy mechanic injects hit_strategy into the compiled binding effect_params.", "Verify the projectile damages the target.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_hit_policy_spawned"), SubResource("Rule_hit_policy_damage")]
+spawns = [SubResource("Spawn_hit_policy_shooter"), SubResource("Spawn_target_dummy")]

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.emission_spread"
+display_name = "Emission Spread"
+family = &"Emission"
+type_id = &"core.spread"
+priority = 12
+tags = PackedStringArray("skeleton", "emission", "spread")
+params = {
+"spread_count": 3,
+"spread_angle": 15.0
+}

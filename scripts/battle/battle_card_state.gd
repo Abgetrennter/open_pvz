@@ -208,6 +208,10 @@ func _build_placement_request(card_id: StringName, lane_id: int, slot_index: int
 	request.slot_index = slot_index
 	var placement_tags: Variant = card_def.get("placement_tags")
 	request.placement_tags = PackedStringArray() if not (placement_tags is PackedStringArray) else PackedStringArray(placement_tags)
+	if request.placement_tags.is_empty():
+		var resolved_tags := _resolve_placement_tags_from_archetype_or_template(card_def)
+		if not resolved_tags.is_empty():
+			request.placement_tags = resolved_tags
 	var entity_template: Resource = _resolve_entity_template_from_card(card_def)
 	if entity_template != null:
 		request.placement_role = StringName(entity_template.get("placement_role"))
@@ -234,3 +238,19 @@ func _resolve_entity_template(entity_template_id: StringName):
 	if entity_template == null or entity_template.get_script() != EntityTemplateRef:
 		return null
 	return entity_template
+
+
+func _resolve_placement_tags_from_archetype_or_template(card_def: Resource) -> PackedStringArray:
+	var archetype_id := StringName(card_def.get("archetype_id"))
+	if archetype_id != StringName() and SceneRegistry.has_archetype(archetype_id):
+		var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
+		if archetype != null:
+			var tags := PackedStringArray(archetype.required_placement_tags)
+			if tags != PackedStringArray(["supports_primary"]) and not tags.is_empty():
+				return tags
+			var backend: Resource = CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
+			if backend != null and backend.get_script() == EntityTemplateRef:
+				var backend_tags := PackedStringArray(backend.get("required_placement_tags"))
+				if not backend_tags.is_empty():
+					return backend_tags
+	return PackedStringArray()

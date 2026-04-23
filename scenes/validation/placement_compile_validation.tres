@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="CardDef_placement_shooter"]
+script = ExtResource("2_card_def")
+card_id = &"placement_shooter_card"
+display_name = "Placement Shooter Card"
+archetype_id = &"archetype_placement_shooter_skeleton"
+entity_template_id = &"plant_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardPlayRequest_place"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"placement_shooter_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_placement_accepted"]
+script = ExtResource("4_rule")
+rule_id = &"placement_accepted"
+description = "placement mechanic archetype should be accepted on a ground slot"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"placement_shooter_card",
+"lane_id": 0,
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="Rule_entity_spawned"]
+script = ExtResource("4_rule")
+rule_id = &"entity_spawned"
+description = "placement mechanic archetype entity should spawn"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_placement_shooter_skeleton",
+"target_kind": &"plant"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"placement_compile_validation"
+display_name = "Placement Compile Validation"
+description = "Validates that a Placement mechanic archetype resolves placement constraints from archetype fields and can be placed on a ground slot."
+goals = PackedStringArray("Verify the archetype with Placement mechanic is accepted by the board placement system.", "Verify the entity spawns with correct archetype identity.")
+initial_sun = 100
+board_slot_count = 5
+validation_time_limit = 1.5
+card_defs = [SubResource("CardDef_placement_shooter")]
+card_play_requests = [SubResource("CardPlayRequest_place")]
+validation_rules = [SubResource("Rule_placement_accepted"), SubResource("Rule_entity_spawned")]

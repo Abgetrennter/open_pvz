@@ -108,6 +108,48 @@
     "layers": ["core"]
   },
   {
+    "id": "targeting_compile_validation",
+    "scenario": "res://scenes/validation/targeting_compile_validation.tres",
+    "description": "Validates that an independent Targeting mechanic compiles into trigger condition_values and enables correct detection.",
+    "layers": ["core"]
+  },
+  {
+    "id": "trajectory_compile_validation",
+    "scenario": "res://scenes/validation/trajectory_compile_validation.tres",
+    "description": "Validates that an independent Trajectory mechanic injects movement_mode into effect_params.",
+    "layers": ["core"]
+  },
+  {
+    "id": "hit_policy_compile_validation",
+    "scenario": "res://scenes/validation/hit_policy_compile_validation.tres",
+    "description": "Validates that an independent HitPolicy mechanic injects hit_strategy into effect_params.",
+    "layers": ["core"]
+  },
+  {
+    "id": "emission_burst_compile_validation",
+    "scenario": "res://scenes/validation/emission_burst_compile_validation.tres",
+    "description": "Validates that an independent Emission burst mechanic spawns multiple projectiles per trigger.",
+    "layers": ["core"]
+  },
+  {
+    "id": "emission_spread_compile_validation",
+    "scenario": "res://scenes/validation/emission_spread_compile_validation.tres",
+    "description": "Validates that an independent Emission spread mechanic spawns fan-pattern projectiles.",
+    "layers": ["core"]
+  },
+  {
+    "id": "full_chain_compile_validation",
+    "scenario": "res://scenes/validation/full_chain_compile_validation.tres",
+    "description": "Validates that an archetype with all 6 attack-chain family mechanics compiles and executes correctly.",
+    "layers": ["core"]
+  },
+  {
+    "id": "placement_compile_validation",
+    "scenario": "res://scenes/validation/placement_compile_validation.tres",
+    "description": "Validates that a Placement mechanic archetype resolves placement constraints and can be placed on a ground slot.",
+    "layers": ["core"]
+  },
+  {
     "id": "peashooter_migration_parity_validation",
     "scenario": "res://scenes/validation/peashooter_migration_parity_validation.tres",
     "description": "Compares old template path and new archetype path for peashooter combat behavior.",

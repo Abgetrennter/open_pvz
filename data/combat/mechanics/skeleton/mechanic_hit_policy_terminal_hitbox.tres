@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.hit_policy_terminal_hitbox"
+display_name = "Hit Policy Terminal Hitbox"
+family = &"HitPolicy"
+type_id = &"core.terminal_hitbox"
+priority = 20
+tags = PackedStringArray("skeleton", "hit_policy", "terminal", "hitbox")
+params = {
+"hit_strategy": &"terminal_hitbox",
+"terminal_hit_strategy": &"impact_hitbox"
+}
