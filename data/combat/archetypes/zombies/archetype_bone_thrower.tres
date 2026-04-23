@@ -1,15 +1,25 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/entity_templates/zombies/zombie_bone_thrower.tres" id="2_backend"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_no_targeting.tres" id="3_mechanic_0"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_targeting_lane_backward.tres" id="4_mechanic_1"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_projectile_payload_bone.tres" id="5_mechanic_2"]
 
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_bone_thrower"
- display_name = "Bone Thrower Zombie"
-tags = PackedStringArray("archetype", "zombie", "migrated", "template", "ranged", "special_attack")
-compiler_hints = {
-"migrated_wrapper": true
+display_name = "Bone Thrower Zombie"
+tags = PackedStringArray("archetype", "zombie", "independent", "ranged", "special_attack")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 320
+hitbox_size = Vector2(44, 60)
+default_params = {
+"move_speed": 24.0,
+"interval": 1.5,
+"scan_range": 900.0,
+"start_delay": 0.2
 }
+mechanics = [ExtResource("3_mechanic_0"), ExtResource("4_mechanic_1"), ExtResource("5_mechanic_2")]
 backend_entity_template = ExtResource("2_backend")
 backend_entity_template_id = &"zombie_bone_thrower"

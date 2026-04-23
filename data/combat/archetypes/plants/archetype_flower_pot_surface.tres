@@ -6,10 +6,15 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_flower_pot_surface"
- display_name = "Flower Pot Surface"
-tags = PackedStringArray("archetype", "plant", "migrated", "template", "roof", "surface")
-compiler_hints = {
-"migrated_wrapper": true
-}
+display_name = "Flower Pot Surface"
+tags = PackedStringArray("archetype", "plant", "independent", "roof", "surface")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"surface"
+allowed_slot_types = PackedStringArray("roof")
+required_placement_tags = PackedStringArray("roof")
+granted_placement_tags = PackedStringArray("supports_primary", "roof_surface")
+required_empty_roles = PackedStringArray("primary", "blocker")
+max_health = 180
+hitbox_size = Vector2(42, 54)
 backend_entity_template = ExtResource("2_backend")
 backend_entity_template_id = &"plant_flower_pot_surface"

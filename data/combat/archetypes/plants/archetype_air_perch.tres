@@ -6,10 +6,13 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_air_perch"
- display_name = "Air Perch Plant"
-tags = PackedStringArray("archetype", "plant", "migrated", "template", "air")
-compiler_hints = {
-"migrated_wrapper": true
-}
+display_name = "Air Perch Plant"
+tags = PackedStringArray("archetype", "plant", "independent", "air")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"primary"
+allowed_slot_types = PackedStringArray("air_only")
+required_placement_tags = PackedStringArray("supports_air")
+max_health = 120
+hitbox_size = Vector2(42, 54)
 backend_entity_template = ExtResource("2_backend")
 backend_entity_template_id = &"plant_air_perch"

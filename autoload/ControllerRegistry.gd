@@ -32,33 +32,8 @@ func _register_builtin_strategies() -> void:
 			return
 		if owner.get("_is_dying") == true:
 			return
-		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
-		var detection_id: StringName = StringName(params.get("detection_id", &"lane_forward"))
-		var attack_range: float = float(params.get("attack_range", params.get("scan_range", 56.0)))
-		var attack_interval: float = float(params.get("attack_interval", 0.3))
-		var attack_damage: int = int(params.get("attack_damage", 10))
-		var move_speed: float = float(params.get("move_speed", 0.0))
-		if not blackboard.has("attack_cooldown"):
-			blackboard["attack_cooldown"] = 0.0
-		var cooldown: float = float(blackboard["attack_cooldown"])
-		cooldown -= delta
-		blackboard["attack_cooldown"] = cooldown
-		if move_speed > 0.001 and owner is Node2D:
-			(owner as Node2D).position.x += move_speed * delta
-		var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, owner, {"scan_range": attack_range})
-		if not bool(detection_result.get("has_target", false)):
-			return
-		var target: Variant = detection_result.get("primary_target", null)
-		if target == null or not is_instance_valid(target):
-			return
-		if not target.has_method("take_damage"):
-			return
-		var target_pos: Vector2 = target.global_position if target is Node2D else Vector2.ZERO
-		var owner_pos: Vector2 = owner.global_position if owner is Node2D else Vector2.ZERO
-		var distance: float = target_pos.distance_to(owner_pos)
-		if distance <= attack_range and cooldown <= 0.0:
-			target.call("take_damage", attack_damage, owner, ["bite"])
-			blackboard["attack_cooldown"] = attack_interval
+		if owner.has_method("perform_attack_cycle_for_controller"):
+			owner.call("perform_attack_cycle_for_controller", spec, delta)
 	)
 
 	register_strategy(&"core.sweep", func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:

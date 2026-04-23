@@ -231,7 +231,14 @@ static func _build_binding_from_mechanics(archetype, trigger_mechanic, payload_m
 	binding.event_name = StringName(trigger_mapping.get("event_name", StringName()))
 	binding.condition_values = _merge_trigger_condition_values(trigger_id, Dictionary(trigger_mechanic.params).duplicate(true), archetype.default_params)
 	binding.effect_id = StringName(payload_mapping.get("effect_id", StringName()))
-	binding.effect_params = Dictionary(payload_mechanic.params).duplicate(true)
+	var payload_params := Dictionary(payload_mechanic.params).duplicate(true)
+	if payload_params.has("on_hit_effect_id"):
+		binding.on_hit_effect_id = StringName(payload_params["on_hit_effect_id"])
+		payload_params.erase("on_hit_effect_id")
+	if payload_params.has("on_hit_effect_params") and payload_params["on_hit_effect_params"] is Dictionary:
+		binding.on_hit_effect_params = Dictionary(payload_params["on_hit_effect_params"]).duplicate(true)
+		payload_params.erase("on_hit_effect_params")
+	binding.effect_params = payload_params
 	return binding
 
 

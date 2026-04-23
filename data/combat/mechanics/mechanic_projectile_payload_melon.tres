@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.melon.projectile_payload_melon"
+display_name = "Projectile Payload Melon"
+family = &"Payload"
+type_id = &"core.spawn_projectile"
+priority = 20
+tags = PackedStringArray("melon", "attack", "projectile", "lobber", "blast")
+params = {
+"damage": 40,
+"direction": Vector2(1, 0),
+"speed": 220.0,
+"on_hit_effect_id": &"explode",
+"on_hit_effect_params": {
+"amount": 40.0,
+"radius": 80.0,
+"target_mode": &"enemies_in_radius"
+}
+}

@@ -1,16 +1,21 @@
-[gd_resource type="Resource" script_class="CombatArchetype" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="CombatArchetype" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/combat_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/entity_templates/field_objects/field_object_lawn_mower.tres" id="2_backend"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_sweep_controller.tres" id="3_mechanic_0"]
 
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_lawn_mower"
 entity_kind = &"field_object"
 display_name = "Lawn Mower"
-tags = PackedStringArray("archetype", "field_object", "migrated", "mower")
-compiler_hints = {
-"migrated_wrapper": true
+tags = PackedStringArray("archetype", "field_object", "independent", "mower")
+max_health = -1
+hitbox_size = Vector2(36, 36)
+default_params = {
+"detection_radius": 50.0,
+"move_speed": 300.0
 }
+mechanics = [ExtResource("3_mechanic_0")]
 backend_entity_template = ExtResource("2_backend")
 backend_entity_template_id = &"field_object_lawn_mower"

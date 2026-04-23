@@ -6,10 +6,14 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_tombstone_blocker"
- display_name = "Tombstone Blocker"
-tags = PackedStringArray("archetype", "plant", "migrated", "template", "blocker", "tombstone")
-compiler_hints = {
-"migrated_wrapper": true
-}
+display_name = "Tombstone Blocker"
+tags = PackedStringArray("archetype", "plant", "independent", "blocker", "tombstone")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"blocker"
+allowed_slot_types = PackedStringArray("ground")
+required_placement_tags = PackedStringArray("ground")
+required_empty_roles = PackedStringArray("surface", "primary", "cover", "blocker")
+max_health = 600
+hitbox_size = Vector2(54, 64)
 backend_entity_template = ExtResource("2_backend")
 backend_entity_template_id = &"plant_tombstone_blocker"

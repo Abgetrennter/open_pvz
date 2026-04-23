@@ -94,6 +94,13 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	var merged_spawn_params := CombatContentResolverRef.merge_spawn_params(spawn_entry, entity_template, resolved_archetype)
 	for key: Variant in merged_spawn_params.keys():
 		params[key] = merged_spawn_params[key]
+	if entity_template == null:
+		if runtime_spec.get("max_health") is int and int(runtime_spec.max_health) > 0:
+			params["max_health"] = int(runtime_spec.max_health)
+		if runtime_spec.get("hitbox_size") is Vector2 and runtime_spec.hitbox_size != Vector2.ZERO:
+			params["hitbox_size"] = runtime_spec.hitbox_size
+		if runtime_spec.get("hit_height_band") != null:
+			params["hit_height_band"] = runtime_spec.hit_height_band
 	var projectile_template: Resource = runtime_spec.projectile_template
 	var projectile_flight_profile: Resource = runtime_spec.projectile_flight_profile
 	var archetype_for_root = null

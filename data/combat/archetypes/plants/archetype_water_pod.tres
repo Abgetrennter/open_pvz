@@ -6,10 +6,15 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_water_pod"
- display_name = "Water Pod Plant"
-tags = PackedStringArray("archetype", "plant", "migrated", "template", "water")
-compiler_hints = {
-"migrated_wrapper": true
-}
+display_name = "Water Pod Plant"
+tags = PackedStringArray("archetype", "plant", "independent", "water")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"surface"
+allowed_slot_types = PackedStringArray("water")
+required_placement_tags = PackedStringArray("water")
+granted_placement_tags = PackedStringArray("supports_primary", "water_surface")
+required_empty_roles = PackedStringArray("primary", "blocker")
+max_health = 140
+hitbox_size = Vector2(42, 54)
 backend_entity_template = ExtResource("2_backend")
 backend_entity_template_id = &"plant_water_pod"
