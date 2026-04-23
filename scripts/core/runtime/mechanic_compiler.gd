@@ -84,6 +84,11 @@ static func register_builtin_mechanic_types() -> void:
 			_compile_state_rage,
 			{"compiler_version": COMPILER_VERSION, "family": &"State"}
 		)
+		_register_targeting_callables()
+		_register_trajectory_callables()
+		_register_hit_policy_callables()
+		_register_emission_callables()
+		_register_placement_callables()
 
 
 # TODO(mechanic-first): Restore explicit return annotations after the compiler
@@ -183,13 +188,13 @@ static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 			CombatMechanicRef.FAMILY_PAYLOAD:
 				payload_mechanics.append(mechanic)
 			CombatMechanicRef.FAMILY_TARGETING:
-				_collect_mod_params(mechanic.params, targeting_params)
+				_compile_modifier_params(mechanic, archetype, normalized.merged_params, targeting_params)
 			CombatMechanicRef.FAMILY_TRAJECTORY:
-				_collect_mod_params(mechanic.params, trajectory_params)
+				_compile_modifier_params(mechanic, archetype, normalized.merged_params, trajectory_params)
 			CombatMechanicRef.FAMILY_HIT_POLICY:
-				_collect_mod_params(mechanic.params, hit_policy_params)
+				_compile_modifier_params(mechanic, archetype, normalized.merged_params, hit_policy_params)
 			CombatMechanicRef.FAMILY_EMISSION:
-				_collect_mod_params(mechanic.params, emission_params)
+				_compile_modifier_params(mechanic, archetype, normalized.merged_params, emission_params)
 
 	if trigger_mechanics.is_empty() or payload_mechanics.is_empty():
 		return []
@@ -278,6 +283,15 @@ static func _collect_mod_params(mechanic_params: Dictionary, out_params: Diction
 		return
 	for key: Variant in mechanic_params.keys():
 		out_params[key] = mechanic_params[key]
+
+
+static func _compile_modifier_params(mechanic, archetype, merged_params: Dictionary, out_params: Dictionary) -> void:
+	if typeof(MechanicCompilerRegistry) != TYPE_NIL and MechanicCompilerRegistry.has_compiler_callable(mechanic.type_id):
+		var compiled: Dictionary = MechanicCompilerRegistry.compile_type(mechanic.type_id, mechanic, archetype, merged_params)
+		for key: Variant in compiled.keys():
+			out_params[key] = compiled[key]
+	else:
+		_collect_mod_params(mechanic.params, out_params)
 
 
 static func _inject_targeting(binding, targeting_params: Dictionary, merged_params: Dictionary) -> void:
@@ -403,38 +417,18 @@ static func _compile_placement_spec(normalized, archetype) -> Dictionary:
 			}
 		return {}
 	var mechanic = placement_mechanics[0]
-	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	var slot_type_hint := StringName(params.get("slot_type", StringName()))
+	if typeof(MechanicCompilerRegistry) != TYPE_NIL and MechanicCompilerRegistry.has_compiler_callable(mechanic.type_id):
+		return MechanicCompilerRegistry.compile_type(mechanic.type_id, mechanic, archetype, normalized.merged_params)
+	var slot_type_hint := StringName(mechanic.params.get("slot_type", StringName()))
 	if slot_type_hint == StringName():
 		slot_type_hint = _slot_type_from_type_id(mechanic.type_id)
-	var allowed_slot_types: Variant = params.get("allowed_slot_types", archetype.allowed_slot_types)
-	if allowed_slot_types is PackedStringArray:
-		allowed_slot_types = PackedStringArray(allowed_slot_types)
-	elif allowed_slot_types is Array:
-		allowed_slot_types = PackedStringArray(allowed_slot_types)
-	else:
-		allowed_slot_types = PackedStringArray(archetype.allowed_slot_types)
-	var required_tags: Variant = params.get("required_placement_tags", archetype.required_placement_tags)
-	if required_tags is PackedStringArray:
-		required_tags = PackedStringArray(required_tags)
-	elif required_tags is Array:
-		required_tags = PackedStringArray(required_tags)
-	else:
-		required_tags = PackedStringArray(archetype.required_placement_tags)
-	var granted_tags: Variant = params.get("granted_placement_tags", archetype.granted_placement_tags)
-	if granted_tags is PackedStringArray:
-		granted_tags = PackedStringArray(granted_tags)
-	elif granted_tags is Array:
-		granted_tags = PackedStringArray(granted_tags)
-	else:
-		granted_tags = PackedStringArray(archetype.granted_placement_tags)
 	return {
 		"source": &"placement_mechanic",
 		"mechanic_id": StringName(mechanic.mechanic_id),
-		"allowed_slot_types": allowed_slot_types,
-		"required_placement_tags": required_tags,
-		"granted_placement_tags": granted_tags,
-		"placement_role": StringName(params.get("placement_role", archetype.placement_role)),
+		"allowed_slot_types": PackedStringArray(archetype.allowed_slot_types),
+		"required_placement_tags": PackedStringArray(archetype.required_placement_tags),
+		"granted_placement_tags": PackedStringArray(archetype.granted_placement_tags),
+		"placement_role": StringName(archetype.placement_role),
 		"required_present_roles": PackedStringArray(archetype.required_present_roles),
 		"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
 		"slot_type_hint": slot_type_hint,
@@ -733,3 +727,263 @@ static func _resolve_projectile_flight_profile(archetype, backend_template: Reso
 	if backend_template is EntityTemplateRef:
 		return backend_template.projectile_flight_profile
 	return null
+
+
+# --- Targeting compiler callables ---
+
+static func _register_targeting_callables() -> void:
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.lane_forward",
+		_compile_targeting_lane_forward,
+		{"compiler_version": COMPILER_VERSION, "family": &"Targeting"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.lane_backward",
+		_compile_targeting_lane_backward,
+		{"compiler_version": COMPILER_VERSION, "family": &"Targeting"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.always_target",
+		_compile_targeting_always,
+		{"compiler_version": COMPILER_VERSION, "family": &"Targeting"}
+	)
+
+static var _compile_targeting_lane_forward: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	if not params.has("detection_id"):
+		params["detection_id"] = &"lane_forward"
+	if not params.has("scan_range"):
+		params["scan_range"] = 900.0
+	return params
+
+static var _compile_targeting_lane_backward: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	if not params.has("detection_id"):
+		params["detection_id"] = &"lane_backward"
+	if not params.has("scan_range"):
+		params["scan_range"] = 900.0
+	return params
+
+static var _compile_targeting_always: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	if not params.has("detection_id"):
+		params["detection_id"] = &"always"
+	return params
+
+
+# --- Trajectory compiler callables ---
+
+static func _register_trajectory_callables() -> void:
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.linear",
+		_compile_trajectory_linear,
+		{"compiler_version": COMPILER_VERSION, "family": &"Trajectory"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.parabola",
+		_compile_trajectory_parabola,
+		{"compiler_version": COMPILER_VERSION, "family": &"Trajectory"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.track",
+		_compile_trajectory_track,
+		{"compiler_version": COMPILER_VERSION, "family": &"Trajectory"}
+	)
+
+static var _compile_trajectory_linear: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["movement_mode"] = &"linear"
+	return params
+
+static var _compile_trajectory_parabola: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["movement_mode"] = &"parabola"
+	if not params.has("arc_height"):
+		params["arc_height"] = 72.0
+	return params
+
+static var _compile_trajectory_track: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["movement_mode"] = &"track"
+	if not params.has("turn_rate"):
+		params["turn_rate"] = 6.0
+	return params
+
+
+# --- HitPolicy compiler callables ---
+
+static func _register_hit_policy_callables() -> void:
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.swept_segment",
+		_compile_hit_policy_swept_segment,
+		{"compiler_version": COMPILER_VERSION, "family": &"HitPolicy"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.terminal_hitbox",
+		_compile_hit_policy_terminal_hitbox,
+		{"compiler_version": COMPILER_VERSION, "family": &"HitPolicy"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.terminal_radius",
+		_compile_hit_policy_terminal_radius,
+		{"compiler_version": COMPILER_VERSION, "family": &"HitPolicy"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.overlap",
+		_compile_hit_policy_overlap,
+		{"compiler_version": COMPILER_VERSION, "family": &"HitPolicy"}
+	)
+
+static var _compile_hit_policy_swept_segment: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["hit_strategy"] = &"swept_segment"
+	return params
+
+static var _compile_hit_policy_terminal_hitbox: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["hit_strategy"] = &"terminal_hitbox"
+	if not params.has("terminal_hit_strategy"):
+		params["terminal_hit_strategy"] = &"impact_hitbox"
+	return params
+
+static var _compile_hit_policy_terminal_radius: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["hit_strategy"] = &"terminal_radius"
+	if not params.has("terminal_hit_strategy"):
+		params["terminal_hit_strategy"] = &"impact_radius"
+	if not params.has("impact_radius"):
+		params["impact_radius"] = 36.0
+	return params
+
+static var _compile_hit_policy_overlap: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["hit_strategy"] = &"overlap"
+	return params
+
+
+# --- Emission compiler callables ---
+
+static func _register_emission_callables() -> void:
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.single",
+		_compile_emission_single,
+		{"compiler_version": COMPILER_VERSION, "family": &"Emission"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.burst",
+		_compile_emission_burst,
+		{"compiler_version": COMPILER_VERSION, "family": &"Emission"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.shuffle_cycle",
+		_compile_emission_shuffle_cycle,
+		{"compiler_version": COMPILER_VERSION, "family": &"Emission"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.spread",
+		_compile_emission_spread,
+		{"compiler_version": COMPILER_VERSION, "family": &"Emission"}
+	)
+
+static var _compile_emission_single: Callable = func(_mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	return {"burst_count": 1}
+
+static var _compile_emission_burst: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	if not params.has("burst_count"):
+		params["burst_count"] = 2
+	if int(params.get("burst_count", 1)) < 1:
+		params["burst_count"] = 1
+	if not params.has("burst_interval"):
+		params["burst_interval"] = 0.08
+	return params
+
+static var _compile_emission_shuffle_cycle: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	if not params.has("pool"):
+		params["pool"] = []
+	return params
+
+static var _compile_emission_spread: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	if not params.has("spread_count"):
+		params["spread_count"] = 3
+	if int(params.get("spread_count", 1)) < 2:
+		params["spread_count"] = 2
+	if not params.has("spread_angle"):
+		params["spread_angle"] = 15.0
+	return params
+
+
+# --- Placement compiler callables ---
+
+static func _register_placement_callables() -> void:
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.ground_slot",
+		_compile_placement_ground,
+		{"compiler_version": COMPILER_VERSION, "family": &"Placement"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.water_slot",
+		_compile_placement_water,
+		{"compiler_version": COMPILER_VERSION, "family": &"Placement"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.roof_slot",
+		_compile_placement_roof,
+		{"compiler_version": COMPILER_VERSION, "family": &"Placement"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.air_slot",
+		_compile_placement_air,
+		{"compiler_version": COMPILER_VERSION, "family": &"Placement"}
+	)
+
+static var _compile_placement_ground: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
+	return _build_placement_spec_from_mechanic(mechanic, archetype, &"ground")
+
+static var _compile_placement_water: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
+	return _build_placement_spec_from_mechanic(mechanic, archetype, &"water")
+
+static var _compile_placement_roof: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
+	return _build_placement_spec_from_mechanic(mechanic, archetype, &"roof")
+
+static var _compile_placement_air: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
+	return _build_placement_spec_from_mechanic(mechanic, archetype, &"air")
+
+
+static func _build_placement_spec_from_mechanic(mechanic, archetype, slot_type: StringName) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	var slot_type_hint := StringName(params.get("slot_type", slot_type))
+	var allowed_slot_types: Variant = params.get("allowed_slot_types", archetype.allowed_slot_types)
+	if allowed_slot_types is PackedStringArray:
+		allowed_slot_types = PackedStringArray(allowed_slot_types)
+	elif allowed_slot_types is Array:
+		allowed_slot_types = PackedStringArray(allowed_slot_types)
+	else:
+		allowed_slot_types = PackedStringArray(archetype.allowed_slot_types)
+	var required_tags: Variant = params.get("required_placement_tags", archetype.required_placement_tags)
+	if required_tags is PackedStringArray:
+		required_tags = PackedStringArray(required_tags)
+	elif required_tags is Array:
+		required_tags = PackedStringArray(required_tags)
+	else:
+		required_tags = PackedStringArray(archetype.required_placement_tags)
+	var granted_tags: Variant = params.get("granted_placement_tags", archetype.granted_placement_tags)
+	if granted_tags is PackedStringArray:
+		granted_tags = PackedStringArray(granted_tags)
+	elif granted_tags is Array:
+		granted_tags = PackedStringArray(granted_tags)
+	else:
+		granted_tags = PackedStringArray(archetype.granted_placement_tags)
+	return {
+		"source": &"placement_mechanic",
+		"mechanic_id": StringName(mechanic.mechanic_id),
+		"allowed_slot_types": allowed_slot_types,
+		"required_placement_tags": required_tags,
+		"granted_placement_tags": granted_tags,
+		"placement_role": StringName(params.get("placement_role", archetype.placement_role)),
+		"required_present_roles": PackedStringArray(archetype.required_present_roles),
+		"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
+		"slot_type_hint": slot_type_hint,
+	}

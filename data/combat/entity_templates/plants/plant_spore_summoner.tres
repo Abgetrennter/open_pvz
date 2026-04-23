@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
-[ext_resource type="Resource" path="res://data/combat/trigger_bindings/plant_periodic_summon_sporeling.tres" id="3_binding"]
 
 [resource]
 script = ExtResource("1_template")
@@ -15,4 +14,4 @@ optional_components = PackedStringArray("DebugViewComponent")
 max_health = 140
 hitbox_size = Vector2(44, 56)
 hit_height_band = ExtResource("2_height")
-trigger_bindings = [ExtResource("3_binding")]
+trigger_bindings = []
