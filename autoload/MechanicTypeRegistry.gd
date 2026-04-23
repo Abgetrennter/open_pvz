@@ -12,6 +12,9 @@ func _ready() -> void:
 func register_type(type_id: StringName, family_id: StringName, metadata: Dictionary = {}) -> void:
 	if type_id == StringName() or family_id == StringName():
 		return
+	if not MechanicFamilyRegistry.has_family(family_id):
+		push_error("MechanicTypeRegistry: rejected type '%s' with unknown family '%s'" % [String(type_id), String(family_id)])
+		return
 	_type_specs[type_id] = {
 		"family_id": family_id,
 		"metadata": metadata.duplicate(true),

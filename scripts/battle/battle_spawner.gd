@@ -8,6 +8,7 @@ const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
+const ShuffleBagRef = preload("res://scripts/core/runtime/shuffle_bag.gd")
 
 var _battle: Node = null
 var _entity_factory: RefCounted = EntityFactoryRef.new()
@@ -178,10 +179,34 @@ func finalize_spawned_entity(
 	apply_spawn_height_band(entity, hit_height_band)
 	var entity_root: Node2D = _battle.get_entity_root()
 	entity_root.add_child(entity)
+	_init_mechanic_runtime_states(entity)
 	bind_runtime_triggers(entity, trigger_instances)
 	if not emit_spawn_event:
 		return
 	emit_entity_spawned(entity, lane_id, source_node, metadata)
+
+
+func _init_mechanic_runtime_states(entity: Node) -> void:
+	if not entity.has_method("get_entity_id"):
+		return
+	var entity_id: int = int(entity.call("get_entity_id"))
+	if entity_id < 0:
+		return
+	var entity_seed: int = GameState.derive_entity_seed(GameState.battle_seed, entity_id)
+	var entity_state: Variant = entity.get("entity_state")
+	if entity_state == null or not entity_state.has_method("get_value"):
+		return
+	var mechanic_states: Variant = entity_state.call("get_value", &"mechanic_runtime_states")
+	if mechanic_states == null or not (mechanic_states is Dictionary):
+		return
+	for mechanic_id: StringName in mechanic_states.keys():
+		var state: Dictionary = mechanic_states[mechanic_id]
+		if state.get("type") == &"shuffle_bag" and state.get("seed_source") == &"mechanic":
+			var pool: Array = state.get("pool", [])
+			var mech_seed: int = GameState.derive_mechanic_seed(entity_seed, mechanic_id)
+			var bag = ShuffleBagRef.new(pool, mech_seed)
+			state["bag"] = bag
+			state["seed"] = mech_seed
 
 
 func emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, metadata: Dictionary = {}) -> void:

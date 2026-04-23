@@ -678,6 +678,7 @@ static func _build_mechanic_runtime_states(normalized) -> Dictionary:
 						"pool": pool,
 						"index": 0,
 						"cycle": 0,
+						"seed_source": &"mechanic",
 					}
 		if needs_state:
 			states[String(mechanic.mechanic_id)] = initial_state

@@ -119,6 +119,8 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	if entity.has_method("set_state_value") and runtime_spec.runtime_state_values is Dictionary:
 		for key: Variant in runtime_spec.runtime_state_values.keys():
 			entity.call("set_state_value", StringName(str(key)), runtime_spec.runtime_state_values[key])
+	if entity.has_method("set_state_value") and runtime_spec.mechanic_runtime_states is Dictionary and not Dictionary(runtime_spec.mechanic_runtime_states).is_empty():
+		entity.call("set_state_value", &"mechanic_runtime_states", runtime_spec.mechanic_runtime_states)
 	if runtime_spec.controller_specs is Array and not Array(runtime_spec.controller_specs).is_empty():
 		_bind_runtime_controllers(entity, Array(runtime_spec.controller_specs))
 	if runtime_spec.state_specs is Array and not Array(runtime_spec.state_specs).is_empty():

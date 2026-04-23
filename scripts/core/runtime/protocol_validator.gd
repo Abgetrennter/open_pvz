@@ -614,6 +614,14 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 			projectile_template,
 			"%s template trigger_bindings" % scope
 		))
+		var template_bindings_empty: bool = resolved_template.get("trigger_bindings") == null or not (resolved_template.get("trigger_bindings") is Array) or resolved_template.get("trigger_bindings").is_empty()
+		if template_bindings_empty and resolved_archetype != null:
+			errors.append_array(_validate_archetype_compiled_bindings(
+				StringName(entity_kind),
+				resolved_archetype,
+				spawn_entry,
+				"%s archetype compiled_bindings" % scope
+			))
 	return errors
 
 
@@ -1264,6 +1272,33 @@ static func _validate_trigger_bindings_runtime(
 	var factory: Variant = EntityFactoryRef.new()
 	var errors: Array[String] = []
 	for trigger_instance in factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template):
+		var validation: Dictionary = normalize_trigger_instance(trigger_instance)
+		if not bool(validation.get("valid", false)):
+			for error in PackedStringArray(validation.get("errors", PackedStringArray())):
+				errors.append("%s: %s" % [scope, error])
+	return errors
+
+
+static func _validate_archetype_compiled_bindings(
+	entity_kind: StringName,
+	archetype,
+	spawn_entry: Resource,
+	scope: String
+) -> Array[String]:
+	var runtime_spec = CombatContentResolverRef.resolve_spawn_entry_runtime_spec(spawn_entry)
+	if runtime_spec == null:
+		return []
+	var compiled_bindings: Variant = runtime_spec.get("compiled_trigger_bindings")
+	if compiled_bindings == null or not (compiled_bindings is Array) or Array(compiled_bindings).is_empty():
+		return []
+	var factory: Variant = EntityFactoryRef.new()
+	var merged_params: Dictionary = {}
+	if runtime_spec.get("params") is Dictionary:
+		merged_params = Dictionary(runtime_spec.params).duplicate(true)
+	var projectile_flight_profile: Resource = runtime_spec.get("projectile_flight_profile") if runtime_spec.get("projectile_flight_profile") is Resource else null
+	var projectile_template = runtime_spec.get("projectile_template")
+	var errors: Array[String] = []
+	for trigger_instance in factory.build_runtime_triggers_from_bindings(entity_kind, Array(compiled_bindings), merged_params, projectile_flight_profile, projectile_template):
 		var validation: Dictionary = normalize_trigger_instance(trigger_instance)
 		if not bool(validation.get("valid", false)):
 			for error in PackedStringArray(validation.get("errors", PackedStringArray())):

@@ -1,6 +1,6 @@
 param(
 	[string]$Scenario = "res://scenes/validation/parabola_long_range_validation.tres",
-	[string]$GodotExe = "E:\Code\open_pvz\Godot_v4.6.1-stable_win64_console.exe",
+	[string]$GodotExe = "",
 	[string]$OutputRoot = "",
 	[string]$RunLabel = "",
 	[switch]$EnableRuntimeSnapshots,
@@ -9,6 +9,15 @@ param(
 )
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($GodotExe)) {
+	$Candidate = Get-ChildItem $ProjectRoot -Filter "Godot_v*_win64_console.exe" -File | Sort-Object Name -Descending | Select-Object -First 1
+	if ($Candidate -ne $null) {
+		$GodotExe = $Candidate.FullName
+	} else {
+		Write-Error "GodotExe not specified and no Godot console executable found in project root."
+		exit 1
+	}
+}
 $ScenarioName = [System.IO.Path]::GetFileNameWithoutExtension($Scenario)
 if ([string]::IsNullOrWhiteSpace($RunLabel)) {
 	$RunLabel = $ScenarioName
