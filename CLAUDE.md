@@ -4,15 +4,15 @@
 
 ## 变更记录 (Changelog)
 
-- **2026-04-15 21:39:03** — init-architect 全仓扫描：新增模块结构图、模块索引表、模块级 CLAUDE.md、覆盖率报告
-- **2026-04-21** — wiki 瘦身：同步阶段口径至 Phase 7 输入准备；归档 wiki 自审文档；压缩扩展系统规划；合并 00/02 架构双写
+- **2026-04-24** — wiki 同步 Mechanic-first 决策：11 份文档更新，旧"模板与装配边界"重写为"编译链与 Mechanic 系统"；CLAUDE.md 同步代码现状
 - **2026-04-22** — Mechanic-first 重构第三阶段完成：multi-payload 编译、per-type compiler dispatch、Controller/State/Lifecycle 扩展、确定性随机协议、Archetype 独立实例化、迁移对照验证
+- **2026-04-15** — init-architect 全仓扫描：新增模块结构图、模块索引表、模块级 CLAUDE.md、覆盖率报告
 
 ## 项目愿景
 
 Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规则"成为核心玩法驱动力。项目已从旧作者模型（`EntityTemplate / TriggerBinding`）切换到 **Mechanic-first** 架构：`Archetype + Mechanic[]` + 多阶段编译链。
 
-当前阶段：**Mechanic-first 重构阶段**。已完成：编译链最小闭环、Controller/State/Lifecycle 扩展、multi-payload、per-type compiler dispatch、确定性随机协议、Archetype 独立实例化、迁移对照验证。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md) 和 [wiki/decisions/](wiki/decisions/README.md)。
+当前阶段：**Mechanic-first 重构阶段已完成三阶段**。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md) 和 [wiki/decisions/](wiki/decisions/README.md)。
 
 ## 架构总览
 
@@ -20,13 +20,24 @@ Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规
 
 1. **语义事件层** -- "发生了什么"。事件如 `game.tick`、`entity.damaged`、`entity.died`、`projectile.hit` 通过 `EventBus`（autoload）流转。
 2. **行为效果层** -- "该做什么"。`EffectDef` -> `EffectNode`，由 `EffectExecutor` 执行。效果是原子化、可组合、可嵌套的（最大深度 5）。注册于 `EffectRegistry`。
-3. **组合装配层** -- "实体如何组装"。`EntityTemplate` -> `TriggerBinding` -> 工厂装配。`TriggerDef` -> `TriggerInstance` -> `TriggerComponent` 挂载到实体。注册于 `TriggerRegistry`。
-4. **连续行为层** -- "持续对象如何更新"。抛射体使用 3D 逻辑 + 2D 投影，通过 `_physics_process` 持续模拟，命中时重新进入事件链（`projectile.hit`）。
+3. **编译装配层** -- "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。10 个冻结 Mechanic family，37 个内置 type。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`。
+4. **连续行为层** -- "持续对象如何更新"。抛射体使用 3D 逻辑 + 2D 投影；Controller（bite / sweep 等）通过 `ControllerComponent` 每帧执行。命中时重新进入事件链。
 
 ### 执行链
 
+**离散事件链**：
 ```
 EventBus -> TriggerComponent -> TriggerInstance -> RuleContext -> EffectExecutor -> Runtime Action -> EventBus
+```
+
+**编译链**（实例化时运行一次）：
+```
+Archetype + Mechanic[] -> NormalizedMechanicSet -> RuntimeSpec -> EntityFactory -> Runtime Nodes
+```
+
+**连续行为链**（每帧）：
+```
+_physics_process -> ControllerComponent -> ControllerRegistry -> Controller Strategy
 ```
 
 ### 全局单例 (Autoloads)
@@ -34,18 +45,18 @@ EventBus -> TriggerComponent -> TriggerInstance -> RuleContext -> EffectExecutor
 | 单例名 | 职责 |
 |--------|------|
 | `EventBus` | 事件分发，优先级订阅，历史追踪（最多 256 条） |
-| `DebugService` | 集中式日志：事件/触发器/效果 |
-| `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/` |
+| `DebugService` | 集中式日志：事件/触发器/效果/运行时快照/协议问题 |
+| `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/`，支持 archetype 查询 |
 | `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
-| `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id） |
-| `MechanicCompilerRegistry` | Mechanic per-type 编译器注册与分发 |
+| `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id，委托 MechanicCompiler 注册内置 type） |
+| `MechanicCompilerRegistry` | Mechanic per-type 编译器 callable 注册与分发 |
 | `DetectionRegistry` | 目标发现策略注册（always / lane_forward / lane_backward） |
 | `TriggerRegistry` | 触发器定义与策略注册（periodically / when_damaged / on_death） |
-| `EffectRegistry` | 效果定义与策略注册（damage / spawn_projectile / explode） |
+| `EffectRegistry` | 效果定义与策略注册（damage / spawn_projectile / explode / apply_status / produce_sun / spawn_entity） |
 | `ControllerRegistry` | Controller 策略注册（core.bite / core.sweep） |
 | `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
 
-### 战斗运行时子系统 (Phase 4)
+### 战斗运行时子系统
 
 | 子系统 | 类名 | 职责 |
 |--------|------|------|
@@ -60,7 +71,7 @@ EventBus -> TriggerComponent -> TriggerInstance -> RuleContext -> EffectExecutor
 
 ```mermaid
 graph TD
-    Root["Open PVZ (根)"] --> Autoload["autoload"]
+    Root["Open PVZ (根)"] --> Autoload["autoload/ (11 个全局单例)"]
     Root --> Scripts["scripts"]
     Root --> Data["data/combat"]
     Root --> Scenes["scenes"]
@@ -75,12 +86,12 @@ graph TD
     Scripts --> Projectile["scripts/projectile"]
     Scripts --> Debug["scripts/debug"]
 
-    Core --> CoreDefs["core/defs"]
-    Core --> CoreRuntime["core/runtime"]
+    Core --> CoreDefs["core/defs (Archetype, Mechanic, TriggerDef, EffectDef...)"]
+    Core --> CoreRuntime["core/runtime (MechanicCompiler, RuntimeSpec, EffectExecutor, ShuffleBag...)"]
 
-    Scenes --> ScenesValidation["scenes/validation"]
-    Scenes --> ScenesShowcase["scenes/showcase"]
-    Scenes --> ScenesMain["scenes/main"]
+    Data --> Archetypes["data/combat/archetypes/ (50 个 .tres)"]
+    Data --> Templates["data/combat/entity_templates/ (兼容层)"]
+    Data --> Projectiles["data/combat/projectile_templates/"]
 
     click Autoload "./autoload/CLAUDE.md" "查看 autoload 模块文档"
     click Core "./scripts/core/CLAUDE.md" "查看 core 模块文档"
@@ -89,27 +100,26 @@ graph TD
     click Components "./scripts/components/CLAUDE.md" "查看 components 模块文档"
     click Projectile "./scripts/projectile/CLAUDE.md" "查看 projectile 模块文档"
     click Data "./data/combat/CLAUDE.md" "查看 data/combat 模块文档"
-    click ScenesValidation "./scenes/validation/CLAUDE.md" "查看 validation 模块文档"
 ```
 
 ## 模块索引
 
 | 模块路径 | 语言 | 文件数 | 职责概述 |
 |----------|------|--------|----------|
-| `autoload/` | GDScript | 6 | 全局单例：事件总线、注册表、游戏状态 |
-| `scripts/core/defs/` | GDScript | 12 | 资源定义类：TriggerDef, EffectDef, EntityTemplate, CombatArchetype, CombatMechanic 等 |
-| `scripts/core/runtime/` | GDScript | 9 | 运行时执行：EffectExecutor, MechanicCompiler, RuntimeSpec, ShuffleBag 等 |
-| `scripts/battle/` | GDScript | 22 | 战斗协调：BattleManager, EntityFactory, 经济/棋盘/卡片/波次子系统 |
+| `autoload/` | GDScript | 11 | 全局单例：事件总线、注册表、编译器分发、游戏状态 |
+| `scripts/core/defs/` | GDScript | 13 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, EntityTemplate 等 |
+| `scripts/core/runtime/` | GDScript | 15 | 运行时：MechanicCompiler, RuntimeSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
+| `scripts/battle/` | GDScript | 22 | 战斗协调：BattleManager, EntityFactory（双路径）, 经济/棋盘/卡片/波次子系统 |
 | `scripts/entities/` | GDScript | 4 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot |
-| `scripts/components/` | GDScript | 8 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
+| `scripts/components/` | GDScript | 7 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
 | `scripts/projectile/` | GDScript | 5 | 抛射体运动系统：linear / parabola / track 运动模式 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
-| `data/combat/` | .tres | ~75 | 战斗数据资源：实体模板、archetype、mechanic、抛射体模板、飞行配置、触发绑定 |
-| `scenes/validation/` | .tres/.tscn | 30 | 自动化验证场景（29 个场景 + 1 个通用 tscn） |
+| `data/combat/archetypes/` | .tres | 50 | Archetype 资源（38 植物 + 10 僵尸 + 2 场上物件） |
+| `data/combat/` | .tres | ~100 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
+| `scenes/validation/` | .tres/.tscn | 66+ | 自动化验证场景 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |
-| `wiki/` | Markdown | ~30 | 中文设计文档（5 个子目录） |
-| `plans/` | Markdown | ~10 | 阶段规划与设计草案 |
+| `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
 | `vendor/` | -- | 大量 | 参考实现（PVZ-Godot-Dream），不属于引擎核心 |
 
 ## 运行与开发
@@ -133,68 +143,11 @@ pwsh tools/run_all_validations.ps1
 pwsh tools/run_validation.ps1 -ScenarioId <id>
 ```
 
-场景定义：`tools/validation_scenarios.json`（30 个场景）
+场景定义：`tools/validation_scenarios.json`（66+ 个场景，分层 smoke / core / extension / guardrail）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 
 在 Godot 编辑器中运行单个场景：打开 `scenes/validation/` 中的 `.tscn` 文件并按 F6。
-
-### 验证场景清单
-
-| 场景 ID | 覆盖领域 |
-|---------|----------|
-| `minimal_battle_validation` | 最小引擎骨架验证 |
-| `parabola_long_range_validation` | 远距离抛物线命中 |
-| `height_hit_validation` | 高度段命中过滤 |
-| `lane_isolation_validation` | 车道隔离验证 |
-| `swept_segment_validation` | 扫掠线段碰撞 |
-| `terminal_explode_validation` | 终端爆炸伤害 |
-| `template_instantiation_validation` | 模板实例化 |
-| `template_factory_validation` | 模板工厂运行时触发器 |
-| `spawn_override_priority_validation` | 生成覆盖优先级 |
-| `air_interceptor_validation` | 空中拦截器 |
-| `repeater_burst_validation` | 连发射手 |
-| `lobber_catalog_validation` | 投掷物目录 |
-| `zombie_roster_attack_validation` | 僵尸阵容攻击 |
-| `template_guardrail_validation` | 模板护栏 |
-| `protocol_guardrail_validation` | 协议护栏 |
-| `sun_resource_validation` | 阳光资源经济 |
-| `card_flow_validation` | 卡片运行时流程 |
-| `board_placement_validation` | 棋盘放置 |
-| `board_slot_tag_validation` | 槽位标签验证 |
-| `roof_slot_validation` | 屋顶槽位 |
-| `air_slot_validation` | 空中槽位 |
-| `cover_blocker_validation` | 掩体/阻挡角色 |
-| `status_system_validation` | 状态系统（减速/眩晕） |
-| `wave_flow_validation` | 波次与胜负流程 |
-| `wave_guardrail_validation` | 波次护栏 |
-| `field_object_mower_validation` | 场上物件割草机 |
-| `chain_explosion_cascade_validation` | 级联爆炸型错误技（多源反击+死亡爆炸链） |
-| `splash_zone_cascade_validation` | 溅射打击型错误技（终端爆炸多目标溅射） |
-| `fast_pursuit_cascade_validation` | 高速追踪型错误技（追踪高速移动目标） |
-| `multi_lane_retaliation_cascade_validation` | 多车道反击型错误技（跨车道反击隔离） |
-| `archetype_instantiation_validation` | Archetype 向日葵编译链验证 |
-| `archetype_attack_validation` | Archetype 攻击链编译验证 |
-| `archetype_projectile_validation` | Archetype 抛射体编译验证 |
-| `archetype_lifecycle_validation` | Archetype lifecycle on_spawned 验证 |
-| `archetype_on_place_validation` | Archetype lifecycle on_place 验证 |
-| `archetype_state_validation` | Archetype state arming 验证 |
-| `archetype_zombie_runtime_validation` | Archetype 僵尸 bite controller 验证 |
-| `archetype_mower_runtime_validation` | Archetype 割草机 sweep controller 验证 |
-| `archetype_multi_payload_validation` | Archetype 多 payload 编译验证 |
-| `peashooter_migration_parity_validation` | 豌豆射手迁移对照验证 |
-| `sunflower_migration_parity_validation` | 向日葵迁移对照验证 |
-| `zombie_migration_parity_validation` | 基础僵尸迁移对照验证 |
-
-## 冻结协议 (Phase 3)
-
-第一轮协议冻结已生效。未经设计审批，不得修改以下语义：
-
-**触发器：** `periodically` (game.tick)、`when_damaged` (entity.damaged)、`on_death` (entity.died)
-**效果：** `damage`、`spawn_projectile`、`explode`
-**行为键映射：** `attack` -> periodically、`when_damaged` -> when_damaged、`on_death` -> on_death
-
-`ProtocolValidator` 在运行时强制执行参数类型、边界和资源脚本类型检查。所有新定义必须通过验证。
 
 ## 编码规范
 
@@ -204,18 +157,19 @@ pwsh tools/run_validation.ps1 -ScenarioId <id>
 - 使用 `@export` 暴露编辑器属性
 - 一个类一个文件；数据定义继承 `Resource`
 
-### 模板编写顺序
+### Archetype 编写顺序
 
-Identity -> Node/Component -> Combat -> Projectile -> Behavior
+Identity -> Chassis -> Combat Stats -> Mechanic[]
 
-### 模板命名
+### 命名
 
-- `plant_role_variant`、`zombie_role_variant`、`projectile_type`
-- 文件放在 `data/combat/entity_templates/plants/` 或 `zombies/`
+- Archetype：`plant_role_variant`、`zombie_role_variant`
+- 文件放在 `data/combat/archetypes/plants/` 或 `zombies/` 或 `field_objects/`
+- Mechanic：`family.type_id` 格式，如 `Controller.core.bite`、`Trigger.periodically`
 
 ### 事件命名
 
-点分隔语义名：`game.tick`、`entity.damaged`、`entity.died`、`projectile.hit`
+点分隔语义名：`game.tick`、`entity.damaged`、`entity.died`、`projectile.hit`、`entity.spawned`、`placement.accepted`
 
 ### 目标解析模式 (effects)
 
@@ -226,6 +180,17 @@ Identity -> Node/Component -> Combat -> Projectile -> Behavior
 - PascalCase 用于类名，snake_case 用于变量/函数
 - StringName 用于驻留标识符
 - RefCounted 用于系统间传递的数据
+
+## 冻结协议
+
+第一轮协议冻结已生效。未经设计审批，不得修改以下语义：
+
+**Mechanic family（10 个冻结，新增需 ADR）：** Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller
+
+**触发器：** `periodically` (game.tick)、`when_damaged` (entity.damaged)、`on_death` (entity.died)
+**效果：** `damage`、`spawn_projectile`、`explode`
+
+`ProtocolValidator` 在运行时强制执行参数类型、边界和资源脚本类型检查。
 
 ## 测试策略
 
@@ -240,20 +205,21 @@ Identity -> Node/Component -> Combat -> Projectile -> Behavior
 
 `wiki/` 目录包含中文设计文档（详见 [wiki/index.md](wiki/index.md)）：
 - `01-overview/` -- 架构、设计哲学、当前阶段
-- `02-runtime-protocol/` -- 触发器系统、效果系统、执行机制
+- `02-runtime-protocol/` -- 编译链与 Mechanic 系统、触发器系统、效果系统、执行机制
 - `03-content-validation/` -- 验证矩阵和覆盖率
-- `04-roadmap-reference/` -- 参考实现、外部调研
-- `05-governance/` -- 模板编写约定、方法论
+- `04-roadmap-reference/` -- 参考实现、扩展系统规划、外部调研
+- `05-governance/` -- Archetype 编写约定、术语表、方法论
+- `decisions/` -- ADR 决策记录（ADR-001~005）
 
-`plans/` 目录包含阶段任务清单和设计文档。
+`plans/` 目录包含阶段任务清单和设计草案。
 
 ## AI 使用指引
 
-- 修改冻结协议前务必获得设计审批
+- 修改冻结协议或新增 Mechanic family 前务必获得设计审批
+- 新增实体时使用 Archetype + Mechanic[]，不再使用 EntityTemplate / TriggerBinding 作为顶层入口
 - 新增实体功能时，必须同时创建验证场景
 - 优先通过 `.tres` Resource 扩展内容，而非修改 GDScript 代码
 - 调试时使用 `DebugService` 记录，不要用 `print`
 - 所有抛射体运动配置通过 `ProjectileFlightProfile` Resource 驱动
+- 所有随机行为走确定性随机协议（battle_seed 派生链 + ShuffleBag）
 - `vendor/` 目录为参考实现，不要直接修改或依赖
-
-<!-- 由 init-architect 自动生成，时间：2026-04-15 21:39:03 -->
