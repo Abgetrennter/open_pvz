@@ -1,5 +1,8 @@
 # 外部项目调研：PVZ-Godot-Dream
 
+- 状态：当前事实
+
+
 ## 基本信息
 
 - 仓库地址：`https://github.com/hsk-dream/PVZ-Godot-Dream`

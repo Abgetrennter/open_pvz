@@ -13,7 +13,7 @@
   - [效果系统](../02-runtime-protocol/04-效果系统.md)
   - [执行机制](../02-runtime-protocol/06-执行机制.md)
   - [连续行为模型](../02-runtime-protocol/08-连续行为模型.md)
-  - [模板与装配边界](../02-runtime-protocol/11-模板与装配边界.md)
+  - [编译链与 Mechanic 系统](../02-runtime-protocol/11-编译链与Mechanic系统.md)
   - [扩展系统总体规划](../04-roadmap-reference/38-扩展系统总体规划.md)
   - [原版实体复刻工作流](../05-governance/36-原版实体复刻工作流.md)
   - [重大决策记录模板](../05-governance/31-重大决策记录模板.md)
@@ -723,7 +723,7 @@
 2. 在 wiki 中标记下列文档进入“待替代”状态：
    - [当前阶段与实现路线](../01-overview/23-当前阶段与实现路线.md)
    - [开发路线图](../04-roadmap-reference/26-开发路线图.md)
-   - [模板与装配边界](../02-runtime-protocol/11-模板与装配边界.md)
+   - [编译链与 Mechanic 系统](../02-runtime-protocol/11-编译链与Mechanic系统.md)
    - [触发器系统](../02-runtime-protocol/03-触发器系统.md)
 3. 补一份“Mechanic-first 架构总览”正文，而不是只保留讨论纪要。
 4. 选定首批 5 个 archetype 作为编译链验证对象。
