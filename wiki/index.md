@@ -1,30 +1,25 @@
 # Open PVZ Wiki
 
-> 本 Wiki 以 2026-04-21 的仓库现状为准，目标是把"当前已经落地的实现"和"仍然只是规划或归档的内容"明确分开。
+> 本 Wiki 以当前仓库现状为准，目标是把"当前已经落地的实现"和"仍然只是规划或归档的内容"明确分开。
 
 ---
 
 ## 当前项目状态
 
-当前 `Open PVZ` 已经不是概念验证骨架，而是一个可运行、可验证、可扩展的 PVZ-like 战斗引擎主干。
+当前 `Open PVZ` 已经完成 Mechanic-first 重构三个阶段，是一个可运行、可验证、可扩展的 PVZ-like 战斗引擎。
 
 已经可以确认的事实包括：
 
 - 默认启动场景是 [`scenes/main/main.tscn`](../scenes/main/main.tscn)，进入 Showcase Hub。
 - 仓库包含一个可操作的最小可玩关卡 [`scenes/demo/demo_level.tscn`](../scenes/demo/demo_level.tscn)。
-- `data/combat/` 已经形成正式内容目录：`battlefields / cards / entity_templates / height_bands / levels / projectile_profiles / projectile_templates / trigger_bindings / waves`。
-- 当前主仓正式内容已经具备第一轮基线：
-  - 16 个植物模板
-  - 9 个僵尸模板
-  - 10 个投射物模板
-  - 10 张卡片
-  - 3 个 Phase 6 战场 / 波次 / 关卡模板
-- 扩展侧已经有 3 个明确入口：`extensions/minimal_chaos_pack`、`phase5_chaos_pack`、`phase5_guardrail_pack`。
-- 验证体系已经进入持续回归状态：[`tools/validation_scenarios.json`](../tools/validation_scenarios.json) 当前共 53 个场景，分层 `smoke / core / extension / guardrail` 计数 `9 / 38 / 10 / 5`。
+- `data/combat/` 已形成正式内容目录：`archetypes / cards / entity_templates / height_bands / levels / projectile_profiles / projectile_templates / trigger_bindings / waves`。
+- 50 个 archetype（38 植物 + 10 僵尸 + 2 场上物件）。
+- 编译链覆盖 37 个内置 Mechanic type、7 个 family。
+- 验证体系已进入持续回归状态：[`tools/validation_scenarios.json`](../tools/validation_scenarios.json) 当前共 66+ 个场景。
 
 一句话判断：
 
-> 第一到第六阶段已经沉淀为当前主干，项目当前处于"第七阶段输入准备"语境，主线是继续扩展正式关卡、正式内容组合与回归覆盖，而不是回到早期主干搭建阶段。
+> Mechanic-first 重构三阶段已完成，项目当前处于"扩展 family type 覆盖面 + 迁移旧内容 + 保持回归同步"阶段。
 
 ---
 
@@ -34,11 +29,13 @@
 
 1. [15 分钟上手路径](01-overview/03-15分钟上手路径.md)
 2. [架构总览](01-overview/00-架构总览.md)
-3. [系统版图与规划分层](01-overview/34-Open%20PVZ%20系统版图与规划分层.md)
-4. [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
-5. [开发路线图](04-roadmap-reference/26-开发路线图.md)
-6. [验证清单](03-content-validation/15-验证清单.md)
-7. [验证矩阵](03-content-validation/32-验证矩阵.md)
+3. [编译链与 Mechanic 系统](02-runtime-protocol/11-编译链与Mechanic系统.md)
+4. [系统版图与规划分层](01-overview/34-Open%20PVZ%20系统版图与规划分层.md)
+5. [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
+6. [决策记录索引](decisions/README.md)
+7. [开发路线图](04-roadmap-reference/26-开发路线图.md)
+8. [验证清单](03-content-validation/15-验证清单.md)
+9. [验证矩阵](03-content-validation/32-验证矩阵.md)
 
 ---
 
@@ -51,6 +48,7 @@
 - [15 分钟上手路径](01-overview/03-15分钟上手路径.md)
 - [架构总览](01-overview/00-架构总览.md)
 - [核心设计哲学](01-overview/01-核心设计哲学.md)
+- [编译链与 Mechanic 系统](02-runtime-protocol/11-编译链与Mechanic系统.md)
 - [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
 - [系统版图与规划分层](01-overview/34-Open%20PVZ%20系统版图与规划分层.md)
 - [开发路线图](04-roadmap-reference/26-开发路线图.md)
@@ -68,7 +66,6 @@
 - [事件模型](02-runtime-protocol/07-事件模型.md)
 - [连续行为模型](02-runtime-protocol/08-连续行为模型.md)
 - [性能与安全防护](02-runtime-protocol/10-性能与安全防护.md)
-- [模板与装配边界](02-runtime-protocol/11-模板与装配边界.md)
 
 ### 3. 参考与规划文档
 
@@ -83,11 +80,20 @@
 - [项目开发方法论](05-governance/27-项目开发方法论.md)
 - [文档规范与维护约定](05-governance/29-文档规范与维护约定.md)
 - [重大决策记录模板](05-governance/31-重大决策记录模板.md)
-- [决策记录目录](decisions/README.md)
 - [术语表](05-governance/33-术语表.md)
-- [模板编写约定](05-governance/35-模板编写约定.md)
+- [Archetype 编写约定](05-governance/35-模板编写约定.md)
+- [原版实体复刻工作流](05-governance/36-原版实体复刻工作流.md)
 
-### 5. 阶段归档与历史资料
+### 5. 决策记录
+
+- [决策记录索引](decisions/README.md)
+- [ADR-001 路线切换与重构范围](decisions/ADR-001-路线切换与重构范围.md)
+- [ADR-002 顶层作者模型与编译链](decisions/ADR-002-顶层作者模型与编译链.md)
+- [ADR-003 Mechanic 一级家族冻结](decisions/ADR-003-Mechanic-一级家族冻结.md)
+- [ADR-004 连续行为、状态与生命周期正式化](decisions/ADR-004-连续行为-状态与生命周期正式化.md)
+- [ADR-005 扩展包接入与迁移策略](decisions/ADR-005-扩展包接入与迁移策略.md)
+
+### 6. 阶段归档与历史资料
 
 这里保留"为什么会演进成今天这样"的历史语境：
 
@@ -111,8 +117,8 @@
 
 ### 核心运行时
 
-- [`autoload/`](../autoload)
-- [`scripts/core/`](../scripts/core)
+- [`autoload/`](../autoload)（11 个全局单例）
+- [`scripts/core/`](../scripts/core)（defs + runtime + compiler）
 - [`scripts/entities/`](../scripts/entities)
 - [`scripts/projectile/`](../scripts/projectile)
 - [`scripts/components/`](../scripts/components)
@@ -120,7 +126,7 @@
 ### 正式内容资源
 
 - [`data/combat/README.md`](../data/combat/README.md)
-- [`data/combat/entity_templates/`](../data/combat/entity_templates)
+- [`data/combat/archetypes/`](../data/combat/archetypes)
 - [`data/combat/projectile_templates/`](../data/combat/projectile_templates)
 - [`data/combat/cards/`](../data/combat/cards)
 - [`data/combat/battlefields/`](../data/combat/battlefields)
