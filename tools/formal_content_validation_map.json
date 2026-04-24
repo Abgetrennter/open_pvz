@@ -44,6 +44,8 @@
         "roof_slot_validation",
         "air_slot_validation",
         "cover_blocker_validation",
+        "placement_compile_validation",
+        "placement_runtime_spec_validation",
         "field_object_mower_validation",
         "battlefield_phase6_validation"
       ],

@@ -9,3 +9,4 @@ class_name BattlePlacementRequest
 @export var slot_index := 0
 @export var placement_role: StringName = StringName()
 @export var placement_tags: PackedStringArray = PackedStringArray(["ground"])
+@export var placement_spec: Dictionary = {}

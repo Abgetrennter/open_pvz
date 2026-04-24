@@ -5,6 +5,7 @@ const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd"
 const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 const MechanicCompilerRef = preload("res://scripts/core/runtime/mechanic_compiler.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
+const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
 
 
 static func resolve_spawn_entry_template(spawn_entry: Resource):
@@ -47,9 +48,21 @@ static func resolve_spawn_entry_runtime_spec(spawn_entry: Resource):
 	var archetype = resolve_spawn_entry_archetype(spawn_entry)
 	if archetype == null:
 		return null
+	return resolve_archetype_runtime_spec(archetype, resolve_spawn_overrides(spawn_entry), spawn_entry)
+
+
+static func resolve_archetype_runtime_spec(archetype, spawn_overrides: Dictionary = {}, source_spawn_entry: Resource = null):
+	if archetype == null or not (archetype is CombatArchetypeRef):
+		return null
 	# TODO(mechanic-first): Replace reflective call() with a typed compiler
 	# bridge after the new compiler graph is fully loaded in stable parse order.
 	var compiler = MechanicCompilerRef.new()
+	var spawn_entry := source_spawn_entry
+	if spawn_entry == null and not spawn_overrides.is_empty():
+		spawn_entry = BattleSpawnEntryRef.new()
+		spawn_entry.archetype = archetype
+		spawn_entry.archetype_id = archetype.archetype_id
+		spawn_entry.spawn_overrides = spawn_overrides.duplicate(true)
 	var runtime_spec = compiler.call("compile_spawn_entry", spawn_entry, archetype)
 	if runtime_spec == null:
 		return null
@@ -72,6 +85,13 @@ static func resolve_spawn_entry_runtime_spec(spawn_entry: Resource):
 	if resolved_hit_height_band != null:
 		runtime_spec.hit_height_band = resolved_hit_height_band
 	return runtime_spec
+
+
+static func resolve_archetype_placement_spec(archetype, spawn_overrides: Dictionary = {}) -> Dictionary:
+	var runtime_spec = resolve_archetype_runtime_spec(archetype, spawn_overrides)
+	if runtime_spec == null or not (runtime_spec.get("placement_spec") is Dictionary):
+		return {}
+	return Dictionary(runtime_spec.placement_spec).duplicate(true)
 
 
 static func resolve_spawn_overrides(spawn_entry: Resource) -> Dictionary:

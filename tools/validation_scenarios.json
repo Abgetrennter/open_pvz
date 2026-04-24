@@ -146,7 +146,13 @@
   {
     "id": "placement_compile_validation",
     "scenario": "res://scenes/validation/placement_compile_validation.tres",
-    "description": "Validates that a Placement mechanic archetype resolves placement constraints and can be placed on a ground slot.",
+    "description": "Validates that a Placement mechanic archetype compiles placement_spec metadata and can be placed on a ground slot.",
+    "layers": ["core"]
+  },
+  {
+    "id": "placement_runtime_spec_validation",
+    "scenario": "res://scenes/validation/placement_runtime_spec_validation.tres",
+    "description": "Validates that BattleCardState and BattleBoardState consume compiled placement_spec values, including placement_role overrides and required_present_roles.",
     "layers": ["core"]
   },
   {

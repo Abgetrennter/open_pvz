@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
-[ext_resource type="Resource" path="res://data/combat/entity_templates/plants/plant_air_perch.tres" id="2_backend"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/air_unit_low.tres" id="2_height"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -14,5 +14,4 @@ allowed_slot_types = PackedStringArray("air_only")
 required_placement_tags = PackedStringArray("supports_air")
 max_health = 120
 hitbox_size = Vector2(42, 54)
-backend_entity_template = ExtResource("2_backend")
-backend_entity_template_id = &"plant_air_perch"
+hit_height_band = ExtResource("2_height")

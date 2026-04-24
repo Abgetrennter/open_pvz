@@ -7,6 +7,7 @@ const BoardSlotRef = preload("res://scripts/battle/board_slot.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
 const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
+const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 
 var battle: Node = null
 var board_slot_count := 5
@@ -273,6 +274,20 @@ func _resolve_archetype(request: Resource) -> Resource:
 func _resolve_placement_constraints(archetype: Resource) -> Dictionary:
 	if archetype == null or not (archetype is CombatArchetypeRef):
 		return {"entity_kind": StringName()}
+	var placement_spec := CombatContentResolverRef.resolve_archetype_placement_spec(archetype)
+	if not placement_spec.is_empty():
+		return {
+			"entity_kind": StringName(archetype.entity_kind),
+			"allowed_slot_types": PackedStringArray(placement_spec.get("allowed_slot_types", PackedStringArray())),
+			"required_placement_tags": PackedStringArray(placement_spec.get("required_placement_tags", PackedStringArray())),
+			"granted_placement_tags": PackedStringArray(placement_spec.get("granted_placement_tags", PackedStringArray())),
+			"placement_role": StringName(placement_spec.get("placement_role", StringName())),
+			"required_present_roles": PackedStringArray(placement_spec.get("required_present_roles", PackedStringArray())),
+			"required_empty_roles": PackedStringArray(placement_spec.get("required_empty_roles", PackedStringArray())),
+			"placement_spec_source": StringName(placement_spec.get("source", StringName())),
+			"placement_spec_mechanic_id": StringName(placement_spec.get("mechanic_id", StringName())),
+			"placement_slot_type_hint": StringName(placement_spec.get("slot_type_hint", StringName())),
+		}
 	return {
 		"entity_kind": StringName(archetype.entity_kind),
 		"allowed_slot_types": PackedStringArray(archetype.allowed_slot_types),
@@ -281,6 +296,9 @@ func _resolve_placement_constraints(archetype: Resource) -> Dictionary:
 		"placement_role": StringName(archetype.placement_role),
 		"required_present_roles": PackedStringArray(archetype.required_present_roles),
 		"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
+		"placement_spec_source": &"archetype_field",
+		"placement_spec_mechanic_id": StringName(),
+		"placement_slot_type_hint": StringName(),
 	}
 
 
@@ -293,6 +311,9 @@ func _append_template_constraint_fields(core: Dictionary, request: Resource) -> 
 	core["template_granted_placement_tags"] = constraints.get("granted_placement_tags", PackedStringArray())
 	core["template_required_present_roles"] = constraints.get("required_present_roles", PackedStringArray())
 	core["template_required_empty_roles"] = constraints.get("required_empty_roles", PackedStringArray())
+	core["placement_spec_source"] = constraints.get("placement_spec_source", StringName())
+	core["placement_spec_mechanic_id"] = constraints.get("placement_spec_mechanic_id", StringName())
+	core["placement_slot_type_hint"] = constraints.get("placement_slot_type_hint", StringName())
 
 
 func _resolve_placement_role(request: Resource) -> StringName:
@@ -301,6 +322,9 @@ func _resolve_placement_role(request: Resource) -> StringName:
 	var explicit_role := StringName(request.get("placement_role"))
 	if explicit_role != StringName():
 		return explicit_role
+	var placement_spec: Variant = request.get("placement_spec")
+	if placement_spec is Dictionary and StringName(placement_spec.get("placement_role", StringName())) != StringName():
+		return StringName(placement_spec.get("placement_role", StringName()))
 	var archetype: Resource = _resolve_archetype(request)
 	if archetype != null and StringName(archetype.placement_role) != StringName():
 		return StringName(archetype.placement_role)
@@ -308,6 +332,9 @@ func _resolve_placement_role(request: Resource) -> StringName:
 
 
 func _resolve_granted_placement_tags(request: Resource) -> PackedStringArray:
+	var placement_spec: Variant = request.get("placement_spec")
+	if placement_spec is Dictionary and not PackedStringArray(placement_spec.get("granted_placement_tags", PackedStringArray())).is_empty():
+		return PackedStringArray(placement_spec.get("granted_placement_tags", PackedStringArray()))
 	var archetype: Resource = _resolve_archetype(request)
 	if archetype != null and not PackedStringArray(archetype.granted_placement_tags).is_empty():
 		return PackedStringArray(archetype.granted_placement_tags)

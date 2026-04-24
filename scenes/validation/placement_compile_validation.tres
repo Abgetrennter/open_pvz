@@ -29,7 +29,9 @@ event_name = &"placement.accepted"
 required_core_values = {
 "card_id": &"placement_shooter_card",
 "lane_id": 0,
-"slot_index": 0
+"slot_index": 0,
+"placement_spec_source": &"placement_mechanic",
+"placement_spec_mechanic_id": &"core.skeleton.placement_ground"
 }
 
 [sub_resource type="Resource" id="Rule_entity_spawned"]
@@ -46,8 +48,8 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"placement_compile_validation"
 display_name = "Placement Compile Validation"
-description = "Validates that a Placement mechanic archetype resolves placement constraints from archetype fields and can be placed on a ground slot."
-goals = PackedStringArray("Verify the archetype with Placement mechanic is accepted by the board placement system.", "Verify the entity spawns with correct archetype identity.")
+description = "Validates that a Placement mechanic archetype compiles placement_spec metadata and can be placed on a ground slot through the board runtime."
+goals = PackedStringArray("Verify the archetype with Placement mechanic is accepted by the board placement system.", "Verify the accepted placement event exposes placement_spec_source=placement_mechanic.")
 initial_sun = 100
 board_slot_count = 5
 validation_time_limit = 1.5

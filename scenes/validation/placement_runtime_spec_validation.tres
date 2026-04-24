@@ -1,0 +1,95 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="CardDef_primary_wall"]
+script = ExtResource("2_card_def")
+card_id = &"primary_wall_card"
+display_name = "Primary Wall Card"
+archetype_id = &"archetype_wall_barrier"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardDef_cover_override"]
+script = ExtResource("2_card_def")
+card_id = &"placement_cover_override_card"
+display_name = "Placement Cover Override Card"
+archetype_id = &"archetype_placement_cover_override_skeleton"
+sun_cost = 25
+cooldown_seconds = 0.0
+
+[sub_resource type="Resource" id="CardPlayRequest_place_primary"]
+script = ExtResource("3_card_request")
+at_time = 0.2
+card_id = &"primary_wall_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="CardPlayRequest_place_cover"]
+script = ExtResource("3_card_request")
+at_time = 0.45
+card_id = &"placement_cover_override_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="CardPlayRequest_place_cover_empty"]
+script = ExtResource("3_card_request")
+at_time = 0.7
+card_id = &"placement_cover_override_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Rule_cover_override_accepted"]
+script = ExtResource("4_rule")
+rule_id = &"cover_override_accepted"
+description = "placement runtime should accept a cover role compiled from placement_spec on top of an occupied primary slot"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"placement_cover_override_card",
+"lane_id": 0,
+"slot_index": 0,
+"placement_role": &"cover",
+"placement_spec_source": &"placement_mechanic",
+"placement_spec_mechanic_id": &"core.skeleton.placement_cover_on_primary"
+}
+
+[sub_resource type="Resource" id="Rule_cover_override_rejected_without_primary"]
+script = ExtResource("4_rule")
+rule_id = &"cover_override_rejected_without_primary"
+description = "placement runtime should reject the same placement spec on an empty slot because required_present_roles comes from the compiled placement_spec"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"placement_cover_override_card",
+"lane_id": 0,
+"slot_index": 1,
+"reason": &"required_present_role_missing",
+"placement_spec_source": &"placement_mechanic",
+"placement_spec_mechanic_id": &"core.skeleton.placement_cover_on_primary"
+}
+
+[sub_resource type="Resource" id="Rule_cover_override_spawned"]
+script = ExtResource("4_rule")
+rule_id = &"cover_override_spawned"
+description = "accepted cover override archetype should spawn with the expected identity"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_placement_cover_override_skeleton",
+"target_kind": &"plant"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"placement_runtime_spec_validation"
+display_name = "Placement Runtime Spec Validation"
+description = "Validates that BattleCardState and BattleBoardState consume compiled placement_spec values from the Placement family instead of falling back to archetype placement fields."
+goals = PackedStringArray("Verify placement.accepted uses placement_spec placement_role=cover on top of an occupied primary slot.", "Verify placement.rejected enforces required_present_roles from the compiled placement_spec on an empty slot.")
+initial_sun = 100
+board_slot_count = 5
+validation_time_limit = 2.0
+card_defs = [SubResource("CardDef_primary_wall"), SubResource("CardDef_cover_override")]
+card_play_requests = [SubResource("CardPlayRequest_place_primary"), SubResource("CardPlayRequest_place_cover"), SubResource("CardPlayRequest_place_cover_empty")]
+validation_rules = [SubResource("Rule_cover_override_accepted"), SubResource("Rule_cover_override_rejected_without_primary"), SubResource("Rule_cover_override_spawned")]

@@ -4,6 +4,7 @@ class_name BattleCardState
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const BattlePlacementRequestRef = preload("res://scripts/battle/placement_request.gd")
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
+const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 
 var battle: Node = null
 var board_slot_count := 5
@@ -202,14 +203,20 @@ func _build_placement_request(card_id: StringName, lane_id: int, slot_index: int
 	request.archetype_id = StringName(card_def.get("archetype_id"))
 	request.lane_id = lane_id
 	request.slot_index = slot_index
+	var archetype = _resolve_archetype_from_card(card_def)
+	if archetype != null:
+		request.placement_spec = CombatContentResolverRef.resolve_archetype_placement_spec(archetype)
 	var placement_tags: Variant = card_def.get("placement_tags")
 	request.placement_tags = PackedStringArray() if not (placement_tags is PackedStringArray) else PackedStringArray(placement_tags)
 	if request.placement_tags.is_empty():
-		var resolved_tags := _resolve_placement_tags_from_archetype_or_template(card_def)
+		var resolved_tags := _resolve_placement_tags_from_archetype_or_template(card_def, request.placement_spec)
 		if not resolved_tags.is_empty():
 			request.placement_tags = resolved_tags
-	var archetype = _resolve_archetype_from_card(card_def)
-	if archetype != null:
+	if request.placement_spec is Dictionary and not Dictionary(request.placement_spec).is_empty():
+		request.placement_role = StringName(request.placement_spec.get("placement_role", StringName()))
+		if request.placement_tags.is_empty():
+			request.placement_tags = PackedStringArray(request.placement_spec.get("required_placement_tags", PackedStringArray()))
+	elif archetype != null:
 		request.placement_role = StringName(archetype.get("placement_role"))
 		if request.placement_tags.is_empty():
 			request.placement_tags = PackedStringArray(archetype.get("required_placement_tags"))
@@ -225,7 +232,11 @@ func _resolve_archetype_from_card(card_def: Resource):
 	return null
 
 
-func _resolve_placement_tags_from_archetype_or_template(card_def: Resource) -> PackedStringArray:
+func _resolve_placement_tags_from_archetype_or_template(card_def: Resource, placement_spec: Dictionary = {}) -> PackedStringArray:
+	if not placement_spec.is_empty():
+		var compiled_tags := PackedStringArray(placement_spec.get("required_placement_tags", PackedStringArray()))
+		if not compiled_tags.is_empty():
+			return compiled_tags
 	var archetype = _resolve_archetype_from_card(card_def)
 	if archetype != null:
 		var tags := PackedStringArray(archetype.required_placement_tags)

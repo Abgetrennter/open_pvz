@@ -145,7 +145,7 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 			runtime_spec.mechanic_ids.append(String(mechanic.mechanic_id))
 
 	if runtime_spec.backend_entity_template == null:
-		runtime_spec.notes.append("Archetype %s has no backend_entity_template yet; runtime falls back to skeleton-only metadata." % String(archetype.archetype_id))
+		runtime_spec.notes.append("Archetype %s has no backend_entity_template; runtime uses archetype-only metadata." % String(archetype.archetype_id))
 
 	return runtime_spec
 
@@ -1077,6 +1077,20 @@ static func _build_placement_spec_from_mechanic(mechanic, archetype, slot_type: 
 		granted_tags = PackedStringArray(granted_tags)
 	else:
 		granted_tags = PackedStringArray(archetype.granted_placement_tags)
+	var required_present_roles: Variant = params.get("required_present_roles", archetype.required_present_roles)
+	if required_present_roles is PackedStringArray:
+		required_present_roles = PackedStringArray(required_present_roles)
+	elif required_present_roles is Array:
+		required_present_roles = PackedStringArray(required_present_roles)
+	else:
+		required_present_roles = PackedStringArray(archetype.required_present_roles)
+	var required_empty_roles: Variant = params.get("required_empty_roles", archetype.required_empty_roles)
+	if required_empty_roles is PackedStringArray:
+		required_empty_roles = PackedStringArray(required_empty_roles)
+	elif required_empty_roles is Array:
+		required_empty_roles = PackedStringArray(required_empty_roles)
+	else:
+		required_empty_roles = PackedStringArray(archetype.required_empty_roles)
 	return {
 		"source": &"placement_mechanic",
 		"mechanic_id": StringName(mechanic.mechanic_id),
@@ -1084,7 +1098,7 @@ static func _build_placement_spec_from_mechanic(mechanic, archetype, slot_type: 
 		"required_placement_tags": required_tags,
 		"granted_placement_tags": granted_tags,
 		"placement_role": StringName(params.get("placement_role", archetype.placement_role)),
-		"required_present_roles": PackedStringArray(archetype.required_present_roles),
-		"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
+		"required_present_roles": required_present_roles,
+		"required_empty_roles": required_empty_roles,
 		"slot_type_hint": slot_type_hint,
 	}

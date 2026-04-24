@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
-[ext_resource type="Resource" path="res://data/combat/entity_templates/plants/plant_wall_barrier.tres" id="2_backend"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -11,5 +11,4 @@ tags = PackedStringArray("archetype", "plant", "independent", "defense", "wall")
 optional_components = PackedStringArray("DebugViewComponent")
 max_health = 4000
 hitbox_size = Vector2(54, 64)
-backend_entity_template = ExtResource("2_backend")
-backend_entity_template_id = &"plant_wall_barrier"
+hit_height_band = ExtResource("2_height")

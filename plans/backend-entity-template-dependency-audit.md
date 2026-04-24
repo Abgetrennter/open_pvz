@@ -188,3 +188,124 @@
 2. 然后删除 `MechanicCompiler` 与 `CombatContentResolver` 的对应 backend fallback。
 
 这会把 backend 依赖从“字段补位层”继续压缩到只剩 `default_params` 和少量兼容校验层。
+
+## 51 个 archetype 的依赖分层（2026-04-24）
+
+本轮按“后续是否适合立即脱钩”分为 4 层：
+
+### 第 0 层：本轮已完成 backend-free 脱钩（3）
+
+- `archetype_wall_barrier`
+- `archetype_water_pod`
+- `archetype_air_perch`
+
+共同特征：
+
+- 无 mechanics
+- `max_health / hitbox_size / hit_height_band` 已显式写入 archetype
+- 已可在无 backend template 的情况下通过编译、实例化、放置与验证
+
+### 第 1 层：低复杂度候选，补显式高度带后即可继续脱钩（3）
+
+- `archetype_flower_pot_surface`
+- `archetype_pumpkin_cover`
+- `archetype_tombstone_blocker`
+
+共同特征：
+
+- 无 mechanics
+- 当前主要缺口是 `hit_height_band` 仍未从 backend 提升到 archetype
+
+### 第 2 层：主线 archetype，仍受编译补位影响（20）
+
+- `archetype_air_interceptor`
+- `archetype_air_scout`
+- `archetype_basic_shooter`
+- `archetype_basic_walker`
+- `archetype_bone_thrower`
+- `archetype_boss_heavy`
+- `archetype_brisk_runner`
+- `archetype_bucket_tank`
+- `archetype_cabbage_lobber`
+- `archetype_frost_pea`
+- `archetype_lane_dummy`
+- `archetype_lawn_mower`
+- `archetype_melon_lobber`
+- `archetype_reactive_bomber`
+- `archetype_repeater_burst`
+- `archetype_spore_summoner`
+- `archetype_sporeling`
+- `archetype_sunflower`
+- `archetype_tar_spitter`
+- `archetype_track_bomber`
+
+共同特征：
+
+- 已进入主线运行时
+- 带 mechanics
+- 仍广泛依赖 backend 提供 `default_params`、高度带、投射体或飞行配置补位
+
+### 第 3 层：skeleton / wrapper / 试验件，最后处理（25）
+
+- `archetype_air_perch_skeleton`
+- `archetype_arming_striker_skeleton`
+- `archetype_basic_zombie_skeleton`
+- `archetype_burst_shooter_skeleton`
+- `archetype_cabbage_skeleton`
+- `archetype_flower_pot_surface_skeleton`
+- `archetype_frost_pea_skeleton`
+- `archetype_full_chain_shooter_skeleton`
+- `archetype_hit_policy_shooter_skeleton`
+- `archetype_lawn_mower_skeleton`
+- `archetype_multi_payload_skeleton`
+- `archetype_on_place_sunburst_skeleton`
+- `archetype_peashooter_skeleton`
+- `archetype_placement_cover_override_skeleton`
+- `archetype_placement_shooter_skeleton`
+- `archetype_repeater_skeleton`
+- `archetype_spawned_sunburst_skeleton`
+- `archetype_spore_summoner_skeleton`
+- `archetype_spread_shooter_skeleton`
+- `archetype_striker_skeleton`
+- `archetype_sunflower_skeleton`
+- `archetype_targeting_striker_skeleton`
+- `archetype_trajectory_shooter_skeleton`
+- `archetype_wall_barrier_skeleton`
+- `archetype_water_pod_skeleton`
+
+共同特征：
+
+- 主要服务编译链、迁移、专项验证或 wrapper 过渡
+- 不适合作为“彻底清除兼容层”的第一批对象
+
+## 第一批 3 个 archetype 的脱钩结果
+
+本轮已完成：
+
+1. `archetype_wall_barrier`
+   - 提升 `hit_height_band`
+   - 删除 backend 引用
+2. `archetype_water_pod`
+   - 提升 `hit_height_band`
+   - 删除 backend 引用
+3. `archetype_air_perch`
+   - 提升 `hit_height_band`
+   - 删除 backend 引用
+
+同时配套完成：
+
+- `ProtocolValidator` 允许“无 mechanics + 显式生命/碰撞/高度带”的 archetype 作为 backend-free archetype 通过校验
+- `MechanicCompiler` 对无 backend archetype 的说明调整为 “archetype-only metadata” 路径
+
+## 下一批推荐
+
+如果继续按最小风险推进，下一批建议是：
+
+1. `archetype_flower_pot_surface`
+2. `archetype_pumpkin_cover`
+3. `archetype_tombstone_blocker`
+
+原因：
+
+- 仍属于第 1 层低复杂度 archetype
+- 不需要先处理 projectile / default_params / movement 这类更深的 backend 依赖

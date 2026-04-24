@@ -314,14 +314,49 @@ static func validate_combat_archetype(archetype: Resource) -> Array[String]:
 	var backend_template = CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
 	if StringName(archetype.get("backend_entity_template_id")) != StringName() and backend_template == null:
 		errors.append("CombatArchetype.backend_entity_template_id must resolve through SceneRegistry.")
-	if backend_template == null:
-		errors.append("CombatArchetype must currently resolve a backend entity template for the runtime skeleton.")
+	if backend_template == null and not _can_validate_backend_free_archetype(archetype):
+		errors.append("CombatArchetype must currently resolve a backend entity template, or satisfy the backend-free archetype requirements.")
 	if backend_template != null:
 		for error in validate_entity_template(backend_template):
 			errors.append("CombatArchetype backend_entity_template: %s" % error)
 		if not _entity_template_trigger_bindings(backend_template).is_empty():
 			errors.append("CombatArchetype backend_entity_template must not retain legacy trigger_bindings. Move behavior into mechanics.")
+	var placement_errors := _validate_archetype_placement_spec(archetype)
+	for error in placement_errors:
+		errors.append("CombatArchetype placement_spec: %s" % error)
 	return errors
+
+
+static func _validate_archetype_placement_spec(archetype: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if archetype == null or not (archetype is CombatArchetypeRef):
+		return errors
+	if StringName(archetype.entity_kind) != &"plant":
+		return errors
+	var placement_spec := CombatContentResolverRef.resolve_archetype_placement_spec(archetype)
+	if placement_spec.is_empty():
+		errors.append("plant archetype must resolve a non-empty placement_spec.")
+		return errors
+	if StringName(placement_spec.get("placement_role", StringName())) == StringName():
+		errors.append("placement_spec.placement_role must not be empty.")
+	var required_tags := PackedStringArray(placement_spec.get("required_placement_tags", PackedStringArray()))
+	if required_tags.is_empty():
+		errors.append("placement_spec.required_placement_tags must not be empty for plant archetypes.")
+	return errors
+
+
+static func _can_validate_backend_free_archetype(archetype: Resource) -> bool:
+	if archetype == null or not (archetype is CombatArchetypeRef):
+		return false
+	if not archetype.mechanics.is_empty():
+		return false
+	if archetype.max_health <= 0:
+		return false
+	if archetype.hitbox_size == Vector2.ZERO:
+		return false
+	if archetype.hit_height_band == null:
+		return false
+	return true
 
 
 static func validate_trigger_binding(trigger_binding: Resource) -> Array[String]:

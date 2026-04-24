@@ -96,7 +96,7 @@ legacy 资源当前仍存在，但只承担：
 
 说明：
 
-- 仓库中已经存在 placement 相关验证与接线。
+- 仓库中已经存在 placement 相关 compiler callable、`placement_spec` 编译产物，以及由 `BattleCardState / BattleBoardState` 消费该 spec 的运行时接线。
 - 但从正文和治理口径上，它尚未达到与其他 9 个 family 等价的正式收口状态。
 
 ---
@@ -179,7 +179,7 @@ EntityFactory.instantiate_runtime_spec()
 
 当前仓库事实是：
 
-- `data/combat/archetypes/` 下全部 `50` 个 archetype 仍带有 `backend_entity_template*` 字段。
+- `data/combat/archetypes/` 下当前仍有 `48` 个 archetype 带有 `backend_entity_template*` 字段。
 - `EntityFactory` 仍保留旧路径兜底。
 - `data/combat/entity_templates/` 与 `data/combat/trigger_bindings/` 仍在仓库中。
 
