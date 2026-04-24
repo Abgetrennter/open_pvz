@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
 [ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
 [ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="4_template_script"]
+[ext_resource type="Script" path="res://scripts/core/defs/combat_archetype.gd" id="4b_archetype_script"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_ground_height"]
 [ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="6_linear_profile"]
 [ext_resource type="Script" path="res://scripts/core/defs/projectile_template.gd" id="7_projectile_template_script"]
@@ -99,27 +100,55 @@ display_name = "Invalid Binding Extra Condition Template"
 hit_height_band = ExtResource("5_ground_height")
 trigger_bindings = [SubResource("InvalidTriggerBinding_extra_condition")]
 
+[sub_resource type="Resource" id="InvalidArchetype_missing_backend_template_id"]
+script = ExtResource("4b_archetype_script")
+archetype_id = &"invalid_archetype_missing_backend_template_id"
+entity_kind = &"plant"
+display_name = "Invalid Backend Template Id Archetype"
+backend_entity_template = SubResource("InvalidEntityTemplate_missing_id")
+
+[sub_resource type="Resource" id="InvalidArchetype_backend_binding"]
+script = ExtResource("4b_archetype_script")
+archetype_id = &"invalid_archetype_backend_binding"
+entity_kind = &"plant"
+display_name = "Invalid Backend Binding Archetype"
+backend_entity_template = SubResource("InvalidEntityTemplate_binding")
+
+[sub_resource type="Resource" id="InvalidArchetype_backend_binding_contract"]
+script = ExtResource("4b_archetype_script")
+archetype_id = &"invalid_archetype_backend_binding_contract"
+entity_kind = &"plant"
+display_name = "Invalid Backend Binding Contract Archetype"
+backend_entity_template = SubResource("InvalidEntityTemplate_binding_contract")
+
+[sub_resource type="Resource" id="InvalidArchetype_backend_binding_extra_condition"]
+script = ExtResource("4b_archetype_script")
+archetype_id = &"invalid_archetype_backend_binding_extra_condition"
+entity_kind = &"zombie"
+display_name = "Invalid Backend Binding Extra Condition Archetype"
+backend_entity_template = SubResource("InvalidEntityTemplate_binding_extra_condition")
+
 [sub_resource type="Resource" id="Spawn_missing_template_id"]
 script = ExtResource("2_spawn")
-archetype = SubResource("InvalidEntityTemplate_missing_id")
+archetype = SubResource("InvalidArchetype_missing_backend_template_id")
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_invalid_binding"]
 script = ExtResource("2_spawn")
-archetype = SubResource("InvalidEntityTemplate_binding")
+archetype = SubResource("InvalidArchetype_backend_binding")
 lane_id = 0
 x_position = 240.0
 
 [sub_resource type="Resource" id="Spawn_invalid_binding_contract"]
 script = ExtResource("2_spawn")
-archetype = SubResource("InvalidEntityTemplate_binding_contract")
+archetype = SubResource("InvalidArchetype_backend_binding_contract")
 lane_id = 0
 x_position = 280.0
 
 [sub_resource type="Resource" id="Spawn_invalid_binding_extra_condition"]
 script = ExtResource("2_spawn")
-archetype = SubResource("InvalidEntityTemplate_binding_extra_condition")
+archetype = SubResource("InvalidArchetype_backend_binding_extra_condition")
 lane_id = 0
 x_position = 320.0
 
@@ -152,6 +181,9 @@ rule_id = &"template_protocol_issues"
 description = "invalid template and override content should be rejected through protocol issues before runtime trigger binding"
 event_name = &"protocol.issue"
 min_count = 6
+required_core_values = {
+"scope": &"battle_spawn_entry"
+}
 
 [sub_resource type="Resource" id="Rule_no_projectiles"]
 script = ExtResource("3_rule")

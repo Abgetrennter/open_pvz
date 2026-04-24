@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
 [ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
 [ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="4_template_script"]
+[ext_resource type="Script" path="res://scripts/core/defs/combat_archetype.gd" id="4b_archetype_script"]
 [ext_resource type="Script" path="res://scripts/core/defs/trigger_binding.gd" id="5_binding_script"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="6_ground_height"]
 [ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_linear.tres" id="7_projectile_template"]
@@ -95,21 +96,42 @@ display_name = "Invalid Extension Strategy Template"
 hit_height_band = ExtResource("6_ground_height")
 trigger_bindings = [SubResource("InvalidBinding_missing_strategy")]
 
+[sub_resource type="Resource" id="InvalidArchetype_split_bad_param"]
+script = ExtResource("4b_archetype_script")
+archetype_id = &"invalid_extension_split_bad_param_archetype"
+entity_kind = &"plant"
+display_name = "Invalid Extension Split Archetype"
+backend_entity_template = SubResource("InvalidTemplate_split_bad_param")
+
+[sub_resource type="Resource" id="InvalidArchetype_slot_mismatch"]
+script = ExtResource("4b_archetype_script")
+archetype_id = &"invalid_extension_slot_mismatch_archetype"
+entity_kind = &"plant"
+display_name = "Invalid Extension Slot Archetype"
+backend_entity_template = SubResource("InvalidTemplate_slot_mismatch")
+
+[sub_resource type="Resource" id="InvalidArchetype_missing_strategy"]
+script = ExtResource("4b_archetype_script")
+archetype_id = &"invalid_extension_missing_strategy_archetype"
+entity_kind = &"plant"
+display_name = "Invalid Extension Strategy Archetype"
+backend_entity_template = SubResource("InvalidTemplate_missing_strategy")
+
 [sub_resource type="Resource" id="Spawn_invalid_split_bad_param"]
 script = ExtResource("2_spawn")
-archetype = SubResource("InvalidTemplate_split_bad_param")
+archetype = SubResource("InvalidArchetype_split_bad_param")
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_invalid_slot_mismatch"]
 script = ExtResource("2_spawn")
-archetype = SubResource("InvalidTemplate_slot_mismatch")
+archetype = SubResource("InvalidArchetype_slot_mismatch")
 lane_id = 0
 x_position = 240.0
 
 [sub_resource type="Resource" id="Spawn_invalid_missing_strategy"]
 script = ExtResource("2_spawn")
-archetype = SubResource("InvalidTemplate_missing_strategy")
+archetype = SubResource("InvalidArchetype_missing_strategy")
 lane_id = 0
 x_position = 320.0
 
@@ -139,6 +161,9 @@ rule_id = &"extension_spawn_guardrail_issues"
 description = "invalid extension effect bindings should be rejected before runtime execution"
 event_name = &"protocol.issue"
 min_count = 3
+required_core_values = {
+"scope": &"battle_spawn_entry"
+}
 
 [sub_resource type="Resource" id="Rule_no_projectile_spawn"]
 script = ExtResource("3_rule")
