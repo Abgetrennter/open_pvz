@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"phase5.extension_status_binder.payload"
+display_name = "Extension Status Binder Payload"
+family = &"Payload"
+type_id = &"core.spawn_projectile"
+priority = 20
+tags = PackedStringArray("extension", "status", "projectile")
+params = {
+"damage": 8,
+"direction": Vector2(1, 0),
+"on_hit_effect_id": &"apply_status",
+"on_hit_effect_params": {
+"blocks_attack": false,
+"duration": 1.0,
+"movement_scale": 0.2,
+"status_id": &"slowed",
+"target_mode": &"context_target"
+},
+"speed": 1200.0
+}

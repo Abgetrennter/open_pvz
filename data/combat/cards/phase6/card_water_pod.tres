@@ -7,7 +7,6 @@ script = ExtResource("1_card_def")
 card_id = &"card_water_pod"
 display_name = "Water Pod"
 archetype_id = &"archetype_water_pod"
-entity_template_id = &"plant_water_pod"
 sun_cost = 25
 cooldown_seconds = 3.0
 placement_tags = PackedStringArray("water")

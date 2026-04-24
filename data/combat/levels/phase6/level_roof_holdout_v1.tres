@@ -14,7 +14,6 @@
 [sub_resource type="Resource" id="ProtectedSunflower"]
 script = ExtResource("10_spawn")
 archetype_id = &"archetype_sunflower"
-entity_template_id = &"plant_sunflower"
 lane_id = 1
 x_position = 160.0
 

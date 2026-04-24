@@ -11,7 +11,6 @@ script = ExtResource("2_card_def")
 card_id = &"ground_fail_air_card"
 display_name = "Ground Fail Air Card"
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 sun_cost = 25
 cooldown_seconds = 0.0
 placement_tags = PackedStringArray("air_only")
@@ -21,7 +20,6 @@ script = ExtResource("2_card_def")
 card_id = &"air_perch_card"
 display_name = "Air Perch Card"
 archetype_id = &"archetype_air_perch"
-entity_template_id = &"plant_air_perch"
 sun_cost = 25
 cooldown_seconds = 0.0
 

@@ -8,14 +8,12 @@
 [sub_resource type="Resource" id="FieldObjectConfig_mower_archetype"]
 script = ExtResource("3_field_config")
 archetype_id = &"archetype_lawn_mower_skeleton"
-object_template_id = &"field_object_lawn_mower"
 lane_id = 0
 x_position = 80.0
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 200.0
 spawn_overrides = {

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"phase5.extension_aura_keeper.payload"
+display_name = "Extension Aura Keeper Payload"
+family = &"Payload"
+type_id = &"core.invoke_effect"
+priority = 20
+tags = PackedStringArray("extension", "aura", "effect")
+params = {
+"duration": 0.6,
+"effect_id": &"aura",
+"lane_only": true,
+"movement_scale": 0.2,
+"origin_mode": &"owner",
+"radius": 180.0,
+"status_id": &"slowed",
+"team_mode": &"enemies"
+}

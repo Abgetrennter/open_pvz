@@ -7,7 +7,6 @@ script = ExtResource("1_card")
 card_id = &"card_archetype_on_place_sunburst"
 display_name = "On Place Sunburst"
 archetype_id = &"archetype_on_place_sunburst_skeleton"
-entity_template_id = &"plant_sunflower"
 sun_cost = 0
 cooldown_seconds = 0.1
 placement_tags = PackedStringArray("supports_primary")

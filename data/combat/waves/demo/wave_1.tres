@@ -7,7 +7,6 @@
 [sub_resource type="Resource" id="Spawn_1"]
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 1
 x_position = 920.0
 spawn_overrides = {}
@@ -15,7 +14,6 @@ spawn_overrides = {}
 [sub_resource type="Resource" id="Spawn_2"]
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 3
 x_position = 940.0
 spawn_overrides = {}
@@ -23,7 +21,6 @@ spawn_overrides = {}
 [sub_resource type="Resource" id="Spawn_3"]
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 4
 x_position = 910.0
 spawn_overrides = {}

@@ -7,14 +7,12 @@
 [sub_resource type="Resource" id="Spawn_extension_plant"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_extension_glass_cannon"
-entity_template_id = &"plant_extension_glass_cannon"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_extension_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 420.0
 

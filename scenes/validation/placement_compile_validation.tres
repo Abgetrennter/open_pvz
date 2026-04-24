@@ -10,7 +10,6 @@ script = ExtResource("2_card_def")
 card_id = &"placement_shooter_card"
 display_name = "Placement Shooter Card"
 archetype_id = &"archetype_placement_shooter_skeleton"
-entity_template_id = &"plant_basic_shooter"
 sun_cost = 25
 cooldown_seconds = 0.0
 placement_tags = PackedStringArray("supports_primary")

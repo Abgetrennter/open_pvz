@@ -89,19 +89,19 @@ func build_default_scenario():
 		make_validation_rule(&"explode_damage", "death-triggered explosion damage", &"entity.damaged", 1, -1, PackedStringArray(["explode", "entity.died"])),
 	]
 	fallback.spawns = [
-		make_spawn_entry(&"plant_basic_shooter", 0, 160.0, {"interval": 1.4, "damage": 20, "speed": 220.0}),
-		make_spawn_entry(&"plant_track_bomber", 0, 250.0, {"interval": 2.1, "damage": 15, "speed": 210.0, "movement_mode": &"track", "turn_rate": 5.5}),
-		make_spawn_entry(&"plant_cabbage_lobber", 1, 160.0, {"interval": 1.6, "damage": 20, "speed": 220.0, "travel_duration": 1.4}),
-		make_spawn_entry(&"zombie_reactive_bomber", 0, 460.0, {}),
-		make_spawn_entry(&"zombie_lane_dummy", 0, 650.0, {}),
-		make_spawn_entry(&"zombie_lane_dummy", 1, 520.0, {}),
+		make_spawn_entry(&"archetype_basic_shooter", 0, 160.0, {"interval": 1.4, "damage": 20, "speed": 220.0}),
+		make_spawn_entry(&"archetype_track_bomber", 0, 250.0, {"interval": 2.1, "damage": 15, "speed": 210.0, "movement_mode": &"track", "turn_rate": 5.5}),
+		make_spawn_entry(&"archetype_cabbage_lobber", 1, 160.0, {"interval": 1.6, "damage": 20, "speed": 220.0, "travel_duration": 1.4}),
+		make_spawn_entry(&"archetype_reactive_bomber", 0, 460.0, {}),
+		make_spawn_entry(&"archetype_lane_dummy", 0, 650.0, {}),
+		make_spawn_entry(&"archetype_lane_dummy", 1, 520.0, {}),
 	]
 	return fallback
 
 
-func make_spawn_entry(entity_template_id: StringName, lane_id: int, x_position: float, params: Dictionary):
+func make_spawn_entry(archetype_id: StringName, lane_id: int, x_position: float, params: Dictionary):
 	var entry = BattleSpawnEntryRef.new()
-	entry.entity_template_id = entity_template_id
+	entry.archetype_id = archetype_id
 	entry.lane_id = lane_id
 	entry.x_position = x_position
 	entry.spawn_overrides = params.duplicate(true)

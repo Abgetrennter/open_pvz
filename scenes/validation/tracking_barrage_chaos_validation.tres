@@ -7,28 +7,24 @@
 [sub_resource type="Resource" id="Spawn_track_bomber"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_track_bomber"
-entity_template_id = &"plant_track_bomber"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_air_interceptor"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_air_interceptor"
-entity_template_id = &"plant_air_interceptor"
 lane_id = 1
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_ground_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 440.0
 
 [sub_resource type="Resource" id="Spawn_air_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_air_scout"
-entity_template_id = &"zombie_air_scout"
 lane_id = 1
 x_position = 500.0
 

@@ -16,7 +16,7 @@ params = {
 "speed": 220.0,
 "on_hit_effect_id": &"explode",
 "on_hit_effect_params": {
-"amount": 40.0,
+"amount": 40,
 "radius": 80.0,
 "target_mode": &"enemies_in_radius"
 }

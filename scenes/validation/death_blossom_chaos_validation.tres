@@ -7,28 +7,24 @@
 [sub_resource type="Resource" id="Spawn_basic_shooter"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_wall_left"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_wall_barrier"
-entity_template_id = &"plant_wall_barrier"
 lane_id = 0
 x_position = 250.0
 
 [sub_resource type="Resource" id="Spawn_reactive_bomber"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_reactive_bomber"
-entity_template_id = &"zombie_reactive_bomber"
 lane_id = 0
 x_position = 330.0
 
 [sub_resource type="Resource" id="Spawn_wall_right"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_wall_barrier"
-entity_template_id = &"plant_wall_barrier"
 lane_id = 0
 x_position = 410.0
 

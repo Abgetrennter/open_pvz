@@ -7,14 +7,12 @@
 [sub_resource type="Resource" id="Spawn_status_binder"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_extension_status_binder"
-entity_template_id = &"plant_extension_status_binder"
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
-entity_template_id = &"zombie_basic_walker"
 lane_id = 0
 x_position = 430.0
 spawn_overrides = {

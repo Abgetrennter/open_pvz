@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"phase5.extension_knockback_binder.trigger"
+display_name = "Extension Knockback Binder Trigger"
+family = &"Trigger"
+type_id = &"core.periodic"
+priority = 10
+tags = PackedStringArray("extension", "knockback", "trigger")
+params = {
+"detection_id": &"lane_forward",
+"interval": 0.6,
+"scan_range": 900.0
+}

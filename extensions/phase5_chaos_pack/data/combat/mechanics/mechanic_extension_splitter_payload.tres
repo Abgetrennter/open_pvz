@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/track_bomb.tres" id="2_split_projectile"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"phase5.extension_splitter.payload"
+display_name = "Extension Splitter Payload"
+family = &"Payload"
+type_id = &"core.spawn_projectile"
+priority = 20
+tags = PackedStringArray("extension", "splitter", "projectile")
+params = {
+"damage": 20,
+"direction": Vector2(1, 0),
+"on_hit_effect_id": &"split_projectiles",
+"on_hit_effect_params": {
+"damage": 12,
+"impact_damage": 20,
+"max_targets": 2,
+"movement_mode": &"track",
+"projectile_template": ExtResource("2_split_projectile"),
+"search_radius": 260.0,
+"speed": 260.0,
+"turn_rate": 8.0
+},
+"speed": 240.0
+}

@@ -7,8 +7,6 @@ const BoardSlotRef = preload("res://scripts/battle/board_slot.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
 const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
-const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
-const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 
 var battle: Node = null
 var board_slot_count := 5
@@ -91,7 +89,6 @@ func reject_request(request: Resource, reason: StringName) -> void:
 	rejected_event.core["card_id"] = StringName(request.get("card_id"))
 	rejected_event.core["source_id"] = StringName(request.get("source_id"))
 	rejected_event.core["archetype_id"] = StringName(request.get("archetype_id"))
-	rejected_event.core["entity_template_id"] = StringName(request.get("entity_template_id"))
 	rejected_event.core["lane_id"] = int(request.get("lane_id"))
 	rejected_event.core["slot_index"] = int(request.get("slot_index"))
 	rejected_event.core["reason"] = reason
@@ -120,7 +117,6 @@ func commit_request(request: Resource, entity: Node) -> bool:
 	accepted_event.core["card_id"] = StringName(request.get("card_id"))
 	accepted_event.core["source_id"] = StringName(request.get("source_id"))
 	accepted_event.core["archetype_id"] = StringName(request.get("archetype_id"))
-	accepted_event.core["entity_template_id"] = StringName(request.get("entity_template_id"))
 	accepted_event.core["lane_id"] = int(request.get("lane_id"))
 	accepted_event.core["slot_index"] = int(request.get("slot_index"))
 	accepted_event.core["placement_role"] = placement_role
@@ -189,10 +185,10 @@ func _placement_reason(request: Resource) -> StringName:
 	for placement_tag in requested_tags:
 		if not effective_tags.has(placement_tag):
 			return &"slot_tag_mismatch"
-	var template: Resource = _resolve_entity_template(request)
-	if template == null:
-		return &"template_missing"
-	var placement_constraints := _resolve_placement_constraints(request, template)
+	var archetype: Resource = _resolve_archetype(request)
+	if archetype == null:
+		return &"archetype_missing"
+	var placement_constraints := _resolve_placement_constraints(archetype)
 	if String(placement_constraints.get("entity_kind")) == "plant":
 		var placement_role := _resolve_placement_role(request)
 		if placement_role == StringName():
@@ -262,24 +258,6 @@ func _apply_slot_configs() -> void:
 			slot.base_tags = BoardSlotCatalogRef.default_tags_for(slot_type)
 
 
-func _resolve_entity_template(request: Resource) -> Resource:
-	if request == null:
-		return null
-	var archetype_id := StringName(request.get("archetype_id"))
-	if archetype_id != StringName():
-		if not SceneRegistry.has_archetype(archetype_id):
-			return null
-		var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
-		if archetype is CombatArchetypeRef:
-			return CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
-	var entity_template_id := StringName(request.get("entity_template_id"))
-	if entity_template_id == StringName():
-		return null
-	if not SceneRegistry.has_entity_template(entity_template_id):
-		return null
-	return SceneRegistry.get_entity_template(entity_template_id)
-
-
 func _resolve_archetype(request: Resource) -> Resource:
 	var archetype_id := StringName(request.get("archetype_id"))
 	if archetype_id == StringName():
@@ -292,42 +270,23 @@ func _resolve_archetype(request: Resource) -> Resource:
 	return null
 
 
-func _resolve_placement_constraints(request: Resource, template: Resource) -> Dictionary:
-	var template_constraints := _extract_template_placement(template)
-	var archetype: Resource = _resolve_archetype(request)
-	if archetype == null:
-		return template_constraints
-	var has_explicit_placement := not PackedStringArray(archetype.allowed_slot_types).is_empty() or PackedStringArray(archetype.required_placement_tags) != PackedStringArray(["supports_primary"]) or not PackedStringArray(archetype.granted_placement_tags).is_empty()
-	if has_explicit_placement:
-		return {
-			"entity_kind": StringName(archetype.entity_kind) if StringName(archetype.entity_kind) != StringName() else template_constraints.get("entity_kind", StringName()),
-			"allowed_slot_types": PackedStringArray(archetype.allowed_slot_types),
-			"required_placement_tags": PackedStringArray(archetype.required_placement_tags),
-			"granted_placement_tags": PackedStringArray(archetype.granted_placement_tags),
-			"placement_role": StringName(archetype.placement_role),
-			"required_present_roles": PackedStringArray(archetype.required_present_roles),
-			"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
-		}
-	return template_constraints
-
-
-func _extract_template_placement(template: Resource) -> Dictionary:
-	if template != null and template.get_script() == EntityTemplateRef:
-		return {
-			"entity_kind": StringName(template.get("entity_kind")),
-			"allowed_slot_types": PackedStringArray(template.get("allowed_slot_types")),
-			"required_placement_tags": PackedStringArray(template.get("required_placement_tags")),
-			"granted_placement_tags": PackedStringArray(template.get("granted_placement_tags")),
-			"placement_role": StringName(template.get("placement_role")),
-			"required_present_roles": PackedStringArray(template.get("required_present_roles")),
-			"required_empty_roles": PackedStringArray(template.get("required_empty_roles")),
-		}
-	return {"entity_kind": StringName()}
+func _resolve_placement_constraints(archetype: Resource) -> Dictionary:
+	if archetype == null or not (archetype is CombatArchetypeRef):
+		return {"entity_kind": StringName()}
+	return {
+		"entity_kind": StringName(archetype.entity_kind),
+		"allowed_slot_types": PackedStringArray(archetype.allowed_slot_types),
+		"required_placement_tags": PackedStringArray(archetype.required_placement_tags),
+		"granted_placement_tags": PackedStringArray(archetype.granted_placement_tags),
+		"placement_role": StringName(archetype.placement_role),
+		"required_present_roles": PackedStringArray(archetype.required_present_roles),
+		"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
+	}
 
 
 func _append_template_constraint_fields(core: Dictionary, request: Resource) -> void:
-	var template: Resource = _resolve_entity_template(request)
-	var constraints := _resolve_placement_constraints(request, template)
+	var archetype: Resource = _resolve_archetype(request)
+	var constraints := _resolve_placement_constraints(archetype)
 	core["placement_role"] = _resolve_placement_role(request)
 	core["template_allowed_slot_types"] = constraints.get("allowed_slot_types", PackedStringArray())
 	core["template_required_placement_tags"] = constraints.get("required_placement_tags", PackedStringArray())
@@ -343,11 +302,8 @@ func _resolve_placement_role(request: Resource) -> StringName:
 	if explicit_role != StringName():
 		return explicit_role
 	var archetype: Resource = _resolve_archetype(request)
-	if archetype != null and StringName(archetype.placement_role) != &"primary":
+	if archetype != null and StringName(archetype.placement_role) != StringName():
 		return StringName(archetype.placement_role)
-	var template: Resource = _resolve_entity_template(request)
-	if template != null and template.get_script() == EntityTemplateRef:
-		return StringName(template.get("placement_role"))
 	return &"primary"
 
 
@@ -355,10 +311,7 @@ func _resolve_granted_placement_tags(request: Resource) -> PackedStringArray:
 	var archetype: Resource = _resolve_archetype(request)
 	if archetype != null and not PackedStringArray(archetype.granted_placement_tags).is_empty():
 		return PackedStringArray(archetype.granted_placement_tags)
-	var template: Resource = _resolve_entity_template(request)
-	if template == null or template.get_script() != EntityTemplateRef:
-		return PackedStringArray()
-	return PackedStringArray(template.get("granted_placement_tags"))
+	return PackedStringArray()
 
 
 func _slot_key(lane_id: int, slot_index: int) -> String:

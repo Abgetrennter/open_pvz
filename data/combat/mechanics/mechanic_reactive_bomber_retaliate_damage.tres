@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.reactive_bomber.retaliate_damage"
+display_name = "Reactive Bomber Retaliate Damage"
+family = &"Payload"
+type_id = &"core.damage"
+priority = 20
+tags = PackedStringArray("reactive", "retaliate", "damage")
+params = {
+"amount": 7,
+"binding_group": &"retaliate",
+"target_mode": &"event_source"
+}

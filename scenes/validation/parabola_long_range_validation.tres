@@ -9,7 +9,6 @@
 [sub_resource type="Resource" id="BattleSpawnEntry_parabola"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_cabbage_lobber"
-entity_template_id = &"plant_cabbage_lobber"
 lane_id = 1
 x_position = 140.0
 projectile_flight_profile_override = ExtResource("5_profile")
@@ -24,7 +23,6 @@ spawn_overrides = {
 [sub_resource type="Resource" id="BattleSpawnEntry_far_zombie"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_lane_dummy"
-entity_template_id = &"zombie_lane_dummy"
 lane_id = 1
 x_position = 790.0
 

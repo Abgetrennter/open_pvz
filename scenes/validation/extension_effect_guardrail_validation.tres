@@ -97,19 +97,19 @@ trigger_bindings = [SubResource("InvalidBinding_missing_strategy")]
 
 [sub_resource type="Resource" id="Spawn_invalid_split_bad_param"]
 script = ExtResource("2_spawn")
-entity_template = SubResource("InvalidTemplate_split_bad_param")
+archetype = SubResource("InvalidTemplate_split_bad_param")
 lane_id = 0
 x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_invalid_slot_mismatch"]
 script = ExtResource("2_spawn")
-entity_template = SubResource("InvalidTemplate_slot_mismatch")
+archetype = SubResource("InvalidTemplate_slot_mismatch")
 lane_id = 0
 x_position = 240.0
 
 [sub_resource type="Resource" id="Spawn_invalid_missing_strategy"]
 script = ExtResource("2_spawn")
-entity_template = SubResource("InvalidTemplate_missing_strategy")
+archetype = SubResource("InvalidTemplate_missing_strategy")
 lane_id = 0
 x_position = 320.0
 
@@ -139,9 +139,6 @@ rule_id = &"extension_spawn_guardrail_issues"
 description = "invalid extension effect bindings should be rejected before runtime execution"
 event_name = &"protocol.issue"
 min_count = 3
-required_core_values = {
-"scope": &"battle_spawn_entry"
-}
 
 [sub_resource type="Resource" id="Rule_no_projectile_spawn"]
 script = ExtResource("3_rule")

@@ -16,7 +16,6 @@ data/combat/
     field_objects/     -- 场上物件模板（1 个）
   projectile_templates/ -- 抛射体模板（6 个）
   projectile_profiles/ -- 飞行配置（8 个）
-  trigger_bindings/    -- 触发绑定（8 个）
   height_bands/        -- 高度段（5 个）
 ```
 
@@ -59,8 +58,8 @@ data/combat/
 
 - 命名：`plant_role_variant` / `zombie_role_variant` / `projectile_type`
 - 字段顺序：Identity -> Node/Component -> Combat -> Projectile -> Behavior
-- EntityTemplate 通过 `trigger_bindings` 数组引用 TriggerBinding 资源
-- TriggerBinding 通过 `behavior_key` 绑定到冻结协议
+- EntityTemplate 仅作为 archetype backend 骨架资源保留，不再作为正式作者入口
+- TriggerBinding 已降级为编译期遗留概念，不再作为内容资源主入口
 - 放置约束通过 `placement_role`, `required_placement_tags`, `granted_placement_tags` 控制
 
 ## 相关验证场景

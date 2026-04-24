@@ -1,9 +1,7 @@
-[gd_resource type="Resource" script_class="EntityTemplate" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="EntityTemplate" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/entity_template.gd" id="1_template"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
-[ext_resource type="Resource" path="res://data/combat/trigger_bindings/zombie_reactive_when_damaged.tres" id="3_damaged_binding"]
-[ext_resource type="Resource" path="res://data/combat/trigger_bindings/zombie_reactive_on_death.tres" id="4_death_binding"]
 
 [resource]
 script = ExtResource("1_template")
@@ -18,4 +16,4 @@ hit_height_band = ExtResource("2_height")
 default_params = {
 "move_speed": 0.0
 }
-trigger_bindings = [ExtResource("3_damaged_binding"), ExtResource("4_death_binding")]
+trigger_bindings = []

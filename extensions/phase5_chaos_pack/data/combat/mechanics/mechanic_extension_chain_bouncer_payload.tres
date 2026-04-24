@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"phase5.extension_chain_bouncer.payload"
+display_name = "Extension Chain Bouncer Payload"
+family = &"Payload"
+type_id = &"core.spawn_projectile"
+priority = 20
+tags = PackedStringArray("extension", "bounce", "projectile")
+params = {
+"damage": 6,
+"direction": Vector2(1, 0),
+"on_hit_effect_id": &"chain_bounce",
+"on_hit_effect_params": {
+"base_damage": 18,
+"bounce_count": 3,
+"bounce_radius": 120.0,
+"damage_falloff": 0.75,
+"target_mode": &"context_target"
+},
+"speed": 240.0
+}

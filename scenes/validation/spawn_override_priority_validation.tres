@@ -9,7 +9,6 @@
 [sub_resource type="Resource" id="Spawn_override_plant"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_shooter"
-entity_template_id = &"plant_basic_shooter"
 lane_id = 0
 x_position = 160.0
 spawn_overrides = {
@@ -23,14 +22,13 @@ projectile_flight_profile_override = ExtResource("5_profile_override")
 [sub_resource type="Resource" id="Spawn_override_zombie"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_lane_dummy"
-entity_template_id = &"zombie_lane_dummy"
 lane_id = 0
 x_position = 500.0
 
 [sub_resource type="Resource" id="Rule_override_spawn"]
 script = ExtResource("3_rule")
 rule_id = &"override_spawn"
-description = "spawn entry should resolve entity_template_id through SceneRegistry and let scenario overrides replace template projectile defaults"
+description = "spawn entry should resolve archetype_id through SceneRegistry and let scenario overrides replace backend projectile defaults"
 event_name = &"projectile.spawned"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
@@ -56,7 +54,7 @@ script = ExtResource("1_scenario")
 scenario_id = &"spawn_override_priority_validation"
 display_name = "Spawn Override Priority Validation"
 description = "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides take precedence over template projectile defaults for the instantiated scenario."
-goals = PackedStringArray("Verify BattleSpawnEntry can reference templates by entity_template_id.", "Verify projectile template overrides can replace template default projectile content.", "Verify flight profile and damage overrides from the scene win over template defaults.")
+goals = PackedStringArray("Verify BattleSpawnEntry can reference combat actors by archetype_id.", "Verify projectile template overrides can replace backend projectile defaults.", "Verify flight profile and damage overrides from the scene win over backend defaults.")
 validation_time_limit = 2.5
 validation_rules = [SubResource("Rule_override_spawn"), SubResource("Rule_override_damage")]
 spawns = [SubResource("Spawn_override_plant"), SubResource("Spawn_override_zombie")]
