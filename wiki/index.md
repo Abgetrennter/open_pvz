@@ -62,6 +62,12 @@
 - [当前阶段与实现路线](01-overview/23-当前阶段与实现路线.md)
 - [开发路线图](04-roadmap-reference/26-开发路线图.md)
 
+### 参考分析
+
+- [原版 PVZ 模式系统逆向分析](04-roadmap-reference/23-原版PVZ模式系统逆向分析.md)
+- [外部项目调研 PVZ-Godot-Dream](04-roadmap-reference/24-外部项目调研-PVZ-Godot-Dream.md)
+- [vendor 参考实现：游戏模式分析](04-roadmap-reference/39-vendor参考实现-游戏模式分析.md)
+
 ### 运行时与协议
 
 - [触发器系统](02-runtime-protocol/03-触发器系统.md)
