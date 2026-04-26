@@ -205,6 +205,7 @@ EntityFactory.instantiate_runtime_spec()
 
 - [当前阶段与实现路线](../01-overview/23-当前阶段与实现路线.md)
 - [开发路线图](../04-roadmap-reference/26-开发路线图.md)
+- [战斗模式组织层](14-战斗模式组织层.md)
 - [触发器系统](03-触发器系统.md)
 - [效果系统](04-效果系统.md)
 - [验证矩阵](../03-content-validation/32-验证矩阵.md)

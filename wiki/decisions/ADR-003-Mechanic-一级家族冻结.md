@@ -6,8 +6,8 @@
 - 关联阶段：`Mechanic-first` 重构阶段
 - 关联文档：
   - [ADR-002 顶层作者模型与编译链](ADR-002-顶层作者模型与编译链.md)
-  - [Mechanic-first 重构讨论纪要](Mechanic-first-重构讨论纪要.md)
-  - [ADR 输入 - Mechanic-first 重构未决事项清单](ADR-输入-Mechanic-first-重构未决事项清单.md)
+  - [Mechanic-first 重构讨论纪要](../../plans/archive/wiki-retired/decisions/Mechanic-first-重构讨论纪要.md)
+  - [ADR 输入 - Mechanic-first 重构未决事项清单](../../plans/archive/wiki-retired/decisions/ADR-输入-Mechanic-first-重构未决事项清单.md)
   - [核心设计哲学](../01-overview/01-核心设计哲学.md)
   - [触发器系统](../02-runtime-protocol/03-触发器系统.md)
   - [效果系统](../02-runtime-protocol/04-效果系统.md)
