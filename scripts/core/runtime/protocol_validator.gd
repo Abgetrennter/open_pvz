@@ -24,6 +24,7 @@ const BattleModeDefRef = preload("res://scripts/battle/mode/battle_mode_def.gd")
 const BattleInputProfileRef = preload("res://scripts/battle/mode/battle_input_profile.gd")
 const BattleObjectiveDefRef = preload("res://scripts/battle/mode/battle_objective_def.gd")
 const BattleRuleModuleRef = preload("res://scripts/battle/mode/battle_rule_module.gd")
+const BattleModeInputRequestRef = preload("res://scripts/battle/mode/battle_mode_input_request.gd")
 const BattleModeModuleRegistryRef = preload("res://scripts/battle/mode/battle_mode_module_registry.gd")
 const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 	&"attack": {
@@ -555,8 +556,8 @@ static func validate_battle_objective_def(objective_def: Resource) -> Array[Stri
 	var objective_type := StringName(objective_def.get("objective_type"))
 	if objective_type == StringName():
 		errors.append("BattleObjectiveDef.objective_type must not be empty.")
-	elif objective_type not in [&"all_waves_cleared", &"survive_duration", &"score_threshold", &"combo_threshold", &"collect_resource"]:
-		errors.append("BattleObjectiveDef.objective_type must be one of all_waves_cleared, survive_duration, score_threshold, combo_threshold, collect_resource.")
+	elif objective_type not in [&"all_waves_cleared", &"survive_duration", &"protect_template", &"score_threshold", &"combo_threshold", &"clear_special_targets", &"collect_resource", &"defeat_named_spawn"]:
+		errors.append("BattleObjectiveDef.objective_type must be one of all_waves_cleared, survive_duration, protect_template, score_threshold, combo_threshold, clear_special_targets, collect_resource, defeat_named_spawn.")
 	if not (objective_def.get("params") is Dictionary):
 		errors.append("BattleObjectiveDef.params must be a Dictionary.")
 	else:
@@ -568,11 +569,19 @@ static func validate_battle_objective_def(objective_def: Resource) -> Array[Stri
 			&"score_threshold", &"combo_threshold":
 				if int(params.get("threshold", 0)) <= 0:
 					errors.append("BattleObjectiveDef %s requires params.threshold > 0." % String(objective_type))
+			&"clear_special_targets":
+				var target_template_ids := PackedStringArray(params.get("target_template_ids", PackedStringArray()))
+				var target_archetype_ids := PackedStringArray(params.get("target_archetype_ids", PackedStringArray()))
+				if target_template_ids.is_empty() and target_archetype_ids.is_empty():
+					errors.append("BattleObjectiveDef clear_special_targets requires params.target_template_ids or params.target_archetype_ids.")
 			&"collect_resource":
 				if int(params.get("amount", 0)) <= 0:
 					errors.append("BattleObjectiveDef collect_resource requires params.amount > 0.")
 				if StringName(params.get("resource_id")) == StringName():
 					errors.append("BattleObjectiveDef collect_resource requires params.resource_id.")
+			&"defeat_named_spawn":
+				if StringName(params.get("template_id")) == StringName() and StringName(params.get("archetype_id")) == StringName():
+					errors.append("BattleObjectiveDef defeat_named_spawn requires params.template_id or params.archetype_id.")
 	if not (objective_def.get("failure_conditions") is PackedStringArray):
 		errors.append("BattleObjectiveDef.failure_conditions must be a PackedStringArray.")
 	else:
@@ -610,6 +619,43 @@ static func validate_battle_rule_module(rule_module: Resource) -> Array[String]:
 	var module_id := StringName(rule_module.get("module_id"))
 	if module_id != StringName() and not registry.has_handler(module_id):
 		errors.append("BattleRuleModule.module_id %s must be registered in BattleModeModuleRegistry." % String(module_id))
+	return errors
+
+
+static func validate_battle_mode_input_request(input_request: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if input_request == null:
+		errors.append("BattleModeInputRequest is null.")
+		return errors
+	if input_request.get_script() != BattleModeInputRequestRef:
+		errors.append("BattleModeInputRequest resource must use battle_mode_input_request.gd.")
+		return errors
+	if float(input_request.get("at_time")) < 0.0:
+		errors.append("BattleModeInputRequest.at_time must be >= 0.")
+	var action_name := StringName(input_request.get("action_name"))
+	if action_name == StringName():
+		errors.append("BattleModeInputRequest.action_name must not be empty.")
+	elif action_name not in [&"entity_click", &"cell_click", &"slot_drag", &"cancel"]:
+		errors.append("BattleModeInputRequest.action_name must be one of entity_click, cell_click, slot_drag, cancel.")
+	match action_name:
+		&"entity_click":
+			var entity_id := int(input_request.get("entity_id"))
+			var entity_archetype_id := StringName(input_request.get("entity_archetype_id"))
+			var entity_template_id := StringName(input_request.get("entity_template_id"))
+			if entity_id < 0 and entity_archetype_id == StringName() and entity_template_id == StringName():
+				errors.append("BattleModeInputRequest entity_click requires entity_id, entity_archetype_id, or entity_template_id.")
+		&"cell_click":
+			if int(input_request.get("lane_id")) < 0:
+				errors.append("BattleModeInputRequest cell_click requires lane_id >= 0.")
+			if int(input_request.get("slot_index")) < 0:
+				errors.append("BattleModeInputRequest cell_click requires slot_index >= 0.")
+		&"slot_drag":
+			if int(input_request.get("from_lane")) < 0 or int(input_request.get("from_slot")) < 0:
+				errors.append("BattleModeInputRequest slot_drag requires from_lane/from_slot >= 0.")
+			if int(input_request.get("to_lane")) < 0 or int(input_request.get("to_slot")) < 0:
+				errors.append("BattleModeInputRequest slot_drag requires to_lane/to_slot >= 0.")
+	if not (input_request.get("metadata") is Dictionary):
+		errors.append("BattleModeInputRequest.metadata must be a Dictionary.")
 	return errors
 
 
@@ -676,6 +722,15 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 			errors.append("BattleScenario.input_profile_override requires mode_def.")
 		for error in validate_battle_input_profile(input_profile_override):
 			errors.append("BattleScenario input_profile_override: %s" % error)
+	var mode_input_requests: Variant = scenario.get("mode_input_requests")
+	if not (mode_input_requests is Array):
+		errors.append("BattleScenario.mode_input_requests must be an Array.")
+	elif mode_def == null and not Array(mode_input_requests).is_empty():
+		errors.append("BattleScenario.mode_input_requests requires mode_def.")
+	else:
+		for input_request in Array(mode_input_requests):
+			for error in validate_battle_mode_input_request(input_request):
+				errors.append("BattleScenario mode_input_requests: %s" % error)
 
 	var configured_board_slot_configs: Variant = scenario.get("board_slot_configs")
 	if configured_board_slot_configs is Array:

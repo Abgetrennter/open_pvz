@@ -32,3 +32,4 @@ class_name BattleScenario
 @export var mode_rule_modules: Array = []
 @export var objective_override: Resource = null
 @export var input_profile_override: Resource = null
+@export var mode_input_requests: Array = []

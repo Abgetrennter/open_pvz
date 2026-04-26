@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Resource" path="res://data/combat/modes/mode_manual_aim_lane_battle.tres" id="2_mode"]
@@ -8,19 +8,19 @@
 [ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_rule"]
 [ext_resource type="Script" path="res://scripts/battle/mode/battle_mode_input_request.gd" id="7_mode_input"]
 
-[sub_resource type="Resource" id="CardDef_mode_basic"]
+[sub_resource type="Resource" id="CardDef_mode_manual_aim"]
 script = ExtResource("4_card_def")
-card_id = &"mode_basic_shooter_card"
-display_name = "Mode Basic Shooter Card"
+card_id = &"mode_manual_aim_shooter_card"
+display_name = "Mode Manual Aim Shooter Card"
 archetype_id = &"archetype_basic_shooter"
 sun_cost = 25
 cooldown_seconds = 0.0
 placement_tags = PackedStringArray("supports_primary")
 
-[sub_resource type="Resource" id="CardPlayRequest_mode_basic"]
+[sub_resource type="Resource" id="CardPlayRequest_mode_manual_aim"]
 script = ExtResource("5_card_request")
 at_time = 0.25
-card_id = &"mode_basic_shooter_card"
+card_id = &"mode_manual_aim_shooter_card"
 lane_id = 0
 slot_index = 0
 
@@ -40,7 +40,7 @@ slot_index = 2
 [sub_resource type="Resource" id="Rule_mode_initialized"]
 script = ExtResource("6_rule")
 rule_id = &"mode_initialized"
-description = "mode host should initialize and resolve the attached mode definition"
+description = "mode host should initialize and resolve the attached manual aim mode definition"
 event_name = &"battle.mode_initialized"
 required_core_values = {
 "mode_id": &"manual_aim_lane_battle",
@@ -51,10 +51,19 @@ required_core_values = {
 "objective_id": &"score_1"
 }
 
-[sub_resource type="Resource" id="Rule_mode_module_applied"]
+[sub_resource type="Resource" id="Rule_manual_selection"]
 script = ExtResource("6_rule")
-rule_id = &"mode_module_applied"
-description = "manual_entity_skill module should turn entity selection plus target slot click into manual skill progress"
+rule_id = &"manual_selection"
+description = "manual aim mode should accept a scripted entity selection event"
+event_name = &"battle.mode_selection_changed"
+required_core_values = {
+"module_id": &"manual_entity_skill"
+}
+
+[sub_resource type="Resource" id="Rule_manual_skill_applied"]
+script = ExtResource("6_rule")
+rule_id = &"manual_skill_applied"
+description = "manual aim mode should convert selection plus target slot click into a manual skill application"
 event_name = &"battle.mode_rule_applied"
 required_core_values = {
 "module_id": &"manual_entity_skill",
@@ -66,19 +75,10 @@ required_core_values = {
 "current_score": 1
 }
 
-[sub_resource type="Resource" id="Rule_mode_selection"]
-script = ExtResource("6_rule")
-rule_id = &"mode_selection"
-description = "manual_entity_skill module should receive forwarded entity selection input"
-event_name = &"battle.mode_selection_changed"
-required_core_values = {
-"module_id": &"manual_entity_skill"
-}
-
 [sub_resource type="Resource" id="Rule_mode_objective_victory"]
 script = ExtResource("6_rule")
 rule_id = &"mode_objective_victory"
-description = "score objective should mark battle victory once the module increments progress to the threshold"
+description = "score objective should mark battle victory once the manual skill increments progress to the threshold"
 event_name = &"battle.victory"
 required_core_values = {
 "reason": &"score_threshold"
@@ -86,16 +86,16 @@ required_core_values = {
 
 [resource]
 script = ExtResource("1_scenario")
-scenario_id = &"mode_basic_validation"
-display_name = "Mode Basic Validation"
-description = "Validates that BattleModeHost resolves mode_def, forwards manual aim input into rule modules, and lets objective evaluation mark victory."
-goals = PackedStringArray("Mode host initializes.", "Mode rule module receives entity selection and target slot input.", "Objective evaluation can trigger battle victory.")
+scenario_id = &"mode_manual_aim_lane_validation"
+display_name = "Mode Manual Aim Lane Validation"
+description = "Validates that the pilot manual aim mode can place a plant, select the spawned entity, click a target slot, and complete the score objective through the mode layer."
+goals = PackedStringArray("Mode host initializes the manual aim mode.", "A spawned entity can be selected through mode input.", "A target slot click can trigger manual skill resolution and battle victory.")
 validation_time_limit = 2.0
 lane_count = 2
 initial_sun = 100
 mode_def = ExtResource("2_mode")
 objective_override = ExtResource("3_objective")
-card_defs = [SubResource("CardDef_mode_basic")]
-card_play_requests = [SubResource("CardPlayRequest_mode_basic")]
+card_defs = [SubResource("CardDef_mode_manual_aim")]
+card_play_requests = [SubResource("CardPlayRequest_mode_manual_aim")]
 mode_input_requests = [SubResource("ModeInputRequest_select_entity"), SubResource("ModeInputRequest_target_slot")]
-validation_rules = [SubResource("Rule_mode_initialized"), SubResource("Rule_mode_selection"), SubResource("Rule_mode_module_applied"), SubResource("Rule_mode_objective_victory")]
+validation_rules = [SubResource("Rule_mode_initialized"), SubResource("Rule_manual_selection"), SubResource("Rule_manual_skill_applied"), SubResource("Rule_mode_objective_victory")]

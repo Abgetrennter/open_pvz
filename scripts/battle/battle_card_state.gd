@@ -71,6 +71,50 @@ func get_debug_snapshot() -> Dictionary:
 	}
 
 
+func get_hand_order() -> PackedStringArray:
+	return PackedStringArray(hand_order)
+
+
+func get_card_defs_in_hand() -> Array[Resource]:
+	var defs: Array[Resource] = []
+	for card_id in hand_order:
+		var card_def: Resource = _card_defs.get(card_id, null)
+		if card_def != null:
+			defs.append(card_def)
+	return defs
+
+
+func has_card(card_id: StringName) -> bool:
+	return hand_order.has(card_id)
+
+
+func get_card_def(card_id: StringName) -> Resource:
+	return _card_defs.get(card_id, null)
+
+
+func enqueue_card(card_def: Resource, reason: StringName = &"runtime_enqueue") -> bool:
+	if card_def == null:
+		return false
+	var card_id := StringName(card_def.get("card_id"))
+	if card_id == StringName():
+		return false
+	_card_defs[card_id] = card_def
+	if not hand_order.has(card_id):
+		hand_order.append(card_id)
+	_emit_hand_updated(reason, card_id)
+	return true
+
+
+func rotate_card_to_back(card_id: StringName, reason: StringName = &"runtime_rotate") -> bool:
+	var index := hand_order.find(card_id)
+	if index < 0:
+		return false
+	hand_order.remove_at(index)
+	hand_order.append(card_id)
+	_emit_hand_updated(reason, card_id)
+	return true
+
+
 func _on_game_tick(event_data: Variant) -> void:
 	var game_time := float(event_data.core.get("game_time", GameState.current_time))
 	for index in range(_scheduled_requests.size()):
@@ -193,6 +237,14 @@ func _emit_card_event(event_name: StringName, card_id: StringName, lane_id: int,
 	for key: Variant in metadata.keys():
 		card_event.core[key] = metadata[key]
 	EventBus.push_event(event_name, card_event)
+
+
+func _emit_hand_updated(reason: StringName, card_id: StringName = StringName()) -> void:
+	var hand_event: Variant = EventDataRef.create(null, null, null, PackedStringArray(["card", "hand"]))
+	hand_event.core["reason"] = reason
+	hand_event.core["card_id"] = card_id
+	hand_event.core["hand_order"] = PackedStringArray(hand_order)
+	EventBus.push_event(&"card.hand_updated", hand_event)
 
 
 func _build_placement_request(card_id: StringName, lane_id: int, slot_index: int, card_def) -> Resource:

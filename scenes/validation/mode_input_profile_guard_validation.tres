@@ -1,0 +1,104 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_manual_aim_lane_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_input_profile.gd" id="3_input_profile"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="4_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="5_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_rule"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_mode_input_request.gd" id="7_mode_input"]
+
+[sub_resource type="Resource" id="GuardInputProfile"]
+script = ExtResource("3_input_profile")
+profile_id = &"manual_aim_guard"
+enable_card_select = true
+enable_card_place = true
+enable_slot_click = true
+enable_entity_click = false
+enable_slot_drag = false
+enable_swap = false
+enable_manual_skill = false
+enable_rhythm_hit = false
+enable_cancel = true
+
+[sub_resource type="Resource" id="CardDef_input_guard"]
+script = ExtResource("4_card_def")
+card_id = &"mode_input_guard_card"
+display_name = "Mode Input Guard Card"
+archetype_id = &"archetype_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardPlayRequest_input_guard"]
+script = ExtResource("5_card_request")
+at_time = 0.25
+card_id = &"mode_input_guard_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="ModeInputRequest_guard_select"]
+script = ExtResource("7_mode_input")
+at_time = 0.5
+action_name = &"entity_click"
+entity_archetype_id = &"archetype_basic_shooter"
+
+[sub_resource type="Resource" id="ModeInputRequest_guard_target"]
+script = ExtResource("7_mode_input")
+at_time = 0.75
+action_name = &"cell_click"
+lane_id = 1
+slot_index = 2
+
+[sub_resource type="Resource" id="Rule_guard_initialized"]
+script = ExtResource("6_rule")
+rule_id = &"guard_initialized"
+description = "mode host should resolve the overridden guard input profile"
+event_name = &"battle.mode_initialized"
+required_core_values = {
+"mode_id": &"manual_aim_lane_battle",
+"input_profile_id": &"manual_aim_guard"
+}
+
+[sub_resource type="Resource" id="Rule_guard_placement_ok"]
+script = ExtResource("6_rule")
+rule_id = &"guard_placement_ok"
+description = "standard placement should still work while manual entity interaction is disabled"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"mode_input_guard_card",
+"lane_id": 0,
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="Rule_guard_no_selection"]
+script = ExtResource("6_rule")
+rule_id = &"guard_no_selection"
+description = "disabled entity click should prevent manual selection events"
+event_name = &"battle.mode_selection_changed"
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_guard_no_skill"]
+script = ExtResource("6_rule")
+rule_id = &"guard_no_skill"
+description = "disabled manual skill should prevent mode rule application"
+event_name = &"battle.mode_rule_applied"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_input_profile_guard_validation"
+display_name = "Mode Input Profile Guard Validation"
+description = "Validates that a mode input profile can disable entity selection and manual skill resolution without breaking standard card placement."
+goals = PackedStringArray("Input profile override resolves.", "Standard placement still succeeds.", "Disabled manual interactions emit no mode selection or skill events.")
+validation_time_limit = 1.5
+lane_count = 2
+initial_sun = 100
+mode_def = ExtResource("2_mode")
+input_profile_override = SubResource("GuardInputProfile")
+card_defs = [SubResource("CardDef_input_guard")]
+card_play_requests = [SubResource("CardPlayRequest_input_guard")]
+mode_input_requests = [SubResource("ModeInputRequest_guard_select"), SubResource("ModeInputRequest_guard_target")]
+validation_rules = [SubResource("Rule_guard_initialized"), SubResource("Rule_guard_placement_ok"), SubResource("Rule_guard_no_selection"), SubResource("Rule_guard_no_skill")]

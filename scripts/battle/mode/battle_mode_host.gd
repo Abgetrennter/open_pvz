@@ -13,10 +13,15 @@ var _resolved_mode_id: StringName = StringName()
 var _resolved_input_profile: Resource = null
 var _resolved_objective_def: Resource = null
 var _resolved_rule_modules: Array[Resource] = []
+var _scheduled_input_requests: Array[Resource] = []
 
 var _objective_progress: Dictionary = {}
 var _objective_completed := false
 var _objective_failed := false
+var _runtime_state: Dictionary = {}
+var _processed_input_request_indices: Dictionary = {}
+var _latest_entity_id_by_archetype: Dictionary = {}
+var _latest_entity_id_by_template: Dictionary = {}
 
 
 func setup(battle: Node, scenario: Resource, mode_def: Resource = null) -> void:
@@ -28,9 +33,14 @@ func setup(battle: Node, scenario: Resource, mode_def: Resource = null) -> void:
 	_resolved_input_profile = null
 	_resolved_objective_def = null
 	_resolved_rule_modules = []
+	_scheduled_input_requests = []
 	_objective_progress = {}
 	_objective_completed = false
 	_objective_failed = false
+	_runtime_state = {}
+	_processed_input_request_indices.clear()
+	_latest_entity_id_by_archetype.clear()
+	_latest_entity_id_by_template.clear()
 	if _mode_def == null:
 		return
 	_resolve_mode()
@@ -59,9 +69,14 @@ func teardown() -> void:
 	_resolved_input_profile = null
 	_resolved_objective_def = null
 	_resolved_rule_modules = []
+	_scheduled_input_requests = []
 	_objective_progress = {}
 	_objective_completed = false
 	_objective_failed = false
+	_runtime_state = {}
+	_processed_input_request_indices.clear()
+	_latest_entity_id_by_archetype.clear()
+	_latest_entity_id_by_template.clear()
 
 
 func get_mode_def() -> Resource:
@@ -84,6 +99,17 @@ func get_resolved_mode_id() -> StringName:
 	return _resolved_mode_id
 
 
+func get_mode_runtime_snapshot() -> Dictionary:
+	return {
+		"mode_id": _resolved_mode_id,
+		"objective_progress": _objective_progress.duplicate(true),
+		"objective_completed": _objective_completed,
+		"objective_failed": _objective_failed,
+		"runtime_state": _runtime_state.duplicate(true),
+		"scheduled_input_count": _scheduled_input_requests.size(),
+	}
+
+
 func on_battle_start() -> void:
 	if _mode_def == null:
 		return
@@ -101,6 +127,7 @@ func on_battle_start() -> void:
 func on_tick(game_time: float) -> void:
 	if _mode_def == null:
 		return
+	_process_input_requests(game_time)
 	_dispatch_modules(&"on_game_tick", {"game_time": game_time})
 	_evaluate_objective(game_time)
 
@@ -108,6 +135,7 @@ func on_tick(game_time: float) -> void:
 func on_event(event_name: StringName, event_data: Variant) -> void:
 	if _mode_def == null:
 		return
+	_track_runtime_event(event_name, event_data)
 	_dispatch_modules(&"on_event", {"event_name": event_name, "event_data": event_data})
 
 
@@ -122,6 +150,18 @@ func set_objective_progress(key: StringName, value: int) -> void:
 
 func get_objective_progress(key: StringName) -> int:
 	return int(_objective_progress.get(key, 0))
+
+
+func set_runtime_value(key: StringName, value: Variant) -> void:
+	_runtime_state[key] = value
+
+
+func get_runtime_value(key: StringName, default_value: Variant = null) -> Variant:
+	return _runtime_state.get(key, default_value)
+
+
+func clear_runtime_value(key: StringName) -> void:
+	_runtime_state.erase(key)
 
 
 func get_debug_name() -> String:
@@ -147,6 +187,8 @@ func get_debug_snapshot() -> Dictionary:
 			"objective_completed": _objective_completed,
 			"objective_failed": _objective_failed,
 			"objective_progress": _objective_progress.duplicate(true),
+			"runtime_state": _runtime_state.duplicate(true),
+			"scheduled_input_count": _scheduled_input_requests.size(),
 		},
 	}
 
@@ -156,6 +198,7 @@ func _resolve_mode() -> void:
 	_resolved_input_profile = _resolve_input_profile()
 	_resolved_objective_def = _resolve_objective_def()
 	_resolved_rule_modules = _resolve_rule_modules()
+	_scheduled_input_requests = _resolve_input_requests()
 
 
 func _resolve_input_profile() -> Resource:
@@ -177,21 +220,38 @@ func _resolve_objective_def() -> Resource:
 
 
 func _resolve_rule_modules() -> Array[Resource]:
-	var modules: Array[Resource] = []
+	var modules_by_id: Dictionary = {}
 	if _mode_def != null:
 		var mode_modules: Variant = _mode_def.get("rule_modules")
 		if mode_modules != null:
 			for m in mode_modules:
-				if m != null and m.get("enabled"):
-					modules.append(m)
+				if m == null or not m.get("enabled"):
+					continue
+				modules_by_id[StringName(m.get("module_id"))] = m
 	if _scenario != null:
 		var scenario_modules: Variant = _scenario.get("mode_rule_modules")
 		if scenario_modules != null:
 			for m in scenario_modules:
-				if m != null and m.get("enabled"):
-					modules.append(m)
+				if m == null or not m.get("enabled"):
+					continue
+				modules_by_id[StringName(m.get("module_id"))] = m
+	var modules: Array[Resource] = []
+	for module_id in modules_by_id.keys():
+		modules.append(modules_by_id[module_id])
 	modules.sort_custom(func(a, b): return int(a.get("priority")) < int(b.get("priority")))
 	return modules
+
+
+func _resolve_input_requests() -> Array[Resource]:
+	if _scenario == null:
+		return []
+	var resolved: Array[Resource] = []
+	var configured_requests: Variant = _scenario.get("mode_input_requests")
+	if configured_requests is Array:
+		for input_request in configured_requests:
+			if input_request is Resource:
+				resolved.append(input_request)
+	return resolved
 
 
 func _dispatch_modules(action: StringName, context: Dictionary) -> void:
@@ -202,6 +262,133 @@ func _dispatch_modules(action: StringName, context: Dictionary) -> void:
 		var handler: Callable = _module_registry.get_handler(module_id)
 		if handler.is_valid():
 			handler.call(action, _battle, module, context)
+
+
+func _process_input_requests(game_time: float) -> void:
+	for index in range(_scheduled_input_requests.size()):
+		if _processed_input_request_indices.has(index):
+			continue
+		var input_request: Resource = _scheduled_input_requests[index]
+		if input_request == null:
+			_processed_input_request_indices[index] = true
+			continue
+		if game_time + 0.001 < float(input_request.get("at_time")):
+			continue
+		_processed_input_request_indices[index] = true
+		_execute_input_request(input_request)
+
+
+func _execute_input_request(input_request: Resource) -> void:
+	var action_name := StringName(input_request.get("action_name"))
+	match action_name:
+		&"entity_click":
+			if not _is_input_action_enabled(action_name):
+				return
+			var resolved_entity_id := _resolve_input_request_entity_id(input_request)
+			if resolved_entity_id < 0:
+				_report_input_request_issue("entity_click could not resolve a runtime entity.")
+				return
+			var metadata: Dictionary = _duplicate_request_metadata(input_request)
+			metadata["entity_id"] = resolved_entity_id
+			_emit_input_action(&"input.action.entity_clicked", metadata)
+		&"cell_click":
+			if not _is_input_action_enabled(action_name):
+				return
+			var payload := _duplicate_request_metadata(input_request)
+			payload["lane_id"] = int(input_request.get("lane_id"))
+			payload["slot_index"] = int(input_request.get("slot_index"))
+			payload["card_id"] = StringName()
+			_emit_input_action(&"input.action.cell_clicked", payload)
+		&"slot_drag":
+			if not _is_input_action_enabled(action_name):
+				return
+			var payload := _duplicate_request_metadata(input_request)
+			payload["from_lane"] = int(input_request.get("from_lane"))
+			payload["from_slot"] = int(input_request.get("from_slot"))
+			payload["to_lane"] = int(input_request.get("to_lane"))
+			payload["to_slot"] = int(input_request.get("to_slot"))
+			_emit_input_action(&"input.action.slot_drag", payload)
+		&"cancel":
+			if not _is_input_action_enabled(action_name):
+				return
+			_emit_input_action(&"input.action.card_deselected", {
+				"reason": &"mode_scripted_cancel",
+			})
+
+
+func _duplicate_request_metadata(input_request: Resource) -> Dictionary:
+	var metadata: Dictionary = {}
+	var raw_metadata: Variant = input_request.get("metadata")
+	if raw_metadata is Dictionary:
+		metadata = raw_metadata.duplicate(true)
+	metadata["source"] = metadata.get("source", &"mode_scripted")
+	return metadata
+
+
+func _resolve_input_request_entity_id(input_request: Resource) -> int:
+	var explicit_entity_id := int(input_request.get("entity_id"))
+	if explicit_entity_id >= 0:
+		return explicit_entity_id
+	var entity_archetype_id := StringName(input_request.get("entity_archetype_id"))
+	if entity_archetype_id != StringName():
+		return int(_latest_entity_id_by_archetype.get(entity_archetype_id, -1))
+	var entity_template_id := StringName(input_request.get("entity_template_id"))
+	if entity_template_id != StringName():
+		return int(_latest_entity_id_by_template.get(entity_template_id, -1))
+	return -1
+
+
+func _is_input_action_enabled(action_name: StringName) -> bool:
+	if _resolved_input_profile == null:
+		return true
+	match action_name:
+		&"entity_click":
+			return bool(_resolved_input_profile.get("enable_entity_click"))
+		&"cell_click":
+			return bool(_resolved_input_profile.get("enable_slot_click"))
+		&"slot_drag":
+			return bool(_resolved_input_profile.get("enable_slot_drag"))
+		&"cancel":
+			return bool(_resolved_input_profile.get("enable_cancel"))
+	return true
+
+
+func _track_runtime_event(event_name: StringName, event_data: Variant) -> void:
+	if event_data == null:
+		return
+	if event_name == &"entity.spawned":
+		var entity_id := int(event_data.core.get("entity_id", -1))
+		if entity_id < 0:
+			return
+		var archetype_id := StringName(event_data.core.get("archetype_id", StringName()))
+		if archetype_id != StringName():
+			_latest_entity_id_by_archetype[archetype_id] = entity_id
+		var template_id := StringName(event_data.core.get("entity_template_id", StringName()))
+		if template_id != StringName():
+			_latest_entity_id_by_template[template_id] = entity_id
+		_track_objective_target_seen(
+			StringName(event_data.core.get("entity_template_id", StringName())),
+			StringName(event_data.core.get("archetype_id", StringName()))
+		)
+	elif event_name == &"entity.died":
+		_track_objective_target_seen(
+			StringName(event_data.core.get("target_template_id", StringName())),
+			StringName(event_data.core.get("target_archetype_id", StringName()))
+		)
+
+
+func _emit_input_action(event_name: StringName, metadata: Dictionary) -> void:
+	var event_data: Variant = EventDataRef.create(null, null, null, PackedStringArray(["input"]))
+	for key: Variant in metadata.keys():
+		event_data.core[key] = metadata[key]
+	EventBus.push_event(event_name, event_data)
+
+
+func _report_input_request_issue(message: String) -> void:
+	if _battle == null or not is_instance_valid(_battle):
+		return
+	if _battle.has_method("report_protocol_issues"):
+		_battle.call("report_protocol_issues", [message], &"battle_mode_input_request")
 
 
 func _evaluate_objective(game_time: float) -> void:
@@ -235,10 +422,13 @@ func _evaluate_objective(game_time: float) -> void:
 			is_win = _check_collect_resource(params)
 			reason = &"collect_resource"
 		&"protect_template":
+			is_win = _check_protect_template(flow_state, params)
 			reason = &"protect_template"
 		&"clear_special_targets":
+			is_win = _check_clear_special_targets(params)
 			reason = &"clear_special_targets"
 		&"defeat_named_spawn":
+			is_win = _check_defeat_named_spawn(params)
 			reason = &"defeat_named_spawn"
 	if is_win:
 		_objective_completed = true
@@ -282,6 +472,46 @@ func _check_collect_resource(params: Dictionary) -> bool:
 	return current >= target
 
 
+func _check_protect_template(flow_state: Node, params: Dictionary) -> bool:
+	var template_id := _resolve_protected_template_id(params, flow_state)
+	if template_id == StringName():
+		return false
+	var protected_alive := not _is_template_missing(template_id)
+	_objective_progress[&"protected_alive"] = 1 if protected_alive else 0
+	if not protected_alive:
+		if not _objective_failed and flow_state.has_method("mark_defeat"):
+			_objective_failed = true
+			flow_state.call("mark_defeat", &"protected_template_lost")
+		return false
+	return _check_all_waves_cleared(flow_state)
+
+
+func _check_clear_special_targets(params: Dictionary) -> bool:
+	var target_template_ids := PackedStringArray(params.get("target_template_ids", PackedStringArray()))
+	var target_archetype_ids := PackedStringArray(params.get("target_archetype_ids", PackedStringArray()))
+	var seen_key := _objective_seen_state_key(target_template_ids, target_archetype_ids)
+	var has_seen_target := bool(_runtime_state.get(seen_key, false))
+	var remaining_count := _count_active_matching_entities(target_template_ids, target_archetype_ids)
+	_objective_progress[&"remaining_targets"] = remaining_count
+	return has_seen_target and remaining_count == 0
+
+
+func _check_defeat_named_spawn(params: Dictionary) -> bool:
+	var target_template_ids := PackedStringArray()
+	var target_archetype_ids := PackedStringArray()
+	var template_id := StringName(params.get("template_id", StringName()))
+	if template_id != StringName():
+		target_template_ids.append(String(template_id))
+	var archetype_id := StringName(params.get("archetype_id", StringName()))
+	if archetype_id != StringName():
+		target_archetype_ids.append(String(archetype_id))
+	var seen_key := _objective_seen_state_key(target_template_ids, target_archetype_ids)
+	var has_seen_target := bool(_runtime_state.get(seen_key, false))
+	var remaining_count := _count_active_matching_entities(target_template_ids, target_archetype_ids)
+	_objective_progress[&"remaining_named_spawns"] = remaining_count
+	return has_seen_target and remaining_count == 0
+
+
 func _check_failure_conditions(game_time: float, flow_state: Node) -> void:
 	if _resolved_objective_def == null:
 		return
@@ -313,6 +543,83 @@ func _resolve_flow_state() -> Node:
 		if resolved is Node:
 			return resolved
 	return null
+
+
+func _resolve_protected_template_id(params: Dictionary, flow_state: Node) -> StringName:
+	var template_id := StringName(params.get("template_id", StringName()))
+	if template_id != StringName():
+		return template_id
+	if flow_state != null and flow_state.get("protected_template_id") != null:
+		template_id = StringName(flow_state.get("protected_template_id"))
+		if template_id != StringName():
+			return template_id
+	if _scenario != null:
+		return StringName(_scenario.get("protected_template_id"))
+	return StringName()
+
+
+func _is_template_missing(template_id: StringName) -> bool:
+	if template_id == StringName() or _battle == null:
+		return false
+	for entity in _battle.get_runtime_combat_entities():
+		if entity == null or not is_instance_valid(entity):
+			continue
+		if StringName(entity.get("template_id")) != template_id:
+			continue
+		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+			continue
+		return false
+	return true
+
+
+func _count_active_matching_entities(target_template_ids: PackedStringArray, target_archetype_ids: PackedStringArray) -> int:
+	if _battle == null:
+		return 0
+	var count := 0
+	for entity in _battle.get_runtime_combat_entities():
+		if entity == null or not is_instance_valid(entity):
+			continue
+		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+			continue
+		if _matches_objective_target(entity, target_template_ids, target_archetype_ids):
+			count += 1
+	return count
+
+
+func _matches_objective_target(entity: Node, target_template_ids: PackedStringArray, target_archetype_ids: PackedStringArray) -> bool:
+	var template_id := StringName(entity.get("template_id"))
+	if template_id != StringName() and target_template_ids.has(String(template_id)):
+		return true
+	var archetype_id := StringName(entity.get("archetype_id"))
+	if archetype_id != StringName() and target_archetype_ids.has(String(archetype_id)):
+		return true
+	return false
+
+
+func _track_objective_target_seen(template_id: StringName, archetype_id: StringName) -> void:
+	if _resolved_objective_def == null:
+		return
+	var objective_type := StringName(_resolved_objective_def.get("objective_type"))
+	if objective_type not in [&"clear_special_targets", &"defeat_named_spawn"]:
+		return
+	var params: Dictionary = _resolved_objective_def.get("params")
+	var target_template_ids := PackedStringArray(params.get("target_template_ids", PackedStringArray()))
+	var target_archetype_ids := PackedStringArray(params.get("target_archetype_ids", PackedStringArray()))
+	var target_template_id := StringName(params.get("template_id", StringName()))
+	if target_template_id != StringName() and not target_template_ids.has(String(target_template_id)):
+		target_template_ids.append(String(target_template_id))
+	var target_archetype_id := StringName(params.get("archetype_id", StringName()))
+	if target_archetype_id != StringName() and not target_archetype_ids.has(String(target_archetype_id)):
+		target_archetype_ids.append(String(target_archetype_id))
+	if template_id != StringName() and target_template_ids.has(String(template_id)):
+		_runtime_state[_objective_seen_state_key(target_template_ids, target_archetype_ids)] = true
+		return
+	if archetype_id != StringName() and target_archetype_ids.has(String(archetype_id)):
+		_runtime_state[_objective_seen_state_key(target_template_ids, target_archetype_ids)] = true
+
+
+func _objective_seen_state_key(target_template_ids: PackedStringArray, target_archetype_ids: PackedStringArray) -> StringName:
+	return StringName("objective_seen|%s|%s" % [",".join(target_template_ids), ",".join(target_archetype_ids)])
 
 
 func _emit_mode_event(event_name: StringName, metadata: Dictionary, tags: PackedStringArray = PackedStringArray()) -> void:

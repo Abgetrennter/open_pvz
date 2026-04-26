@@ -137,7 +137,11 @@ func _wire_input() -> void:
 	_input_router = InputRouterRef.new()
 	_input_router.name = "InputRouter"
 	add_child(_input_router)
-	_input_router.call("setup", _card_bar, _board_visual, card_state, flow_state)
+	var mode_host: Node = _battle.call("get_mode_host")
+	var input_profile: Resource = null
+	if mode_host != null and mode_host.has_method("get_resolved_input_profile"):
+		input_profile = mode_host.call("get_resolved_input_profile")
+	_input_router.call("setup", _card_bar, _board_visual, card_state, flow_state, input_profile)
 
 
 func _teardown_ui() -> void:

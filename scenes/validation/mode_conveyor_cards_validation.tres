@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="3_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="5_rule_module"]
+
+[sub_resource type="Resource" id="CardDef_conveyor_1"]
+script = ExtResource("3_card_def")
+card_id = &"conveyor_card_a"
+display_name = "Conveyor Card A"
+archetype_id = &"archetype_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardDef_conveyor_2"]
+script = ExtResource("3_card_def")
+card_id = &"conveyor_card_b"
+display_name = "Conveyor Card B"
+archetype_id = &"archetype_wall_barrier"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="ConveyorRuleModule"]
+script = ExtResource("5_rule_module")
+module_id = &"conveyor_cards"
+display_name = "Conveyor Cards"
+enabled = true
+priority = 10
+params = {
+"interval": 0.25
+}
+tags = PackedStringArray("rule", "conveyor")
+
+[sub_resource type="Resource" id="Rule_conveyor_initialized"]
+script = ExtResource("4_rule")
+rule_id = &"conveyor_initialized"
+description = "conveyor_cards module should initialize through the shared mode module path"
+event_name = &"battle.mode_rule_applied"
+required_core_values = {
+"module_id": &"conveyor_cards",
+"source_event": &"on_battle_start",
+"behavior": &"conveyor_initialized"
+}
+
+[sub_resource type="Resource" id="Rule_conveyor_advanced"]
+script = ExtResource("4_rule")
+rule_id = &"conveyor_advanced"
+description = "conveyor_cards module should rotate the current hand order on tick"
+event_name = &"battle.mode_rule_applied"
+required_core_values = {
+"module_id": &"conveyor_cards",
+"source_event": &"on_game_tick",
+"behavior": &"conveyor_advance",
+"card_id": &"conveyor_card_a"
+}
+
+[sub_resource type="Resource" id="Rule_conveyor_hand_updated"]
+script = ExtResource("4_rule")
+rule_id = &"conveyor_hand_updated"
+description = "conveyor_cards rotation should publish a card.hand_updated event"
+event_name = &"card.hand_updated"
+required_core_values = {
+"reason": &"conveyor_rotate",
+"card_id": &"conveyor_card_a"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_conveyor_cards_validation"
+display_name = "Mode Conveyor Cards Validation"
+description = "Validates that the conveyor_cards rule module can run through the shared mode host and rotate the current card hand."
+goals = PackedStringArray("Conveyor module initializes.", "Conveyor module advances on tick.", "Card hand rotation is published.")
+validation_time_limit = 1.2
+lane_count = 2
+initial_sun = 100
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("ConveyorRuleModule")]
+card_defs = [SubResource("CardDef_conveyor_1"), SubResource("CardDef_conveyor_2")]
+validation_rules = [SubResource("Rule_conveyor_initialized"), SubResource("Rule_conveyor_advanced"), SubResource("Rule_conveyor_hand_updated")]

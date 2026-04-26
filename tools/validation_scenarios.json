@@ -450,6 +450,36 @@
     "layers": ["core"]
   },
   {
+    "id": "mode_manual_aim_lane_validation",
+    "scenario": "res://scenes/validation/mode_manual_aim_lane_validation.tres",
+    "description": "Validates the pilot manual aim mode by selecting a spawned entity, targeting a board slot, and resolving a manual skill through the mode layer.",
+    "layers": ["core"]
+  },
+  {
+    "id": "mode_input_profile_guard_validation",
+    "scenario": "res://scenes/validation/mode_input_profile_guard_validation.tres",
+    "description": "Validates that a mode input profile can disable entity selection and manual skill resolution without breaking standard placement.",
+    "layers": ["guardrail"]
+  },
+  {
+    "id": "mode_objective_score_validation",
+    "scenario": "res://scenes/validation/mode_objective_score_validation.tres",
+    "description": "Validates score-threshold objective progression across multiple manual skill applications.",
+    "layers": ["core"]
+  },
+  {
+    "id": "mode_module_override_validation",
+    "scenario": "res://scenes/validation/mode_module_override_validation.tres",
+    "description": "Validates that scenario-level mode_rule_modules override default mode_def modules by module_id.",
+    "layers": ["core"]
+  },
+  {
+    "id": "mode_conveyor_cards_validation",
+    "scenario": "res://scenes/validation/mode_conveyor_cards_validation.tres",
+    "description": "Validates the minimal conveyor_cards module path through the shared mode host.",
+    "layers": ["core"]
+  },
+  {
     "id": "mode_no_mode_guardrail",
     "scenario": "res://scenes/validation/mode_no_mode_guardrail.tres",
     "description": "Validates that battles without mode_def still work correctly - backward compatibility guardrail.",

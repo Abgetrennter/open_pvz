@@ -1,0 +1,92 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_manual_aim_lane_battle.tres" id="2_mode"]
+[ext_resource type="Resource" path="res://data/combat/modes/objective_score_2.tres" id="3_objective"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="4_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="5_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_rule"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_mode_input_request.gd" id="7_mode_input"]
+
+[sub_resource type="Resource" id="CardDef_score_mode"]
+script = ExtResource("4_card_def")
+card_id = &"mode_score_card"
+display_name = "Mode Score Card"
+archetype_id = &"archetype_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardPlayRequest_score_mode"]
+script = ExtResource("5_card_request")
+at_time = 0.25
+card_id = &"mode_score_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="ModeInputRequest_score_select"]
+script = ExtResource("7_mode_input")
+at_time = 0.5
+action_name = &"entity_click"
+entity_archetype_id = &"archetype_basic_shooter"
+
+[sub_resource type="Resource" id="ModeInputRequest_score_target_1"]
+script = ExtResource("7_mode_input")
+at_time = 0.75
+action_name = &"cell_click"
+lane_id = 1
+slot_index = 1
+
+[sub_resource type="Resource" id="ModeInputRequest_score_target_2"]
+script = ExtResource("7_mode_input")
+at_time = 1.0
+action_name = &"cell_click"
+lane_id = 1
+slot_index = 2
+
+[sub_resource type="Resource" id="Rule_score_progress_1"]
+script = ExtResource("6_rule")
+rule_id = &"score_progress_1"
+description = "first manual skill application should raise score progress to 1"
+event_name = &"battle.mode_rule_applied"
+required_core_values = {
+"module_id": &"manual_entity_skill",
+"source_event": &"input.action.cell_clicked",
+"current_score": 1
+}
+
+[sub_resource type="Resource" id="Rule_score_progress_2"]
+script = ExtResource("6_rule")
+rule_id = &"score_progress_2"
+description = "second manual skill application should raise score progress to 2"
+event_name = &"battle.mode_rule_applied"
+required_core_values = {
+"module_id": &"manual_entity_skill",
+"source_event": &"input.action.cell_clicked",
+"current_score": 2
+}
+
+[sub_resource type="Resource" id="Rule_score_victory"]
+script = ExtResource("6_rule")
+rule_id = &"score_victory"
+description = "score threshold objective should complete after the second manual skill application"
+event_name = &"battle.victory"
+required_core_values = {
+"reason": &"score_threshold"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_objective_score_validation"
+display_name = "Mode Objective Score Validation"
+description = "Validates that a score-based mode objective tracks multiple manual skill applications and marks victory at the configured threshold."
+goals = PackedStringArray("First manual skill increments score to 1.", "Second manual skill increments score to 2.", "Score threshold victory is emitted.")
+validation_time_limit = 2.2
+lane_count = 2
+initial_sun = 100
+mode_def = ExtResource("2_mode")
+objective_override = ExtResource("3_objective")
+card_defs = [SubResource("CardDef_score_mode")]
+card_play_requests = [SubResource("CardPlayRequest_score_mode")]
+mode_input_requests = [SubResource("ModeInputRequest_score_select"), SubResource("ModeInputRequest_score_target_1"), SubResource("ModeInputRequest_score_target_2")]
+validation_rules = [SubResource("Rule_score_progress_1"), SubResource("Rule_score_progress_2"), SubResource("Rule_score_victory")]

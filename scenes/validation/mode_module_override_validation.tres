@@ -1,0 +1,88 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_manual_aim_lane_battle.tres" id="2_mode"]
+[ext_resource type="Resource" path="res://data/combat/modes/objective_score_2.tres" id="3_objective"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="4_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="5_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_rule"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_mode_input_request.gd" id="7_mode_input"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="8_rule_module"]
+
+[sub_resource type="Resource" id="CardDef_override_mode"]
+script = ExtResource("4_card_def")
+card_id = &"mode_override_card"
+display_name = "Mode Override Card"
+archetype_id = &"archetype_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardPlayRequest_override_mode"]
+script = ExtResource("5_card_request")
+at_time = 0.25
+card_id = &"mode_override_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="ModeInputRequest_override_select"]
+script = ExtResource("7_mode_input")
+at_time = 0.5
+action_name = &"entity_click"
+entity_archetype_id = &"archetype_basic_shooter"
+
+[sub_resource type="Resource" id="ModeInputRequest_override_target"]
+script = ExtResource("7_mode_input")
+at_time = 0.75
+action_name = &"cell_click"
+lane_id = 1
+slot_index = 2
+
+[sub_resource type="Resource" id="OverrideRuleModule"]
+script = ExtResource("8_rule_module")
+module_id = &"manual_entity_skill"
+display_name = "Manual Entity Skill Override"
+enabled = true
+priority = 50
+params = {
+"score_gain": 2
+}
+tags = PackedStringArray("rule", "skill", "override")
+
+[sub_resource type="Resource" id="Rule_override_applied"]
+script = ExtResource("6_rule")
+rule_id = &"override_applied"
+description = "scenario override module should replace the default manual skill scoring behavior"
+event_name = &"battle.mode_rule_applied"
+required_core_values = {
+"module_id": &"manual_entity_skill",
+"source_event": &"input.action.cell_clicked",
+"score_gain": 2,
+"current_score": 2
+}
+
+[sub_resource type="Resource" id="Rule_override_victory"]
+script = ExtResource("6_rule")
+rule_id = &"override_victory"
+description = "override module should let one manual skill application satisfy the score 2 objective"
+event_name = &"battle.victory"
+required_core_values = {
+"reason": &"score_threshold"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_module_override_validation"
+display_name = "Mode Module Override Validation"
+description = "Validates that scenario-level mode_rule_modules override default mode_def modules by module_id rather than running both copies."
+goals = PackedStringArray("Scenario override replaces the default module.", "One manual skill application yields score_gain 2.", "Score 2 objective completes immediately.")
+validation_time_limit = 2.0
+lane_count = 2
+initial_sun = 100
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("OverrideRuleModule")]
+objective_override = ExtResource("3_objective")
+card_defs = [SubResource("CardDef_override_mode")]
+card_play_requests = [SubResource("CardPlayRequest_override_mode")]
+mode_input_requests = [SubResource("ModeInputRequest_override_select"), SubResource("ModeInputRequest_override_target")]
+validation_rules = [SubResource("Rule_override_applied"), SubResource("Rule_override_victory")]

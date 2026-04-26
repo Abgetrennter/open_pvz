@@ -96,6 +96,11 @@ WaveRunner._on_game_tick()
 - `wave_flow_validation` / `wave_guardrail_validation` -- 波次系统
 - `field_object_mower_validation` -- 场上物件割草机
 - `mode_basic_validation` -- 模式层基本初始化
+- `mode_manual_aim_lane_validation` -- 手动技能试点闭环
+- `mode_input_profile_guard_validation` -- 输入 profile 守卫
+- `mode_objective_score_validation` -- 分数目标推进
+- `mode_module_override_validation` -- scenario module 覆盖语义
+- `mode_conveyor_cards_validation` -- conveyor_cards 最小能力
 - `mode_no_mode_guardrail` -- 无 mode 向后兼容 guardrail
 
 <!-- 由 init-architect 自动生成，时间：2026-04-15 21:39:03 -->

@@ -26,6 +26,7 @@ func panel_setup(battle: Node, scenario: Resource) -> void:
 	_track_subscribe(&"card.cooldown_started", Callable(self, "_on_cooldown_started"))
 	_track_subscribe(&"card.play_rejected", Callable(self, "_on_card_play_rejected"))
 	_track_subscribe(&"card.play_requested", Callable(self, "_on_card_play_requested"))
+	_track_subscribe(&"card.hand_updated", Callable(self, "_on_card_hand_updated"))
 
 
 func panel_teardown() -> void:
@@ -176,6 +177,18 @@ func _on_card_play_rejected(_event_data: Variant) -> void:
 
 func _on_card_play_requested(_event_data: Variant) -> void:
 	pass
+
+
+func _on_card_hand_updated(_event_data: Variant) -> void:
+	if battle == null or not is_instance_valid(battle):
+		return
+	var card_state := battle.get_node_or_null("BattleCardState")
+	if card_state == null or not card_state.has_method("get_card_defs_in_hand"):
+		return
+	_card_defs = card_state.call("get_card_defs_in_hand")
+	_rebuild_ui()
+	_refresh_selection()
+	_refresh_affordability()
 
 
 func _start_cooldown_overlay(card_id: StringName, duration: float) -> void:
