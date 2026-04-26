@@ -1,14 +1,75 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Resource" path="res://data/combat/modes/mode_manual_aim_lane_battle.tres" id="2_mode"]
+[ext_resource type="Resource" path="res://data/combat/modes/objective_score_1.tres" id="3_objective"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="4_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="5_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_rule"]
+
+[sub_resource type="Resource" id="CardDef_mode_basic"]
+script = ExtResource("4_card_def")
+card_id = &"mode_basic_shooter_card"
+display_name = "Mode Basic Shooter Card"
+archetype_id = &"archetype_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardPlayRequest_mode_basic"]
+script = ExtResource("5_card_request")
+at_time = 0.25
+card_id = &"mode_basic_shooter_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_mode_initialized"]
+script = ExtResource("6_rule")
+rule_id = &"mode_initialized"
+description = "mode host should initialize and resolve the attached mode definition"
+event_name = &"battle.mode_initialized"
+required_core_values = {
+"mode_id": &"manual_aim_lane_battle",
+"rule_module_count": 1,
+"has_input_profile": true,
+"has_objective_def": true,
+"input_profile_id": &"manual_aim",
+"objective_id": &"score_1"
+}
+
+[sub_resource type="Resource" id="Rule_mode_module_applied"]
+script = ExtResource("6_rule")
+rule_id = &"mode_module_applied"
+description = "manual_entity_skill module should receive forwarded battle events and update objective progress"
+event_name = &"battle.mode_rule_applied"
+required_core_values = {
+"module_id": &"manual_entity_skill",
+"source_event": &"placement.accepted",
+"score_key": &"score",
+"score_gain": 1,
+"current_score": 1
+}
+
+[sub_resource type="Resource" id="Rule_mode_objective_victory"]
+script = ExtResource("6_rule")
+rule_id = &"mode_objective_victory"
+description = "score objective should mark battle victory once the module increments progress to the threshold"
+event_name = &"battle.victory"
+required_core_values = {
+"reason": &"score_threshold"
+}
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"mode_basic_validation"
 display_name = "Mode Basic Validation"
-description = "Validates that BattleModeHost is created and resolved correctly when a mode_def is attached to the scenario."
-goals = PackedStringArray("Mode host initialized", "Mode resolved correctly", "Rule modules loaded")
-validation_time_limit = 4.0
+description = "Validates that BattleModeHost resolves mode_def, forwards battle events into rule modules, and lets objective evaluation mark victory."
+goals = PackedStringArray("Mode host initializes.", "Mode rule module receives a real battle event.", "Objective evaluation can trigger battle victory.")
+validation_time_limit = 2.0
 lane_count = 2
+initial_sun = 100
 mode_def = ExtResource("2_mode")
+objective_override = ExtResource("3_objective")
+card_defs = [SubResource("CardDef_mode_basic")]
+card_play_requests = [SubResource("CardPlayRequest_mode_basic")]
+validation_rules = [SubResource("Rule_mode_initialized"), SubResource("Rule_mode_module_applied"), SubResource("Rule_mode_objective_victory")]

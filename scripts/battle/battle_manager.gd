@@ -121,6 +121,7 @@ func reset_battle() -> void:
 	_rebuild_lane_config()
 	_subsystem_host.reset_runtime_services()
 	_spawner.spawn_scenario()
+	_notify_mode_battle_start()
 
 
 # -- Spawn facade delegates --
@@ -330,6 +331,9 @@ func get_unsatisfied_validation_descriptions() -> PackedStringArray:
 
 func _on_validation_event(event_name: StringName, event_data: Variant) -> void:
 	_validation_tracker.on_validation_event(event_name, event_data)
+	var mode_host: Node = _subsystem_host.get_mode_host()
+	if mode_host != null and mode_host.has_method("on_event"):
+		mode_host.call("on_event", event_name, event_data)
 
 
 # -- Private getters for extracted coordinators --
@@ -398,6 +402,14 @@ func _get_economy_state() -> Node:
 	return get_economy_state()
 
 
+func get_flow_state() -> Node:
+	return _subsystem_host.get_flow_state()
+
+
+func _get_flow_state() -> Node:
+	return get_flow_state()
+
+
 func get_mode_host() -> Node:
 	return _subsystem_host.get_mode_host()
 
@@ -410,6 +422,12 @@ func _dispatch_mode_tick(game_time: float) -> void:
 	var mode_host: Node = _subsystem_host.get_mode_host()
 	if mode_host != null and mode_host.has_method("on_tick"):
 		mode_host.call("on_tick", game_time)
+
+
+func _notify_mode_battle_start() -> void:
+	var mode_host: Node = _subsystem_host.get_mode_host()
+	if mode_host != null and mode_host.has_method("on_battle_start"):
+		mode_host.call("on_battle_start")
 
 
 # -- Scene tree helpers --

@@ -96,20 +96,21 @@ func request_card_select(card_id: StringName, source: StringName = &"signal") ->
 
 
 func request_cell_click(lane_id: int, slot_index: int) -> void:
+	if _selected_card_id == StringName():
+		if _input_profile != null and not _input_profile.get("enable_slot_click"):
+			return
+	else:
+		if _is_terminal():
+			return
+		if _input_profile != null and not _input_profile.get("enable_card_place"):
+			return
 	_emit_input_action(&"input.action.cell_clicked", {
 		"lane_id": lane_id,
 		"slot_index": slot_index,
 		"card_id": _selected_card_id,
 	})
 	if _selected_card_id == StringName():
-		if _input_profile == null or _input_profile.get("enable_slot_click"):
-			return
 		return
-	if _is_terminal():
-		return
-	if _input_profile != null:
-		if not _input_profile.get("enable_card_place"):
-			return
 	if _card_state == null or not is_instance_valid(_card_state):
 		return
 	if not _card_state.has_method("play_card"):
@@ -120,20 +121,26 @@ func request_cell_click(lane_id: int, slot_index: int) -> void:
 func request_entity_click(entity_id: StringName, metadata: Dictionary = {}) -> void:
 	if _input_profile != null and not _input_profile.get("enable_entity_click"):
 		return
-	_emit_input_action(&"input.action.entity_clicked", {
+	var payload := {
 		"entity_id": entity_id,
-	})
+	}
+	for key: Variant in metadata.keys():
+		payload[key] = metadata[key]
+	_emit_input_action(&"input.action.entity_clicked", payload)
 
 
 func request_slot_drag(from_lane: int, from_slot: int, to_lane: int, to_slot: int, metadata: Dictionary = {}) -> void:
 	if _input_profile != null and not _input_profile.get("enable_slot_drag"):
 		return
-	_emit_input_action(&"input.action.slot_drag", {
+	var payload := {
 		"from_lane": from_lane,
 		"from_slot": from_slot,
 		"to_lane": to_lane,
 		"to_slot": to_slot,
-	})
+	}
+	for key: Variant in metadata.keys():
+		payload[key] = metadata[key]
+	_emit_input_action(&"input.action.slot_drag", payload)
 
 
 func _track_subscribe(event_name: StringName, callback: Callable) -> void:

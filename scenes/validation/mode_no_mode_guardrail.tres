@@ -1,12 +1,54 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="CardDef_guardrail"]
+script = ExtResource("2_card_def")
+card_id = &"no_mode_guardrail_card"
+display_name = "No Mode Guardrail Card"
+archetype_id = &"archetype_wall_barrier"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardPlayRequest_guardrail"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"no_mode_guardrail_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_no_mode_init"]
+script = ExtResource("4_rule")
+rule_id = &"no_mode_init"
+description = "battles without mode_def must not emit mode initialization events"
+event_name = &"battle.mode_initialized"
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_no_mode_placement"]
+script = ExtResource("4_rule")
+rule_id = &"no_mode_placement"
+description = "standard battle placement still works when no mode_def is attached"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"no_mode_guardrail_card",
+"lane_id": 0,
+"slot_index": 0
+}
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"mode_no_mode_guardrail"
 display_name = "Mode No-Mode Guardrail"
-description = "Validates that battles without mode_def still work correctly - backward compatibility."
-goals = PackedStringArray("No mode host interference", "Standard battle works")
-validation_time_limit = 4.0
+description = "Validates that scenarios without mode_def remain on the standard battle path and do not receive mode initialization side effects."
+goals = PackedStringArray("No mode initialization event is emitted.", "Standard battle placement still succeeds.")
+validation_time_limit = 1.5
 lane_count = 2
+initial_sun = 100
+card_defs = [SubResource("CardDef_guardrail")]
+card_play_requests = [SubResource("CardPlayRequest_guardrail")]
+validation_rules = [SubResource("Rule_no_mode_init"), SubResource("Rule_no_mode_placement")]

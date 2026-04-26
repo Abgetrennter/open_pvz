@@ -11,7 +11,7 @@
 截至当前仓库状态，可以统一确认：
 
 - 正式 archetype 总数为 `51`：`39` 植物、`10` 僵尸、`2` 场上物件。
-- 验证场景总数为 `74`，其中包含 `9` 个 `smoke`、`58` 个 `core`、`10` 个 `extension`、`6` 个 `guardrail`、`3` 个 `migration` 分层标签。
+- 验证场景总数为 `76`，其中包含 `9` 个 `smoke`、`59` 个 `core`、`10` 个 `extension`、`7` 个 `guardrail`、`3` 个 `migration` 分层标签。
 - Mechanic 一级 family 已冻结为 `10` 个；正文当前按 `9/10` 已建立正式编译覆盖理解，`Placement` 仍视为待补完 family。
 - `EntityTemplate / TriggerBinding` 仍存在于仓库中，但仅作为 legacy 兼容层和后端资源层，不再作为正式作者入口。
 - 当前仍有 `48` 个 archetype 保留 `backend_entity_template*` 字段，说明 legacy 收口尚未完成，但第一批 backend-free archetype 已经出现。

@@ -2,6 +2,7 @@ extends Node
 class_name BattleModeHost
 
 const BattleModeModuleRegistryRef = preload("res://scripts/battle/mode/battle_mode_module_registry.gd")
+const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 
 var _battle: Node = null
 var _mode_def: Resource = null
@@ -33,6 +34,18 @@ func setup(battle: Node, scenario: Resource, mode_def: Resource = null) -> void:
 	if _mode_def == null:
 		return
 	_resolve_mode()
+	_emit_mode_event(
+		&"battle.mode_initialized",
+		{
+			"mode_id": _resolved_mode_id,
+			"rule_module_count": _resolved_rule_modules.size(),
+			"has_input_profile": _resolved_input_profile != null,
+			"has_objective_def": _resolved_objective_def != null,
+			"input_profile_id": StringName(_resolved_input_profile.get("profile_id")) if _resolved_input_profile != null else StringName(),
+			"objective_id": StringName(_resolved_objective_def.get("objective_id")) if _resolved_objective_def != null else StringName(),
+		},
+		PackedStringArray(["mode", "initialized"])
+	)
 	_dispatch_modules(&"on_mode_setup", {})
 
 
@@ -71,6 +84,20 @@ func get_resolved_mode_id() -> StringName:
 	return _resolved_mode_id
 
 
+func on_battle_start() -> void:
+	if _mode_def == null:
+		return
+	_emit_mode_event(
+		&"battle.mode_started",
+		{
+			"mode_id": _resolved_mode_id,
+			"rule_module_count": _resolved_rule_modules.size(),
+		},
+		PackedStringArray(["mode", "started"])
+	)
+	_dispatch_modules(&"on_battle_start", {})
+
+
 func on_tick(game_time: float) -> void:
 	if _mode_def == null:
 		return
@@ -82,6 +109,19 @@ func on_event(event_name: StringName, event_data: Variant) -> void:
 	if _mode_def == null:
 		return
 	_dispatch_modules(&"on_event", {"event_name": event_name, "event_data": event_data})
+
+
+func increment_objective_progress(key: StringName, amount: int = 1) -> void:
+	var current := int(_objective_progress.get(key, 0))
+	_objective_progress[key] = current + amount
+
+
+func set_objective_progress(key: StringName, value: int) -> void:
+	_objective_progress[key] = value
+
+
+func get_objective_progress(key: StringName) -> int:
+	return int(_objective_progress.get(key, 0))
 
 
 func get_debug_name() -> String:
@@ -106,6 +146,7 @@ func get_debug_snapshot() -> Dictionary:
 			"rule_module_count": _resolved_rule_modules.size(),
 			"objective_completed": _objective_completed,
 			"objective_failed": _objective_failed,
+			"objective_progress": _objective_progress.duplicate(true),
 		},
 	}
 
@@ -168,9 +209,7 @@ func _evaluate_objective(game_time: float) -> void:
 		return
 	if _objective_completed or _objective_failed:
 		return
-	var flow_state: Node = _battle.get_node_or_null("BattleModeHost/BattleFlowState")
-	if flow_state == null:
-		flow_state = _battle.get("get_flow_state").call() if _battle.has_method("get_flow_state") else null
+	var flow_state: Node = _resolve_flow_state()
 	if flow_state == null:
 		return
 	if flow_state.has_method("is_terminal") and flow_state.call("is_terminal"):
@@ -261,3 +300,23 @@ func _check_failure_conditions(game_time: float, flow_state: Node) -> void:
 			if flow_state.has_method("mark_defeat"):
 				flow_state.call("mark_defeat", reason)
 			return
+
+
+func _resolve_flow_state() -> Node:
+	if _battle == null:
+		return null
+	var flow_state := _battle.get_node_or_null("BattleFlowState")
+	if flow_state != null:
+		return flow_state
+	if _battle.has_method("get_flow_state"):
+		var resolved: Variant = _battle.call("get_flow_state")
+		if resolved is Node:
+			return resolved
+	return null
+
+
+func _emit_mode_event(event_name: StringName, metadata: Dictionary, tags: PackedStringArray = PackedStringArray()) -> void:
+	var event_data: Variant = EventDataRef.create(null, null, null, tags)
+	for key: Variant in metadata.keys():
+		event_data.core[key] = metadata[key]
+	EventBus.push_event(event_name, event_data)

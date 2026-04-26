@@ -174,12 +174,12 @@ After major changes:
 
 - The repository is no longer in the old "phase 5 chaos-tech mainline" framing.
 - The current formal mainline is Mechanic-first post-stage-3 consolidation.
-- `tools/validation_scenarios.json` currently contains `74` validation scenarios.
+- `tools/validation_scenarios.json` currently contains `76` validation scenarios.
 - Current validation layer-tag counts are:
   - `smoke = 9`
-  - `core = 58`
+  - `core = 59`
   - `extension = 10`
-  - `guardrail = 6`
+  - `guardrail = 7`
   - `migration = 3`
 - `data/combat/archetypes/` currently contains `51` archetypes:
   - `39` plants
