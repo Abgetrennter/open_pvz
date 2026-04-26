@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_mode_def.gd" id="2_mode_def"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_input_profile.gd" id="3_input_profile"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_objective_def.gd" id="4_objective_def"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="5_rule_module"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_validation_rule"]
+
+[sub_resource type="Resource" id="InvalidModeInputProfile"]
+script = ExtResource("3_input_profile")
+enable_card_select = true
+enable_card_place = true
+enable_slot_click = false
+enable_entity_click = false
+enable_manual_skill = true
+
+[sub_resource type="Resource" id="InvalidModeObjectiveDef"]
+script = ExtResource("4_objective_def")
+failure_conditions = PackedStringArray("time_expired")
+
+[sub_resource type="Resource" id="InvalidModeRuleModule"]
+script = ExtResource("5_rule_module")
+enabled = true
+
+[sub_resource type="Resource" id="InvalidModeDef"]
+script = ExtResource("2_mode_def")
+category = &"arcade"
+input_profile = SubResource("InvalidModeInputProfile")
+objective_def = SubResource("InvalidModeObjectiveDef")
+rule_modules = [SubResource("InvalidModeRuleModule")]
+
+[sub_resource type="Resource" id="Rule_mode_protocol_issues"]
+script = ExtResource("6_validation_rule")
+rule_id = &"mode_protocol_issues"
+description = "invalid mode resources should be rejected through battle_scenario protocol issues"
+event_name = &"protocol.issue"
+min_count = 9
+required_core_values = {
+"scope": &"battle_scenario"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_protocol_guardrail_validation"
+display_name = "Mode Protocol Guardrail Validation"
+description = "Validates that invalid BattleModeDef, BattleInputProfile, BattleObjectiveDef, and BattleRuleModule resources are rejected through protocol issues before mode-specific runtime behavior matters."
+goals = PackedStringArray("Reject an invalid BattleModeDef.", "Reject invalid mode input profile constraints.", "Reject invalid objective definitions.", "Reject invalid rule module definitions.")
+validation_time_limit = 1.0
+lane_count = 2
+mode_def = SubResource("InvalidModeDef")
+validation_rules = [SubResource("Rule_mode_protocol_issues")]

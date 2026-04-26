@@ -454,5 +454,11 @@
     "scenario": "res://scenes/validation/mode_no_mode_guardrail.tres",
     "description": "Validates that battles without mode_def still work correctly - backward compatibility guardrail.",
     "layers": ["guardrail"]
+  },
+  {
+    "id": "mode_protocol_guardrail_validation",
+    "scenario": "res://scenes/validation/mode_protocol_guardrail_validation.tres",
+    "description": "Validates that invalid BattleModeDef, BattleInputProfile, BattleObjectiveDef, and BattleRuleModule resources are rejected through battle_scenario protocol issues.",
+    "layers": ["guardrail"]
   }
 ]

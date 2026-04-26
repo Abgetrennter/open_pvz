@@ -20,6 +20,11 @@ const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
 const BattleResourceSpendRequestRef = preload("res://scripts/battle/resource_spend_request.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
+const BattleModeDefRef = preload("res://scripts/battle/mode/battle_mode_def.gd")
+const BattleInputProfileRef = preload("res://scripts/battle/mode/battle_input_profile.gd")
+const BattleObjectiveDefRef = preload("res://scripts/battle/mode/battle_objective_def.gd")
+const BattleRuleModuleRef = preload("res://scripts/battle/mode/battle_rule_module.gd")
+const BattleModeModuleRegistryRef = preload("res://scripts/battle/mode/battle_mode_module_registry.gd")
 const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 	&"attack": {
 		"trigger_id": &"periodically",
@@ -468,6 +473,146 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 	return errors
 
 
+static func validate_battle_mode_def(mode_def: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if mode_def == null:
+		errors.append("BattleModeDef is null.")
+		return errors
+	if mode_def.get_script() != BattleModeDefRef:
+		errors.append("BattleModeDef resource must use battle_mode_def.gd.")
+		return errors
+	if StringName(mode_def.get("mode_id")) == StringName():
+		errors.append("BattleModeDef.mode_id must not be empty.")
+	if String(mode_def.get("display_name")).strip_edges().is_empty():
+		errors.append("BattleModeDef.display_name must not be empty.")
+	var category := StringName(mode_def.get("category"))
+	if category == StringName():
+		errors.append("BattleModeDef.category must not be empty.")
+	elif category not in [&"standard", &"adventure", &"survival", &"challenge", &"puzzle"]:
+		errors.append("BattleModeDef.category must be standard, adventure, survival, challenge, or puzzle.")
+	var input_profile: Variant = mode_def.get("input_profile")
+	if input_profile != null:
+		for error in validate_battle_input_profile(input_profile):
+			errors.append("BattleModeDef input_profile: %s" % error)
+	var objective_def: Variant = mode_def.get("objective_def")
+	if objective_def != null:
+		for error in validate_battle_objective_def(objective_def):
+			errors.append("BattleModeDef objective_def: %s" % error)
+	var rule_modules: Variant = mode_def.get("rule_modules")
+	if not (rule_modules is Array):
+		errors.append("BattleModeDef.rule_modules must be an Array.")
+	else:
+		for rule_module in rule_modules:
+			for error in validate_battle_rule_module(rule_module):
+				errors.append("BattleModeDef rule_modules: %s" % error)
+	return errors
+
+
+static func validate_battle_input_profile(input_profile: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if input_profile == null:
+		errors.append("BattleInputProfile is null.")
+		return errors
+	if input_profile.get_script() != BattleInputProfileRef:
+		errors.append("BattleInputProfile resource must use battle_input_profile.gd.")
+		return errors
+	if StringName(input_profile.get("profile_id")) == StringName():
+		errors.append("BattleInputProfile.profile_id must not be empty.")
+	for field_name in [
+		"enable_card_select",
+		"enable_card_place",
+		"enable_slot_click",
+		"enable_entity_click",
+		"enable_slot_drag",
+		"enable_swap",
+		"enable_manual_skill",
+		"enable_rhythm_hit",
+		"enable_cancel",
+	]:
+		if not (input_profile.get(field_name) is bool):
+			errors.append("BattleInputProfile.%s must be bool." % field_name)
+	if bool(input_profile.get("enable_card_place")) and not bool(input_profile.get("enable_slot_click")):
+		errors.append("BattleInputProfile.enable_card_place currently requires enable_slot_click.")
+	if bool(input_profile.get("enable_swap")) and not bool(input_profile.get("enable_slot_drag")):
+		errors.append("BattleInputProfile.enable_swap currently requires enable_slot_drag.")
+	if bool(input_profile.get("enable_manual_skill")) and not bool(input_profile.get("enable_entity_click")):
+		errors.append("BattleInputProfile.enable_manual_skill currently requires enable_entity_click.")
+	if not (input_profile.get("input_tags") is PackedStringArray):
+		errors.append("BattleInputProfile.input_tags must be a PackedStringArray.")
+	return errors
+
+
+static func validate_battle_objective_def(objective_def: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if objective_def == null:
+		errors.append("BattleObjectiveDef is null.")
+		return errors
+	if objective_def.get_script() != BattleObjectiveDefRef:
+		errors.append("BattleObjectiveDef resource must use battle_objective_def.gd.")
+		return errors
+	if StringName(objective_def.get("objective_id")) == StringName():
+		errors.append("BattleObjectiveDef.objective_id must not be empty.")
+	var objective_type := StringName(objective_def.get("objective_type"))
+	if objective_type == StringName():
+		errors.append("BattleObjectiveDef.objective_type must not be empty.")
+	elif objective_type not in [&"all_waves_cleared", &"survive_duration", &"score_threshold", &"combo_threshold", &"collect_resource"]:
+		errors.append("BattleObjectiveDef.objective_type must be one of all_waves_cleared, survive_duration, score_threshold, combo_threshold, collect_resource.")
+	if not (objective_def.get("params") is Dictionary):
+		errors.append("BattleObjectiveDef.params must be a Dictionary.")
+	else:
+		var params: Dictionary = objective_def.get("params")
+		match objective_type:
+			&"survive_duration":
+				if float(params.get("duration", 0.0)) <= 0.0:
+					errors.append("BattleObjectiveDef survive_duration requires params.duration > 0.")
+			&"score_threshold", &"combo_threshold":
+				if int(params.get("threshold", 0)) <= 0:
+					errors.append("BattleObjectiveDef %s requires params.threshold > 0." % String(objective_type))
+			&"collect_resource":
+				if int(params.get("amount", 0)) <= 0:
+					errors.append("BattleObjectiveDef collect_resource requires params.amount > 0.")
+				if StringName(params.get("resource_id")) == StringName():
+					errors.append("BattleObjectiveDef collect_resource requires params.resource_id.")
+	if not (objective_def.get("failure_conditions") is PackedStringArray):
+		errors.append("BattleObjectiveDef.failure_conditions must be a PackedStringArray.")
+	else:
+		for condition in PackedStringArray(objective_def.get("failure_conditions")):
+			if StringName(condition) not in [&"time_expired"]:
+				errors.append("BattleObjectiveDef.failure_conditions entries must currently be time_expired.")
+		if PackedStringArray(objective_def.get("failure_conditions")).has(&"time_expired"):
+			var params: Dictionary = objective_def.get("params") if objective_def.get("params") is Dictionary else {}
+			if float(params.get("time_limit", 0.0)) <= 0.0:
+				errors.append("BattleObjectiveDef failure condition time_expired requires params.time_limit > 0.")
+	if not (objective_def.get("summary_tags") is PackedStringArray):
+		errors.append("BattleObjectiveDef.summary_tags must be a PackedStringArray.")
+	return errors
+
+
+static func validate_battle_rule_module(rule_module: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if rule_module == null:
+		errors.append("BattleRuleModule is null.")
+		return errors
+	if rule_module.get_script() != BattleRuleModuleRef:
+		errors.append("BattleRuleModule resource must use battle_rule_module.gd.")
+		return errors
+	if StringName(rule_module.get("module_id")) == StringName():
+		errors.append("BattleRuleModule.module_id must not be empty.")
+	if String(rule_module.get("display_name")).strip_edges().is_empty():
+		errors.append("BattleRuleModule.display_name must not be empty.")
+	if not (rule_module.get("enabled") is bool):
+		errors.append("BattleRuleModule.enabled must be bool.")
+	if not (rule_module.get("params") is Dictionary):
+		errors.append("BattleRuleModule.params must be a Dictionary.")
+	if not (rule_module.get("tags") is PackedStringArray):
+		errors.append("BattleRuleModule.tags must be a PackedStringArray.")
+	var registry := BattleModeModuleRegistryRef.new()
+	var module_id := StringName(rule_module.get("module_id"))
+	if module_id != StringName() and not registry.has_handler(module_id):
+		errors.append("BattleRuleModule.module_id %s must be registered in BattleModeModuleRegistry." % String(module_id))
+	return errors
+
+
 static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 	var errors: Array[String] = []
 	if scenario == null:
@@ -505,6 +650,32 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		errors.append("BattleScenario.survival_duration must be > 0 when battle_goal is survive_duration.")
 	if defeat_conditions.has("protect_template") and StringName(scenario.get("protected_template_id")) == StringName():
 		errors.append("BattleScenario.protected_template_id must not be empty when defeat_conditions includes protect_template.")
+
+	var mode_def: Variant = scenario.get("mode_def")
+	if mode_def != null:
+		for error in validate_battle_mode_def(mode_def):
+			errors.append("BattleScenario mode_def: %s" % error)
+	var mode_rule_modules: Variant = scenario.get("mode_rule_modules")
+	if not (mode_rule_modules is Array):
+		errors.append("BattleScenario.mode_rule_modules must be an Array.")
+	elif mode_def == null and not Array(mode_rule_modules).is_empty():
+		errors.append("BattleScenario.mode_rule_modules requires mode_def.")
+	elif mode_rule_modules is Array:
+		for rule_module in mode_rule_modules:
+			for error in validate_battle_rule_module(rule_module):
+				errors.append("BattleScenario mode_rule_modules: %s" % error)
+	var objective_override: Variant = scenario.get("objective_override")
+	if objective_override != null:
+		if mode_def == null:
+			errors.append("BattleScenario.objective_override requires mode_def.")
+		for error in validate_battle_objective_def(objective_override):
+			errors.append("BattleScenario objective_override: %s" % error)
+	var input_profile_override: Variant = scenario.get("input_profile_override")
+	if input_profile_override != null:
+		if mode_def == null:
+			errors.append("BattleScenario.input_profile_override requires mode_def.")
+		for error in validate_battle_input_profile(input_profile_override):
+			errors.append("BattleScenario input_profile_override: %s" % error)
 
 	var configured_board_slot_configs: Variant = scenario.get("board_slot_configs")
 	if configured_board_slot_configs is Array:
