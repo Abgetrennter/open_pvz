@@ -8,6 +8,7 @@ const BattleFlowStateRef = preload("res://scripts/battle/battle_flow_state.gd")
 const BattleStatusStateRef = preload("res://scripts/battle/battle_status_state.gd")
 const BattleFieldObjectStateRef = preload("res://scripts/battle/battle_field_object_state.gd")
 const WaveRunnerRef = preload("res://scripts/battle/wave_runner.gd")
+const BattleModeHostRef = preload("res://scripts/battle/mode/battle_mode_host.gd")
 
 var _battle: Node = null
 var _economy_state: Node = null
@@ -17,6 +18,7 @@ var _status_state: Node = null
 var _field_object_state: Node = null
 var _flow_state: Node = null
 var _wave_runner: Node = null
+var _mode_host: Node = null
 
 
 func bind_battle(battle: Node) -> void:
@@ -47,7 +49,7 @@ func get_runtime_entities(entity_root: Node2D, collectible_root: Node2D) -> Arra
 		runtime_nodes.append_array(entity_root.get_children())
 	if collectible_root != null:
 		runtime_nodes.append_array(collectible_root.get_children())
-	for sub in [_economy_state, _board_state, _card_state, _status_state, _field_object_state, _flow_state, _wave_runner]:
+	for sub in [_economy_state, _board_state, _card_state, _status_state, _field_object_state, _flow_state, _wave_runner, _mode_host]:
 		if sub != null and is_instance_valid(sub):
 			runtime_nodes.append(sub)
 	return runtime_nodes
@@ -95,8 +97,14 @@ func get_wave_runner() -> Node:
 	return null
 
 
+func get_mode_host() -> Node:
+	if _mode_host != null and is_instance_valid(_mode_host):
+		return _mode_host
+	return null
+
+
 func _destroy_subsystems() -> void:
-	for sub in [_economy_state, _board_state, _card_state, _status_state, _field_object_state, _flow_state, _wave_runner]:
+	for sub in [_economy_state, _board_state, _card_state, _status_state, _field_object_state, _flow_state, _wave_runner, _mode_host]:
 		if sub != null and is_instance_valid(sub):
 			_battle.remove_child(sub)
 			sub.free()
@@ -107,6 +115,7 @@ func _destroy_subsystems() -> void:
 	_field_object_state = null
 	_flow_state = null
 	_wave_runner = null
+	_mode_host = null
 
 
 func _create_subsystems() -> void:
@@ -131,6 +140,9 @@ func _create_subsystems() -> void:
 	_wave_runner = WaveRunnerRef.new()
 	_wave_runner.name = "WaveRunner"
 	_battle.add_child(_wave_runner)
+	_mode_host = BattleModeHostRef.new()
+	_mode_host.name = "BattleModeHost"
+	_battle.add_child(_mode_host)
 
 
 func _setup_subsystems() -> void:
@@ -152,3 +164,6 @@ func _setup_subsystems() -> void:
 		_flow_state.setup(_battle, active_scenario)
 	if _wave_runner != null:
 		_wave_runner.setup(_battle, _flow_state, active_scenario)
+	if _mode_host != null:
+		var mode_def: Variant = active_scenario.get("mode_def") if active_scenario != null else null
+		_mode_host.setup(_battle, active_scenario, mode_def)

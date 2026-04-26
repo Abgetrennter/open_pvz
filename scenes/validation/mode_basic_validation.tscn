@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_manager.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://scenes/validation/mode_basic_validation.tres" id="2_scenario"]
+
+[node name="ModeBasicValidation" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = true
+runtime_snapshot_interval_frames = 12

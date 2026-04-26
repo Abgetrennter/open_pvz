@@ -28,3 +28,7 @@ class_name BattleScenario
 @export var defeat_line_x := 80.0
 @export var validation_rules: Array = []
 @export var spawns: Array = []
+@export var mode_def: Resource = null
+@export var mode_rule_modules: Array = []
+@export var objective_override: Resource = null
+@export var input_profile_override: Resource = null

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_no_mode_guardrail"
+display_name = "Mode No-Mode Guardrail"
+description = "Validates that battles without mode_def still work correctly - backward compatibility."
+goals = PackedStringArray("No mode host interference", "Standard battle works")
+validation_time_limit = 4.0
+lane_count = 2

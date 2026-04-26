@@ -442,5 +442,17 @@
     "scenario": "res://scenes/validation/multi_lane_retaliation_cascade_validation.tres",
     "description": "Validates that when_damaged retaliation correctly targets the event source in each lane without cross-lane interference.",
     "layers": ["core"]
+  },
+  {
+    "id": "mode_basic_validation",
+    "scenario": "res://scenes/validation/mode_basic_validation.tres",
+    "description": "Validates that BattleModeHost is created and resolved correctly when a mode_def is attached to the scenario.",
+    "layers": ["extension"]
+  },
+  {
+    "id": "mode_no_mode_guardrail",
+    "scenario": "res://scenes/validation/mode_no_mode_guardrail.tres",
+    "description": "Validates that battles without mode_def still work correctly - backward compatibility guardrail.",
+    "layers": ["guardrail"]
   }
 ]

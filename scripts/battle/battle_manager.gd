@@ -83,6 +83,7 @@ func _process(delta: float) -> void:
 		var tick_event: Variant = EventDataRef.create()
 		tick_event.core["game_time"] = GameState.current_time
 		EventBus.push_event(&"game.tick", tick_event)
+		_dispatch_mode_tick(GameState.current_time)
 
 
 func _physics_process(_delta: float) -> void:
@@ -395,6 +396,20 @@ func get_economy_state() -> Node:
 
 func _get_economy_state() -> Node:
 	return get_economy_state()
+
+
+func get_mode_host() -> Node:
+	return _subsystem_host.get_mode_host()
+
+
+func _get_mode_host() -> Node:
+	return get_mode_host()
+
+
+func _dispatch_mode_tick(game_time: float) -> void:
+	var mode_host: Node = _subsystem_host.get_mode_host()
+	if mode_host != null and mode_host.has_method("on_tick"):
+		mode_host.call("on_tick", game_time)
 
 
 # -- Scene tree helpers --

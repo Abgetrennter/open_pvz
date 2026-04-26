@@ -50,6 +50,17 @@
 | `status_application_request.gd` | `StatusApplicationRequest` | 状态应用请求：status_id + duration + movement_scale + blocks_attack |
 | `field_object_config.gd` | `FieldObjectConfig` | 场上物件配置：object_template_id + lane_id + x_position + spawn_overrides |
 
+### 模式层 (mode/)
+
+| 文件 | 类名 | 职责 |
+| --- | --- | --- |
+| `mode/battle_mode_def.gd` | `BattleModeDef` | 模式定义（Resource）：mode_id、输入 profile、目标定义、规则模块 |
+| `mode/battle_input_profile.gd` | `BattleInputProfile` | 输入权限模型（Resource）：定义 mode 允许的交互动作 |
+| `mode/battle_rule_module.gd` | `BattleRuleModule` | 规则模块（Resource）：最小可组合规则单元，参数化配置 |
+| `mode/battle_objective_def.gd` | `BattleObjectiveDef` | 目标定义（Resource）：mode 专属胜负条件 |
+| `mode/battle_mode_host.gd` | `BattleModeHost` | 模式运行时宿主（Node）：解析 mode_def、合并 override、驱动规则模块、评估目标 |
+| `mode/battle_mode_module_registry.gd` | `BattleModeModuleRegistry` | 模块 handler 注册表（RefCounted）：module_id -> callable 映射 |
+
 ## 核心流程
 
 ### 卡片出牌流程
@@ -84,5 +95,7 @@ WaveRunner._on_game_tick()
 - `board_placement_validation` / `board_slot_tag_validation` / `roof_slot_validation` / `air_slot_validation` / `cover_blocker_validation` -- 棋盘放置
 - `wave_flow_validation` / `wave_guardrail_validation` -- 波次系统
 - `field_object_mower_validation` -- 场上物件割草机
+- `mode_basic_validation` -- 模式层基本初始化
+- `mode_no_mode_guardrail` -- 无 mode 向后兼容 guardrail
 
 <!-- 由 init-architect 自动生成，时间：2026-04-15 21:39:03 -->

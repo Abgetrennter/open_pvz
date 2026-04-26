@@ -66,6 +66,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | 流程状态 | `BattleFlowState` | 战斗阶段管理（preparing / running / victory / defeat） |
 | 波次运行器 | `WaveRunner` | 波次调度、敌人生成、胜败条件检测 |
 | 场上物件状态 | `BattleFieldObjectState` | 场上物件生成、管理、事件发射（割草机等） |
+| 模式宿主 | `BattleModeHost` | 模式运行时宿主：解析 mode_def、合并 override、驱动规则模块、评估目标 |
 
 ## 模块结构图
 
@@ -109,7 +110,7 @@ graph TD
 | `autoload/` | GDScript | 11 | 全局单例：事件总线、注册表、编译器分发、游戏状态 |
 | `scripts/core/defs/` | GDScript | 13 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, EntityTemplate 等 |
 | `scripts/core/runtime/` | GDScript | 15 | 运行时：MechanicCompiler, RuntimeSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
-| `scripts/battle/` | GDScript | 22 | 战斗协调：BattleManager, EntityFactory（双路径）, 经济/棋盘/卡片/波次子系统 |
+| `scripts/battle/` | GDScript | 28 | 战斗协调：BattleManager, EntityFactory（双路径）, 经济/棋盘/卡片/波次子系统, 模式层 |
 | `scripts/entities/` | GDScript | 4 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot |
 | `scripts/components/` | GDScript | 7 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
 | `scripts/projectile/` | GDScript | 5 | 抛射体运动系统：linear / parabola / track 运动模式 |

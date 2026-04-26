@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_manual_aim_lane_battle.tres" id="2_mode"]
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_basic_validation"
+display_name = "Mode Basic Validation"
+description = "Validates that BattleModeHost is created and resolved correctly when a mode_def is attached to the scenario."
+goals = PackedStringArray("Mode host initialized", "Mode resolved correctly", "Rule modules loaded")
+validation_time_limit = 4.0
+lane_count = 2
+mode_def = ExtResource("2_mode")

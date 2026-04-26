@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="BattleObjectiveDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_objective_def.gd" id="1_obj"]
+
+[resource]
+script = ExtResource("1_obj")
+objective_id = &"all_waves_cleared"
+objective_type = &"all_waves_cleared"
+summary_tags = PackedStringArray("objective", "waves")

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="BattleInputProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_input_profile.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+profile_id = &"standard"
+enable_card_select = true
+enable_card_place = true
+enable_slot_click = true
+enable_entity_click = false
+enable_slot_drag = false
+enable_swap = false
+enable_manual_skill = false
+enable_rhythm_hit = false
+enable_cancel = true

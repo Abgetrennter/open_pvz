@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BattleModeDef" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_mode_def.gd" id="1_mode"]
+[ext_resource type="Resource" path="res://data/combat/modes/input_profile_manual_aim.tres" id="2_input"]
+[ext_resource type="Resource" path="res://data/combat/modes/objective_score_10.tres" id="3_objective"]
+[ext_resource type="Resource" path="res://data/combat/modes/rule_manual_entity_skill.tres" id="4_rule"]
+
+[resource]
+script = ExtResource("1_mode")
+mode_id = &"manual_aim_lane_battle"
+display_name = "Manual Aim Lane Battle"
+description = "A pilot mode that validates the mode layer. Players can click entities and trigger manual skills while still using the standard card/board system."
+category = &"challenge"
+input_profile = ExtResource("2_input")
+objective_def = ExtResource("3_objective")
+rule_modules = [ExtResource("4_rule")]
+tags = PackedStringArray("mode", "challenge", "manual_aim", "pilot")

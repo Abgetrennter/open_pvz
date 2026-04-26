@@ -11,13 +11,15 @@ var _selected_card_id: StringName = StringName()
 var _subscriptions: Array[Dictionary] = []
 var _suppress_card_selected_signal := false
 var _suppress_card_deselected_signal := false
+var _input_profile: Resource = null
 
 
-func setup(card_bar: Control, board_visual: Node2D, card_state: Node, flow_state: Node) -> void:
+func setup(card_bar: Control, board_visual: Node2D, card_state: Node, flow_state: Node, input_profile: Resource = null) -> void:
 	_card_bar = card_bar
 	_board_visual = board_visual
 	_card_state = card_state
 	_flow_state = flow_state
+	_input_profile = input_profile
 	if _card_bar != null and is_instance_valid(_card_bar):
 		if _card_bar.has_signal("card_selected"):
 			_card_bar.card_selected.connect(_on_card_selected)
@@ -44,6 +46,7 @@ func teardown() -> void:
 	_board_visual = null
 	_card_state = null
 	_flow_state = null
+	_input_profile = null
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -65,6 +68,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func request_cancel() -> void:
+	if _input_profile != null and not _input_profile.get("enable_cancel"):
+		return
 	_deselect(&"cancel")
 
 
@@ -72,6 +77,8 @@ func request_card_select(card_id: StringName, source: StringName = &"signal") ->
 	if card_id == StringName():
 		return
 	if _is_terminal():
+		return
+	if _input_profile != null and not _input_profile.get("enable_card_select"):
 		return
 	if _selected_card_id == card_id:
 		if source != &"signal":
@@ -95,14 +102,38 @@ func request_cell_click(lane_id: int, slot_index: int) -> void:
 		"card_id": _selected_card_id,
 	})
 	if _selected_card_id == StringName():
+		if _input_profile == null or _input_profile.get("enable_slot_click"):
+			return
 		return
 	if _is_terminal():
 		return
+	if _input_profile != null:
+		if not _input_profile.get("enable_card_place"):
+			return
 	if _card_state == null or not is_instance_valid(_card_state):
 		return
 	if not _card_state.has_method("play_card"):
 		return
 	_card_state.call("play_card", _selected_card_id, lane_id, slot_index)
+
+
+func request_entity_click(entity_id: StringName, metadata: Dictionary = {}) -> void:
+	if _input_profile != null and not _input_profile.get("enable_entity_click"):
+		return
+	_emit_input_action(&"input.action.entity_clicked", {
+		"entity_id": entity_id,
+	})
+
+
+func request_slot_drag(from_lane: int, from_slot: int, to_lane: int, to_slot: int, metadata: Dictionary = {}) -> void:
+	if _input_profile != null and not _input_profile.get("enable_slot_drag"):
+		return
+	_emit_input_action(&"input.action.slot_drag", {
+		"from_lane": from_lane,
+		"from_slot": from_slot,
+		"to_lane": to_lane,
+		"to_slot": to_slot,
+	})
 
 
 func _track_subscribe(event_name: StringName, callback: Callable) -> void:
