@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
 
 [sub_resource type="Resource" id="CardDef_shooter"]
 script = ExtResource("2_card_def")
@@ -10,15 +12,77 @@ display_name = "Shooter"
 archetype_id = &"archetype_basic_shooter"
 sun_cost = 0
 cooldown_seconds = 1.0
-placement_tags = PackedStringArray("supports_primary")
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="CardPlayRequest_place_shooter"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"card_shooter"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("4_rule")
+rule_id = &"tick"
+description = "at least one game tick event"
+event_name = &"game.tick"
+
+[sub_resource type="Resource" id="Rule_card_selected"]
+script = ExtResource("4_rule")
+rule_id = &"card_selected"
+description = "scripted card request selects the shooter card"
+event_name = &"card.selected"
+required_core_values = {
+"card_id": &"card_shooter"
+}
+
+[sub_resource type="Resource" id="Rule_card_requested"]
+script = ExtResource("4_rule")
+rule_id = &"card_requested"
+description = "scripted card request emits play_requested"
+event_name = &"card.play_requested"
+required_core_values = {
+"card_id": &"card_shooter"
+}
+
+[sub_resource type="Resource" id="Rule_placement_accepted"]
+script = ExtResource("4_rule")
+rule_id = &"placement_accepted"
+description = "card placement is accepted on the target slot"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_shooter",
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="Rule_entity_spawned"]
+script = ExtResource("4_rule")
+rule_id = &"entity_spawned"
+description = "card placement spawns the shooter through the archetype runtime"
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_basic_shooter",
+"card_id": &"card_shooter",
+"legacy_template_id": &"plant_basic_shooter",
+"spawn_reason": &"card_play"
+}
+
+[sub_resource type="Resource" id="Rule_cooldown_started"]
+script = ExtResource("4_rule")
+rule_id = &"cooldown_started"
+description = "successful placement starts card cooldown"
+event_name = &"card.cooldown_started"
+required_core_values = {
+"card_id": &"card_shooter"
+}
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"card_place_validation"
 display_name = "Card Place Validation"
-description = "Validates that selecting a card and clicking a cell places an entity."
-goals = PackedStringArray("A free Shooter card is available. The validation script clicks the card then a cell. Expect entity.spawned with spawn_reason=card_play.")
-validation_time_limit = 15.0
+description = "Validates data-driven card placement for a free Shooter card through the shared card, board, and archetype runtime."
+goals = PackedStringArray("Play a free Shooter card through card_play_requests.", "Verify placement.accepted and entity.spawned include current archetype and legacy identity fields.")
+validation_time_limit = 3.0
 initial_sun = 100
 sun_auto_collect_delay = -1.0
 board_slot_count = 5
@@ -26,7 +90,6 @@ board_slot_origin_x = 160.0
 board_slot_spacing = 96.0
 lane_count = 2
 card_defs = [SubResource("CardDef_shooter")]
-wave_defs = []
-defeat_line_x = 80.0
-validation_rules = []
-
+card_play_requests = [SubResource("CardPlayRequest_place_shooter")]
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_card_selected"), SubResource("Rule_card_requested"), SubResource("Rule_placement_accepted"), SubResource("Rule_entity_spawned"), SubResource("Rule_cooldown_started")]
+spawns = []

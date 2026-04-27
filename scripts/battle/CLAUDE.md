@@ -91,7 +91,7 @@ WaveRunner._on_game_tick()
 
 - `minimal_battle_validation` -- 最小骨架
 - `sun_resource_validation` -- 阳光经济循环
-- `card_flow_validation` -- 卡片运行时
+- `card_flow_validation` / `card_place_validation` -- 卡片运行时与数据驱动放置
 - `board_placement_validation` / `board_slot_tag_validation` / `roof_slot_validation` / `air_slot_validation` / `cover_blocker_validation` -- 棋盘放置
 - `placement_compile_validation` / `placement_runtime_spec_validation` / `placement_field_fallback_validation` / `placement_guardrail_validation` -- Placement family 编译、运行时与守卫
 - `wave_flow_validation` / `wave_guardrail_validation` -- 波次系统

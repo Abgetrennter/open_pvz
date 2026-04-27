@@ -246,6 +246,12 @@
     "layers": ["core"]
   },
   {
+    "id": "card_place_validation",
+    "scenario": "res://scenes/validation/card_place_validation.tres",
+    "description": "Validates a data-driven card placement request through the shared card, board, and archetype runtime.",
+    "layers": ["core"]
+  },
+  {
     "id": "board_placement_validation",
     "scenario": "res://scenes/validation/board_placement_validation.tres",
     "description": "Validates the formal board placement layer by accepting one legal slot request and rejecting a second request into the occupied slot.",
