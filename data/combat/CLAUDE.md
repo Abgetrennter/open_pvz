@@ -10,16 +10,13 @@
 
 ```
 data/combat/
-  entity_templates/
-    plants/          -- 植物模板（14 个）
-    zombies/         -- 僵尸模板（7 个）
-    field_objects/     -- 场上物件模板（1 个）
+  archetypes/        -- 正式实体作者入口
   projectile_templates/ -- 抛射体模板（6 个）
   projectile_profiles/ -- 飞行配置（8 个）
   height_bands/        -- 高度段（5 个）
 ```
 
-## 植物模板清单
+## 植物 Archetype 清单
 
 | 模板 ID | 文件 | 类型 |
 |---------|------|------|
@@ -36,7 +33,7 @@ data/combat/
 | `plant_pumpkin_cover` | plants/plant_pumpkin_cover.tres | 南瓜掩体 |
 | `plant_tombstone_blocker` | plants/plant_tombstone_blocker.tres | 墓碑阻挡 |
 
-## 僵尸模板清单
+## 僵尸 Archetype 清单
 
 | 模板 ID | 文件 |
 |---------|------|
@@ -48,22 +45,22 @@ data/combat/
 | `zombie_bucket_tank` | zombies/zombie_bucket_tank.tres |
 | `zombie_boss_heavy` | zombies/zombie_boss_heavy.tres |
 
-## 场物件模板清单
+## 场物件 Archetype 清单
 
 | 模板 ID | 文件 | 类型 |
 |---------|------|------|
 | `field_object_lawn_mower` | field_objects/field_object_lawn_mower.tres | 割草机 |
 
-## 模板编写约定
+## Archetype 编写约定
 
 - 命名：`plant_role_variant` / `zombie_role_variant` / `projectile_type`
 - 字段顺序：Identity -> Node/Component -> Combat -> Projectile -> Behavior
-- EntityTemplate 仅作为 archetype backend 骨架资源保留，不再作为正式作者入口
-- TriggerBinding 已降级为编译期遗留概念，不再作为内容资源主入口
+- 正式实体只允许使用 `CombatArchetype + CombatMechanic[]`
+- 历史模板资源已归档到 `plans/archive/legacy-resources/`
 - 放置约束通过 `placement_role`, `required_placement_tags`, `granted_placement_tags` 控制
 
 ## 相关验证场景
 
-几乎所有验证场景都使用此目录中的模板资源。
+验证场景应通过 archetype、卡片、波次或关卡资源消费正式内容。
 
 <!-- 由 init-architect 自动生成，时间：2026-04-15 21:39:03 -->

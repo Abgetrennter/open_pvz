@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1_effect")
 param_defs = [{
-"name": "entity_template_id",
+"name": "archetype_id",
 "type": "string_name"
 }]
 allow_extra_params = false

@@ -332,9 +332,9 @@ func _resolve_input_request_entity_id(input_request: Resource) -> int:
 	var entity_archetype_id := StringName(input_request.get("entity_archetype_id"))
 	if entity_archetype_id != StringName():
 		return int(_latest_entity_id_by_archetype.get(entity_archetype_id, -1))
-	var entity_template_id := StringName(input_request.get("entity_template_id"))
-	if entity_template_id != StringName():
-		return int(_latest_entity_id_by_template.get(entity_template_id, -1))
+	var legacy_template_id := StringName(input_request.get("legacy_template_id"))
+	if legacy_template_id != StringName():
+		return int(_latest_entity_id_by_template.get(legacy_template_id, -1))
 	return -1
 
 
@@ -363,11 +363,11 @@ func _track_runtime_event(event_name: StringName, event_data: Variant) -> void:
 		var archetype_id := StringName(event_data.core.get("archetype_id", StringName()))
 		if archetype_id != StringName():
 			_latest_entity_id_by_archetype[archetype_id] = entity_id
-		var template_id := StringName(event_data.core.get("entity_template_id", StringName()))
-		if template_id != StringName():
-			_latest_entity_id_by_template[template_id] = entity_id
+		var legacy_template_id := StringName(event_data.core.get("legacy_template_id", StringName()))
+		if legacy_template_id != StringName():
+			_latest_entity_id_by_template[legacy_template_id] = entity_id
 		_track_objective_target_seen(
-			StringName(event_data.core.get("entity_template_id", StringName())),
+			legacy_template_id,
 			StringName(event_data.core.get("archetype_id", StringName()))
 		)
 	elif event_name == &"entity.died":

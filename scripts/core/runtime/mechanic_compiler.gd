@@ -3,7 +3,6 @@ class_name MechanicCompiler
 
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
 const CombatMechanicRef = preload("res://scripts/core/defs/combat_mechanic.gd")
-const EntityTemplateRef = preload("res://scripts/core/defs/entity_template.gd")
 const NormalizedMechanicSetRef = preload("res://scripts/core/runtime/normalized_mechanic_set.gd")
 const RuntimeSpecRef = preload("res://scripts/core/runtime/runtime_spec.gd")
 const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
@@ -102,25 +101,21 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 		spawn_overrides = spawn_entry.get("spawn_overrides").duplicate(true)
 
 	var normalized = normalize_archetype(archetype, spawn_overrides)
-	var backend_template: Resource = _resolve_backend_entity_template(archetype)
 
 	var runtime_spec = RuntimeSpecRef.new()
 	runtime_spec.compiler_version = COMPILER_VERSION
 	runtime_spec.source_archetype_id = archetype.archetype_id
+	runtime_spec.legacy_template_id = archetype.legacy_template_id
 	runtime_spec.entity_kind = archetype.entity_kind
-	if runtime_spec.entity_kind == StringName() and backend_template is EntityTemplateRef:
-		runtime_spec.entity_kind = backend_template.entity_kind
 	runtime_spec.display_name = archetype.display_name
 	runtime_spec.tags = archetype.tags
 	runtime_spec.required_components = PackedStringArray(archetype.required_components)
 	runtime_spec.optional_components = PackedStringArray(archetype.optional_components)
-	runtime_spec.backend_entity_template = backend_template
 	runtime_spec.params = normalized.merged_params.duplicate(true)
-	runtime_spec.hit_height_band = _resolve_hit_height_band(archetype, backend_template)
-	runtime_spec.projectile_template = _resolve_projectile_template(archetype, backend_template)
+	runtime_spec.hit_height_band = _resolve_hit_height_band(archetype)
+	runtime_spec.projectile_template = _resolve_projectile_template(archetype)
 	runtime_spec.projectile_flight_profile = _resolve_projectile_flight_profile(
 		archetype,
-		backend_template,
 		runtime_spec.projectile_template
 	)
 	runtime_spec.compiled_trigger_bindings = _compile_trigger_payload_bindings(normalized, archetype)
@@ -144,9 +139,6 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 		if mechanic is CombatMechanicRef and mechanic.mechanic_id != StringName():
 			runtime_spec.mechanic_ids.append(String(mechanic.mechanic_id))
 
-	if runtime_spec.backend_entity_template == null:
-		runtime_spec.notes.append("Archetype %s has no backend_entity_template; runtime uses archetype-only metadata." % String(archetype.archetype_id))
-
 	return runtime_spec
 
 
@@ -158,9 +150,6 @@ static func normalize_archetype(archetype, spawn_overrides: Dictionary = {}):
 	normalized.entity_kind = archetype.entity_kind
 	normalized.compiler_hints = archetype.compiler_hints.duplicate(true)
 
-	var backend_template: Resource = _resolve_backend_entity_template(archetype)
-	if backend_template is EntityTemplateRef and backend_template.default_params is Dictionary:
-		normalized.merged_params = backend_template.default_params.duplicate(true)
 	if archetype.default_params is Dictionary:
 		for key: Variant in archetype.default_params.keys():
 			normalized.merged_params[key] = archetype.default_params[key]
@@ -794,39 +783,23 @@ static func _sorted_enabled_mechanics(archetype) -> Array:
 	return resolved
 
 
-static func _resolve_backend_entity_template(archetype) -> Resource:
-	if archetype.backend_entity_template is EntityTemplateRef:
-		return archetype.backend_entity_template
-	if archetype.backend_entity_template_id != StringName() and SceneRegistry.has_entity_template(archetype.backend_entity_template_id):
-		var resolved: Resource = SceneRegistry.get_entity_template(archetype.backend_entity_template_id)
-		if resolved is EntityTemplateRef:
-			return resolved
-	return null
-
-
-static func _resolve_hit_height_band(archetype, backend_template: Resource) -> Resource:
+static func _resolve_hit_height_band(archetype) -> Resource:
 	if archetype.hit_height_band != null:
 		return archetype.hit_height_band
-	if backend_template is EntityTemplateRef:
-		return backend_template.hit_height_band
 	return null
 
 
-static func _resolve_projectile_template(archetype, backend_template: Resource):
+static func _resolve_projectile_template(archetype):
 	if archetype.projectile_template != null:
 		return archetype.projectile_template
-	if backend_template is EntityTemplateRef:
-		return backend_template.projectile_template
 	return null
 
 
-static func _resolve_projectile_flight_profile(archetype, backend_template: Resource, projectile_template) -> Resource:
+static func _resolve_projectile_flight_profile(archetype, projectile_template) -> Resource:
 	if archetype.projectile_flight_profile != null:
 		return archetype.projectile_flight_profile
 	if projectile_template != null and projectile_template.get("flight_profile") != null:
 		return projectile_template.get("flight_profile")
-	if backend_template is EntityTemplateRef:
-		return backend_template.projectile_flight_profile
 	return null
 
 

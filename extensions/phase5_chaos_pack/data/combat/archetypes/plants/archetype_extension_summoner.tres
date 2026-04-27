@@ -1,14 +1,17 @@
 [gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
-[ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/data/combat/entity_templates/plants/plant_extension_summoner.tres" id="2_backend"]
 [ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/data/combat/mechanics/mechanic_extension_summoner_trigger.tres" id="3_mechanic_0"]
 [ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/data/combat/mechanics/mechanic_extension_summoner_payload.tres" id="4_mechanic_1"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="migrated_2_height"]
 
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_extension_summoner"
+legacy_template_id = &"plant_extension_summoner"
 display_name = "Extension Summoner"
+hit_height_band = ExtResource("migrated_2_height")
+entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "independent", "extension", "summoner")
 required_components = PackedStringArray("TriggerComponent")
 optional_components = PackedStringArray("DebugViewComponent")
@@ -18,5 +21,3 @@ default_params = {
 "interval": 0.8
 }
 mechanics = [ExtResource("3_mechanic_0"), ExtResource("4_mechanic_1")]
-backend_entity_template = ExtResource("2_backend")
-backend_entity_template_id = &"plant_extension_summoner"

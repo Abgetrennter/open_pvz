@@ -299,9 +299,6 @@ func _register_builtin_defs() -> void:
 		"name": "archetype_id",
 		"type": "string_name",
 	}, {
-		"name": "entity_template_id",
-		"type": "string_name",
-	}, {
 		"name": "x_offset",
 		"type": "float",
 		"min": -600.0,

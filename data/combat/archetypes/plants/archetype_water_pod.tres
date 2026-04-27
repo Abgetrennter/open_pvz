@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_water_pod"
+legacy_template_id = &"plant_water_pod"
 display_name = "Water Pod Plant"
 tags = PackedStringArray("archetype", "plant", "independent", "water")
 optional_components = PackedStringArray("DebugViewComponent")

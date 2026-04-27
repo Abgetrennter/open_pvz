@@ -6,7 +6,7 @@ class_name BattleModeInputRequest
 
 @export var entity_id := -1
 @export var entity_archetype_id: StringName = StringName()
-@export var entity_template_id: StringName = StringName()
+@export var legacy_template_id: StringName = StringName()
 
 @export var lane_id := -1
 @export var slot_index := -1

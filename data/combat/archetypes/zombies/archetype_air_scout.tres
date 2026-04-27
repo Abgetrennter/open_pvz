@@ -1,13 +1,16 @@
 [gd_resource type="Resource" script_class="ZombieArchetype" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
-[ext_resource type="Resource" path="res://data/combat/entity_templates/zombies/zombie_air_scout.tres" id="2_backend"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="3_mechanic_0"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/air_unit_low.tres" id="migrated_2_height"]
 
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_air_scout"
+legacy_template_id = &"zombie_air_scout"
 display_name = "Air Scout Zombie"
+hit_height_band = ExtResource("migrated_2_height")
+entity_kind = &"zombie"
 tags = PackedStringArray("archetype", "zombie", "independent", "air", "scout")
 required_components = PackedStringArray("TriggerComponent", "MovementComponent")
 max_health = 270
@@ -16,5 +19,3 @@ default_params = {
 "move_speed": 40.0
 }
 mechanics = [ExtResource("3_mechanic_0")]
-backend_entity_template = ExtResource("2_backend")
-backend_entity_template_id = &"zombie_air_scout"

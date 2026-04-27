@@ -36,18 +36,6 @@
     "layers": ["core"]
   },
   {
-    "id": "template_instantiation_validation",
-    "scenario": "res://scenes/validation/template_instantiation_validation.tres",
-    "description": "Validates that BattleScenario spawn entries can instantiate legacy template-backed entities and preserve identity through runtime events during migration.",
-    "layers": ["core"]
-  },
-  {
-    "id": "template_factory_validation",
-    "scenario": "res://scenes/validation/template_factory_validation.tres",
-    "description": "Validates that EntityFactory can still build legacy template-defined runtime triggers while the main authoring path has switched to archetypes.",
-    "layers": ["smoke", "core"]
-  },
-  {
     "id": "archetype_instantiation_validation",
     "scenario": "res://scenes/validation/archetype_instantiation_validation.tres",
     "description": "Validates the first Mechanic-first skeleton path from archetype resolution to compiled trigger binding execution.",
@@ -168,24 +156,6 @@
     "layers": ["guardrail"]
   },
   {
-    "id": "peashooter_migration_parity_validation",
-    "scenario": "res://scenes/validation/peashooter_migration_parity_validation.tres",
-    "description": "Compares old template path and new archetype path for peashooter combat behavior.",
-    "layers": ["core", "migration"]
-  },
-  {
-    "id": "sunflower_migration_parity_validation",
-    "scenario": "res://scenes/validation/sunflower_migration_parity_validation.tres",
-    "description": "Compares old template path and new archetype path for sunflower economy behavior.",
-    "layers": ["core", "migration"]
-  },
-  {
-    "id": "zombie_migration_parity_validation",
-    "scenario": "res://scenes/validation/zombie_migration_parity_validation.tres",
-    "description": "Compares old template path and new archetype path for basic zombie bite behavior.",
-    "layers": ["core", "migration"]
-  },
-  {
     "id": "spawn_override_priority_validation",
     "scenario": "res://scenes/validation/spawn_override_priority_validation.tres",
     "description": "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides win over template projectile defaults.",
@@ -250,12 +220,6 @@
     "scenario": "res://scenes/validation/protect_goal_phase6_validation.tres",
     "description": "Validates the protect_template defeat condition by requiring a sunflower anchor to survive a ranged zombie attack.",
     "layers": ["core"]
-  },
-  {
-    "id": "template_guardrail_validation",
-    "scenario": "res://scenes/validation/template_guardrail_validation.tres",
-    "description": "Validates that invalid template resources, malformed trigger bindings, and malformed override combinations are rejected through protocol issues before runtime execution.",
-    "layers": ["guardrail"]
   },
   {
     "id": "protocol_guardrail_validation",
@@ -418,12 +382,6 @@
     "scenario": "res://scenes/validation/extension_manifest_guardrail_validation.tres",
     "description": "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids.",
     "layers": ["smoke", "guardrail"]
-  },
-  {
-    "id": "extension_effect_guardrail_validation",
-    "scenario": "res://scenes/validation/extension_effect_guardrail_validation.tres",
-    "description": "Validates extension effect guardrails across registry rebuild and spawn-entry binding checks, including duplicate ids, invalid schemas, missing execute entry points, slot mismatches, and missing strategies.",
-    "layers": ["guardrail"]
   },
   {
     "id": "target_acquisition_validation",

@@ -1,14 +1,21 @@
-[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
-[ext_resource type="Resource" path="res://data/combat/entity_templates/plants/plant_repeater_burst.tres" id="2_backend"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="3_mechanic_0"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_projectile_payload_burst.tres" id="4_mechanic_1"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="migrated_2_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="migrated_3_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_burst.tres" id="migrated_4_projectile_template"]
 
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_repeater_burst"
+legacy_template_id = &"plant_repeater_burst"
 display_name = "Repeater Burst Plant"
+projectile_template = ExtResource("migrated_4_projectile_template")
+projectile_flight_profile = ExtResource("migrated_3_profile")
+hit_height_band = ExtResource("migrated_2_height")
+entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "independent", "repeater", "burst")
 required_components = PackedStringArray("TriggerComponent")
 optional_components = PackedStringArray("DebugViewComponent")
@@ -22,5 +29,3 @@ default_params = {
 "start_delay": 0.2
 }
 mechanics = [ExtResource("3_mechanic_0"), ExtResource("4_mechanic_1")]
-backend_entity_template = ExtResource("2_backend")
-backend_entity_template_id = &"plant_repeater_burst"

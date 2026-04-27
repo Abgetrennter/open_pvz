@@ -3,6 +3,7 @@ class_name CombatArchetype
 
 @export var archetype_id: StringName = StringName()
 @export var entity_kind: StringName = &"plant"
+@export var legacy_template_id: StringName = StringName()
 @export var display_name := ""
 @export var tags: PackedStringArray = PackedStringArray()
 @export var root_scene: PackedScene
@@ -23,6 +24,3 @@ class_name CombatArchetype
 @export var default_params: Dictionary = {}
 @export var compiler_hints: Dictionary = {}
 @export var mechanics: Array[Resource] = []
-@export var backend_entity_template: Resource = null
-@export var backend_entity_template_id: StringName = StringName()
-

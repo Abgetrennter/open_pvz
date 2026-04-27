@@ -199,7 +199,9 @@ func emit_entity_spawned(entity: Node, lane_id: int, source_node: Node = null, m
 	if entity.has_method("get_entity_id"):
 		spawned_event.core["entity_id"] = int(entity.call("get_entity_id"))
 	if entity.get("template_id") != null:
-		spawned_event.core["entity_template_id"] = StringName(entity.get("template_id"))
+		var legacy_template_id := StringName(entity.get("template_id"))
+		if legacy_template_id != StringName():
+			spawned_event.core["legacy_template_id"] = legacy_template_id
 	if entity.get("archetype_id") != null:
 		var spawned_archetype_id := StringName(entity.get("archetype_id"))
 		if spawned_archetype_id != StringName():

@@ -1,17 +1,24 @@
 [gd_resource type="Resource" script_class="ZombieArchetype" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
-[ext_resource type="Resource" path="res://data/combat/entity_templates/zombies/zombie_basic_walker.tres" id="2_backend"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="3_controller"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="migrated_2_height"]
 
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_basic_zombie_skeleton"
+legacy_template_id = &"zombie_basic_walker"
 display_name = "Basic Zombie Archetype Skeleton"
+default_params = {
+"move_speed": 55.0
+}
+hit_height_band = ExtResource("migrated_2_height")
+hitbox_size = Vector2(44, 60)
+max_health = 270
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+entity_kind = &"zombie"
 tags = PackedStringArray("archetype", "zombie", "continuous", "skeleton")
 compiler_hints = {
 "skeleton_only": true
 }
 mechanics = [ExtResource("3_controller")]
-backend_entity_template = ExtResource("2_backend")
-backend_entity_template_id = &"zombie_basic_walker"

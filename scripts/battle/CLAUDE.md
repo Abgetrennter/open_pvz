@@ -13,7 +13,7 @@
 | 文件 | 类名 | 职责 |
 |------|------|------|
 | `battle_manager.gd` | `BattleManager` | 战斗主控制器（Node2D）。管理 tick 循环、实体生成、验证状态机、抛射体生成接口。连接所有子系统 |
-| `entity_factory.gd` | `EntityFactory` | 实体工厂（RefCounted）。从 EntityTemplate 实例化实体、组装组件、构建运行时触发器 |
+| `entity_factory.gd` | `EntityFactory` | 实体工厂（RefCounted）。从 RuntimeSpec 实例化实体、组装组件、构建 mechanic-first 运行时触发器 |
 | `battle_scenario.gd` | `BattleScenario` | 战斗场景配置（Resource）。定义生成条目、验证规则、经济参数、棋盘配置、波次定义 |
 | `battle_projectile_effect_resolver.gd` | `BattleProjectileEffectResolver` | 投射体 effect 参数解析、movement params 组装、目标解析与预测 |
 | `battle_validation_reporter.gd` | `BattleValidationReporter` | 验证报告构建、artifact 导出、JSON/text 写入 |
@@ -34,11 +34,11 @@
 
 | 文件 | 类名 | 职责 |
 |------|------|------|
-| `battle_spawn_entry.gd` | `BattleSpawnEntry` | 生成条目：entity_template + 位置 + 覆盖参数 |
+| `battle_spawn_entry.gd` | `BattleSpawnEntry` | 生成条目：archetype_id + 位置 + 覆盖参数 |
 | `battle_validation_rule.gd` | `BattleValidationRule` | 验证规则：event_name + tags + min/max_count |
-| `card_def.gd` | `CardDef` | 卡片定义：card_id, entity_template_id, sun_cost, cooldown |
+| `card_def.gd` | `CardDef` | 卡片定义：card_id, archetype_id, sun_cost, cooldown |
 | `card_play_request.gd` | `CardPlayRequest` | 卡片出牌请求：card_id + lane_id + slot_index + at_time |
-| `placement_request.gd` | `PlacementRequest` | 放置请求：entity_template_id + lane_id + slot_index + placement_tags |
+| `placement_request.gd` | `PlacementRequest` | 放置请求：archetype_id + lane_id + slot_index + placement_tags |
 | `board_slot.gd` | `BoardSlot` | 棋盘槽位：lane_id + slot_index + slot_type + base_tags + occupants |
 | `board_slot_config.gd` | `BoardSlotConfig` | 槽位配置覆盖：slot_type + placement_tags |
 | `board_slot_catalog.gd` | `BoardSlotCatalog` | 槽位类型目录：ground/water/roof/air + 默认标签 |
@@ -48,7 +48,7 @@
 | `sun_drop_entry.gd` | `SunDropEntry` | 阳光掉落配置 |
 | `resource_spend_request.gd` | `ResourceSpendRequest` | 资源消耗请求 |
 | `status_application_request.gd` | `StatusApplicationRequest` | 状态应用请求：status_id + duration + movement_scale + blocks_attack |
-| `field_object_config.gd` | `FieldObjectConfig` | 场上物件配置：object_template_id + lane_id + x_position + spawn_overrides |
+| `field_object_config.gd` | `FieldObjectConfig` | 场上物件配置：archetype_id + lane_id + x_position + spawn_overrides |
 
 ### 模式层 (mode/)
 

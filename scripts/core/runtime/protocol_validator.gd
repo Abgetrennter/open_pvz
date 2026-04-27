@@ -292,8 +292,6 @@ static func validate_combat_mechanic(mechanic: Resource) -> Array[String]:
 
 
 static func validate_combat_archetype(archetype: Resource) -> Array[String]:
-	# TODO(mechanic-first): Restore stronger structural guarantees after backend
-	# template fallback is no longer required for every archetype.
 	var errors: Array[String] = []
 	if archetype == null:
 		errors.append("CombatArchetype is null.")
@@ -317,16 +315,13 @@ static func validate_combat_archetype(archetype: Resource) -> Array[String]:
 		for mechanic in archetype.mechanics:
 			for error in validate_combat_mechanic(mechanic):
 				errors.append("CombatArchetype mechanics: %s" % error)
-	var backend_template = CombatContentResolverRef.resolve_archetype_backend_entity_template(archetype)
-	if StringName(archetype.get("backend_entity_template_id")) != StringName() and backend_template == null:
-		errors.append("CombatArchetype.backend_entity_template_id must resolve through SceneRegistry.")
-	if backend_template == null and not _can_validate_backend_free_archetype(archetype):
-		errors.append("CombatArchetype must currently resolve a backend entity template, or satisfy the backend-free archetype requirements.")
-	if backend_template != null:
-		for error in validate_entity_template(backend_template):
-			errors.append("CombatArchetype backend_entity_template: %s" % error)
-		if not _entity_template_trigger_bindings(backend_template).is_empty():
-			errors.append("CombatArchetype backend_entity_template must not retain legacy trigger_bindings. Move behavior into mechanics.")
+	if archetype.get("backend_entity_template") != null:
+		errors.append("CombatArchetype.backend_entity_template is retired. Move data onto archetype fields and mechanics.")
+	var backend_id_value: Variant = archetype.get("backend_entity_template_id")
+	if backend_id_value != null and String(backend_id_value) != "":
+		errors.append("CombatArchetype.backend_entity_template_id is retired. Use legacy_template_id only for event identity.")
+	if not _can_validate_native_archetype(archetype):
+		errors.append("CombatArchetype must define native runtime data through archetype fields or mechanics.")
 	var placement_errors := _validate_archetype_placement_spec(archetype)
 	for error in placement_errors:
 		errors.append("CombatArchetype placement_spec: %s" % error)
@@ -361,11 +356,11 @@ static func _validate_archetype_placement_spec(archetype: Resource) -> Array[Str
 	return errors
 
 
-static func _can_validate_backend_free_archetype(archetype: Resource) -> bool:
+static func _can_validate_native_archetype(archetype: Resource) -> bool:
 	if archetype == null or not (archetype is CombatArchetypeRef):
 		return false
 	if not archetype.mechanics.is_empty():
-		return false
+		return true
 	if archetype.max_health <= 0:
 		return false
 	if archetype.hitbox_size == Vector2.ZERO:
@@ -651,9 +646,9 @@ static func validate_battle_mode_input_request(input_request: Resource) -> Array
 		&"entity_click":
 			var entity_id := int(input_request.get("entity_id"))
 			var entity_archetype_id := StringName(input_request.get("entity_archetype_id"))
-			var entity_template_id := StringName(input_request.get("entity_template_id"))
-			if entity_id < 0 and entity_archetype_id == StringName() and entity_template_id == StringName():
-				errors.append("BattleModeInputRequest entity_click requires entity_id, entity_archetype_id, or entity_template_id.")
+			var legacy_template_id := StringName(input_request.get("legacy_template_id"))
+			if entity_id < 0 and entity_archetype_id == StringName() and legacy_template_id == StringName():
+				errors.append("BattleModeInputRequest entity_click requires entity_id, entity_archetype_id, or legacy_template_id.")
 		&"cell_click":
 			if int(input_request.get("lane_id")) < 0:
 				errors.append("BattleModeInputRequest cell_click requires lane_id >= 0.")
@@ -822,7 +817,6 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 		scope = "%s in scenario %s" % [scope, String(scenario_id)]
 
 	var resolved_archetype = CombatContentResolverRef.resolve_spawn_entry_archetype(spawn_entry)
-	var resolved_template = CombatContentResolverRef.resolve_spawn_entry_template(spawn_entry)
 	var entity_kind := String(spawn_entry.entity_kind)
 	var legacy_entity_template_value: Variant = spawn_entry.get("entity_template_id")
 	if resolved_archetype == null:
@@ -836,11 +830,6 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 			errors.append("%s archetype: %s" % [scope, error])
 		if StringName(resolved_archetype.get("entity_kind")) != StringName():
 			entity_kind = String(resolved_archetype.get("entity_kind"))
-	if resolved_template != null:
-		for error in validate_entity_template(resolved_template):
-			errors.append("%s entity_template: %s" % [scope, error])
-		if StringName(resolved_template.get("entity_kind")) != StringName():
-			entity_kind = String(resolved_template.get("entity_kind"))
 	if entity_kind not in ["plant", "zombie", "field_object"]:
 		errors.append("%s.entity_kind must be plant, zombie, or field_object." % scope)
 	if int(spawn_entry.lane_id) < 0:
@@ -858,46 +847,33 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 	var raw_spawn_overrides: Variant = spawn_entry.get("spawn_overrides")
 	if raw_spawn_overrides != null and not (raw_spawn_overrides is Dictionary):
 		errors.append("%s.spawn_overrides must be a Dictionary." % scope)
-	var spawn_overrides := CombatContentResolverRef.resolve_spawn_overrides(spawn_entry)
 	if spawn_entry.get("projectile_template_override") != null and not (spawn_entry.get("projectile_template_override") is ProjectileTemplateRef):
 		errors.append("%s.projectile_template_override must be a ProjectileTemplate resource." % scope)
 	if spawn_entry.get("projectile_flight_profile_override") != null:
 		for error in validate_projectile_flight_profile(spawn_entry.get("projectile_flight_profile_override")):
 			errors.append("%s projectile_flight_profile_override: %s" % [scope, error])
-	var projectile_template = CombatContentResolverRef.resolve_projectile_template(spawn_entry, resolved_template, resolved_archetype)
+	var projectile_template = CombatContentResolverRef.resolve_projectile_template(spawn_entry, resolved_archetype)
 	if projectile_template != null:
 		for error in validate_projectile_template(projectile_template):
 			errors.append("%s projectile_template: %s" % [scope, error])
 	errors.append_array(_validate_projectile_config_consistency(
-		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template, resolved_archetype),
+		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_archetype),
 		projectile_template,
 		"%s params" % scope
 	))
 
 	errors.append_array(_validate_entity_runtime_params(
 		entity_kind,
-		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template, resolved_archetype),
+		CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_archetype),
 		"%s params" % scope
 	))
-	if resolved_template != null:
-		var merged_params := CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_template, resolved_archetype)
-		var resolved_profile: Resource = CombatContentResolverRef.resolve_projectile_flight_profile(spawn_entry, resolved_template, projectile_template, resolved_archetype)
-		errors.append_array(_validate_trigger_bindings_runtime(
+	if resolved_archetype != null:
+		errors.append_array(_validate_archetype_compiled_bindings(
 			StringName(entity_kind),
-			resolved_template,
-			merged_params,
-			resolved_profile,
-			projectile_template,
-			"%s template trigger_bindings" % scope
+			resolved_archetype,
+			spawn_entry,
+			"%s archetype compiled_bindings" % scope
 		))
-		var template_bindings_empty: bool = resolved_template.get("trigger_bindings") == null or not (resolved_template.get("trigger_bindings") is Array) or resolved_template.get("trigger_bindings").is_empty()
-		if template_bindings_empty and resolved_archetype != null:
-			errors.append_array(_validate_archetype_compiled_bindings(
-				StringName(entity_kind),
-				resolved_archetype,
-				spawn_entry,
-				"%s archetype compiled_bindings" % scope
-			))
 	return errors
 
 

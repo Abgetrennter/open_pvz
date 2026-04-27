@@ -18,17 +18,14 @@ This directory stores combat-facing Resource content for the runtime and validat
   - Reserved for formal level-side data and shared level metadata.
 - `battlefields/`
   - Reserved for battlefield and board-semantics presets.
-- `entity_templates/plants/`
-  - Plant entity templates.
-- `entity_templates/zombies/`
-  - Zombie entity templates.
+- `archetypes/`
+  - Formal entity authoring resources.
 
 ## Conventions
 
-- New entity templates must not be added back into a flat `templates/` directory.
-- `EntityTemplate` resources should be split by major entity kind at minimum.
+- New entities must be authored as `CombatArchetype + CombatMechanic[]`.
 - `ProjectileTemplate` resources should describe the projectile itself, not the firing entity.
-- `TriggerBinding` resources are legacy backend artifacts only and should not be used as formal authoring inputs.
+- Retired template resources live under `plans/archive/legacy-resources/` and are not scanned at runtime.
 - Formal battle content should prefer `data/combat/*` trees over `scenes/validation` or `scenes/showcase`.
 - `scenes/validation/` is for verification scenarios.
 - `scenes/showcase/` is for display wrappers only.
@@ -55,7 +52,7 @@ This directory stores combat-facing Resource content for the runtime and validat
 - `parabola_long_arc`
 - `parabola_terminal_blast`
 
-### Plant Templates
+### Plant Archetypes
 
 - `plant_basic_shooter`
 - `plant_track_bomber`
@@ -68,7 +65,7 @@ This directory stores combat-facing Resource content for the runtime and validat
 - `plant_spore_summoner`
 - `plant_sporeling`
 
-### Zombie Templates
+### Zombie Archetypes
 
 - `zombie_lane_dummy`
 - `zombie_reactive_bomber`

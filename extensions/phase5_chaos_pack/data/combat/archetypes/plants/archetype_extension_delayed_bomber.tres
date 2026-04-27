@@ -1,14 +1,21 @@
-[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
-[ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/data/combat/entity_templates/plants/plant_extension_delayed_bomber.tres" id="2_backend"]
 [ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/data/combat/mechanics/mechanic_extension_delayed_bomber_trigger.tres" id="3_mechanic_0"]
 [ext_resource type="Resource" path="res://extensions/phase5_chaos_pack/data/combat/mechanics/mechanic_extension_delayed_bomber_payload.tres" id="4_mechanic_1"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="migrated_2_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="migrated_3_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_linear.tres" id="migrated_4_projectile_template"]
 
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_extension_delayed_bomber"
+legacy_template_id = &"plant_extension_delayed_bomber"
 display_name = "Extension Delayed Bomber"
+projectile_template = ExtResource("migrated_4_projectile_template")
+projectile_flight_profile = ExtResource("migrated_3_profile")
+hit_height_band = ExtResource("migrated_2_height")
+entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "independent", "extension", "delayed_explode")
 required_components = PackedStringArray("TriggerComponent")
 optional_components = PackedStringArray("DebugViewComponent")
@@ -21,5 +28,3 @@ default_params = {
 "speed": 1200.0
 }
 mechanics = [ExtResource("3_mechanic_0"), ExtResource("4_mechanic_1")]
-backend_entity_template = ExtResource("2_backend")
-backend_entity_template_id = &"plant_extension_delayed_bomber"
