@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="CardDef_field_fallback"]
+script = ExtResource("2_card_def")
+card_id = &"placement_field_fallback_card"
+display_name = "Placement Field Fallback Card"
+archetype_id = &"archetype_wall_barrier"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="CardPlayRequest_field_fallback"]
+script = ExtResource("3_card_request")
+at_time = 0.25
+card_id = &"placement_field_fallback_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_field_fallback_accepted"]
+script = ExtResource("4_rule")
+rule_id = &"field_fallback_accepted"
+description = "archetype field placement data should still normalize into placement_spec and be accepted by the board runtime"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"placement_field_fallback_card",
+"lane_id": 0,
+"slot_index": 0,
+"placement_role": &"primary",
+"placement_spec_source": &"archetype_field"
+}
+
+[sub_resource type="Resource" id="Rule_field_fallback_spawned"]
+script = ExtResource("4_rule")
+rule_id = &"field_fallback_spawned"
+description = "field-backed placement archetype entity should spawn through the same placement runtime"
+event_name = &"entity.spawned"
+required_core_values = {
+"target_archetype_id": &"archetype_wall_barrier",
+"target_kind": &"plant"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"placement_field_fallback_validation"
+display_name = "Placement Field Fallback Validation"
+description = "Validates that an archetype without an explicit Placement mechanic still resolves an archetype_field placement_spec and is consumed by the board runtime."
+goals = PackedStringArray("Verify field-backed placement resolves placement_spec_source=archetype_field.", "Verify board placement still runs through the unified placement runtime.")
+initial_sun = 100
+board_slot_count = 5
+validation_time_limit = 1.5
+card_defs = [SubResource("CardDef_field_fallback")]
+card_play_requests = [SubResource("CardPlayRequest_field_fallback")]
+validation_rules = [SubResource("Rule_field_fallback_accepted"), SubResource("Rule_field_fallback_spawned")]

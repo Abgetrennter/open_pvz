@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_objective_def.gd" id="3_objective"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="4_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="Objective_clear_special_targets"]
+script = ExtResource("3_objective")
+objective_id = &"clear_lane_dummy_targets"
+objective_type = &"clear_special_targets"
+params = {
+"target_archetype_ids": PackedStringArray("archetype_lane_dummy")
+}
+summary_tags = PackedStringArray("objective", "clear_special_targets", "mode")
+
+[sub_resource type="Resource" id="Spawn_special_target_shooter"]
+script = ExtResource("4_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 60,
+"interval": 0.6,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_special_target_dummy"]
+script = ExtResource("4_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_clear_special_targets_victory"]
+script = ExtResource("5_rule")
+rule_id = &"clear_special_targets_victory"
+description = "mode objective clear_special_targets should mark victory once all tagged targets are defeated"
+event_name = &"battle.victory"
+required_core_values = {
+"reason": &"clear_special_targets"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_objective_clear_special_targets_validation"
+display_name = "Mode Objective Clear Special Targets Validation"
+description = "Validates that BattleModeHost can mark victory for clear_special_targets after the tracked special target archetype is eliminated."
+goals = PackedStringArray("The special target is observed by the mode layer.", "The special target is defeated.", "Victory is emitted with reason clear_special_targets.")
+validation_time_limit = 3.0
+mode_def = ExtResource("2_mode")
+objective_override = SubResource("Objective_clear_special_targets")
+spawns = [SubResource("Spawn_special_target_shooter"), SubResource("Spawn_special_target_dummy")]
+validation_rules = [SubResource("Rule_clear_special_targets_victory")]

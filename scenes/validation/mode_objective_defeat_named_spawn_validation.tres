@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_objective_def.gd" id="3_objective"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="4_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="Objective_defeat_named_spawn"]
+script = ExtResource("3_objective")
+objective_id = &"defeat_named_lane_dummy"
+objective_type = &"defeat_named_spawn"
+params = {
+"archetype_id": &"archetype_lane_dummy"
+}
+summary_tags = PackedStringArray("objective", "defeat_named_spawn", "mode")
+
+[sub_resource type="Resource" id="Spawn_named_target_shooter"]
+script = ExtResource("4_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 60,
+"interval": 0.6,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_named_target_dummy"]
+script = ExtResource("4_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_defeat_named_spawn_victory"]
+script = ExtResource("5_rule")
+rule_id = &"defeat_named_spawn_victory"
+description = "mode objective defeat_named_spawn should mark victory once the named archetype is defeated"
+event_name = &"battle.victory"
+required_core_values = {
+"reason": &"defeat_named_spawn"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_objective_defeat_named_spawn_validation"
+display_name = "Mode Objective Defeat Named Spawn Validation"
+description = "Validates that BattleModeHost can mark victory for defeat_named_spawn once the named spawn archetype is eliminated."
+goals = PackedStringArray("The named spawn is observed by the mode layer.", "The named spawn is defeated.", "Victory is emitted with reason defeat_named_spawn.")
+validation_time_limit = 3.0
+mode_def = ExtResource("2_mode")
+objective_override = SubResource("Objective_defeat_named_spawn")
+spawns = [SubResource("Spawn_named_target_shooter"), SubResource("Spawn_named_target_dummy")]
+validation_rules = [SubResource("Rule_defeat_named_spawn_victory")]

@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_objective_def.gd" id="3_objective"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="4_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="Objective_protect_template"]
+script = ExtResource("3_objective")
+objective_id = &"protect_sunflower_mode"
+objective_type = &"protect_template"
+params = {
+"template_id": &"plant_sunflower"
+}
+summary_tags = PackedStringArray("objective", "protect", "mode")
+
+[sub_resource type="Resource" id="Spawn_protected_sunflower"]
+script = ExtResource("4_spawn")
+archetype_id = &"archetype_sunflower"
+lane_id = 0
+x_position = 220.0
+
+[sub_resource type="Resource" id="Spawn_bone_thrower"]
+script = ExtResource("4_spawn")
+archetype_id = &"archetype_bone_thrower"
+lane_id = 0
+x_position = 300.0
+
+[sub_resource type="Resource" id="Rule_mode_protect_defeat"]
+script = ExtResource("5_rule")
+rule_id = &"mode_protect_defeat"
+description = "mode objective protect_template should mark defeat when the protected template is destroyed"
+event_name = &"battle.defeat"
+required_core_values = {
+"reason": &"protected_template_lost"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"mode_objective_protect_template_validation"
+display_name = "Mode Objective Protect Template Validation"
+description = "Validates that BattleModeHost can interpret a protect_template objective and mark defeat when the protected entity is lost."
+goals = PackedStringArray("Mode objective tracks the protected sunflower.", "The battle fails through mode objective logic when the sunflower is destroyed.")
+validation_time_limit = 4.5
+mode_def = ExtResource("2_mode")
+objective_override = SubResource("Objective_protect_template")
+spawns = [SubResource("Spawn_protected_sunflower"), SubResource("Spawn_bone_thrower")]
+validation_rules = [SubResource("Rule_mode_protect_defeat")]

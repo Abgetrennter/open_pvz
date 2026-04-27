@@ -156,6 +156,18 @@
     "layers": ["core"]
   },
   {
+    "id": "placement_field_fallback_validation",
+    "scenario": "res://scenes/validation/placement_field_fallback_validation.tres",
+    "description": "Validates that archetype field placement data is normalized into placement_spec_source=archetype_field and consumed by the shared placement runtime.",
+    "layers": ["core"]
+  },
+  {
+    "id": "placement_guardrail_validation",
+    "scenario": "res://scenes/validation/placement_guardrail_validation.tres",
+    "description": "Validates that multiple enabled Placement mechanics are rejected before runtime spawn.",
+    "layers": ["guardrail"]
+  },
+  {
     "id": "peashooter_migration_parity_validation",
     "scenario": "res://scenes/validation/peashooter_migration_parity_validation.tres",
     "description": "Compares old template path and new archetype path for peashooter combat behavior.",
@@ -465,6 +477,24 @@
     "id": "mode_objective_score_validation",
     "scenario": "res://scenes/validation/mode_objective_score_validation.tres",
     "description": "Validates score-threshold objective progression across multiple manual skill applications.",
+    "layers": ["core"]
+  },
+  {
+    "id": "mode_objective_protect_template_validation",
+    "scenario": "res://scenes/validation/mode_objective_protect_template_validation.tres",
+    "description": "Validates mode-level protect_template objective evaluation and defeat handling.",
+    "layers": ["core"]
+  },
+  {
+    "id": "mode_objective_clear_special_targets_validation",
+    "scenario": "res://scenes/validation/mode_objective_clear_special_targets_validation.tres",
+    "description": "Validates mode-level clear_special_targets objective evaluation and victory handling.",
+    "layers": ["core"]
+  },
+  {
+    "id": "mode_objective_defeat_named_spawn_validation",
+    "scenario": "res://scenes/validation/mode_objective_defeat_named_spawn_validation.tres",
+    "description": "Validates mode-level defeat_named_spawn objective evaluation and victory handling.",
     "layers": ["core"]
   },
   {

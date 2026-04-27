@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="4_archetype"]
+[ext_resource type="Resource" path="res://data/combat/entity_templates/plants/plant_basic_shooter.tres" id="5_backend"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_placement_ground.tres" id="6_ground"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_placement_cover_on_primary.tres" id="7_cover"]
+
+[sub_resource type="Resource" id="InvalidPlacementArchetype"]
+script = ExtResource("4_archetype")
+archetype_id = &"archetype_invalid_multi_placement"
+entity_kind = &"plant"
+display_name = "Invalid Multi Placement Archetype"
+tags = PackedStringArray("archetype", "plant", "placement", "invalid")
+placement_role = &"primary"
+required_placement_tags = PackedStringArray("supports_primary")
+compiler_hints = {
+"skeleton_only": true
+}
+mechanics = [ExtResource("6_ground"), ExtResource("7_cover")]
+backend_entity_template = ExtResource("5_backend")
+backend_entity_template_id = &"plant_basic_shooter"
+
+[sub_resource type="Resource" id="Spawn_invalid_multi_placement"]
+script = ExtResource("2_spawn")
+archetype = SubResource("InvalidPlacementArchetype")
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Rule_placement_guardrail_issue"]
+script = ExtResource("3_rule")
+rule_id = &"placement_guardrail_issue"
+description = "multiple enabled Placement mechanics should be rejected through protocol issues before runtime spawn"
+event_name = &"protocol.issue"
+required_core_values = {
+"scope": &"battle_spawn_entry"
+}
+
+[sub_resource type="Resource" id="Rule_no_invalid_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"no_invalid_spawn"
+description = "invalid multi-placement archetype should never spawn into runtime"
+event_name = &"entity.spawned"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"placement_guardrail_validation"
+display_name = "Placement Guardrail Validation"
+description = "Validates that a plant archetype with multiple enabled Placement mechanics is rejected before runtime spawn."
+goals = PackedStringArray("Reject multiple enabled Placement mechanics through protocol issues.", "Do not spawn the invalid archetype into runtime.")
+validation_time_limit = 1.0
+spawns = [SubResource("Spawn_invalid_multi_placement")]
+validation_rules = [SubResource("Rule_placement_guardrail_issue"), SubResource("Rule_no_invalid_spawn")]

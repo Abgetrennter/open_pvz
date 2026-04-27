@@ -339,6 +339,16 @@ static func _validate_archetype_placement_spec(archetype: Resource) -> Array[Str
 		return errors
 	if StringName(archetype.entity_kind) != &"plant":
 		return errors
+	var enabled_placement_mechanics := 0
+	for mechanic in archetype.mechanics:
+		if not (mechanic is CombatMechanicRef):
+			continue
+		if not bool(mechanic.enabled):
+			continue
+		if StringName(mechanic.family) == CombatMechanicRef.FAMILY_PLACEMENT:
+			enabled_placement_mechanics += 1
+	if enabled_placement_mechanics > 1:
+		errors.append("plant archetype must not define multiple enabled Placement mechanics.")
 	var placement_spec := CombatContentResolverRef.resolve_archetype_placement_spec(archetype)
 	if placement_spec.is_empty():
 		errors.append("plant archetype must resolve a non-empty placement_spec.")

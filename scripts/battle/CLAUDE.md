@@ -93,12 +93,16 @@ WaveRunner._on_game_tick()
 - `sun_resource_validation` -- 阳光经济循环
 - `card_flow_validation` -- 卡片运行时
 - `board_placement_validation` / `board_slot_tag_validation` / `roof_slot_validation` / `air_slot_validation` / `cover_blocker_validation` -- 棋盘放置
+- `placement_compile_validation` / `placement_runtime_spec_validation` / `placement_field_fallback_validation` / `placement_guardrail_validation` -- Placement family 编译、运行时与守卫
 - `wave_flow_validation` / `wave_guardrail_validation` -- 波次系统
 - `field_object_mower_validation` -- 场上物件割草机
 - `mode_basic_validation` -- 模式层基本初始化
 - `mode_manual_aim_lane_validation` -- 手动技能试点闭环
 - `mode_input_profile_guard_validation` -- 输入 profile 守卫
 - `mode_objective_score_validation` -- 分数目标推进
+- `mode_objective_protect_template_validation` -- protect_template 目标
+- `mode_objective_clear_special_targets_validation` -- clear_special_targets 目标
+- `mode_objective_defeat_named_spawn_validation` -- defeat_named_spawn 目标
 - `mode_module_override_validation` -- scenario module 覆盖语义
 - `mode_conveyor_cards_validation` -- conveyor_cards 最小能力
 - `mode_no_mode_guardrail` -- 无 mode 向后兼容 guardrail

@@ -80,7 +80,7 @@ legacy 资源当前仍存在，但只承担：
 
 ## 当前编译覆盖判断
 
-当前正文按 `9/10` family 已建立正式编译覆盖理解：
+当前正文按 `10/10` family 已建立正式编译覆盖理解：
 
 - `Trigger`
 - `Targeting`
@@ -90,14 +90,16 @@ legacy 资源当前仍存在，但只承担：
 - `Payload`
 - `State`
 - `Lifecycle`
+- `Placement`
 - `Controller`
 
-`Placement` 当前仍视为待补完 family。
+其中 `Placement` 当前已完成第一轮正式收口：
 
-说明：
-
-- 仓库中已经存在 placement 相关 compiler callable、`placement_spec` 编译产物，以及由 `BattleCardState / BattleBoardState` 消费该 spec 的运行时接线。
-- 但从正文和治理口径上，它尚未达到与其他 9 个 family 等价的正式收口状态。
+- compiler callable 已固定
+- `RuntimeSpec.placement_spec` 已固定
+- `BattleCardState / BattleBoardState` 已消费该 spec
+- `archetype_field` fallback 已有验证
+- 多 Placement mechanic guardrail 已有验证
 
 ---
 

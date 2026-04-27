@@ -6,7 +6,7 @@ Treat this repository as an open PVZ-like rules engine project, not a one-off de
 
 The current project state is:
 
-> Mechanic-first restructuring has completed its first three stages. The active line is now: keep `Archetype + Mechanic[]` as the only formal authoring path, continue closing the legacy layer, and finish formalizing `Placement` as the remaining not-yet-fully-closed family.
+> Mechanic-first restructuring has completed its first three stages. `Placement` has now entered the same formalized coverage tier as the other 9 families. The active line is: keep `Archetype + Mechanic[]` as the only formal authoring path, continue closing the legacy layer, and keep content, mode, and validation growth synchronized.
 
 That means the default priority order is:
 
@@ -174,18 +174,18 @@ After major changes:
 
 - The repository is no longer in the old "phase 5 chaos-tech mainline" framing.
 - The current formal mainline is Mechanic-first post-stage-3 consolidation.
-- `tools/validation_scenarios.json` currently contains `82` validation scenarios.
+- `tools/validation_scenarios.json` currently contains `87` validation scenarios.
 - Current validation layer-tag counts are:
   - `smoke = 9`
-  - `core = 63`
+  - `core = 67`
   - `extension = 10`
-  - `guardrail = 9`
+  - `guardrail = 10`
   - `migration = 3`
 - `data/combat/archetypes/` currently contains `51` archetypes:
   - `39` plants
   - `10` zombies
   - `2` field objects
-- The 10 Mechanic families are frozen, but current documentation still treats `Placement` as the one family not yet fully closed at the same level as the other 9.
+- The 10 Mechanic families are frozen, and current documentation now treats `Placement` as having reached the same first-round formal closure tier as the other 9 families.
 - `48` current archetypes still carry `backend_entity_template*` fields, so the legacy layer still exists physically even though the first backend-free archetype batch has been detached.
 
 ## Documentation Reality Checks
