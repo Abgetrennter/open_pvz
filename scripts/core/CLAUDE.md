@@ -49,7 +49,7 @@ FROZEN_TRIGGER_BEHAVIOR_SPECS = {
 # 主要验证方法
 validate_trigger_def(trigger_def) -> Array[String]
 validate_effect_def(effect_def) -> Array[String]
-validate_entity_template(entity_template) -> Array[String]
+validate_entity_template(entity_template) -> Array[String]  # retired guardrail: always rejects official EntityTemplate use
 validate_battle_scenario(scenario) -> Array[String]
 validate_battle_spawn_entry(spawn_entry) -> Array[String]
 normalize_trigger_instance(instance) -> Dictionary

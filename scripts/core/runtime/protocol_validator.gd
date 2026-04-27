@@ -432,50 +432,7 @@ static func validate_entity_template(entity_template: Resource) -> Array[String]
 	if entity_template == null:
 		errors.append("EntityTemplate is null.")
 		return errors
-	if StringName(entity_template.template_id) == StringName():
-		errors.append("EntityTemplate.template_id must not be empty.")
-	var entity_kind := String(entity_template.entity_kind)
-	if entity_kind not in ["plant", "zombie", "field_object"]:
-		errors.append("EntityTemplate.entity_kind must be plant, zombie, or field_object.")
-	if entity_template.hit_height_band != null:
-		for error in validate_height_band(entity_template.hit_height_band):
-			errors.append("EntityTemplate hit_height_band: %s" % error)
-	if entity_template.projectile_flight_profile != null:
-		for error in validate_projectile_flight_profile(entity_template.projectile_flight_profile):
-			errors.append("EntityTemplate projectile_flight_profile: %s" % error)
-	if entity_template.projectile_template != null:
-		for error in validate_projectile_template(entity_template.projectile_template):
-			errors.append("EntityTemplate projectile_template: %s" % error)
-	if not (entity_template.default_params is Dictionary):
-		errors.append("EntityTemplate.default_params must be a Dictionary.")
-	if not (entity_template.trigger_bindings is Array):
-		errors.append("EntityTemplate.trigger_bindings must be an Array.")
-	else:
-		for trigger_binding in entity_template.trigger_bindings:
-			for error in validate_trigger_binding(trigger_binding):
-				errors.append("EntityTemplate trigger_bindings: %s" % error)
-		errors.append_array(_validate_entity_runtime_params(
-			String(entity_template.entity_kind),
-			entity_template.default_params,
-			"EntityTemplate %s default_params" % String(entity_template.template_id)
-		))
-		errors.append_array(_validate_trigger_bindings_runtime(
-			StringName(entity_template.entity_kind),
-			entity_template,
-			entity_template.default_params,
-			entity_template.projectile_flight_profile,
-			entity_template.projectile_template,
-			"EntityTemplate %s trigger_bindings" % String(entity_template.template_id)
-		))
-	if int(entity_template.max_health) != -1 and int(entity_template.max_health) <= 0:
-		errors.append("EntityTemplate.max_health must be -1 or greater than zero.")
-	if entity_template.hitbox_size != Vector2.ZERO and (entity_template.hitbox_size.x <= 0.0 or entity_template.hitbox_size.y <= 0.0):
-		errors.append("EntityTemplate.hitbox_size must be zero or a positive size.")
-	if entity_template.entity_kind == &"plant":
-		if StringName(entity_template.placement_role) == StringName():
-			errors.append("EntityTemplate.placement_role must not be empty for placeable templates.")
-		if entity_template.required_placement_tags.is_empty():
-			errors.append("EntityTemplate.required_placement_tags must contain at least one placement tag for placeable templates.")
+	errors.append("EntityTemplate is retired. Official content must use CombatArchetype + CombatMechanic + RuntimeSpec.")
 	return errors
 
 
@@ -1498,26 +1455,6 @@ static func _load_resource_script(resource_script_path: String):
 		return null
 	var loaded := load(resource_script_path)
 	return loaded if loaded is Script else null
-
-
-static func _validate_trigger_bindings_runtime(
-	entity_kind: StringName,
-	entity_template,
-	params: Dictionary,
-	projectile_flight_profile: Resource,
-	projectile_template,
-	scope: String
-) -> Array[String]:
-	if entity_template == null or not (entity_template.get("trigger_bindings") is Array) or entity_template.get("trigger_bindings").is_empty():
-		return []
-	var factory: Variant = EntityFactoryRef.new()
-	var errors: Array[String] = []
-	for trigger_instance in factory.build_runtime_triggers(entity_kind, entity_template, params, projectile_flight_profile, projectile_template):
-		var validation: Dictionary = normalize_trigger_instance(trigger_instance)
-		if not bool(validation.get("valid", false)):
-			for error in PackedStringArray(validation.get("errors", PackedStringArray())):
-				errors.append("%s: %s" % [scope, error])
-	return errors
 
 
 static func _validate_archetype_compiled_bindings(

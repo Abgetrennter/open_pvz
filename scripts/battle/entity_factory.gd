@@ -156,16 +156,6 @@ func create_projectile(position: Vector2, projectile_template = null, params: Di
 	return projectile
 
 
-func build_runtime_triggers(
-	entity_kind: StringName,
-	template = null,
-	params: Dictionary = {},
-	projectile_flight_profile: Resource = null,
-	projectile_template = null
-) -> Array:
-	return []
-
-
 func build_runtime_triggers_from_bindings(
 	entity_kind: StringName,
 	trigger_bindings: Array,
