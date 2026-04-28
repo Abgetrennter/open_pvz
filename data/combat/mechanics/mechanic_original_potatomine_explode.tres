@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.potatomine_explode"
+display_name = "Original Potato Mine Explode"
+family = &"Payload"
+type_id = &"core.explode"
+priority = 20
+tags = PackedStringArray("original", "proximity", "explode")
+params = {
+"amount": 1800,
+"radius": 150.0,
+"target_mode": &"enemies_in_radius"
+}

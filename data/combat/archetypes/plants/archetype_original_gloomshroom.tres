@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="2_mechanic_0"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_direct_damage_payload.tres" id="3_mechanic_1"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="5_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_linear.tres" id="6_projectile_template"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_gloomshroom"
+legacy_template_id = &"plant_gloomshroom"
+display_name = "Gloom-shroom"
+projectile_template = ExtResource("6_projectile_template")
+projectile_flight_profile = ExtResource("5_profile")
+hit_height_band = ExtResource("4_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "gloomshroom", "upgrade", "shooter", "area")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent")
+required_present_archetypes = PackedStringArray("archetype_original_fumeshroom")
+max_health = 300
+hitbox_size = Vector2(42, 54)
+default_params = {
+"amount": 20,
+"interval": 1.0,
+"scan_range": 180.0,
+"start_delay": 0.2
+}
+mechanics = [ExtResource("2_mechanic_0"), ExtResource("3_mechanic_1")]

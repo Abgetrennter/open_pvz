@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_potatomine"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_potatomine"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 205.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_armed"]
+script = ExtResource("3_rule")
+rule_id = &"potatomine_armed"
+description = "Potato Mine should transition from arming to active before dealing proximity damage"
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_template_id": &"plant_potatomine",
+"state_id": &"active"
+}
+
+[sub_resource type="Resource" id="Rule_damage"]
+script = ExtResource("3_rule")
+rule_id = &"potatomine_damage"
+description = "Potato Mine should damage a nearby zombie only after the active state is reached"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_template_id": &"plant_potatomine",
+"target_template_id": &"zombie_basic_walker",
+"target_lane": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_potatomine_validation"
+display_name = "Original Potato Mine Validation"
+description = "Validates Potato Mine arming state and active proximity explosion."
+goals = PackedStringArray("Verify Potato Mine reaches active state.", "Verify Potato Mine damages a nearby zombie through proximity explosion.")
+validation_time_limit = 2.0
+lane_count = 1
+validation_rules = [SubResource("Rule_armed"), SubResource("Rule_damage")]
+spawns = [SubResource("Spawn_potatomine"), SubResource("Spawn_target")]

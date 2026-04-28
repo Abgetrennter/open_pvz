@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_sleeping_state.tres" id="2_state"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_support_cycle.tres" id="3_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_produce_sun_payload.tres" id="4_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_sunshroom"
+legacy_template_id = &"plant_sunshroom"
+display_name = "Sun-shroom"
+hit_height_band = ExtResource("5_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "sunshroom", "mushroom", "nocturnal", "producer", "sun")
+optional_components = PackedStringArray("DebugViewComponent", "StateComponent")
+max_health = 300
+hitbox_size = Vector2(36, 40)
+default_params = {
+"required_state": &"awake",
+"start_delay": 7.2,
+"interval": 24.0,
+"value": 15
+}
+mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("4_payload")]

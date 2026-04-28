@@ -68,7 +68,8 @@ func _register_builtin_strategies() -> void:
 		if lane_id < 0:
 			return _empty_result()
 		var scan_range := float(params.get("scan_range", 900.0))
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", true)
+		var target_tags: PackedStringArray = _resolve_target_tags(params)
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", true, target_tags)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -83,7 +84,47 @@ func _register_builtin_strategies() -> void:
 		if lane_id < 0:
 			return _empty_result()
 		var scan_range := float(params.get("scan_range", 900.0))
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", true)
+		var target_tags: PackedStringArray = _resolve_target_tags(params)
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", true, target_tags)
+		return {
+			"has_target": not targets.is_empty(),
+			"targets": targets,
+			"primary_target": null if targets.is_empty() else targets[0],
+		}
+	)
+
+	register_strategy(&"radius_around", func(owner: Node, params: Dictionary) -> Dictionary:
+		if owner == null or not (owner is Node2D):
+			return _empty_result()
+		var scan_range := float(params.get("scan_range", 180.0))
+		var target_tags: PackedStringArray = _resolve_target_tags(params)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
+		return {
+			"has_target": not targets.is_empty(),
+			"targets": targets,
+			"primary_target": null if targets.is_empty() else targets[0],
+		}
+	)
+
+	register_strategy(&"global_track", func(owner: Node, params: Dictionary) -> Dictionary:
+		if owner == null or not (owner is Node2D):
+			return _empty_result()
+		var scan_range := float(params.get("scan_range", 4000.0))
+		var target_tags: PackedStringArray = _resolve_target_tags(params)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
+		return {
+			"has_target": not targets.is_empty(),
+			"targets": targets.slice(0, 1),
+			"primary_target": null if targets.is_empty() else targets[0],
+		}
+	)
+
+	register_strategy(&"proximity", func(owner: Node, params: Dictionary) -> Dictionary:
+		if owner == null or not (owner is Node2D):
+			return _empty_result()
+		var scan_range := float(params.get("scan_range", 64.0))
+		var target_tags: PackedStringArray = _resolve_target_tags(params)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -97,7 +138,8 @@ func _scan_enemies(
 	lane_ids: PackedInt32Array,
 	scan_range: float,
 	direction: StringName = &"both",
-	combat_active_only: bool = true
+	combat_active_only: bool = true,
+	target_tags: PackedStringArray = PackedStringArray(),
 ) -> Array:
 	if source == null or not (source is Node2D):
 		return []
@@ -128,6 +170,20 @@ func _scan_enemies(
 			continue
 		if not lane_ids.is_empty() and not lane_ids.has(int(candidate.get("lane_id"))):
 			continue
+		if not target_tags.is_empty():
+			var entity_tags: PackedStringArray = PackedStringArray()
+			var raw_tags: Variant = candidate.get("tags")
+			if raw_tags is PackedStringArray:
+				entity_tags = PackedStringArray(raw_tags)
+			elif raw_tags is Array:
+				entity_tags = PackedStringArray(raw_tags)
+			var has_tag := false
+			for target_tag in target_tags:
+				if entity_tags.has(StringName(target_tag)):
+					has_tag = true
+					break
+			if not has_tag:
+				continue
 		if combat_active_only and candidate.has_method("is_combat_active") and not bool(candidate.call("is_combat_active")):
 			continue
 
@@ -172,3 +228,12 @@ func _empty_result() -> Dictionary:
 		"targets": [],
 		"primary_target": null,
 	}
+
+
+func _resolve_target_tags(params: Dictionary) -> PackedStringArray:
+	var raw: Variant = params.get("target_tags", PackedStringArray())
+	if raw is PackedStringArray:
+		return PackedStringArray(raw)
+	if raw is Array:
+		return PackedStringArray(raw)
+	return PackedStringArray()

@@ -34,6 +34,22 @@ func is_role_occupied(role: StringName) -> bool:
 	return role_occupants.has(role)
 
 
+func is_archetype_occupied(archetype_id: StringName) -> bool:
+	return count_archetype_occupants(archetype_id) > 0
+
+
+func count_archetype_occupants(archetype_id: StringName) -> int:
+	_prune_invalid_occupants()
+	var count := 0
+	for role: Variant in role_occupants.keys():
+		var entity: Node = role_occupants[role]
+		if entity != null and is_instance_valid(entity) and entity.has_method("get"):
+			var occupant_archetype_id: Variant = entity.get(&"archetype_id")
+			if StringName(occupant_archetype_id) == archetype_id:
+				count += 1
+	return count
+
+
 func add_role_occupant(role: StringName, entity: Node, granted_tags: PackedStringArray = PackedStringArray()) -> void:
 	_prune_invalid_occupants()
 	if entity == null or role == StringName():

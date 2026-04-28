@@ -82,7 +82,22 @@ func _register_builtin_defs() -> void:
 		"name": "target_mode",
 		"type": "string_name",
 		"default": &"context_target",
-		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target"]),
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "enemies_in_radius", "enemies_in_lane"]),
+	}, {
+		"name": "radius",
+		"type": "float",
+		"min": 1.0,
+		"max": 4000.0,
+		"default": 96.0,
+	}, {
+		"name": "lane_id",
+		"type": "int",
+		"min": -1,
+		"max": 32,
+		"default": -1,
+	}, {
+		"name": "target_tags",
+		"type": "packed_string_array",
 	}]
 	damage.param_defs = damage_param_defs
 	damage.allow_extra_params = false
@@ -188,11 +203,51 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "hit_strategy",
 		"type": "string_name",
-		"options": PackedStringArray(["overlap", "swept_segment", "terminal_hitbox", "terminal_radius", "overlap_and_terminal_hitbox", "overlap_and_terminal_radius", "swept_segment_and_terminal_hitbox", "swept_segment_and_terminal_radius"]),
+		"options": PackedStringArray(["overlap", "swept_segment", "terminal_hitbox", "terminal_radius", "overlap_and_terminal_hitbox", "overlap_and_terminal_radius", "swept_segment_and_terminal_hitbox", "swept_segment_and_terminal_radius", "pierce"]),
 	}, {
 		"name": "terminal_hit_strategy",
 		"type": "string_name",
 		"options": PackedStringArray(["impact_hitbox", "impact_radius", "none"]),
+	}, {
+		"name": "max_penetrations",
+		"type": "int",
+		"min": 0,
+		"max": 32,
+		"default": 0,
+	}, {
+		"name": "pierce_range",
+		"type": "float",
+		"min": 1.0,
+		"max": 4000.0,
+		"default": 320.0,
+	}, {
+		"name": "emission_mode",
+		"type": "string_name",
+		"options": PackedStringArray(["multi_lane", "dual_direction", "multi_angle"]),
+	}, {
+		"name": "lane_count",
+		"type": "int",
+		"min": 1,
+		"max": 9,
+		"default": 3,
+	}, {
+		"name": "lane_offset",
+		"type": "int",
+		"min": -8,
+		"max": 8,
+		"default": -1,
+	}, {
+		"name": "angle_count",
+		"type": "int",
+		"min": 1,
+		"max": 16,
+		"default": 5,
+	}, {
+		"name": "angle_spread",
+		"type": "float",
+		"min": 0.0,
+		"max": 180.0,
+		"default": 72.0,
 	}, {
 		"name": "burst_count",
 		"type": "int",
@@ -241,18 +296,21 @@ func _register_builtin_defs() -> void:
 		"name": "target_mode",
 		"type": "string_name",
 		"default": &"context_target",
-		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "enemies_in_radius"]),
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "enemies_in_radius", "enemies_in_lane"]),
 	}, {
 		"name": "radius",
 		"type": "float",
 		"min": 0.0,
-		"max": 1000.0,
+		"max": 4000.0,
 		"default": 96.0,
 	}, {
 		"name": "lane_id",
 		"type": "int",
 		"min": 0,
 		"max": 16,
+	}, {
+		"name": "target_tags",
+		"type": "packed_string_array",
 	}]
 	explode.param_defs = explode_param_defs
 	explode.allow_extra_params = false
@@ -347,11 +405,52 @@ func _register_builtin_defs() -> void:
 	produce_sun.allow_extra_children = false
 	register_def(produce_sun)
 
+	var dispel_flying = EffectDefRef.new()
+	dispel_flying.effect_id = &"dispel_flying"
+	dispel_flying.tags = PackedStringArray(["hit_response", "area_control", "flying"])
+	var dispel_flying_param_defs: Array[Dictionary] = [{
+		"name": "amount",
+		"type": "int",
+		"min": 0,
+		"max": 9999,
+		"default": 1800,
+	}, {
+		"name": "radius",
+		"type": "float",
+		"min": 0.0,
+		"max": 4000.0,
+		"default": 4000.0,
+	}]
+	dispel_flying.param_defs = dispel_flying_param_defs
+	dispel_flying.allow_extra_params = false
+	dispel_flying.allow_extra_children = false
+	register_def(dispel_flying)
+
+	var wake = EffectDefRef.new()
+	wake.effect_id = &"wake"
+	wake.tags = PackedStringArray(["hit_response", "control", "wake"])
+	wake.allow_extra_params = false
+	wake.allow_extra_children = false
+	register_def(wake)
+
+	var team_switch = EffectDefRef.new()
+	team_switch.effect_id = &"team_switch"
+	team_switch.tags = PackedStringArray(["hit_response", "control", "hypnosis"])
+	var team_switch_param_defs: Array[Dictionary] = [{
+		"name": "target_mode",
+		"type": "string_name",
+		"default": &"context_target",
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target"]),
+	}]
+	team_switch.param_defs = team_switch_param_defs
+	team_switch.allow_extra_params = false
+	team_switch.allow_extra_children = false
+	register_def(team_switch)
+
 
 func _register_builtin_strategies() -> void:
 	register_strategy(&"damage", func(context, params: Dictionary, _node) -> Variant:
 		var result: Variant = EffectResultRef.new()
-		var target := _resolve_target(context, params)
 		var amount := int(params.get("amount", 10))
 		var effect_source := _resolve_effect_source_node(context)
 		var damage_tags := PackedStringArray(context.core.get("tags", PackedStringArray()))
@@ -360,15 +459,19 @@ func _register_builtin_strategies() -> void:
 		var event_tag := String(context.event_name)
 		if not event_tag.is_empty() and not damage_tags.has(event_tag):
 			damage_tags.append(event_tag)
-		if target != null and target.has_method("take_damage"):
+		var targets: Array = _resolve_targets(context, params)
+		if targets.is_empty():
+			result.success = false
+			result.notes.append("Damage target missing or invalid.")
+			return result
+		for target in targets:
+			if target == null or not target.has_method("take_damage"):
+				continue
 			target.call("take_damage", amount, effect_source, damage_tags, {
 				"depth": int(context.runtime.get("depth", context.depth)) + 1,
 				"chain_id": context.chain_id,
 				"origin_event_name": context.event_name,
 			})
-		else:
-			result.success = false
-			result.notes.append("Damage target missing or invalid.")
 		return result
 	)
 
@@ -380,7 +483,45 @@ func _register_builtin_strategies() -> void:
 			return result
 
 		var on_hit_effect = node.get_child(&"on_hit")
-		GameState.current_battle.call("spawn_projectile_from_effect", context, params, on_hit_effect)
+		var emission_mode := StringName(params.get("emission_mode", StringName()))
+
+		if emission_mode == &"multi_lane":
+			var lane_count := int(params.get("lane_count", 3))
+			var lane_offset := int(params.get("lane_offset", -1))
+			var spawner_lane := -1
+			if context.owner_entity != null and context.owner_entity.has_method("get"):
+				spawner_lane = int(context.owner_entity.get("lane_id"))
+			for i in range(lane_count):
+				var target_lane := spawner_lane + lane_offset + i
+				var sub_params: Dictionary = params.duplicate(true)
+				sub_params.erase("emission_mode")
+				sub_params.erase("lane_count")
+				sub_params.erase("lane_offset")
+				sub_params["lane_id"] = target_lane
+				if target_lane != spawner_lane:
+					sub_params["direction"] = Vector2(0.8, 0.0) if absf(target_lane - spawner_lane) > 0 else Vector2(1, 0)
+				GameState.current_battle.call("spawn_projectile_from_effect", context, sub_params, on_hit_effect)
+		elif emission_mode == &"dual_direction":
+			for sp_dir in [Vector2(1, 0), Vector2(-1, 0)]:
+				var sub_params: Dictionary = params.duplicate(true)
+				sub_params.erase("emission_mode")
+				sub_params["direction"] = sp_dir
+				GameState.current_battle.call("spawn_projectile_from_effect", context, sub_params, on_hit_effect)
+		elif emission_mode == &"multi_angle":
+			var angle_count := int(params.get("angle_count", 5))
+			var angle_spread := float(params.get("angle_spread", 72.0))
+			var base_angle := -angle_spread * float(angle_count - 1) / 2.0
+			for i in range(angle_count):
+				var a: float = deg_to_rad(base_angle + float(i) * angle_spread)
+				var sp_dir := Vector2(cos(a), sin(a)).normalized()
+				var sub_params: Dictionary = params.duplicate(true)
+				sub_params.erase("emission_mode")
+				sub_params.erase("angle_count")
+				sub_params.erase("angle_spread")
+				sub_params["direction"] = sp_dir
+				GameState.current_battle.call("spawn_projectile_from_effect", context, sub_params, on_hit_effect)
+		else:
+			GameState.current_battle.call("spawn_projectile_from_effect", context, params, on_hit_effect)
 		return result
 	)
 
@@ -478,6 +619,74 @@ func _register_builtin_strategies() -> void:
 		return result
 	)
 
+	register_strategy(&"dispel_flying", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		if GameState.current_battle == null:
+			result.success = false
+			result.notes.append("No active battle manager available.")
+			return result
+
+		var amount := int(params.get("amount", 1800))
+		var radius := float(params.get("radius", 4000.0))
+		var center: Vector2 = _node_ground_position(context.owner_entity)
+		var effect_source := _resolve_effect_source_node(context)
+
+		for child in GameState.current_battle.call("get_runtime_entities"):
+			if child == null or child == context.owner_entity:
+				continue
+			if not child.has_method("take_damage"):
+				continue
+			if not (child is Node2D):
+				continue
+			var tags: PackedStringArray = PackedStringArray()
+			if child.has_method("get"):
+				tags = child.get("tags")
+			if not tags.has("flying"):
+				continue
+			var candidate := child as Node2D
+			if center.distance_to(_node_ground_position(candidate)) <= radius:
+				candidate.call("take_damage", amount, effect_source, PackedStringArray(["dispel_flying", String(context.event_name)]), {
+					"depth": int(context.runtime.get("depth", context.depth)) + 1,
+					"chain_id": context.chain_id,
+				})
+		return result
+	)
+
+	register_strategy(&"wake", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var target := _resolve_target(context, params)
+		if target != null and context != null and StringName(context.event_name) == &"placement.accepted":
+			var placement_role := StringName(context.core.get("placement_role", StringName()))
+			var primary_node: Variant = context.core.get("primary_node", null)
+			if placement_role == &"support" and primary_node is Node and primary_node != target:
+				target = primary_node
+		if target == null or not is_instance_valid(target):
+			result.success = false
+			result.notes.append("Wake target missing or invalid.")
+			return result
+		var wake_event: Variant = preload("res://scripts/core/runtime/event_data.gd").create(target, target, null, PackedStringArray(["wake"]))
+		wake_event.core["state_id"] = &"sleeping"
+		EventBus.push_event(&"entity.wake", wake_event)
+		return result
+	)
+
+	register_strategy(&"team_switch", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var target := _resolve_target(context, params)
+		if target == null or not is_instance_valid(target):
+			result.success = false
+			result.notes.append("Team switch target missing or invalid.")
+			return result
+		var current_team := StringName(target.get("team"))
+		var new_team := &"plant" if current_team == &"zombie" else &"zombie"
+		target.set("team", new_team)
+		var convert_event: Variant = preload("res://scripts/core/runtime/event_data.gd").create(context.owner_entity, target, null, PackedStringArray(["team_switch", "hypnosis"]))
+		convert_event.core["old_team"] = current_team
+		convert_event.core["new_team"] = new_team
+		EventBus.push_event(&"entity.team_switched", convert_event)
+		return result
+	)
+
 
 func _resolve_target(context, params: Dictionary) -> Node:
 	var target_mode := StringName(params.get("target_mode", &"context_target"))
@@ -498,7 +707,7 @@ func _resolve_target(context, params: Dictionary) -> Node:
 
 func _resolve_targets(context, params: Dictionary) -> Array:
 	var target_mode := StringName(params.get("target_mode", &"context_target"))
-	if target_mode != &"enemies_in_radius":
+	if target_mode != &"enemies_in_radius" and target_mode != &"enemies_in_lane":
 		var single_target := _resolve_target(context, params)
 		return [] if single_target == null else [single_target]
 
@@ -516,7 +725,16 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 		source_team = context.owner_entity.get("team")
 	elif context.source_node != null and context.source_node.has_method("get"):
 		source_team = context.source_node.get("team")
-	var lane_filter: Variant = params.get("lane_id", null)
+	var lane_filter: Variant = null
+	var target_tags := PackedStringArray(params.get("target_tags", PackedStringArray()))
+	if target_mode == &"enemies_in_lane":
+		if context.owner_entity != null and context.owner_entity.has_method("get"):
+			lane_filter = context.owner_entity.get("lane_id")
+		if lane_filter == null or not (lane_filter is int):
+			lane_filter = params.get("lane_id", null)
+		radius = maxf(radius, 4000.0)
+	else:
+		lane_filter = params.get("lane_id", null)
 	var targets: Array = []
 
 	if not GameState.current_battle.has_method("get_runtime_entities"):
@@ -535,11 +753,28 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 			continue
 		if lane_filter is int and child.get("lane_id") != lane_filter:
 			continue
+		if not target_tags.is_empty() and not _node_has_any_tag(child, target_tags):
+			continue
 		var candidate := child as Node2D
 		if _node_ground_position(candidate).distance_to(center) <= radius:
 			targets.append(child)
 
 	return targets
+
+
+func _node_has_any_tag(node: Node, expected_tags: PackedStringArray) -> bool:
+	if node == null or expected_tags.is_empty():
+		return true
+	var node_tags := PackedStringArray()
+	var raw_tags: Variant = node.get("tags")
+	if raw_tags is PackedStringArray:
+		node_tags = PackedStringArray(raw_tags)
+	elif raw_tags is Array:
+		node_tags = PackedStringArray(raw_tags)
+	for expected_tag in expected_tags:
+		if node_tags.has(StringName(expected_tag)):
+			return true
+	return false
 
 
 func _node_ground_position(node: Node) -> Vector2:

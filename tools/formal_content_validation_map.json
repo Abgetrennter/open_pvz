@@ -10,7 +10,8 @@
         "air_interceptor_validation",
         "sun_resource_validation",
         "card_flow_validation",
-        "plant_roster_phase6_validation"
+        "plant_roster_phase6_validation",
+        "plant_original_batch_a_validation"
       ],
       "showcases": [
         "template_factory_showcase",
@@ -93,6 +94,73 @@
         "delayed_explode_chaos_showcase",
         "mark_chaos_showcase"
       ]
+    },
+    {
+      "id": "original_plants_batch_a",
+      "description": "PVZ1 Batch A original plants: Peashooter, Sunflower, Wall-nut, Snow Pea, Repeater, Cabbage-pult, Melon-pult.",
+      "validations": [
+        "plant_original_batch_a_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_plants_batch_b",
+      "description": "PVZ1 Batch B validation: batch representative coverage plus Potato Mine, Squash, and Chomper single-plant validations. Resources/cards and trusted validations exist for 7/7.",
+      "validations": [
+        "plant_original_batch_b_validation",
+        "plant_original_potatomine_validation",
+        "plant_original_squash_validation",
+        "plant_original_chomper_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_plants_batch_c",
+      "description": "PVZ1 Batch C representative validation: Puff/Fume spawn path, Ice/Doom on-place damage, Coffee Bean targeted wake, and Fume-shroom pierce. Hypno/Sea/Scaredy/Sun/Magnet behavior still need full batch-level completion coverage.",
+      "validations": [
+        "plant_original_batch_c_validation",
+        "plant_original_coffeebean_wake_validation",
+        "plant_original_fumeshroom_pierce_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_plants_batch_d",
+      "description": "PVZ1 Batch D validation: Threepeater multi-lane, Spikeweed ground_damage, Torchwood path, Split Pea dual direction, Starfruit multi-angle, Cactus air target, Blover air-only dispel, Magnet metal targeting, and Lily Pad/Sea-shroom water placement. Tangle Kelp/Plantern resources remain missing.",
+      "validations": [
+        "plant_original_batch_d_validation",
+        "plant_original_splitpea_validation",
+        "plant_original_starfruit_validation",
+        "plant_original_cactus_validation",
+        "plant_original_blover_validation",
+        "plant_original_magnetshroom_validation",
+        "plant_original_water_pair_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_plants_batch_e",
+      "description": "PVZ1 Batch E weak coverage: 9/14 resources/cards exist, but upgrade replacement, multi-slot occupancy, roof/manual/copy behavior and missing Kernel-pult/Marigold/Imitater/Garlic/Umbrella Leaf still prevent batch completion.",
+      "validations": [
+        "plant_original_batch_e_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_plants_protocol_gaps",
+      "description": "Plants waiting on protocol design before they can be completed.",
+      "validations": [
+        "plant_original_round1_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_plants_round1_extensions",
+      "description": "Round 1 protocol extensions: G-20 upgrade placement, G-12 radius_around, G-13 global_track, G-06 enemies_in_lane, G-17 dispel_flying, G-19 metal tags, G-14 height toggle.",
+      "validations": [
+        "plant_original_round1_validation"
+      ],
+      "showcases": []
     }
   ]
 }

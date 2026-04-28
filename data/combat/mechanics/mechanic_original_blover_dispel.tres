@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"original.blover.dispel_air"
+display_name = "Original Blover Dispel Air"
+family = &"Payload"
+type_id = &"core.explode"
+priority = 20
+tags = PackedStringArray("original", "blover", "dispel", "air")
+params = {
+"amount": 1800,
+"radius": 4000.0,
+"target_mode": &"enemies_in_radius",
+"target_tags": PackedStringArray("air")
+}

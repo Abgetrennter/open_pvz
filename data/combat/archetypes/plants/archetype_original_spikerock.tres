@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_spikerock"
+legacy_template_id = &"plant_spikerock"
+display_name = "Spikerock"
+hit_height_band = ExtResource("2_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "spikerock", "upgrade", "defense", "ground")
+optional_components = PackedStringArray("DebugViewComponent")
+required_present_archetypes = PackedStringArray("archetype_original_spikeweed")
+max_health = 450
+hitbox_size = Vector2(60, 30)

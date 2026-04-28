@@ -484,5 +484,107 @@
     "scenario": "res://scenes/validation/mode_protocol_guardrail_validation.tres",
     "description": "Validates that invalid BattleModeDef, BattleInputProfile, BattleObjectiveDef, and BattleRuleModule resources are rejected through battle_scenario protocol issues.",
     "layers": ["guardrail"]
+  },
+  {
+    "id": "plant_original_batch_a_validation",
+    "scenario": "res://scenes/validation/plant_original_batch_a_validation.tres",
+    "description": "Validates all 7 Batch A original PVZ plants: Peashooter (damage), Sunflower (sun production), Wall-nut (tank damage), Snow Pea (slow status), Repeater (burst damage), Cabbage-pult (lob hit), Melon-pult (splash explode).",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_batch_b_validation",
+    "scenario": "res://scenes/validation/plant_original_batch_b_validation.tres",
+    "description": "Validates Batch B original PVZ plants: Cherry Bomb (on_place explode), Jalapeno (lane explosion), Tall-nut (tank damage), Pumpkin (cover spawn).",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_potatomine_validation",
+    "scenario": "res://scenes/validation/plant_original_potatomine_validation.tres",
+    "description": "Validates Potato Mine arming state and active proximity explosion.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_squash_validation",
+    "scenario": "res://scenes/validation/plant_original_squash_validation.tres",
+    "description": "Validates Squash on-place proximity damage.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_chomper_validation",
+    "scenario": "res://scenes/validation/plant_original_chomper_validation.tres",
+    "description": "Validates Chomper close-range devour damage.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_round1_validation",
+    "scenario": "res://scenes/validation/plant_original_round1_validation.tres",
+    "description": "Validates Round 1 protocol extensions: enemies_in_lane explode, dispel_flying, radius_around targeting, global_track targeting, metal tag filtering, and upgrade placement.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_batch_c_validation",
+    "scenario": "res://scenes/validation/plant_original_batch_c_validation.tres",
+    "description": "Validates Batch C night mushrooms: Puff-shroom sleeping spawn, Fume-shroom wake and damage, Ice-shroom and Doom-shroom on_place explode.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_coffeebean_wake_validation",
+    "scenario": "res://scenes/validation/plant_original_coffeebean_wake_validation.tres",
+    "description": "Validates Coffee Bean wakes only its covered sleeping plant.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_fumeshroom_pierce_validation",
+    "scenario": "res://scenes/validation/plant_original_fumeshroom_pierce_validation.tres",
+    "description": "Validates Fume-shroom wake flow and pierce hit policy.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_batch_d_validation",
+    "scenario": "res://scenes/validation/plant_original_batch_d_validation.tres",
+    "description": "Validates Batch D field and multi-directional plants: Threepeater multi-lane damage, Spikeweed ground_damage, Peashooter+Torchwood combo.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_splitpea_validation",
+    "scenario": "res://scenes/validation/plant_original_splitpea_validation.tres",
+    "description": "Validates Split Pea dual-direction emission.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_starfruit_validation",
+    "scenario": "res://scenes/validation/plant_original_starfruit_validation.tres",
+    "description": "Validates Starfruit multi-angle emission.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_cactus_validation",
+    "scenario": "res://scenes/validation/plant_original_cactus_validation.tres",
+    "description": "Validates Cactus air-target projectile path.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_blover_validation",
+    "scenario": "res://scenes/validation/plant_original_blover_validation.tres",
+    "description": "Validates Blover air-only dispel path.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_magnetshroom_validation",
+    "scenario": "res://scenes/validation/plant_original_magnetshroom_validation.tres",
+    "description": "Validates Magnet-shroom sleep/wake and metal-tag targeting.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_water_pair_validation",
+    "scenario": "res://scenes/validation/plant_original_water_pair_validation.tres",
+    "description": "Validates Lily Pad support placement and Sea-shroom primary placement on water slots.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_batch_e_validation",
+    "scenario": "res://scenes/validation/plant_original_batch_e_validation.tres",
+    "description": "Validates Batch E roof and upgrade plants: Repeater damage, Sunflower sun production, Winter Melon splash damage, Flower Pot support spawn.",
+    "layers": ["core"]
   }
 ]

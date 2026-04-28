@@ -1,0 +1,86 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_fumeshroom.tres" id="5_fume_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_coffeebean.tres" id="6_coffee_card"]
+
+[sub_resource type="Resource" id="Spawn_target_a"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 300.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_target_b"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 0
+x_position = 390.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="CardPlayRequest_fume"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_fumeshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="CardPlayRequest_coffee"]
+script = ExtResource("3_request")
+at_time = 0.2
+card_id = &"card_original_coffeebean"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_fume_awake"]
+script = ExtResource("4_rule")
+rule_id = &"fume_awake"
+description = "Coffee Bean should wake the covered Fume-shroom before it fires"
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_template_id": &"plant_fumeshroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_first_target"]
+script = ExtResource("4_rule")
+rule_id = &"fume_pierce_first_target"
+description = "Fume-shroom pierce projectile should damage the first target"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_fumeshroom",
+"target_template_id": &"zombie_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_second_target"]
+script = ExtResource("4_rule")
+rule_id = &"fume_pierce_second_target"
+description = "Fume-shroom pierce projectile should continue and damage a second target"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_fumeshroom",
+"target_template_id": &"zombie_brisk_runner",
+"target_lane": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_fumeshroom_pierce_validation"
+display_name = "Original Fume-shroom Pierce Validation"
+description = "Validates Coffee Bean wake plus Fume-shroom pierce hit policy across multiple targets."
+goals = PackedStringArray("Verify Coffee Bean wakes Fume-shroom.", "Verify Fume-shroom damages at least two targets with one pierce-capable firing path.")
+validation_time_limit = 4.0
+initial_sun = 1000
+lane_count = 1
+card_defs = [ExtResource("5_fume_card"), ExtResource("6_coffee_card")]
+card_play_requests = [SubResource("CardPlayRequest_fume"), SubResource("CardPlayRequest_coffee")]
+validation_rules = [SubResource("Rule_fume_awake"), SubResource("Rule_first_target"), SubResource("Rule_second_target")]
+spawns = [SubResource("Spawn_target_a"), SubResource("Spawn_target_b")]

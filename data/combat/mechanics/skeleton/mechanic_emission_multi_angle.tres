@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.emission_multi_angle"
+display_name = "Emission Multi Angle"
+family = &"Emission"
+type_id = &"core.multi_angle"
+priority = 18
+tags = PackedStringArray("skeleton", "emission", "multi_angle")
+params = {
+"angle_count": 5,
+"angle_spread": 72.0
+}

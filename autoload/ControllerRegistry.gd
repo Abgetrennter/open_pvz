@@ -73,3 +73,64 @@ func _register_builtin_strategies() -> void:
 				EventBus.push_event(&"field_object.expired", expired_event)
 				owner.queue_free()
 	)
+
+	register_strategy(&"core.ground_damage", func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+		if owner == null or not is_instance_valid(owner):
+			return
+		if not owner is Node2D:
+			return
+		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
+		var damage: int = int(params.get("damage", 20))
+		var interval: float = float(params.get("interval", 0.5))
+		var detection_range: float = float(params.get("detection_range", 48.0))
+		var acc_time: float = float(blackboard.get("acc_time", 0.0))
+		acc_time += delta
+		if acc_time < interval:
+			blackboard["acc_time"] = acc_time
+			return
+		blackboard["acc_time"] = acc_time - interval
+		var detection_result: Dictionary = DetectionRegistry.evaluate(&"radius_around", owner, {"scan_range": detection_range})
+		for target in Array(detection_result.get("targets", [])):
+			if target == null or not is_instance_valid(target):
+				continue
+			if not target.has_method("take_damage"):
+				continue
+			target.call("take_damage", damage, owner, ["ground_damage", "spike"])
+	)
+
+	register_strategy(&"core.projectile_transform", func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+		if owner == null or not is_instance_valid(owner):
+			return
+		if GameState.current_battle == null:
+			return
+		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
+		var multipler: float = float(params.get("damage_multiplier", 2.0))
+		var detection_range: float = float(params.get("detection_range", 64.0))
+		var last_tick: float = float(blackboard.get("last_transform_tick", 0.0))
+		var current_time: float = Time.get_ticks_msec() / 1000.0
+		if current_time - last_tick < 0.1:
+			return
+		blackboard["last_transform_tick"] = current_time
+		for child in GameState.current_battle.call("get_runtime_entities"):
+			if child == null or child == owner:
+				continue
+			if not (child is Node2D):
+				continue
+			if child.get("entity_kind") != &"projectile":
+				continue
+			if not child.has_method("modify"):
+				continue
+			if not _check_projectile_nearby(owner, child, detection_range):
+				continue
+			child.call("modify", {"damage_multiplier": multipler})
+	)
+
+
+func _check_projectile_nearby(owner: Node, projectile: Node, detection_range: float) -> bool:
+	if owner == null or projectile == null:
+		return false
+	if not (owner is Node2D) or not (projectile is Node2D):
+		return false
+	var owner_pos: Vector2 = (owner as Node2D).global_position
+	var proj_pos: Vector2 = (projectile as Node2D).global_position
+	return owner_pos.distance_to(proj_pos) <= detection_range

@@ -4,6 +4,7 @@ class_name PlantRoot
 @onready var trigger_component: Variant = get_node_or_null("TriggerComponent")
 @onready var health_component: Variant = get_node_or_null("HealthComponent")
 @onready var debug_view_component: Variant = get_node_or_null("DebugViewComponent")
+@onready var controller_component: Variant = get_node_or_null("ControllerComponent")
 
 const BODY_COLOR := Color("5aa05a")
 const OUTLINE_COLOR := Color("173018")
@@ -31,6 +32,11 @@ func take_damage(
 ) -> void:
 	if health_component != null:
 		health_component.take_damage(amount, source_node, tags, runtime_overrides)
+
+
+func _physics_process(delta: float) -> void:
+	if controller_component != null and controller_component.has_method("physics_process_controllers"):
+		controller_component.call("physics_process_controllers", delta)
 
 
 func _draw() -> void:

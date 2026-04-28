@@ -39,6 +39,9 @@ var _max_hit_height := 24.0
 var _projection_scale := 1.0
 var _flight_profile_id: StringName = StringName()
 var _ignored_entity_ids: PackedInt32Array = PackedInt32Array()
+var _pierce_hit_entity_ids: Array = []
+var _max_penetrations := 5
+var _pierce_count := 0
 
 
 func _ready() -> void:
@@ -134,6 +137,7 @@ func launch(
 		_hit_strategy = configured_hit_strategy if configured_hit_strategy != StringName() else _default_hit_strategy_for_mode(_move_mode)
 		var configured_terminal_strategy := StringName(full_movement_params.get("terminal_hit_strategy", StringName()))
 		_terminal_hit_strategy = configured_terminal_strategy if configured_terminal_strategy != StringName() else _terminal_strategy_for_hit_strategy(_hit_strategy)
+		_max_penetrations = maxi(1, int(full_movement_params.get("max_penetrations", _max_penetrations)))
 		_ignored_entity_ids = PackedInt32Array(full_movement_params.get("ignored_entity_ids", PackedInt32Array()))
 		full_movement_params["start_position"] = _ground_position
 		debug_target_position = full_movement_params.get("target_position", _ground_position)
@@ -168,9 +172,19 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 		return
 	if _is_ignored_target(target):
 		return
+	if _hit_strategy == &"pierce":
+		if _pierce_hit_entity_ids.has(target.get_instance_id()):
+			return
+		if _pierce_count >= _max_penetrations:
+			return
 	if target.has_method("get") and target.get("team") == team:
 		return
-	_consumed = true
+
+	if _hit_strategy == &"pierce":
+		_pierce_hit_entity_ids.append(target.get_instance_id())
+		_pierce_count += 1
+	else:
+		_consumed = true
 
 	var hit_runtime := _runtime_overrides.duplicate(true)
 	hit_runtime["depth"] = int(hit_runtime.get("depth", 1)) + 1
@@ -197,6 +211,8 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 
 	set_status(&"consumed")
 	sync_runtime_state()
+	if _hit_strategy == &"pierce" and _pierce_count < _max_penetrations:
+		return
 	queue_free()
 
 
@@ -239,7 +255,7 @@ func _find_hit_target_from_move_result(move_result) -> Node:
 	if move_result == null:
 		return null
 	match _hit_strategy:
-		&"swept_segment", &"swept_segment_and_terminal_hitbox", &"swept_segment_and_terminal_radius":
+		&"pierce", &"swept_segment", &"swept_segment_and_terminal_hitbox", &"swept_segment_and_terminal_radius":
 			return _find_segment_hit_target(
 				Vector2(move_result.previous_position),
 				Vector2(move_result.current_position),
@@ -263,6 +279,8 @@ func _find_terminal_hit_target() -> Node:
 		if candidate == null or candidate == self or candidate == owner_entity:
 			continue
 		if _is_ignored_target(candidate):
+			continue
+		if _hit_strategy == &"pierce" and _pierce_hit_entity_ids.has(candidate.get_instance_id()):
 			continue
 		if not candidate.has_method("take_damage"):
 			continue
@@ -523,3 +541,12 @@ func _enforce_single_movement_component(preferred_component = null) -> void:
 		component.queue_free()
 
 	movement_component = kept_component
+
+
+func modify(params: Dictionary) -> void:
+	if params.has("damage_multiplier"):
+		damage = int(round(float(damage) * float(params["damage_multiplier"])))
+	if params.has("damage"):
+		damage = int(params["damage"])
+	if params.has("hit_strategy"):
+		_hit_strategy = StringName(params["hit_strategy"])

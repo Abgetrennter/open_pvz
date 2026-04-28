@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_magnetshroom.tres" id="5_card_magnet"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_coffeebean.tres" id="6_card_coffee"]
+
+[sub_resource type="Resource" id="Req_magnet"]
+script = ExtResource("2_card_request")
+at_time = 0.2
+card_id = &"card_original_magnetshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee"]
+script = ExtResource("2_card_request")
+at_time = 0.4
+card_id = &"card_original_coffeebean"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_metal_target"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 0
+x_position = 420.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_plain_target"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 500.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_awake"]
+script = ExtResource("4_rule")
+rule_id = &"magnet_awake"
+description = "Coffee Bean should wake Magnet-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_template_id": &"plant_magnetshroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_metal_damage"]
+script = ExtResource("4_rule")
+rule_id = &"magnet_metal_damage"
+description = "Magnet-shroom should affect metal-tagged targets."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_magnetshroom",
+"target_template_id": &"zombie_bucket_tank"
+}
+
+[sub_resource type="Resource" id="Rule_plain_untouched"]
+script = ExtResource("4_rule")
+rule_id = &"magnet_plain_untouched"
+description = "Magnet-shroom should not affect non-metal targets."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_template_id": &"plant_magnetshroom",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_magnetshroom_validation"
+display_name = "Original Magnet-shroom Validation"
+description = "Validates Magnet-shroom sleep/wake and metal-tag targeting."
+goals = PackedStringArray("Verify Coffee Bean wakes Magnet-shroom.", "Verify Magnet-shroom targets metal enemies only.")
+validation_time_limit = 2.0
+initial_sun = 300
+lane_count = 1
+card_defs = [ExtResource("5_card_magnet"), ExtResource("6_card_coffee")]
+card_play_requests = [SubResource("Req_magnet"), SubResource("Req_coffee")]
+validation_rules = [SubResource("Rule_awake"), SubResource("Rule_metal_damage"), SubResource("Rule_plain_untouched")]
+spawns = [SubResource("Spawn_metal_target"), SubResource("Spawn_plain_target")]

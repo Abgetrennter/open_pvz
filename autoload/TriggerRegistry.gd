@@ -59,7 +59,7 @@ func _register_builtin_defs() -> void:
 		"name": "detection_id",
 		"type": "string_name",
 		"default": &"always",
-		"options": PackedStringArray(["always", "lane_forward", "lane_backward"]),
+		"options": PackedStringArray(["always", "lane_forward", "lane_backward", "proximity", "radius_around", "global_track"]),
 	}, {
 		"name": "scan_range",
 		"type": "float",
@@ -75,6 +75,9 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "required_state",
 		"type": "string_name",
+	}, {
+		"name": "target_tags",
+		"type": "packed_string_array",
 	}]
 	periodically.trigger_id = &"periodically"
 	periodically.event_name = &"game.tick"
@@ -123,6 +126,37 @@ func _register_builtin_defs() -> void:
 	on_place.allow_extra_conditions = false
 	register_def(on_place)
 
+	var proximity = TriggerDefRef.new()
+	var proximity_params: Array[Dictionary] = [{
+		"name": "interval",
+		"type": "float",
+		"min": 0.1,
+		"max": 10.0,
+		"default": 0.25,
+	}, {
+		"name": "scan_range",
+		"type": "float",
+		"min": 1.0,
+		"max": 4000.0,
+		"default": 64.0,
+	}, {
+		"name": "required_state",
+		"type": "string_name",
+	}, {
+		"name": "start_delay",
+		"type": "float",
+		"min": 0.0,
+		"max": 30.0,
+		"default": 0.0,
+	}]
+	proximity.trigger_id = &"proximity"
+	proximity.event_name = &"game.tick"
+	proximity.weight = 80
+	proximity.max_bound_effects = 1
+	proximity.condition_params = proximity_params
+	proximity.allow_extra_conditions = false
+	register_def(proximity)
+
 
 func _register_builtin_strategies() -> void:
 	register_strategy(&"periodically", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
@@ -148,6 +182,7 @@ func _register_builtin_strategies() -> void:
 
 		var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, instance.owner_entity, {
 			"scan_range": float(condition_values.get("scan_range", 900.0)),
+			"target_tags": PackedStringArray(condition_values.get("target_tags", PackedStringArray())),
 		})
 		if not bool(detection_result.get("has_target", false)):
 			return false
@@ -181,4 +216,41 @@ func _register_builtin_strategies() -> void:
 
 	register_strategy(&"on_place", func(event_data, _condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
 		return event_data.core.get("target_node", null) == instance.owner_entity
+	)
+
+	register_strategy(&"proximity", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
+		var interval := float(condition_values.get("interval", 0.25))
+		var game_time := float(event_data.core.get("game_time", 0.0))
+		var required_state := StringName(condition_values.get("required_state", StringName()))
+		if required_state != StringName():
+			var current_state := StringName(_entity_state.get("values", {}).get(&"state_stage", StringName()))
+			if current_state != required_state:
+				return false
+
+		var start_delay := float(condition_values.get("start_delay", 0.0))
+		if start_delay > 0.0 and instance.last_triggered_time < -999999.0:
+			if game_time - instance.bind_time < start_delay:
+				return false
+
+		if game_time - instance.last_triggered_time < interval:
+			return false
+
+		var scan_range := float(condition_values.get("scan_range", 64.0))
+		var detection_result: Dictionary = DetectionRegistry.evaluate(&"proximity", instance.owner_entity, {
+			"scan_range": scan_range,
+			"target_tags": PackedStringArray(condition_values.get("target_tags", PackedStringArray())),
+		})
+		if not bool(detection_result.get("has_target", false)):
+			return false
+
+		var detected_target_ids := PackedInt32Array()
+		for target in Array(detection_result.get("targets", [])):
+			if target != null and target.has_method("get_entity_id"):
+				detected_target_ids.append(int(target.call("get_entity_id")))
+		instance.set_pending_context_overrides({
+			"target_node": detection_result.get("primary_target", null),
+			"detection_id": &"proximity",
+			"detected_target_ids": detected_target_ids,
+		})
+		return true
 	)

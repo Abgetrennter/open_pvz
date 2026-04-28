@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.controller_projectile_transform"
+display_name = "Controller Projectile Transform"
+family = &"Controller"
+type_id = &"core.projectile_transform"
+priority = 5
+tags = PackedStringArray("skeleton", "controller", "projectile_transform")
+params = {
+"damage_multiplier": 2.0,
+"detection_range": 48.0
+}

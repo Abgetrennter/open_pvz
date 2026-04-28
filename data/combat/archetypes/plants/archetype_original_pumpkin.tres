@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_pumpkin"
+legacy_template_id = &"plant_pumpkin"
+display_name = "Pumpkin"
+hit_height_band = ExtResource("2_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "pumpkin", "cover", "defense")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"cover"
+required_placement_tags = PackedStringArray("supports_primary")
+required_present_roles = PackedStringArray("primary")
+required_empty_roles = PackedStringArray("cover", "blocker")
+max_health = 4000
+hitbox_size = Vector2(58, 68)

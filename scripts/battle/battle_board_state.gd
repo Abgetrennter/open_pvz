@@ -125,6 +125,7 @@ func commit_request(request: Resource, entity: Node) -> bool:
 	accepted_event.core["slot_tags"] = slot.get_effective_tags()
 	accepted_event.core["placement_tags"] = PackedStringArray(request.get("placement_tags"))
 	_append_template_constraint_fields(accepted_event.core, request)
+	_append_role_occupant_fields(accepted_event.core, slot)
 	if entity != null and is_instance_valid(entity) and entity.has_method("get_entity_id"):
 		accepted_event.core["entity_id"] = int(entity.call("get_entity_id"))
 	EventBus.push_event(&"placement.accepted", accepted_event)
@@ -205,6 +206,15 @@ func _placement_reason(request: Resource) -> StringName:
 		for required_role in required_present_roles:
 			if not slot.is_role_occupied(required_role):
 				return &"required_present_role_missing"
+		var required_present_archetypes: PackedStringArray = placement_constraints.get("required_present_archetypes", PackedStringArray())
+		var required_present_counts := _count_required_archetypes(required_present_archetypes)
+		for required_arch: Variant in required_present_counts.keys():
+			if int(slot.count_archetype_occupants(StringName(required_arch))) < int(required_present_counts[required_arch]):
+				return &"required_present_archetype_missing"
+		var required_adjacent_archetypes: PackedStringArray = placement_constraints.get("required_adjacent_archetypes", PackedStringArray())
+		for required_adjacent_arch in required_adjacent_archetypes:
+			if not _has_adjacent_archetype(slot, StringName(required_adjacent_arch)):
+				return &"required_adjacent_archetype_missing"
 		if slot.is_role_occupied(placement_role):
 			return &"placement_role_occupied"
 		var required_empty_roles: PackedStringArray = placement_constraints.get("required_empty_roles", PackedStringArray())
@@ -283,6 +293,8 @@ func _resolve_placement_constraints(archetype: Resource) -> Dictionary:
 			"granted_placement_tags": PackedStringArray(placement_spec.get("granted_placement_tags", PackedStringArray())),
 			"placement_role": StringName(placement_spec.get("placement_role", StringName())),
 			"required_present_roles": PackedStringArray(placement_spec.get("required_present_roles", PackedStringArray())),
+			"required_present_archetypes": PackedStringArray(placement_spec.get("required_present_archetypes", PackedStringArray())),
+			"required_adjacent_archetypes": _resolve_required_adjacent_archetypes(archetype),
 			"required_empty_roles": PackedStringArray(placement_spec.get("required_empty_roles", PackedStringArray())),
 			"placement_spec_source": StringName(placement_spec.get("source", StringName())),
 			"placement_spec_mechanic_id": StringName(placement_spec.get("mechanic_id", StringName())),
@@ -295,6 +307,8 @@ func _resolve_placement_constraints(archetype: Resource) -> Dictionary:
 		"granted_placement_tags": PackedStringArray(archetype.granted_placement_tags),
 		"placement_role": StringName(archetype.placement_role),
 		"required_present_roles": PackedStringArray(archetype.required_present_roles),
+		"required_present_archetypes": PackedStringArray(archetype.required_present_archetypes),
+		"required_adjacent_archetypes": _resolve_required_adjacent_archetypes(archetype),
 		"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
 		"placement_spec_source": &"archetype_field",
 		"placement_spec_mechanic_id": StringName(),
@@ -310,6 +324,8 @@ func _append_template_constraint_fields(core: Dictionary, request: Resource) -> 
 	core["template_required_placement_tags"] = constraints.get("required_placement_tags", PackedStringArray())
 	core["template_granted_placement_tags"] = constraints.get("granted_placement_tags", PackedStringArray())
 	core["template_required_present_roles"] = constraints.get("required_present_roles", PackedStringArray())
+	core["template_required_present_archetypes"] = constraints.get("required_present_archetypes", PackedStringArray())
+	core["template_required_adjacent_archetypes"] = constraints.get("required_adjacent_archetypes", PackedStringArray())
 	core["template_required_empty_roles"] = constraints.get("required_empty_roles", PackedStringArray())
 	core["placement_spec_source"] = constraints.get("placement_spec_source", StringName())
 	core["placement_spec_mechanic_id"] = constraints.get("placement_spec_mechanic_id", StringName())
@@ -339,6 +355,55 @@ func _resolve_granted_placement_tags(request: Resource) -> PackedStringArray:
 	if archetype != null and not PackedStringArray(archetype.granted_placement_tags).is_empty():
 		return PackedStringArray(archetype.granted_placement_tags)
 	return PackedStringArray()
+
+
+func _count_required_archetypes(required_archetypes: PackedStringArray) -> Dictionary:
+	var counts: Dictionary = {}
+	for raw_arch in required_archetypes:
+		var archetype_id := StringName(raw_arch)
+		counts[archetype_id] = int(counts.get(archetype_id, 0)) + 1
+	return counts
+
+
+func _has_adjacent_archetype(slot, archetype_id: StringName) -> bool:
+	if slot == null or archetype_id == StringName():
+		return false
+	for offset in [-1, 1]:
+		var adjacent_slot = _resolve_slot(int(slot.lane_id), int(slot.slot_index) + int(offset))
+		if adjacent_slot != null and adjacent_slot.is_archetype_occupied(archetype_id):
+			return true
+	return false
+
+
+func _resolve_required_adjacent_archetypes(archetype: Resource) -> PackedStringArray:
+	if archetype == null or not (archetype is CombatArchetypeRef):
+		return PackedStringArray()
+	var compiler_hints: Variant = archetype.get("compiler_hints")
+	if compiler_hints is Dictionary:
+		var configured: Variant = Dictionary(compiler_hints).get("required_adjacent_archetypes", PackedStringArray())
+		if configured is PackedStringArray:
+			return PackedStringArray(configured)
+		if configured is Array:
+			return PackedStringArray(configured)
+	return PackedStringArray()
+
+
+func _append_role_occupant_fields(core: Dictionary, slot) -> void:
+	if slot == null:
+		return
+	for role_name in [&"primary", &"support", &"cover", &"blocker", &"upgrade"]:
+		if not slot.role_occupants.has(role_name):
+			continue
+		var occupant: Node = slot.role_occupants[role_name]
+		if occupant == null or not is_instance_valid(occupant):
+			continue
+		var prefix := String(role_name)
+		core["%s_node" % prefix] = occupant
+		if occupant.has_method("get_entity_id"):
+			core["%s_id" % prefix] = int(occupant.call("get_entity_id"))
+		if occupant.has_method("get"):
+			core["%s_template_id" % prefix] = StringName(occupant.get("template_id"))
+			core["%s_archetype_id" % prefix] = StringName(occupant.get("archetype_id"))
 
 
 func _slot_key(lane_id: int, slot_index: int) -> String:

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_goldmagnet"
+legacy_template_id = &"plant_goldmagnet"
+display_name = "Gold Magnet"
+hit_height_band = ExtResource("2_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "goldmagnet", "upgrade", "economy")
+optional_components = PackedStringArray("DebugViewComponent")
+required_present_archetypes = PackedStringArray("archetype_original_magnetshroom")
+max_health = 300
+hitbox_size = Vector2(40, 50)

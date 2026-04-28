@@ -47,6 +47,10 @@ const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 		"trigger_id": &"on_place",
 		"event_name": &"placement.accepted",
 	},
+	&"proximity": {
+		"trigger_id": &"proximity",
+		"event_name": &"game.tick",
+	},
 }
 
 const SPAWN_ENTRY_RESERVED_PARAMS := {
@@ -80,8 +84,20 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"lead_iterations": true,
 	"target_position": true,
 	"distance": true,
+	"radius": true,
+	"target_mode": true,
 	"lifetime": true,
 	"hitbox_radius": true,
+	"hit_strategy": true,
+	"terminal_hit_strategy": true,
+	"max_penetrations": true,
+	"pierce_range": true,
+	"emission_mode": true,
+	"lane_count": true,
+	"lane_offset": true,
+	"lane_id": true,
+	"angle_count": true,
+	"angle_spread": true,
 	"turn_rate": true,
 	"move_speed": true,
 	"attack_damage": true,
@@ -90,7 +106,10 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"hitbox_size": true,
 	"detection_radius": true,
 	"scan_range": true,
+	"detection_id": true,
+	"target_tags": true,
 	"required_state": true,
+	"arming_time": true,
 	"start_delay": true,
 	"value": true,
 	"source_type": true,
@@ -1229,6 +1248,14 @@ static func _normalize_param_value(value: Variant, param_def: Dictionary, errors
 			if not (value is Vector2):
 				errors.append("%s param %s must be Vector2." % [scope, param_name])
 			normalized_value = value if value is Vector2 else Vector2.ZERO
+		"packed_string_array":
+			if value is PackedStringArray:
+				normalized_value = PackedStringArray(value)
+			elif value is Array:
+				normalized_value = PackedStringArray(value)
+			else:
+				errors.append("%s param %s must be PackedStringArray." % [scope, param_name])
+				normalized_value = PackedStringArray()
 		"resource":
 			if value != null and not (value is Resource):
 				errors.append("%s param %s must be Resource." % [scope, param_name])
@@ -1275,6 +1302,7 @@ static func _allowed_hit_strategies() -> Array[String]:
 		"swept_segment",
 		"swept_segment_and_terminal_hitbox",
 		"swept_segment_and_terminal_radius",
+		"pierce",
 	]
 
 
@@ -1287,7 +1315,7 @@ static func _allowed_dynamic_target_axes() -> Array[String]:
 
 
 static func _allowed_param_types() -> Array[String]:
-	return ["int", "float", "string", "string_name", "bool", "vector2", "resource"]
+	return ["int", "float", "string", "string_name", "bool", "vector2", "packed_string_array", "resource"]
 
 
 static func _allowed_trigger_behavior_keys() -> Array[String]:

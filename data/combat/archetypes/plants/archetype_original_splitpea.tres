@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="2_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_projectile_payload_pea.tres" id="3_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="5_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_linear.tres" id="6_projectile"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_emission_dual_direction.tres" id="7_emission"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_splitpea"
+legacy_template_id = &"plant_splitpea"
+display_name = "Split Pea"
+projectile_template = ExtResource("6_projectile")
+projectile_flight_profile = ExtResource("5_profile")
+hit_height_band = ExtResource("4_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "splitpea", "shooter", "dual")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 300
+hitbox_size = Vector2(42, 54)
+default_params = {
+"damage": 20,
+"interval": 1.5,
+"scan_range": 900.0,
+"speed": 220.0,
+"start_delay": 0.5
+}
+mechanics = [ExtResource("2_trigger"), ExtResource("7_emission"), ExtResource("3_payload")]

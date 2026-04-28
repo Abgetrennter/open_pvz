@@ -15,6 +15,7 @@ class_name CombatArchetype
 @export var required_placement_tags: PackedStringArray = PackedStringArray(["supports_primary"])
 @export var granted_placement_tags: PackedStringArray = PackedStringArray()
 @export var required_present_roles: PackedStringArray = PackedStringArray()
+@export var required_present_archetypes: PackedStringArray = PackedStringArray()
 @export var required_empty_roles: PackedStringArray = PackedStringArray(["blocker"])
 @export var max_health := -1
 @export var hitbox_size := Vector2.ZERO

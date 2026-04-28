@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_on_place_lifecycle.tres" id="2_lifecycle"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_reactive_bomber_death_explode.tres" id="3_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_gravebuster"
+legacy_template_id = &"plant_gravebuster"
+display_name = "Grave Buster"
+hit_height_band = ExtResource("4_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "gravebuster", "instant")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"primary"
+required_present_archetypes = PackedStringArray("archetype_tombstone_blocker")
+max_health = 300
+hitbox_size = Vector2(44, 50)
+default_params = {
+"amount": 1800,
+"radius": 64.0,
+"target_mode": &"enemies_in_radius"
+}
+mechanics = [ExtResource("2_lifecycle"), ExtResource("3_payload")]

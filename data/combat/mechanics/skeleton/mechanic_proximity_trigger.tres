@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.proximity_trigger"
+display_name = "Proximity Trigger"
+family = &"Trigger"
+type_id = &"core.proximity"
+priority = 10
+tags = PackedStringArray("skeleton", "proximity")
+params = {
+"interval": 0.25,
+"scan_range": 64.0,
+"start_delay": 0.0
+}

@@ -126,6 +126,8 @@ func _on_state_event(event_data, event_name: StringName) -> void:
 	var owner := get_parent()
 	if owner == null or not is_instance_valid(owner):
 		return
+	if not _event_targets_owner(event_data, owner):
+		return
 	for transition in transitions:
 		var trigger_type: String = String(transition.get("trigger", "time"))
 		if trigger_type != "event":
@@ -135,7 +137,7 @@ func _on_state_event(event_data, event_name: StringName) -> void:
 			continue
 		var required_state := StringName(transition.get("required_state_id", StringName()))
 		if required_state != StringName():
-			var event_state_id := StringName(event_data.core.get("state_id", StringName())) if event_data is Dictionary and event_data.get("core") is Dictionary else StringName()
+			var event_state_id := StringName(_event_core(event_data).get("state_id", StringName()))
 			if event_state_id != required_state:
 				continue
 		var from_state := StringName(transition.get("from_state", current_state))
@@ -152,6 +154,28 @@ func _on_state_event(event_data, event_name: StringName) -> void:
 		_sync_owner_state()
 		_emit_state_entered(owner, current_state)
 		break
+
+
+func _event_core(event_data) -> Dictionary:
+	if event_data == null:
+		return {}
+	var event_core: Variant = event_data.get("core") if event_data.has_method("get") else null
+	if event_core is Dictionary:
+		return event_core
+	return {}
+
+
+func _event_targets_owner(event_data, owner: Node) -> bool:
+	var event_core := _event_core(event_data)
+	if event_core.is_empty():
+		return true
+	var target_node: Variant = event_core.get("target_node", null)
+	if target_node is Node:
+		return target_node == owner
+	var target_id := int(event_core.get("target_id", -1))
+	if target_id >= 0 and owner.has_method("get_entity_id"):
+		return target_id == int(owner.call("get_entity_id"))
+	return true
 
 
 func _sync_owner_state() -> void:

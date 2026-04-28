@@ -1,0 +1,124 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_threepeater"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_threepeater"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_three_target_lane0"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 500.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_three_target_lane1"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 1
+x_position = 500.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_three_target_lane2"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 500.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_spikeweed"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_spikeweed"
+lane_id = 4
+x_position = 320.0
+
+[sub_resource type="Resource" id="Spawn_spike_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 4
+x_position = 340.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_torchwood"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_torchwood"
+lane_id = 5
+x_position = 300.0
+
+[sub_resource type="Resource" id="Spawn_peashooter_torch"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_peashooter"
+lane_id = 5
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_torch_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 5
+x_position = 580.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_multi_lane_damage_lane0"]
+script = ExtResource("3_rule")
+rule_id = &"multi_lane_lane0"
+description = "Threepeater should damage targets in lane 0 (adjacent)"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_threepeater",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_multi_lane_damage_lane1"]
+script = ExtResource("3_rule")
+rule_id = &"multi_lane_lane1"
+description = "Threepeater should damage targets in its own lane 1"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_threepeater",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_multi_lane_damage_lane2"]
+script = ExtResource("3_rule")
+rule_id = &"multi_lane_lane2"
+description = "Threepeater should damage targets in lane 2 (adjacent)"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_threepeater",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_spikeweed_damage"]
+script = ExtResource("3_rule")
+rule_id = &"spikeweed_damage"
+description = "Spikeweed should deal ground damage to a nearby zombie"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("ground_damage")
+required_core_values = {
+"source_template_id": &"plant_spikeweed"
+}
+
+[sub_resource type="Resource" id="Rule_peashooter_torchwood_damage"]
+script = ExtResource("3_rule")
+rule_id = &"peashooter_torchwood"
+description = "Peashooter behind Torchwood should still damage a target"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_peashooter"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_batch_d_validation"
+display_name = "Original Plant Batch D Validation"
+description = "Validates Batch D field and multi-directional plants: Threepeater multi-lane damage, Spikeweed ground damage, Peashooter+Torchwood combo."
+goals = PackedStringArray("Verify Threepeater damages targets in 3 lanes.", "Verify Spikeweed deals ground_damage to nearby zombies.", "Verify Peashooter can damage through Torchwood.")
+validation_time_limit = 6.0
+lane_count = 6
+validation_rules = [SubResource("Rule_multi_lane_damage_lane0"), SubResource("Rule_multi_lane_damage_lane1"), SubResource("Rule_multi_lane_damage_lane2"), SubResource("Rule_spikeweed_damage"), SubResource("Rule_peashooter_torchwood_damage")]
+spawns = [SubResource("Spawn_threepeater"), SubResource("Spawn_three_target_lane0"), SubResource("Spawn_three_target_lane1"), SubResource("Spawn_three_target_lane2"), SubResource("Spawn_spikeweed"), SubResource("Spawn_spike_target"), SubResource("Spawn_torchwood"), SubResource("Spawn_peashooter_torch"), SubResource("Spawn_torch_target")]

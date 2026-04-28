@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="3_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_lilypad.tres" id="5_card_lilypad"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_seashroom.tres" id="6_card_seashroom"]
+
+[sub_resource type="Resource" id="Req_lilypad"]
+script = ExtResource("2_card_request")
+at_time = 0.2
+card_id = &"card_original_lilypad"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_seashroom"]
+script = ExtResource("2_card_request")
+at_time = 0.5
+card_id = &"card_original_seashroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("3_slot_config")
+lane_id = 0
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water")
+
+[sub_resource type="Resource" id="Rule_lilypad_accept"]
+script = ExtResource("4_rule")
+rule_id = &"lilypad_water_accept"
+description = "Lily Pad should be accepted as water support."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_lilypad",
+"placement_role": &"support",
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="Rule_seashroom_accept"]
+script = ExtResource("4_rule")
+rule_id = &"seashroom_water_accept"
+description = "Sea-shroom should be accepted as water primary."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_seashroom",
+"placement_role": &"primary",
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="Rule_seashroom_spawn"]
+script = ExtResource("4_rule")
+rule_id = &"seashroom_spawn"
+description = "Sea-shroom should spawn from accepted water placement."
+event_name = &"entity.spawned"
+required_core_values = {
+"card_id": &"card_original_seashroom",
+"placement_role": &"primary",
+"spawn_reason": &"card_play"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_water_pair_validation"
+display_name = "Original Water Pair Validation"
+description = "Validates Lily Pad support placement and Sea-shroom primary placement on water slots."
+goals = PackedStringArray("Verify Lily Pad is accepted on water.", "Verify Sea-shroom is accepted as a primary water plant.")
+validation_time_limit = 1.5
+initial_sun = 100
+lane_count = 1
+board_slot_count = 1
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("5_card_lilypad"), ExtResource("6_card_seashroom")]
+card_play_requests = [SubResource("Req_lilypad"), SubResource("Req_seashroom")]
+validation_rules = [SubResource("Rule_lilypad_accept"), SubResource("Rule_seashroom_accept"), SubResource("Rule_seashroom_spawn")]
+spawns = []

@@ -1,0 +1,183 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_peashooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_peashooter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_pea_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 500.0
+
+[sub_resource type="Resource" id="Spawn_sunflower"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_sunflower"
+lane_id = 1
+x_position = 160.0
+spawn_overrides = {
+"interval": 2.0,
+"start_delay": 1.0,
+"value": 25
+}
+
+[sub_resource type="Resource" id="Spawn_wallnut"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_wallnut"
+lane_id = 2
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_wallnut_biter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 210.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_snowpea"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_snowpea"
+lane_id = 3
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_snowpea_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 3
+x_position = 500.0
+
+[sub_resource type="Resource" id="Spawn_repeater"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_repeater"
+lane_id = 4
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_repeater_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 4
+x_position = 500.0
+
+[sub_resource type="Resource" id="Spawn_cabbagepult"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_cabbagepult"
+lane_id = 5
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_melonpult"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_melonpult"
+lane_id = 5
+x_position = 280.0
+
+[sub_resource type="Resource" id="Spawn_lobber_target_a"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 5
+x_position = 520.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_lobber_target_b"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 5
+x_position = 580.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_peashooter_hit"]
+script = ExtResource("3_rule")
+rule_id = &"peashooter_hit"
+description = "Peashooter should damage the basic walker target"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_peashooter",
+"target_template_id": &"zombie_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_sunflower_sun"]
+script = ExtResource("3_rule")
+rule_id = &"sunflower_sun"
+description = "Sunflower should produce plant-generated sun"
+event_name = &"sun.spawned"
+min_count = 2
+required_core_values = {
+"source_type": &"plant_generated"
+}
+
+[sub_resource type="Resource" id="Rule_wallnut_damaged"]
+script = ExtResource("3_rule")
+rule_id = &"wallnut_damaged"
+description = "Wall-nut should receive damage from a zombie bite"
+event_name = &"entity.damaged"
+required_core_values = {
+"target_template_id": &"plant_wallnut",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_snowpea_slow"]
+script = ExtResource("3_rule")
+rule_id = &"snowpea_slow"
+description = "Snow Pea should apply slowed to the basic walker"
+event_name = &"entity.status_applied"
+required_core_values = {
+"source_template_id": &"plant_snowpea",
+"status_id": &"slowed",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_repeater_hit"]
+script = ExtResource("3_rule")
+rule_id = &"repeater_hit"
+description = "Repeater should damage the brisk runner target"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_repeater",
+"target_template_id": &"zombie_brisk_runner",
+"target_lane": 4
+}
+
+[sub_resource type="Resource" id="Rule_cabbage_hit"]
+script = ExtResource("3_rule")
+rule_id = &"cabbage_hit"
+description = "Cabbage-pult should damage the basic walker target in lane 5"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_cabbagepult",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_melon_explode"]
+script = ExtResource("3_rule")
+rule_id = &"melon_explode"
+description = "Melon-pult terminal blast should damage both clustered targets"
+event_name = &"entity.damaged"
+min_count = 2
+required_tags = PackedStringArray("explode", "projectile.hit")
+required_core_values = {
+"source_template_id": &"plant_melonpult",
+"target_lane": 5
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_batch_a_validation"
+display_name = "Original Plant Batch A Validation"
+description = "Validates all 7 Batch A original plants: Peashooter shoots and damages, Sunflower produces sun, Wall-nut tanks bites, Snow Pea applies slow, Repeater deals burst damage, Cabbage-pult lobs and hits, Melon-pult deals direct and splash damage."
+goals = PackedStringArray("Verify Peashooter can damage a basic walker.", "Verify Sunflower produces plant-generated sun.", "Verify Wall-nut can receive damage.", "Verify Snow Pea applies slowed status.", "Verify Repeater can damage a brisk runner.", "Verify Cabbage-pult lobs and hits a target.", "Verify Melon-pult terminal blast damages multiple clustered targets.")
+validation_time_limit = 8.0
+lane_count = 6
+validation_rules = [SubResource("Rule_peashooter_hit"), SubResource("Rule_sunflower_sun"), SubResource("Rule_wallnut_damaged"), SubResource("Rule_snowpea_slow"), SubResource("Rule_repeater_hit"), SubResource("Rule_cabbage_hit"), SubResource("Rule_melon_explode")]
+spawns = [SubResource("Spawn_peashooter"), SubResource("Spawn_pea_target"), SubResource("Spawn_sunflower"), SubResource("Spawn_wallnut"), SubResource("Spawn_wallnut_biter"), SubResource("Spawn_snowpea"), SubResource("Spawn_snowpea_target"), SubResource("Spawn_repeater"), SubResource("Spawn_repeater_target"), SubResource("Spawn_cabbagepult"), SubResource("Spawn_melonpult"), SubResource("Spawn_lobber_target_a"), SubResource("Spawn_lobber_target_b")]

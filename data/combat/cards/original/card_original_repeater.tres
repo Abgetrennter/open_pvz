@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CardDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="1_card_def"]
+
+[resource]
+script = ExtResource("1_card_def")
+card_id = &"card_original_repeater"
+display_name = "Repeater"
+archetype_id = &"archetype_original_repeater"
+sun_cost = 200
+cooldown_seconds = 7.5
+placement_tags = PackedStringArray("supports_primary")

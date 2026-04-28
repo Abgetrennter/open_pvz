@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_blover.tres" id="5_card_blover"]
+
+[sub_resource type="Resource" id="Req_blover"]
+script = ExtResource("2_card_request")
+at_time = 0.2
+card_id = &"card_original_blover"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_air_target"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 0
+x_position = 360.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_ground_target"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 430.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_air_damage"]
+script = ExtResource("4_rule")
+rule_id = &"blover_air_damage"
+description = "Blover should affect air-tagged targets."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_blover",
+"target_template_id": &"zombie_air_scout"
+}
+
+[sub_resource type="Resource" id="Rule_ground_untouched"]
+script = ExtResource("4_rule")
+rule_id = &"blover_ground_untouched"
+description = "Blover should not damage non-air ground targets."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_template_id": &"plant_blover",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_blover_validation"
+display_name = "Original Blover Validation"
+description = "Validates Blover's air-only dispel path through tag-filtered damage."
+goals = PackedStringArray("Verify Blover affects air targets.", "Verify Blover does not affect ground targets.")
+validation_time_limit = 1.2
+initial_sun = 200
+lane_count = 1
+card_defs = [ExtResource("5_card_blover")]
+card_play_requests = [SubResource("Req_blover")]
+validation_rules = [SubResource("Rule_air_damage"), SubResource("Rule_ground_untouched")]
+spawns = [SubResource("Spawn_air_target"), SubResource("Spawn_ground_target")]

@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_sleeping_state.tres" id="2_state"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="3_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_projectile_payload_pea.tres" id="4_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="6_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_linear.tres" id="7_projectile"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_hit_policy_pierce.tres" id="8_hit_policy"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_fumeshroom"
+legacy_template_id = &"plant_fumeshroom"
+display_name = "Fume-shroom"
+projectile_template = ExtResource("7_projectile")
+projectile_flight_profile = ExtResource("6_profile")
+hit_height_band = ExtResource("5_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "fumeshroom", "mushroom", "nocturnal", "shooter", "pierce")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent", "StateComponent")
+max_health = 300
+hitbox_size = Vector2(40, 48)
+default_params = {
+"required_state": &"awake",
+"damage": 20,
+"interval": 1.5,
+"scan_range": 320.0,
+"speed": 180.0,
+"start_delay": 0.2,
+"hit_strategy": &"pierce",
+"max_penetrations": 5
+}
+mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("8_hit_policy"), ExtResource("4_payload")]

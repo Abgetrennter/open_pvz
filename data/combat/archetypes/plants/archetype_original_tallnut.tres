@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_tallnut"
+legacy_template_id = &"plant_tallnut"
+display_name = "Tall-nut"
+hit_height_band = ExtResource("2_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "tallnut", "defense")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 8000
+hitbox_size = Vector2(54, 80)

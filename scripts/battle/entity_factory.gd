@@ -91,6 +91,7 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 			return {}
 	if runtime_spec.source_archetype_id != StringName():
 		entity.set("archetype_id", runtime_spec.source_archetype_id)
+	entity.set("tags", PackedStringArray(runtime_spec.tags))
 	if runtime_spec.legacy_template_id != StringName():
 		entity.set("template_id", runtime_spec.legacy_template_id)
 		if entity.has_method("set_state_value"):
@@ -359,6 +360,7 @@ func _apply_template_metadata(entity: Node, template) -> void:
 		return
 	if template is CombatArchetypeRef and template.archetype_id != StringName():
 		entity.set("archetype_id", template.archetype_id)
+		entity.set("tags", PackedStringArray(template.tags))
 		if template.legacy_template_id != StringName():
 			entity.set("template_id", template.legacy_template_id)
 		if entity.has_method("set_state_value"):
@@ -425,9 +427,15 @@ func _build_effect_node_from_binding(
 			&"on_hit": _build_binding_on_hit_effect_node(binding, params),
 		})
 	for key: Variant in params.keys():
-		if effect_params.has(key):
+		if effect_params.has(key) or _is_direct_effect_override_key(effect_id, key):
 			effect_params[key] = params[key]
 	return _build_simple_effect_node(effect_id, effect_params)
+
+
+func _is_direct_effect_override_key(effect_id: StringName, key: Variant) -> bool:
+	if effect_id != &"damage" and effect_id != &"explode":
+		return false
+	return ["amount", "target_mode", "radius", "lane_id", "target_tags"].has(str(key))
 
 
 func _merge_projectile_binding_params(

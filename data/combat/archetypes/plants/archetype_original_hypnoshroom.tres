@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_sleeping_state.tres" id="2_state"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="3_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_direct_damage_payload.tres" id="4_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_hypnoshroom"
+legacy_template_id = &"plant_hypnoshroom"
+display_name = "Hypno-shroom"
+hit_height_band = ExtResource("5_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "hypnoshroom", "mushroom", "nocturnal", "control")
+optional_components = PackedStringArray("DebugViewComponent", "StateComponent")
+max_health = 300
+hitbox_size = Vector2(36, 40)
+default_params = {
+"required_state": &"awake"
+}
+mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("4_payload")]

@@ -1,0 +1,103 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_repeater_base"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_repeater"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_gatling_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 0
+x_position = 500.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_sunflower_base"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_sunflower"
+lane_id = 1
+x_position = 160.0
+spawn_overrides = {"interval": 3.0, "start_delay": 1.0, "value": 25}
+
+[sub_resource type="Resource" id="Spawn_wintermelon"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_wintermelon"
+lane_id = 2
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_winter_target_a"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 500.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_winter_target_b"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 2
+x_position = 560.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_flowerpot"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_flowerpot"
+lane_id = 3
+x_position = 160.0
+
+[sub_resource type="Resource" id="Rule_repeater_damage"]
+script = ExtResource("3_rule")
+rule_id = &"repeater_damage"
+description = "Repeater should damage the bucket tank target"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_repeater",
+"target_template_id": &"zombie_bucket_tank"
+}
+
+[sub_resource type="Resource" id="Rule_sunflower_sun_production"]
+script = ExtResource("3_rule")
+rule_id = &"sunflower_sun"
+description = "Sunflower should produce plant-generated sun"
+event_name = &"sun.spawned"
+min_count = 2
+required_core_values = {
+"source_type": &"plant_generated"
+}
+
+[sub_resource type="Resource" id="Rule_winter_splash"]
+script = ExtResource("3_rule")
+rule_id = &"winter_splash"
+description = "Winter Melon should deal splash damage to both clustered targets"
+event_name = &"entity.damaged"
+min_count = 2
+required_tags = PackedStringArray("explode", "projectile.hit")
+required_core_values = {
+"source_template_id": &"plant_wintermelon",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_flowerpot_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"flowerpot_spawn"
+description = "Flower Pot should spawn as a support plant"
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_original_flowerpot"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_batch_e_validation"
+display_name = "Original Plant Batch E Validation"
+description = "Validates Batch E roof and upgrade plants: Repeater as base for upgrade, Sunflower sun production, Winter Melon splash damage, Flower Pot support spawn."
+goals = PackedStringArray("Verify Repeater damages bucket tank.", "Verify Sunflower produces sun.", "Verify Winter Melon deals splash damage to clustered targets.", "Verify Flower Pot spawns as a support plant.")
+validation_time_limit = 6.0
+lane_count = 4
+validation_rules = [SubResource("Rule_repeater_damage"), SubResource("Rule_sunflower_sun_production"), SubResource("Rule_winter_splash"), SubResource("Rule_flowerpot_spawn")]
+spawns = [SubResource("Spawn_repeater_base"), SubResource("Spawn_gatling_target"), SubResource("Spawn_sunflower_base"), SubResource("Spawn_wintermelon"), SubResource("Spawn_winter_target_a"), SubResource("Spawn_winter_target_b"), SubResource("Spawn_flowerpot")]

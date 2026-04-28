@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_flowerpot"
+legacy_template_id = &"plant_flowerpot"
+display_name = "Flower Pot"
+hit_height_band = ExtResource("2_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "flowerpot", "roof", "support")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"support"
+required_placement_tags = PackedStringArray("supports_roof")
+granted_placement_tags = PackedStringArray("supports_primary")
+max_health = 300
+hitbox_size = Vector2(44, 44)

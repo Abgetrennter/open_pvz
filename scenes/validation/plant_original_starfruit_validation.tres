@@ -1,0 +1,73 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_starfruit"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_starfruit"
+lane_id = 2
+x_position = 300.0
+
+[sub_resource type="Resource" id="Spawn_forward_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 520.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_upper_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 0
+x_position = 375.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_lower_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 4
+x_position = 375.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_forward_damage"]
+script = ExtResource("3_rule")
+rule_id = &"starfruit_forward_damage"
+description = "Starfruit should damage a forward target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_starfruit",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_upper_damage"]
+script = ExtResource("3_rule")
+rule_id = &"starfruit_upper_damage"
+description = "Starfruit should damage an upper diagonal target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_starfruit",
+"target_template_id": &"zombie_brisk_runner"
+}
+
+[sub_resource type="Resource" id="Rule_lower_damage"]
+script = ExtResource("3_rule")
+rule_id = &"starfruit_lower_damage"
+description = "Starfruit should damage a lower diagonal target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_starfruit",
+"target_template_id": &"zombie_bucket_tank"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_starfruit_validation"
+display_name = "Original Starfruit Validation"
+description = "Validates Starfruit multi-angle emission against targets on different lanes."
+goals = PackedStringArray("Verify Starfruit damages a forward target.", "Verify Starfruit damages upper and lower diagonal targets.")
+validation_time_limit = 4.0
+lane_count = 5
+validation_rules = [SubResource("Rule_forward_damage"), SubResource("Rule_upper_damage"), SubResource("Rule_lower_damage")]
+spawns = [SubResource("Spawn_starfruit"), SubResource("Spawn_forward_target"), SubResource("Spawn_upper_target"), SubResource("Spawn_lower_target")]

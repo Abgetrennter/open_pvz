@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_cactus"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_cactus"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_air_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 0
+x_position = 480.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_air_damage"]
+script = ExtResource("3_rule")
+rule_id = &"cactus_air_damage"
+description = "Cactus should damage an air target with its track-air projectile."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_cactus",
+"target_template_id": &"zombie_air_scout"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_cactus_validation"
+display_name = "Original Cactus Validation"
+description = "Validates Cactus air-target projectile path."
+goals = PackedStringArray("Verify Cactus damages an air target.")
+validation_time_limit = 4.0
+lane_count = 1
+validation_rules = [SubResource("Rule_air_damage")]
+spawns = [SubResource("Spawn_cactus"), SubResource("Spawn_air_target")]

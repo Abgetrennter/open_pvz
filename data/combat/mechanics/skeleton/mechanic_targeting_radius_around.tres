@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.targeting_radius_around"
+display_name = "Targeting Radius Around"
+family = &"Targeting"
+type_id = &"core.radius_around"
+priority = 15
+tags = PackedStringArray("skeleton", "targeting", "radius")
+params = {
+"detection_id": &"radius_around",
+"scan_range": 180.0
+}

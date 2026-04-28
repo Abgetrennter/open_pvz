@@ -30,6 +30,10 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 		spawn_position = resolved_params.get("spawn_position")
 	elif context.source_node != null and context.source_node is Node2D:
 		spawn_position = context.source_node.global_position + direction.normalized() * 34.0
+	var requested_lane := int(resolved_params.get("lane_id", -1))
+	if requested_lane >= 0 and _battle != null and _battle.has_method("is_valid_lane") and bool(_battle.call("is_valid_lane", requested_lane)):
+		if _battle.has_method("get_lane_y"):
+			spawn_position.y = float(_battle.call("get_lane_y", requested_lane))
 
 	var burst_count := int(resolved_params.get("burst_count", 1))
 	var spread_count := int(resolved_params.get("spread_count", 1))
@@ -59,6 +63,8 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 				"chain_id": context.chain_id,
 				"origin_event_name": context.event_name,
 			})
+			if requested_lane >= 0 and projectile.has_method("assign_lane"):
+				projectile.call("assign_lane", requested_lane)
 			var entity_root: Node2D = _battle.get_entity_root()
 			entity_root.add_child(projectile)
 			if first_projectile == null:

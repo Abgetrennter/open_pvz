@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.iceshroom_explode"
+display_name = "Original Ice-shroom Explode"
+family = &"Payload"
+type_id = &"core.explode"
+priority = 20
+tags = PackedStringArray("original", "instant", "explode", "mushroom")
+params = {
+"amount": 20,
+"radius": 900.0,
+"target_mode": &"enemies_in_radius"
+}

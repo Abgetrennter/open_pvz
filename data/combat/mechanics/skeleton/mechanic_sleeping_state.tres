@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.sleeping_state"
+display_name = "Sleeping State"
+family = &"State"
+type_id = &"core.sleeping"
+priority = 5
+tags = PackedStringArray("skeleton", "state", "sleeping")
+params = {}

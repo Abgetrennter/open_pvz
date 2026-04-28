@@ -67,6 +67,8 @@ func build_projectile_movement_params(
 	movement_params["hit_strategy"] = StringName(params.get("hit_strategy", hit_strategy_default))
 	var terminal_default: Variant = movement_params.get("terminal_hit_strategy", &"")
 	movement_params["terminal_hit_strategy"] = StringName(params.get("terminal_hit_strategy", terminal_default))
+	if params.has("max_penetrations"):
+		movement_params["max_penetrations"] = int(params.get("max_penetrations"))
 	if params.has("impact_radius"):
 		movement_params["impact_radius"] = float(params.get("impact_radius"))
 	if params.has("collision_padding"):

@@ -1,0 +1,138 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=21 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="4_request"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_iceshroom.tres" id="5_ice_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_doomshroom.tres" id="6_doom_card"]
+
+[sub_resource type="Resource" id="Spawn_puffshroom"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_puffshroom"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_puff_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 300.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_coffeebean"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_coffeebean"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_sunshroom"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_sunshroom"
+lane_id = 1
+x_position = 220.0
+
+[sub_resource type="Resource" id="Spawn_fumeshroom"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_fumeshroom"
+lane_id = 2
+x_position = 160.0
+spawn_overrides = {"interval": 0.8}
+
+[sub_resource type="Resource" id="Spawn_fume_target_a"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 280.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_fume_target_b"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 2
+x_position = 380.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_ice_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 3
+x_position = 420.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_doom_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 4
+x_position = 460.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="CardPlayRequest_iceshroom"]
+script = ExtResource("4_request")
+at_time = 0.1
+card_id = &"card_original_iceshroom"
+lane_id = 3
+slot_index = 1
+
+[sub_resource type="Resource" id="CardPlayRequest_doomshroom"]
+script = ExtResource("4_request")
+at_time = 0.2
+card_id = &"card_original_doomshroom"
+lane_id = 4
+slot_index = 1
+
+[sub_resource type="Resource" id="Rule_puff_awake_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"puff_awake_spawn"
+description = "Puff-shroom should spawn with sleeping state"
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_original_puffshroom"
+}
+
+[sub_resource type="Resource" id="Rule_iceshroom_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"iceshroom_damage"
+description = "Ice-shroom should damage nearby enemies after card placement"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_template_id": &"plant_iceshroom",
+"target_template_id": &"zombie_basic_walker",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_doomshroom_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"doomshroom_damage"
+description = "Doom-shroom should damage nearby tank targets after card placement"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_template_id": &"plant_doomshroom",
+"target_template_id": &"zombie_bucket_tank",
+"target_lane": 4
+}
+
+[sub_resource type="Resource" id="Rule_fumeshroom_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"fumeshroom_spawn"
+description = "Fume-shroom should spawn"
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_original_fumeshroom"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_batch_c_validation"
+display_name = "Original Plant Batch C Validation"
+description = "Validates Batch C night mushrooms: Puff-shroom/Fume-shroom resource spawn path plus Ice-shroom and Doom-shroom on-place explosions."
+goals = PackedStringArray("Verify Puff-shroom spawns through the original archetype path.", "Verify Fume-shroom original archetype can compile and spawn.", "Verify Ice-shroom explode damages enemies.", "Verify Doom-shroom explode damages tank targets.")
+validation_time_limit = 8.0
+initial_sun = 1000
+lane_count = 5
+card_defs = [ExtResource("5_ice_card"), ExtResource("6_doom_card")]
+card_play_requests = [SubResource("CardPlayRequest_iceshroom"), SubResource("CardPlayRequest_doomshroom")]
+validation_rules = [SubResource("Rule_puff_awake_spawn"), SubResource("Rule_iceshroom_spawn"), SubResource("Rule_doomshroom_spawn"), SubResource("Rule_fumeshroom_spawn")]
+spawns = [SubResource("Spawn_puffshroom"), SubResource("Spawn_puff_target"), SubResource("Spawn_fumeshroom"), SubResource("Spawn_fume_target_a"), SubResource("Spawn_fume_target_b"), SubResource("Spawn_ice_target"), SubResource("Spawn_doom_target")]

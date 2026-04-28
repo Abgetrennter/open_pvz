@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_arming_state.tres" id="2_state"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_proximity_trigger.tres" id="3_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_potatomine_explode.tres" id="4_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_potatomine"
+legacy_template_id = &"plant_potatomine"
+display_name = "Potato Mine"
+hit_height_band = ExtResource("5_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "potatomine", "arming", "proximity", "explode")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent", "StateComponent")
+max_health = 300
+hitbox_size = Vector2(40, 36)
+default_params = {
+"arming_time": 15.0,
+"required_state": &"active",
+"scan_range": 64.0,
+"amount": 1800,
+"radius": 150.0,
+"target_mode": &"enemies_in_radius"
+}
+mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("4_payload")]

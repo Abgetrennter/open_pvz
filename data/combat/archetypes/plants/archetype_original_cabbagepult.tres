@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="2_mechanic_0"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_projectile_payload_cabbage.tres" id="3_mechanic_1"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/parabola_cabbage_arc.tres" id="5_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/cabbage_arc.tres" id="6_projectile_template"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_cabbagepult"
+legacy_template_id = &"plant_cabbagepult"
+display_name = "Cabbage-pult"
+projectile_template = ExtResource("6_projectile_template")
+projectile_flight_profile = ExtResource("5_profile")
+hit_height_band = ExtResource("4_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "cabbagepult", "lobber")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 300
+hitbox_size = Vector2(44, 56)
+default_params = {
+"damage": 20,
+"interval": 3.0,
+"scan_range": 900.0,
+"speed": 220.0,
+"start_delay": 0.2
+}
+mechanics = [ExtResource("2_mechanic_0"), ExtResource("3_mechanic_1")]

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_controller_projectile_transform.tres" id="2_controller"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="3_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_torchwood"
+legacy_template_id = &"plant_torchwood"
+display_name = "Torchwood"
+hit_height_band = ExtResource("3_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "torchwood", "support", "transform")
+required_components = PackedStringArray("ControllerComponent")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 300
+hitbox_size = Vector2(54, 64)
+mechanics = [ExtResource("2_controller")]

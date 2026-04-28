@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.controller_ground_damage"
+display_name = "Controller Ground Damage"
+family = &"Controller"
+type_id = &"core.ground_damage"
+priority = 5
+tags = PackedStringArray("skeleton", "controller", "ground_damage")
+params = {
+"damage": 20,
+"interval": 0.5,
+"detection_range": 48.0
+}

@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_splitpea"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_splitpea"
+lane_id = 0
+x_position = 320.0
+
+[sub_resource type="Resource" id="Spawn_front_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_back_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 0
+x_position = 120.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_front_damage"]
+script = ExtResource("3_rule")
+rule_id = &"splitpea_front_damage"
+description = "Split Pea should damage the target in front."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_splitpea",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_back_damage"]
+script = ExtResource("3_rule")
+rule_id = &"splitpea_back_damage"
+description = "Split Pea should damage the target behind it."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_splitpea",
+"target_template_id": &"zombie_brisk_runner"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_splitpea_validation"
+display_name = "Original Split Pea Validation"
+description = "Validates Split Pea dual-direction emission."
+goals = PackedStringArray("Verify Split Pea damages a forward target.", "Verify Split Pea damages a backward target from the same trigger cycle.")
+validation_time_limit = 4.0
+lane_count = 1
+validation_rules = [SubResource("Rule_front_damage"), SubResource("Rule_back_damage")]
+spawns = [SubResource("Spawn_splitpea"), SubResource("Spawn_front_target"), SubResource("Spawn_back_target")]

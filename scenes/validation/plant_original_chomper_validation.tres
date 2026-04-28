@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_chomper.tres" id="5_card"]
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 300.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="CardPlayRequest_chomper"]
+script = ExtResource("3_request")
+at_time = 0.1
+card_id = &"card_original_chomper"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Rule_damage"]
+script = ExtResource("4_rule")
+rule_id = &"chomper_devour_damage"
+description = "Chomper should damage a nearby zombie through its devour payload"
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_template_id": &"plant_chomper",
+"target_template_id": &"zombie_basic_walker",
+"target_lane": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_chomper_validation"
+display_name = "Original Chomper Validation"
+description = "Validates Chomper near-target devour damage through the original card path."
+goals = PackedStringArray("Verify Chomper is placed from its original card.", "Verify Chomper damages a nearby zombie through devour payload.")
+validation_time_limit = 1.5
+initial_sun = 500
+lane_count = 1
+card_defs = [ExtResource("5_card")]
+card_play_requests = [SubResource("CardPlayRequest_chomper")]
+validation_rules = [SubResource("Rule_damage")]
+spawns = [SubResource("Spawn_target")]

@@ -17,6 +17,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.periodic": &"Trigger",
 		&"core.when_damaged": &"Trigger",
 		&"core.on_death": &"Trigger",
+		&"core.proximity": &"Trigger",
 		&"core.on_spawned": &"Lifecycle",
 		&"core.on_place": &"Lifecycle",
 		&"core.produce_sun": &"Payload",
@@ -26,14 +27,21 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.apply_status": &"Payload",
 		&"core.spawn_entity": &"Payload",
 		&"core.invoke_effect": &"Payload",
+		&"core.wake": &"Payload",
+		&"core.team_switch": &"Payload",
 		&"core.bite": &"Controller",
 		&"core.sweep": &"Controller",
+		&"core.ground_damage": &"Controller",
+		&"core.projectile_transform": &"Controller",
 		&"core.arming": &"State",
 		&"core.growth": &"State",
 		&"core.rage": &"State",
+		&"core.sleeping": &"State",
 		&"core.lane_forward": &"Targeting",
 		&"core.lane_backward": &"Targeting",
 		&"core.always_target": &"Targeting",
+		&"core.radius_around": &"Targeting",
+		&"core.global_track": &"Targeting",
 		&"core.linear": &"Trajectory",
 		&"core.parabola": &"Trajectory",
 		&"core.track": &"Trajectory",
@@ -41,10 +49,14 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.terminal_hitbox": &"HitPolicy",
 		&"core.terminal_radius": &"HitPolicy",
 		&"core.overlap": &"HitPolicy",
+		&"core.pierce": &"HitPolicy",
 		&"core.single": &"Emission",
 		&"core.burst": &"Emission",
 		&"core.shuffle_cycle": &"Emission",
 		&"core.spread": &"Emission",
+		&"core.multi_lane": &"Emission",
+		&"core.dual_direction": &"Emission",
+		&"core.multi_angle": &"Emission",
 		&"core.ground_slot": &"Placement",
 		&"core.water_slot": &"Placement",
 		&"core.roof_slot": &"Placement",
@@ -82,6 +94,11 @@ static func register_builtin_mechanic_types() -> void:
 		MechanicCompilerRegistry.register_compiler_callable(
 			&"core.rage",
 			_compile_state_rage,
+			{"compiler_version": COMPILER_VERSION, "family": &"State"}
+		)
+		MechanicCompilerRegistry.register_compiler_callable(
+			&"core.sleeping",
+			_compile_state_sleeping,
 			{"compiler_version": COMPILER_VERSION, "family": &"State"}
 		)
 		_register_targeting_callables()
@@ -363,6 +380,7 @@ const _TARGETING_CONDITION_KEYS: Dictionary = {
 	&"scan_range": true,
 	&"required_state": true,
 	&"start_delay": true,
+	&"target_tags": true,
 }
 
 
@@ -455,6 +473,12 @@ static func _map_trigger_type(type_id: StringName) -> Dictionary:
 				"trigger_id": &"on_place",
 				"event_name": &"placement.accepted",
 			}
+		&"core.proximity":
+			return {
+				"behavior_key": &"proximity",
+				"trigger_id": &"proximity",
+				"event_name": &"game.tick",
+			}
 		_:
 			return {}
 
@@ -475,6 +499,10 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"spawn_entity"}
 		&"core.invoke_effect":
 			return {"effect_id_param": &"effect_id"}
+		&"core.wake":
+			return {"effect_id": &"wake"}
+		&"core.team_switch":
+			return {"effect_id": &"team_switch"}
 		_:
 			return {}
 
@@ -594,6 +622,20 @@ static func _build_controller_spec_inline(archetype, mechanic) -> Dictionary:
 				"source_archetype_id": archetype.archetype_id,
 				"params": Dictionary(mechanic.params).duplicate(true),
 			}
+		&"core.ground_damage":
+			return {
+				"controller_id": &"core.ground_damage",
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"params": Dictionary(mechanic.params).duplicate(true),
+			}
+		&"core.projectile_transform":
+			return {
+				"controller_id": &"core.projectile_transform",
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"params": Dictionary(mechanic.params).duplicate(true),
+			}
 		_:
 			return {}
 
@@ -644,6 +686,19 @@ static func _build_state_spec_inline(archetype, mechanic) -> Dictionary:
 					"trigger": "event",
 					"event_name": &"entity.damaged",
 					"trigger_threshold": float(mechanic.params.get("trigger_threshold", 0.5)),
+				}],
+			}
+		&"core.sleeping":
+			return {
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"initial_state": &"sleeping",
+				"transitions": [{
+					"transition_id": StringName("%s__sleeping_to_awake" % String(mechanic.mechanic_id)),
+					"from_state": &"sleeping",
+					"to_state": &"awake",
+					"trigger": "event",
+					"event_name": &"entity.wake",
 				}],
 			}
 		_:
@@ -724,7 +779,6 @@ static var _compile_state_growth: Callable = func(mechanic, archetype, _merged_p
 	}
 
 static var _compile_state_rage: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
-	var trigger_threshold: float = float(mechanic.params.get("trigger_threshold", 0.5))
 	return {
 		"mechanic_id": mechanic.mechanic_id,
 		"source_archetype_id": archetype.archetype_id,
@@ -735,7 +789,21 @@ static var _compile_state_rage: Callable = func(mechanic, archetype, _merged_par
 			"to_state": &"rage",
 			"trigger": "event",
 			"event_name": &"entity.damaged",
-			"trigger_threshold": trigger_threshold,
+			"trigger_threshold": float(mechanic.params.get("trigger_threshold", 0.5)),
+		}],
+	}
+
+static var _compile_state_sleeping: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
+	return {
+		"mechanic_id": mechanic.mechanic_id,
+		"source_archetype_id": archetype.archetype_id,
+		"initial_state": &"sleeping",
+		"transitions": [{
+			"transition_id": StringName("%s__sleeping_to_awake" % String(mechanic.mechanic_id)),
+			"from_state": &"sleeping",
+			"to_state": &"awake",
+			"trigger": "event",
+			"event_name": &"entity.wake",
 		}],
 	}
 
@@ -821,6 +889,16 @@ static func _register_targeting_callables() -> void:
 		_compile_targeting_always,
 		{"compiler_version": COMPILER_VERSION, "family": &"Targeting"}
 	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.radius_around",
+		_compile_targeting_radius_around,
+		{"compiler_version": COMPILER_VERSION, "family": &"Targeting"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.global_track",
+		_compile_targeting_global_track,
+		{"compiler_version": COMPILER_VERSION, "family": &"Targeting"}
+	)
 
 static var _compile_targeting_lane_forward: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
 	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
@@ -842,6 +920,22 @@ static var _compile_targeting_always: Callable = func(mechanic, _archetype, _mer
 	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
 	if not params.has("detection_id"):
 		params["detection_id"] = &"always"
+	return params
+
+static var _compile_targeting_radius_around: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	if not params.has("detection_id"):
+		params["detection_id"] = &"radius_around"
+	if not params.has("scan_range"):
+		params["scan_range"] = 180.0
+	return params
+
+static var _compile_targeting_global_track: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	if not params.has("detection_id"):
+		params["detection_id"] = &"global_track"
+	if not params.has("scan_range"):
+		params["scan_range"] = 4000.0
 	return params
 
 
@@ -907,6 +1001,11 @@ static func _register_hit_policy_callables() -> void:
 		_compile_hit_policy_overlap,
 		{"compiler_version": COMPILER_VERSION, "family": &"HitPolicy"}
 	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.pierce",
+		_compile_hit_policy_pierce,
+		{"compiler_version": COMPILER_VERSION, "family": &"HitPolicy"}
+	)
 
 static var _compile_hit_policy_swept_segment: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
 	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
@@ -934,6 +1033,15 @@ static var _compile_hit_policy_overlap: Callable = func(mechanic, _archetype, _m
 	params["hit_strategy"] = &"overlap"
 	return params
 
+static var _compile_hit_policy_pierce: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["hit_strategy"] = &"pierce"
+	if not params.has("max_penetrations"):
+		params["max_penetrations"] = 5
+	if not params.has("pierce_range"):
+		params["pierce_range"] = 320.0
+	return params
+
 
 # --- Emission compiler callables ---
 
@@ -956,6 +1064,21 @@ static func _register_emission_callables() -> void:
 	MechanicCompilerRegistry.register_compiler_callable(
 		&"core.spread",
 		_compile_emission_spread,
+		{"compiler_version": COMPILER_VERSION, "family": &"Emission"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.multi_lane",
+		_compile_emission_multi_lane,
+		{"compiler_version": COMPILER_VERSION, "family": &"Emission"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.dual_direction",
+		_compile_emission_dual_direction,
+		{"compiler_version": COMPILER_VERSION, "family": &"Emission"}
+	)
+	MechanicCompilerRegistry.register_compiler_callable(
+		&"core.multi_angle",
+		_compile_emission_multi_angle,
 		{"compiler_version": COMPILER_VERSION, "family": &"Emission"}
 	)
 
@@ -986,6 +1109,29 @@ static var _compile_emission_spread: Callable = func(mechanic, _archetype, _merg
 		params["spread_count"] = 2
 	if not params.has("spread_angle"):
 		params["spread_angle"] = 15.0
+	return params
+
+static var _compile_emission_multi_lane: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["emission_mode"] = &"multi_lane"
+	if not params.has("lane_count"):
+		params["lane_count"] = 3
+	if not params.has("lane_offset"):
+		params["lane_offset"] = -1
+	return params
+
+static var _compile_emission_dual_direction: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["emission_mode"] = &"dual_direction"
+	return params
+
+static var _compile_emission_multi_angle: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:
+	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	params["emission_mode"] = &"multi_angle"
+	if not params.has("angle_count"):
+		params["angle_count"] = 5
+	if not params.has("angle_spread"):
+		params["angle_spread"] = 72.0
 	return params
 
 
@@ -1057,6 +1203,13 @@ static func _build_placement_spec_from_mechanic(mechanic, archetype, slot_type: 
 		required_present_roles = PackedStringArray(required_present_roles)
 	else:
 		required_present_roles = PackedStringArray(archetype.required_present_roles)
+	var required_present_archetypes: Variant = params.get("required_present_archetypes", archetype.required_present_archetypes)
+	if required_present_archetypes is PackedStringArray:
+		required_present_archetypes = PackedStringArray(required_present_archetypes)
+	elif required_present_archetypes is Array:
+		required_present_archetypes = PackedStringArray(required_present_archetypes)
+	else:
+		required_present_archetypes = PackedStringArray(archetype.required_present_archetypes)
 	var required_empty_roles: Variant = params.get("required_empty_roles", archetype.required_empty_roles)
 	if required_empty_roles is PackedStringArray:
 		required_empty_roles = PackedStringArray(required_empty_roles)
@@ -1072,6 +1225,7 @@ static func _build_placement_spec_from_mechanic(mechanic, archetype, slot_type: 
 		"granted_placement_tags": granted_tags,
 		"placement_role": StringName(params.get("placement_role", archetype.placement_role)),
 		"required_present_roles": required_present_roles,
+		"required_present_archetypes": required_present_archetypes,
 		"required_empty_roles": required_empty_roles,
 		"slot_type_hint": slot_type_hint,
 	}

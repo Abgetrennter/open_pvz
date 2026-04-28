@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.skeleton.emission_multi_lane"
+display_name = "Emission Multi Lane"
+family = &"Emission"
+type_id = &"core.multi_lane"
+priority = 18
+tags = PackedStringArray("skeleton", "emission", "multi_lane")
+params = {
+"lane_count": 3,
+"lane_offset": -1
+}
