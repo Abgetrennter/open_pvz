@@ -5,14 +5,14 @@
 
 [resource]
 script = ExtResource("1_archetype")
-archetype_id = &"archetype_original_goldmagnet"
-legacy_template_id = &"plant_goldmagnet"
-display_name = "Gold Magnet"
+archetype_id = &"archetype_original_plantern"
+legacy_template_id = &"plant_plantern"
+display_name = "Plantern"
 hit_height_band = ExtResource("2_height")
 entity_kind = &"plant"
-tags = PackedStringArray("archetype", "plant", "original", "goldmagnet", "upgrade", "economy")
+tags = PackedStringArray("archetype", "plant", "original", "plantern", "reveal", "protocol_gap")
 optional_components = PackedStringArray("DebugViewComponent")
-placement_role = &"upgrade"
-required_present_archetypes = PackedStringArray("archetype_original_magnetshroom")
+placement_role = &"primary"
+required_placement_tags = PackedStringArray("supports_primary")
 max_health = 300
-hitbox_size = Vector2(40, 50)
+hitbox_size = Vector2(42, 52)

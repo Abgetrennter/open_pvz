@@ -14,6 +14,7 @@ hit_height_band = ExtResource("4_height")
 entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "original", "twinsunflower", "upgrade", "producer", "sun")
 optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"upgrade"
 required_present_archetypes = PackedStringArray("archetype_original_sunflower")
 max_health = 300
 hitbox_size = Vector2(38, 50)

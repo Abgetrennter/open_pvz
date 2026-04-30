@@ -1,0 +1,67 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_hypnoshroom.tres" id="5_hypno_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_coffeebean.tres" id="6_coffee_card"]
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 205.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Req_hypno"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_hypnoshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee"]
+script = ExtResource("3_request")
+at_time = 0.2
+card_id = &"card_original_coffeebean"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_hypno_awake"]
+script = ExtResource("4_rule")
+rule_id = &"hypnoshroom_awake"
+description = "Coffee Bean should wake the covered Hypno-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_template_id": &"plant_hypnoshroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_team_switch"]
+script = ExtResource("4_rule")
+rule_id = &"hypnoshroom_team_switch"
+description = "Awakened Hypno-shroom should convert the close zombie target instead of dealing plain damage."
+event_name = &"entity.team_switched"
+required_tags = PackedStringArray("team_switch", "hypnosis")
+required_core_values = {
+"new_team": &"plant",
+"source_template_id": &"plant_hypnoshroom",
+"target_template_id": &"zombie_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_hypnoshroom_validation"
+display_name = "Original Hypno-shroom Validation"
+description = "Validates Coffee Bean wake plus Hypno-shroom proximity team_switch behavior."
+goals = PackedStringArray("Verify Coffee Bean wakes Hypno-shroom.", "Verify Hypno-shroom converts a close zombie through the shared team_switch effect.")
+validation_time_limit = 3.0
+initial_sun = 1000
+lane_count = 1
+card_defs = [ExtResource("5_hypno_card"), ExtResource("6_coffee_card")]
+card_play_requests = [SubResource("Req_hypno"), SubResource("Req_coffee")]
+validation_rules = [SubResource("Rule_hypno_awake"), SubResource("Rule_team_switch")]
+spawns = [SubResource("Spawn_target")]

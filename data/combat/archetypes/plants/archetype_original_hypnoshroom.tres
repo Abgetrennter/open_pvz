@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_sleeping_state.tres" id="2_state"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="3_trigger"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_direct_damage_payload.tres" id="4_payload"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_proximity_trigger.tres" id="3_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_hypnoshroom_team_switch.tres" id="4_payload"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_height"]
 
 [resource]
@@ -18,6 +18,9 @@ optional_components = PackedStringArray("DebugViewComponent", "StateComponent")
 max_health = 300
 hitbox_size = Vector2(36, 40)
 default_params = {
-"required_state": &"awake"
+"interval": 0.25,
+"required_state": &"awake",
+"scan_range": 64.0,
+"start_delay": 0.0
 }
 mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("4_payload")]

@@ -116,17 +116,20 @@
     },
     {
       "id": "original_plants_batch_c",
-      "description": "PVZ1 Batch C representative validation: Puff/Fume spawn path, Ice/Doom on-place damage, Coffee Bean targeted wake, and Fume-shroom pierce. Hypno/Sea/Scaredy/Sun/Magnet behavior still need full batch-level completion coverage.",
+      "description": "PVZ1 Batch C validation: Puff/Fume spawn path, Ice/Doom on-place damage, Coffee Bean targeted wake, Fume-shroom pierce, Hypno team switch, Sun-shroom production, and Scaredy-shroom shooting. Grave Buster tombstone targeting, Sun-shroom growth, and Scaredy-shroom near-enemy stop-fire remain precision gaps.",
       "validations": [
         "plant_original_batch_c_validation",
         "plant_original_coffeebean_wake_validation",
-        "plant_original_fumeshroom_pierce_validation"
+        "plant_original_fumeshroom_pierce_validation",
+        "plant_original_hypnoshroom_validation",
+        "plant_original_sunshroom_validation",
+        "plant_original_scaredyshroom_validation"
       ],
       "showcases": []
     },
     {
       "id": "original_plants_batch_d",
-      "description": "PVZ1 Batch D validation: Threepeater multi-lane, Spikeweed ground_damage, Torchwood path, Split Pea dual direction, Starfruit multi-angle, Cactus air target, Blover air-only dispel, Magnet metal targeting, and Lily Pad/Sea-shroom water placement. Tangle Kelp/Plantern resources remain missing.",
+      "description": "PVZ1 Batch D validation: Threepeater multi-lane, Spikeweed ground_damage, Torchwood path, Split Pea dual direction, Starfruit multi-angle, Cactus air target, Blover air-only dispel, Magnet metal targeting, Lily Pad/Sea-shroom water placement, and Sea-shroom wake/damage are behavior checks. Tangle Kelp is only covered by water placement plus a proximity-damage proxy, and Plantern is only covered by resource/card placement smoke; Plantern reveal and exact Tangle Kelp consume/drag semantics remain protocol gaps.",
       "validations": [
         "plant_original_batch_d_validation",
         "plant_original_splitpea_validation",
@@ -134,15 +137,19 @@
         "plant_original_cactus_validation",
         "plant_original_blover_validation",
         "plant_original_magnetshroom_validation",
-        "plant_original_water_pair_validation"
+        "plant_original_water_pair_validation",
+        "plant_original_seashroom_validation",
+        "plant_original_tanglekelp_plantern_validation"
       ],
       "showcases": []
     },
     {
       "id": "original_plants_batch_e",
-      "description": "PVZ1 Batch E weak coverage: 9/14 resources/cards exist, but upgrade replacement, multi-slot occupancy, roof/manual/copy behavior and missing Kernel-pult/Marigold/Imitater/Garlic/Umbrella Leaf still prevent batch completion.",
+      "description": "PVZ1 Batch E weak coverage: 9/14 resources/cards exist. Flower Pot roof support and available upgrade placement dependencies are validated, but upgrade replacement, multi-slot occupancy, manual/copy behavior and missing Kernel-pult/Marigold/Imitater/Garlic/Umbrella Leaf still prevent batch completion.",
       "validations": [
-        "plant_original_batch_e_validation"
+        "plant_original_batch_e_validation",
+        "plant_original_flowerpot_validation",
+        "plant_original_e_upgrade_placement_validation"
       ],
       "showcases": []
     },

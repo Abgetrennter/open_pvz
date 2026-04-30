@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_scaredyshroom.tres" id="5_scaredy_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_coffeebean.tres" id="6_coffee_card"]
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 320.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Req_scaredy"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_scaredyshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee"]
+script = ExtResource("3_request")
+at_time = 0.2
+card_id = &"card_original_coffeebean"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_awake"]
+script = ExtResource("4_rule")
+rule_id = &"scaredyshroom_awake"
+description = "Coffee Bean should wake the covered Scaredy-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_template_id": &"plant_scaredyshroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_damage"]
+script = ExtResource("4_rule")
+rule_id = &"scaredyshroom_damage"
+description = "Awakened Scaredy-shroom should damage the forward lane target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_scaredyshroom",
+"target_lane": 0,
+"target_template_id": &"zombie_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_scaredyshroom_validation"
+display_name = "Original Scaredy-shroom Validation"
+description = "Validates Coffee Bean wake plus Scaredy-shroom forward projectile damage."
+goals = PackedStringArray("Verify Coffee Bean wakes Scaredy-shroom.", "Verify awakened Scaredy-shroom can fire and damage a target.")
+validation_time_limit = 4.0
+initial_sun = 1000
+lane_count = 1
+card_defs = [ExtResource("5_scaredy_card"), ExtResource("6_coffee_card")]
+card_play_requests = [SubResource("Req_scaredy"), SubResource("Req_coffee")]
+validation_rules = [SubResource("Rule_awake"), SubResource("Rule_damage")]
+spawns = [SubResource("Spawn_target")]

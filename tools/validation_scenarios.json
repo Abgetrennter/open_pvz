@@ -540,6 +540,30 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_hypnoshroom_validation",
+    "scenario": "res://scenes/validation/plant_original_hypnoshroom_validation.tres",
+    "description": "Validates Hypno-shroom wake flow and proximity team switch.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_sunshroom_validation",
+    "scenario": "res://scenes/validation/plant_original_sunshroom_validation.tres",
+    "description": "Validates Sun-shroom wake flow and delayed sun production.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_scaredyshroom_validation",
+    "scenario": "res://scenes/validation/plant_original_scaredyshroom_validation.tres",
+    "description": "Validates Scaredy-shroom wake flow and forward projectile damage.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_seashroom_validation",
+    "scenario": "res://scenes/validation/plant_original_seashroom_validation.tres",
+    "description": "Validates Sea-shroom water placement, wake flow, and short-range damage.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_batch_d_validation",
     "scenario": "res://scenes/validation/plant_original_batch_d_validation.tres",
     "description": "Validates Batch D field and multi-directional plants: Threepeater multi-lane damage, Spikeweed ground_damage, Peashooter+Torchwood combo.",
@@ -582,9 +606,27 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_tanglekelp_plantern_validation",
+    "scenario": "res://scenes/validation/plant_original_tanglekelp_plantern_validation.tres",
+    "description": "Validates partial Tangle Kelp water placement/proximity-damage proxy and Plantern resource/card placement smoke; drag/consume and reveal remain protocol gaps.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_batch_e_validation",
     "scenario": "res://scenes/validation/plant_original_batch_e_validation.tres",
     "description": "Validates Batch E roof and upgrade plants: Repeater damage, Sunflower sun production, Winter Melon splash damage, Flower Pot support spawn.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_flowerpot_validation",
+    "scenario": "res://scenes/validation/plant_original_flowerpot_validation.tres",
+    "description": "Validates Flower Pot roof support placement and support-granted primary placement.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_e_upgrade_placement_validation",
+    "scenario": "res://scenes/validation/plant_original_e_upgrade_placement_validation.tres",
+    "description": "Validates E batch upgrade placement role and specific base archetype dependencies.",
     "layers": ["core"]
   }
 ]

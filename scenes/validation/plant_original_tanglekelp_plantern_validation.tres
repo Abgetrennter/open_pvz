@@ -1,0 +1,98 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_tanglekelp.tres" id="6_tangle_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_plantern.tres" id="7_plantern_card"]
+
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("4_slot_config")
+lane_id = 0
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water", "supports_primary")
+
+[sub_resource type="Resource" id="Spawn_tangle_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 205.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Req_tanglekelp"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_tanglekelp"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_plantern"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_plantern"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_tangle_accept"]
+script = ExtResource("5_rule")
+rule_id = &"tanglekelp_water_accept"
+description = "Tangle Kelp should be accepted on a water slot."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_tanglekelp",
+"placement_role": &"primary",
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="Rule_tangle_damage"]
+script = ExtResource("5_rule")
+rule_id = &"tanglekelp_damage"
+description = "Tangle Kelp proxy behavior should damage a close water-lane target; original drag/consume semantics remain a protocol gap."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_tanglekelp",
+"target_lane": 0,
+"target_template_id": &"zombie_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_plantern_accept"]
+script = ExtResource("5_rule")
+rule_id = &"plantern_ground_accept"
+description = "Plantern should compile and be accepted as a ground primary plant; reveal behavior remains a protocol gap."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_plantern",
+"placement_role": &"primary",
+"slot_type": &"ground"
+}
+
+[sub_resource type="Resource" id="Rule_plantern_spawn"]
+script = ExtResource("5_rule")
+rule_id = &"plantern_spawn"
+description = "Plantern should spawn from its original archetype resource."
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_original_plantern",
+"spawn_reason": &"card_play"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_tanglekelp_plantern_validation"
+display_name = "Original Tangle Kelp and Plantern Validation"
+description = "Validates partial D resource coverage: Tangle Kelp water placement plus proximity-damage proxy, and Plantern resource/card placement smoke. Tangle Kelp drag/consume and Plantern reveal remain protocol gaps."
+goals = PackedStringArray("Verify Tangle Kelp can be placed on water and exercises only the current proximity-damage proxy.", "Verify Plantern original archetype/card compiles and can be placed without claiming reveal behavior.")
+validation_time_limit = 3.0
+initial_sun = 1000
+lane_count = 2
+board_slot_count = 1
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("6_tangle_card"), ExtResource("7_plantern_card")]
+card_play_requests = [SubResource("Req_tanglekelp"), SubResource("Req_plantern")]
+validation_rules = [SubResource("Rule_tangle_accept"), SubResource("Rule_tangle_damage"), SubResource("Rule_plantern_accept"), SubResource("Rule_plantern_spawn")]
+spawns = [SubResource("Spawn_tangle_target")]

@@ -1,0 +1,245 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=34 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="3_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_repeater.tres" id="5_repeater_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_gatlingpea.tres" id="6_gatling_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_sunflower.tres" id="7_sunflower_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_twinsunflower.tres" id="8_twin_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_fumeshroom.tres" id="9_fume_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_gloomshroom.tres" id="10_gloom_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_lilypad.tres" id="11_lily_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_cattail.tres" id="12_cattail_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_melonpult.tres" id="13_melon_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_wintermelon.tres" id="14_winter_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_magnetshroom.tres" id="15_magnet_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_goldmagnet.tres" id="16_gold_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_spikeweed.tres" id="17_spikeweed_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_spikerock.tres" id="18_spikerock_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_peashooter.tres" id="19_peashooter_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_cobcannon.tres" id="20_cob_card"]
+
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("3_slot_config")
+lane_id = 3
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water")
+
+[sub_resource type="Resource" id="Req_repeater"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_repeater"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_gatling"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_gatlingpea"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_sunflower"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_sunflower"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_twin"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_twinsunflower"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_fume"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_fumeshroom"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_gloom"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_gloomshroom"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_lily"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_lilypad"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_cattail"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_cattail"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_melon"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_melonpult"
+lane_id = 4
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_winter"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_wintermelon"
+lane_id = 4
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_magnet"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_magnetshroom"
+lane_id = 5
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_gold"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_goldmagnet"
+lane_id = 5
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_spikeweed"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_spikeweed"
+lane_id = 6
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_spikerock"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_spikerock"
+lane_id = 6
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_peashooter"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_peashooter"
+lane_id = 7
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_cob_wrong_base"]
+script = ExtResource("2_request")
+at_time = 0.35
+card_id = &"card_original_cobcannon"
+lane_id = 7
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_gatling_accept"]
+script = ExtResource("4_rule")
+rule_id = &"gatling_repeater_upgrade_accept"
+description = "Gatling Pea should be accepted only as an upgrade role over Repeater."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_gatlingpea",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_repeater"
+}
+
+[sub_resource type="Resource" id="Rule_twin_accept"]
+script = ExtResource("4_rule")
+rule_id = &"twin_sunflower_upgrade_accept"
+description = "Twin Sunflower should be accepted as an upgrade role over Sunflower."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_twinsunflower",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_sunflower"
+}
+
+[sub_resource type="Resource" id="Rule_gloom_accept"]
+script = ExtResource("4_rule")
+rule_id = &"gloom_fume_upgrade_accept"
+description = "Gloom-shroom should be accepted as an upgrade role over Fume-shroom."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_gloomshroom",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_fumeshroom"
+}
+
+[sub_resource type="Resource" id="Rule_cattail_accept"]
+script = ExtResource("4_rule")
+rule_id = &"cattail_lilypad_upgrade_accept"
+description = "Cattail should be accepted as an upgrade role over Lily Pad support."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_cattail",
+"placement_role": &"upgrade",
+"support_archetype_id": &"archetype_original_lilypad"
+}
+
+[sub_resource type="Resource" id="Rule_winter_accept"]
+script = ExtResource("4_rule")
+rule_id = &"winter_melon_upgrade_accept"
+description = "Winter Melon should be accepted as an upgrade role over Melon-pult."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_wintermelon",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_melonpult"
+}
+
+[sub_resource type="Resource" id="Rule_gold_accept"]
+script = ExtResource("4_rule")
+rule_id = &"gold_magnet_upgrade_accept"
+description = "Gold Magnet should be accepted as an upgrade role over Magnet-shroom."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_goldmagnet",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_magnetshroom"
+}
+
+[sub_resource type="Resource" id="Rule_spikerock_accept"]
+script = ExtResource("4_rule")
+rule_id = &"spikerock_spikeweed_upgrade_accept"
+description = "Spikerock should be accepted as an upgrade role over Spikeweed."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_spikerock",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_spikeweed"
+}
+
+[sub_resource type="Resource" id="Rule_cob_wrong_base_reject"]
+script = ExtResource("4_rule")
+rule_id = &"cob_wrong_base_reject"
+description = "Cob Cannon should reject a Peashooter base instead of accepting any primary plant."
+event_name = &"card.play_rejected"
+required_core_values = {
+"card_id": &"card_original_cobcannon",
+"placement_reason": &"required_adjacent_archetype_missing",
+"reason": &"invalid_placement"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_e_upgrade_placement_validation"
+display_name = "Original E Upgrade Placement Validation"
+description = "Validates E batch upgrade placement dependencies use the upgrade role and require specific base archetypes."
+goals = PackedStringArray("Verify available E upgrade plants can be placed over their specific base archetypes.", "Verify an incorrect base plant is rejected instead of satisfying upgrade placement by role alone.")
+validation_time_limit = 2.0
+initial_sun = 5000
+lane_count = 8
+board_slot_count = 1
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("5_repeater_card"), ExtResource("6_gatling_card"), ExtResource("7_sunflower_card"), ExtResource("8_twin_card"), ExtResource("9_fume_card"), ExtResource("10_gloom_card"), ExtResource("11_lily_card"), ExtResource("12_cattail_card"), ExtResource("13_melon_card"), ExtResource("14_winter_card"), ExtResource("15_magnet_card"), ExtResource("16_gold_card"), ExtResource("17_spikeweed_card"), ExtResource("18_spikerock_card"), ExtResource("19_peashooter_card"), ExtResource("20_cob_card")]
+card_play_requests = [SubResource("Req_repeater"), SubResource("Req_gatling"), SubResource("Req_sunflower"), SubResource("Req_twin"), SubResource("Req_fume"), SubResource("Req_gloom"), SubResource("Req_lily"), SubResource("Req_cattail"), SubResource("Req_melon"), SubResource("Req_winter"), SubResource("Req_magnet"), SubResource("Req_gold"), SubResource("Req_spikeweed"), SubResource("Req_spikerock"), SubResource("Req_peashooter"), SubResource("Req_cob_wrong_base")]
+validation_rules = [SubResource("Rule_gatling_accept"), SubResource("Rule_twin_accept"), SubResource("Rule_gloom_accept"), SubResource("Rule_cattail_accept"), SubResource("Rule_winter_accept"), SubResource("Rule_gold_accept"), SubResource("Rule_spikerock_accept"), SubResource("Rule_cob_wrong_base_reject")]
+spawns = []

@@ -1,0 +1,76 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_seashroom.tres" id="6_sea_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_coffeebean.tres" id="7_coffee_card"]
+
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("4_slot_config")
+lane_id = 0
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water", "supports_primary")
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 260.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Req_seashroom"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_seashroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee"]
+script = ExtResource("3_request")
+at_time = 0.2
+card_id = &"card_original_coffeebean"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_awake"]
+script = ExtResource("5_rule")
+rule_id = &"seashroom_awake"
+description = "Coffee Bean should wake the covered Sea-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_template_id": &"plant_seashroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_damage"]
+script = ExtResource("5_rule")
+rule_id = &"seashroom_damage"
+description = "Awakened Sea-shroom should damage the close forward water-lane target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_template_id": &"plant_seashroom",
+"target_lane": 0,
+"target_template_id": &"zombie_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_seashroom_validation"
+display_name = "Original Sea-shroom Validation"
+description = "Validates water-slot placement, Coffee Bean wake, and Sea-shroom short-range damage."
+goals = PackedStringArray("Verify Sea-shroom can occupy a water slot.", "Verify Coffee Bean wakes Sea-shroom.", "Verify awakened Sea-shroom damages a close target.")
+validation_time_limit = 4.0
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 1
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("6_sea_card"), ExtResource("7_coffee_card")]
+card_play_requests = [SubResource("Req_seashroom"), SubResource("Req_coffee")]
+validation_rules = [SubResource("Rule_awake"), SubResource("Rule_damage")]
+spawns = [SubResource("Spawn_target")]

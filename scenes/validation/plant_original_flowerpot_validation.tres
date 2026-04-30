@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="3_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_flowerpot.tres" id="5_flowerpot_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_peashooter.tres" id="6_peashooter_card"]
+
+[sub_resource type="Resource" id="Roof_slot"]
+script = ExtResource("3_slot_config")
+lane_id = 0
+slot_index = 0
+slot_type = &"roof"
+placement_tags = PackedStringArray("roof", "supports_roof")
+
+[sub_resource type="Resource" id="Req_flowerpot"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_flowerpot"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_peashooter"]
+script = ExtResource("2_request")
+at_time = 0.25
+card_id = &"card_original_peashooter"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_flowerpot_accept"]
+script = ExtResource("4_rule")
+rule_id = &"flowerpot_roof_accept"
+description = "Flower Pot should be accepted as roof support."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_flowerpot",
+"placement_role": &"support",
+"slot_type": &"roof"
+}
+
+[sub_resource type="Resource" id="Rule_flowerpot_spawn"]
+script = ExtResource("4_rule")
+rule_id = &"flowerpot_spawn"
+description = "Flower Pot should spawn from the original archetype resource."
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_original_flowerpot",
+"spawn_reason": &"card_play"
+}
+
+[sub_resource type="Resource" id="Rule_peashooter_accept"]
+script = ExtResource("4_rule")
+rule_id = &"peashooter_on_flowerpot_accept"
+description = "Flower Pot should grant supports_primary so a primary plant can be placed on the roof slot."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_peashooter",
+"placement_role": &"primary",
+"slot_type": &"roof"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_flowerpot_validation"
+display_name = "Original Flower Pot Validation"
+description = "Validates Flower Pot roof support placement and support-granted primary placement."
+goals = PackedStringArray("Verify Flower Pot is accepted on a roof slot.", "Verify Flower Pot grants primary placement support on that slot.")
+validation_time_limit = 1.5
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 1
+board_slot_configs = [SubResource("Roof_slot")]
+card_defs = [ExtResource("5_flowerpot_card"), ExtResource("6_peashooter_card")]
+card_play_requests = [SubResource("Req_flowerpot"), SubResource("Req_peashooter")]
+validation_rules = [SubResource("Rule_flowerpot_accept"), SubResource("Rule_flowerpot_spawn"), SubResource("Rule_peashooter_accept")]
+spawns = []

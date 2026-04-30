@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_sunshroom.tres" id="4_sun_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_coffeebean.tres" id="5_coffee_card"]
+
+[sub_resource type="Resource" id="Req_sunshroom"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_sunshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee"]
+script = ExtResource("2_request")
+at_time = 0.2
+card_id = &"card_original_coffeebean"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_awake"]
+script = ExtResource("3_rule")
+rule_id = &"sunshroom_awake"
+description = "Coffee Bean should wake the covered Sun-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_template_id": &"plant_sunshroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_sun_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"sunshroom_sun_spawn"
+description = "Awakened Sun-shroom should produce plant-generated sun."
+event_name = &"sun.spawned"
+required_core_values = {
+"source_template_id": &"plant_sunshroom",
+"source_type": &"plant_generated",
+"value": 15
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_sunshroom_validation"
+display_name = "Original Sun-shroom Validation"
+description = "Validates Coffee Bean wake plus Sun-shroom delayed plant-generated sun production."
+goals = PackedStringArray("Verify Coffee Bean wakes Sun-shroom.", "Verify awakened Sun-shroom produces 15 sun through the shared produce_sun effect.")
+validation_time_limit = 9.0
+initial_sun = 1000
+lane_count = 1
+card_defs = [ExtResource("4_sun_card"), ExtResource("5_coffee_card")]
+card_play_requests = [SubResource("Req_sunshroom"), SubResource("Req_coffee")]
+validation_rules = [SubResource("Rule_awake"), SubResource("Rule_sun_spawn")]
+spawns = []

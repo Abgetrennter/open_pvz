@@ -12,6 +12,7 @@ hit_height_band = ExtResource("2_height")
 entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "original", "spikerock", "upgrade", "defense", "ground")
 optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"upgrade"
 required_present_archetypes = PackedStringArray("archetype_original_spikeweed")
 max_health = 450
 hitbox_size = Vector2(60, 30)

@@ -19,6 +19,7 @@ entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "original", "cattail", "upgrade", "tracking", "water")
 required_components = PackedStringArray("TriggerComponent")
 optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"upgrade"
 required_present_archetypes = PackedStringArray("archetype_original_lilypad")
 max_health = 300
 hitbox_size = Vector2(44, 56)

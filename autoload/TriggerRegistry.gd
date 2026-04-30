@@ -54,7 +54,7 @@ func _register_builtin_defs() -> void:
 		"name": "interval",
 		"type": "float",
 		"min": 0.25,
-		"max": 10.0,
+		"max": 60.0,
 	}, {
 		"name": "detection_id",
 		"type": "string_name",

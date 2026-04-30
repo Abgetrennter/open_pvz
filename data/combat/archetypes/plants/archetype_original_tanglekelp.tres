@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_proximity_trigger.tres" id="2_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_direct_damage_payload.tres" id="3_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_tanglekelp"
+legacy_template_id = &"plant_tanglekelp"
+display_name = "Tangle Kelp"
+hit_height_band = ExtResource("4_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "tanglekelp", "water", "instant", "control", "protocol_gap")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"primary"
+required_placement_tags = PackedStringArray("supports_water")
+max_health = 300
+hitbox_size = Vector2(44, 42)
+default_params = {
+"amount": 1800,
+"interval": 0.25,
+"scan_range": 72.0,
+"start_delay": 0.0,
+"target_mode": &"context_target"
+}
+mechanics = [ExtResource("2_trigger"), ExtResource("3_payload")]

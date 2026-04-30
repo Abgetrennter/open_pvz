@@ -3,7 +3,7 @@
 - 状态：执行中
 - 数据源：`vendor/de-pvz/ConstEnums.h` + `vendor/de-pvz/Lawn/Plant.cpp`
 - 创建日期：2026-04-27
-- 最后更新：2026-04-28 (B/C/D 可信验证补齐)
+- 最后更新：2026-04-28 (C/D 归属口径修正，D 缺失资源落地)
 
 > 本文档是阶段 0 产出物，为 49 个原版植物提供可追踪的迁移底账。
 
@@ -21,12 +21,12 @@
 |------|------|---------------|--------------|--------------|
 | A | 7 | **7/7** | `plant_original_batch_a_validation` 覆盖 7/7 | **完成** |
 | B | 7 | **7/7** | `plant_original_batch_b_validation` + Potato Mine / Squash / Chomper 单体验证覆盖 7/7 | **完成** |
-| C | 9 | **9/9** | `plant_original_batch_c_validation` + Coffee Bean targeted wake + Fume-shroom pierce | 未完成：Hypno、Sea/Scaredy/Sun/Magnet 等仍需完整批次单体验证 |
-| D | 12 | **10/12** | `plant_original_batch_d_validation` + Split Pea / Starfruit / Cactus / Blover / Magnet / Lily+Sea 单体验证 | 未完成：Tangle Kelp/Plantern 资源缺失 |
-| E | 14 | **9/14** | `plant_original_batch_e_validation` 仍为弱覆盖 | 未完成：升级替换、多格占用、屋顶/手动/复制等能力未验收 |
-| **总计** | **49** | **42/49** | A/B/C/D/round1 与新增 B/C/D 单体验证当前目标均可信通过 | **严格完成 14/49** |
+| C | 9 | **9/9** | `plant_original_batch_c_validation` + Coffee Bean targeted wake + Fume-shroom pierce + Hypno/Sun/Scaredy 单体验证 | 未完成：Grave Buster 墓碑目标、Sun-shroom 成长、Scaredy-shroom 近敌停火仍是原版精确度缺口 |
+| D | 12 | **12/12** | `plant_original_batch_d_validation` + Split Pea / Starfruit / Cactus / Blover / Magnet / Lily+Sea / Sea wake-damage；Tangle Kelp 仅 proximity-damage 代理验证，Plantern 仅资源/card smoke | 未完成：Plantern 反隐、Tangle Kelp 拖拽/消耗精确语义仍是协议缺口 |
+| E | 14 | **9/14** | `plant_original_batch_e_validation` + Flower Pot roof support + E upgrade placement 依赖验证 | 未完成：升级替换、多格占用、手动/复制等能力未验收 |
+| **总计** | **49** | **44/49** | A/B/C/D/round1 与新增 B/C/D 单体验证当前目标均可信通过 | **严格完成 14/49** |
 
-> 2026-04-28 已确认：A/B/C/D/round1 与新增 B/C/D 单体验证均可运行并通过；B 可按批次完成验收，C/D 仍因剩余植物或缺失资源不能按“全植物完成”验收。
+> 2026-04-28 已确认：A/B/C/D/round1 与新增 B/C/D 单体验证均可运行并通过；B 可按批次完成验收，C 的 sleep/wake、pierce、Hypno team_switch、Sun-shroom 产阳光、Scaredy-shroom 射击已可信覆盖；D 的 12/12 资源+卡片已落地并有关键行为验证，但 Tangle Kelp 仍是 proximity-damage 代理，Plantern 仍是资源/card smoke；C/D 仍因剩余原版精确语义不能按“全批次完成”验收。
 
 ### Round 2 新增植物 (15)
 
@@ -42,8 +42,8 @@
 | Ice-shroom | C | `State.sleeping` + on_place freeze |
 | Doom-shroom | C | `State.sleeping` + on_place explode |
 | Coffee Bean | C | `Lifecycle.on_place` + `Payload.wake` |
-| Sea-shroom | C | `State.sleeping` + water placement + periodic |
-| Magnet-shroom | C | `State.sleeping` + periodic with `target_tags: ["metal"]` |
+| Sea-shroom | D | `State.sleeping` + water placement + periodic |
+| Magnet-shroom | D | `State.sleeping` + periodic with `target_tags: ["metal"]` |
 | Spikeweed | D | `Controller.ground_damage` |
 | Blover | D | `Lifecycle.on_place` + `dispelflying` effect |
 | Cactus | D | air_unit_high height band |
@@ -73,7 +73,7 @@
 | Cob Cannon | E | `archetype_original_cobcannon` | ✅ | 升级依赖 Kernel-pult x2 |
 | Cactus | D | `archetype_original_cactus` | ✅ | 对空高度段 |
 | Blover (结构) | D | ⚠️ 待建 | ⚠️ 待建 | dispel_flying effect |
-| Magnet-shroom (结构) | D | ⚠️ 待建 | ⚠️ 待建 | metal tag 过滤 | |
+| Magnet-shroom (早期结构) | D | `archetype_original_magnetshroom` | ✅ | metal tag 过滤已由正式资源覆盖 |
 
 ### 当前可信验证覆盖样本
 
@@ -95,6 +95,9 @@
 | Chomper | B | `archetype_original_chomper` | `card_original_chomper` | ✅ single |
 | Coffee Bean | C | `archetype_original_coffeebean` | `card_original_coffeebean` | ✅ targeted wake |
 | Fume-shroom | C | `archetype_original_fumeshroom` | `card_original_fumeshroom` | ✅ pierce |
+| Hypno-shroom | C | `archetype_original_hypnoshroom` | `card_original_hypnoshroom` | ✅ wake + team_switch |
+| Sun-shroom | C | `archetype_original_sunshroom` | `card_original_sunshroom` | ✅ wake + 15 sun production |
+| Scaredy-shroom | C | `archetype_original_scaredyshroom` | `card_original_scaredyshroom` | ✅ wake + projectile damage |
 | Threepeater | D | `archetype_original_threepeater` | `card_original_threepeater` | ✅ batch_d |
 | Spikeweed | D | `archetype_original_spikeweed` | `card_original_spikeweed` | ✅ batch_d |
 | Torchwood | D | `archetype_original_torchwood` | `card_original_torchwood` | ✅ batch_d |
@@ -105,15 +108,18 @@
 | Magnet-shroom | D | `archetype_original_magnetshroom` | `card_original_magnetshroom` | ✅ metal target |
 | Lily Pad | D | `archetype_original_lilypad` | `card_original_lilypad` | ✅ water support |
 | Sea-shroom | D | `archetype_original_seashroom` | `card_original_seashroom` | ✅ water primary |
-| Flower Pot | E | `archetype_original_flowerpot` | `card_original_flowerpot` | ⚠️ 待补单体验证 |
+| Tangle Kelp | D | `archetype_original_tanglekelp` | `card_original_tanglekelp` | ⚠️ partial：water placement + proximity-damage proxy；无拖拽/消耗 |
+| Plantern | D | `archetype_original_plantern` | `card_original_plantern` | ⚠️ smoke：resource/card placement；无 reveal |
+| Flower Pot | E | `archetype_original_flowerpot` | `card_original_flowerpot` | ✅ roof support placement |
+| E upgrades | E | Gatling/Twin/Gloom/Cattail/Winter/Gold/Spikerock | 对应 `card_original_*` | ✅ upgrade role + specific base dependency |
 
 ### 当前主要缺口
 
-1. **单体验证缺口** — C/E 中多数复杂植物仍缺单体验证，D 仍缺 Tangle Kelp/Plantern 资源，不能按完成验收。
+1. **单体验证缺口** — C 的 Grave Buster 仍缺墓碑目标验收，E 中多数复杂植物仍缺单体验证，D 的 Tangle Kelp 仍只有代理伤害验证、Plantern 仍只有资源/card smoke，不能按完成验收。
 2. **sleep/wake 精确语义** — 已修正 `entity.wake` 目标过滤，并以 Coffee Bean targeted wake 验证防止广播唤醒回归。
 3. **升级替换与多格占用** — Cob Cannon 已能表达同格 + 相邻 Kernel-pult 依赖；真正替换/占用两格仍需后续协议。
-4. **缺失资源** — Tangle Kelp、Plantern、Garlic、Umbrella Leaf、Marigold、Kernel-pult、Imitater 未落地。
-5. **复杂行为边界** — Hypno-shroom、Gold Magnet、Cattail、Winter Melon、Cob Cannon 等仍需行为级验证。
+4. **缺失资源** — Garlic、Umbrella Leaf、Marigold、Kernel-pult、Imitater 未落地。
+5. **复杂行为边界** — Sun-shroom 成长、Scaredy-shroom 近敌停火、Grave Buster 墓碑目标、Plantern 反隐、Tangle Kelp 拖拽/消耗、Gold Magnet、Cattail、Winter Melon、Cob Cannon 等仍需行为级验证。
 
 ---
 
