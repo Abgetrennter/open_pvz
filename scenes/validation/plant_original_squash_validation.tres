@@ -29,8 +29,8 @@ description = "Squash should damage a nearby zombie through its on-place impact 
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
-"source_template_id": &"plant_squash",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0
 }
 

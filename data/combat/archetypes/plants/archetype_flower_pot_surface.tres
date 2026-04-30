@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_flower_pot_surface"
-legacy_template_id = &"plant_flower_pot_surface"
 display_name = "Flower Pot Surface"
 hit_height_band = ExtResource("migrated_2_height")
 entity_kind = &"plant"

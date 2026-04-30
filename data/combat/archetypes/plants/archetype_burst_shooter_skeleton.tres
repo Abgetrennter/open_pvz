@@ -13,7 +13,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_burst_shooter_skeleton"
-legacy_template_id = &"plant_basic_shooter"
 display_name = "Burst Shooter Archetype Skeleton"
 projectile_template = ExtResource("migrated_4_projectile_template")
 projectile_flight_profile = ExtResource("migrated_3_profile")

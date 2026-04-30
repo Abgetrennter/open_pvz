@@ -45,7 +45,7 @@ rule_id = &"fume_awake"
 description = "Coffee Bean should wake the covered Fume-shroom before it fires"
 event_name = &"entity.state_entered"
 required_core_values = {
-"source_template_id": &"plant_fumeshroom",
+"source_archetype_id": &"archetype_original_fumeshroom",
 "state_id": &"awake"
 }
 
@@ -55,8 +55,8 @@ rule_id = &"fume_pierce_first_target"
 description = "Fume-shroom pierce projectile should damage the first target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_fumeshroom",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_original_fumeshroom",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0
 }
 
@@ -66,8 +66,8 @@ rule_id = &"fume_pierce_second_target"
 description = "Fume-shroom pierce projectile should continue and damage a second target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_fumeshroom",
-"target_template_id": &"zombie_brisk_runner",
+"source_archetype_id": &"archetype_original_fumeshroom",
+"target_archetype_id": &"archetype_brisk_runner",
 "target_lane": 0
 }
 

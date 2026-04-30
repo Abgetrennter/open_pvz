@@ -3,7 +3,6 @@ class_name RuntimeSpec
 
 var compiler_version: StringName = StringName()
 var source_archetype_id: StringName = StringName()
-var legacy_template_id: StringName = StringName()
 var entity_kind: StringName = StringName()
 var display_name := ""
 var tags: PackedStringArray = PackedStringArray()
@@ -13,7 +12,7 @@ var params: Dictionary = {}
 var hit_height_band: Resource = null
 var projectile_template: Resource = null
 var projectile_flight_profile: Resource = null
-var compiled_trigger_bindings: Array = []
+var trigger_specs: Array = []
 var controller_specs: Array = []
 var state_specs: Array = []
 var runtime_state_values: Dictionary = {}

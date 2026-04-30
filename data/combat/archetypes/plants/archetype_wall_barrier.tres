@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_wall_barrier"
-legacy_template_id = &"plant_wall_barrier"
 display_name = "Wall Barrier Plant"
 tags = PackedStringArray("archetype", "plant", "independent", "defense", "wall")
 optional_components = PackedStringArray("DebugViewComponent")

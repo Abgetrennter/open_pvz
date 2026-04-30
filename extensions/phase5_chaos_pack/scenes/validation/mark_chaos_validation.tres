@@ -27,7 +27,7 @@ event_name = &"entity.mark_applied"
 required_tags = PackedStringArray("extension", "mark", "applied")
 required_core_values = {
 "mark_id": &"vulnerable",
-"target_template_id": &"zombie_bucket_tank"
+"target_archetype_id": &"archetype_bucket_tank"
 }
 
 [sub_resource type="Resource" id="Rule_mark_removed"]

@@ -8,11 +8,11 @@
 - archetype 已可被 `BattleSpawnEntry` 解析
 - archetype 已可被 `MechanicCompiler` 编译为最小 `RuntimeSpec`
 
-当前实现仍然通过 backend entity template 复用旧运行时主链，因此这里的 archetype 主要用于：
+当前实现通过 `CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory` 主链生成实体，因此这里的 archetype 主要用于：
 
 - 验证新作者模型骨架
-- 建立未来迁移目录
-- 为后续 `Mechanic` family/type 正式落地预留资源入口
+- 承载正式内容目录
+- 为 `Mechanic` family/type 提供正式资源入口
 
 建议目录：
 

@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_lawn_mower"
-legacy_template_id = &"field_object_lawn_mower"
 entity_kind = &"field_object"
 display_name = "Lawn Mower"
 tags = PackedStringArray("archetype", "field_object", "independent", "mower")

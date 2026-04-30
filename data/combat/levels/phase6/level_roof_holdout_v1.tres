@@ -28,8 +28,8 @@ initial_sun = 175
 card_defs = [ExtResource("3_card_flower_pot"), ExtResource("4_card_shooter"), ExtResource("5_card_lobber"), ExtResource("6_card_wall"), ExtResource("7_card_frost")]
 wave_defs = [ExtResource("8_wave_ground"), ExtResource("9_wave_disrupt")]
 battle_goal = &"protect_and_clear"
-defeat_conditions = PackedStringArray("zombie_reached_goal", "protect_template")
-protected_template_id = &"plant_sunflower"
+defeat_conditions = PackedStringArray("zombie_reached_goal", "protect_archetype")
+protected_archetype_id = &"archetype_sunflower"
 defeat_line_x = 60.0
 spawns = [SubResource("ProtectedSunflower")]
 

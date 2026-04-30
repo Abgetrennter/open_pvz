@@ -36,7 +36,7 @@ rule_id = &"hypnoshroom_awake"
 description = "Coffee Bean should wake the covered Hypno-shroom."
 event_name = &"entity.state_entered"
 required_core_values = {
-"source_template_id": &"plant_hypnoshroom",
+"source_archetype_id": &"archetype_original_hypnoshroom",
 "state_id": &"awake"
 }
 
@@ -48,8 +48,8 @@ event_name = &"entity.team_switched"
 required_tags = PackedStringArray("team_switch", "hypnosis")
 required_core_values = {
 "new_team": &"plant",
-"source_template_id": &"plant_hypnoshroom",
-"target_template_id": &"zombie_basic_walker"
+"source_archetype_id": &"archetype_original_hypnoshroom",
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [resource]

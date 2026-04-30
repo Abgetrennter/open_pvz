@@ -9,7 +9,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_spore_summoner"
-legacy_template_id = &"plant_spore_summoner"
 display_name = "Spore Summoner Plant"
 hit_height_band = ExtResource("migrated_2_height")
 entity_kind = &"plant"

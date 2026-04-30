@@ -27,7 +27,7 @@ description = "archetype-backed lawn mower should spawn as a field object with a
 event_name = &"field_object.spawned"
 required_core_values = {
 "archetype_id": &"archetype_lawn_mower_skeleton",
-"object_template_id": &"field_object_lawn_mower"
+"object_archetype_id": &"archetype_lawn_mower_skeleton"
 }
 
 [sub_resource type="Resource" id="BattleValidationRule_mower_activated"]
@@ -42,7 +42,7 @@ rule_id = &"zombie_killed"
 description = "zombie killed by controller-backed mower sweep"
 event_name = &"entity.died"
 required_core_values = {
-"target_template_id": &"zombie_basic_walker",
+"target_archetype_id": &"archetype_basic_walker",
 "source_archetype_id": &"archetype_lawn_mower_skeleton"
 }
 

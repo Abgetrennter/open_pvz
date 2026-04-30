@@ -68,11 +68,11 @@ event_name = &"game.tick"
 [sub_resource type="Resource" id="BattleValidationRule_bare_roof_reject"]
 script = ExtResource("5_rule")
 rule_id = &"bare_roof_reject"
-description = "bare roof rejects a primary template before a surface container exists"
+description = "bare roof rejects a primary archetype before a surface container exists"
 event_name = &"placement.rejected"
 required_core_values = {
 "card_id": &"bare_roof_fail_card",
-"reason": &"template_tag_mismatch",
+"reason": &"archetype_tag_mismatch",
 "slot_type": &"roof"
 }
 

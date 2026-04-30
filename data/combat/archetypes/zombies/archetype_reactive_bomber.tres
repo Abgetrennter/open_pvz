@@ -10,7 +10,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_reactive_bomber"
-legacy_template_id = &"zombie_reactive_bomber"
 display_name = "Reactive Bomber Zombie"
 hit_height_band = ExtResource("migrated_2_height")
 entity_kind = &"zombie"

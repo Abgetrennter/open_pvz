@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_air_scout"
-legacy_template_id = &"zombie_air_scout"
 display_name = "Air Scout Zombie"
 hit_height_band = ExtResource("migrated_2_height")
 entity_kind = &"zombie"

@@ -17,7 +17,6 @@ const MovementComponentRef = preload("res://scripts/components/movement_componen
 const HitboxComponentRef = preload("res://scripts/components/hitbox_component.gd")
 const DebugViewComponentRef = preload("res://scripts/components/debug_view_component.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
-const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 
@@ -92,10 +91,6 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	if runtime_spec.source_archetype_id != StringName():
 		entity.set("archetype_id", runtime_spec.source_archetype_id)
 	entity.set("tags", PackedStringArray(runtime_spec.tags))
-	if runtime_spec.legacy_template_id != StringName():
-		entity.set("template_id", runtime_spec.legacy_template_id)
-		if entity.has_method("set_state_value"):
-			entity.call("set_state_value", &"legacy_template_id", runtime_spec.legacy_template_id)
 	if entity.has_method("set_state_value") and runtime_spec.runtime_state_values is Dictionary:
 		for key: Variant in runtime_spec.runtime_state_values.keys():
 			entity.call("set_state_value", StringName(str(key)), runtime_spec.runtime_state_values[key])
@@ -106,10 +101,10 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	if runtime_spec.state_specs is Array and not Array(runtime_spec.state_specs).is_empty():
 		_bind_runtime_states(entity, Array(runtime_spec.state_specs))
 	var trigger_instances: Array = []
-	if runtime_spec.compiled_trigger_bindings is Array and not Array(runtime_spec.compiled_trigger_bindings).is_empty():
-		trigger_instances = build_runtime_triggers_from_bindings(
+	if runtime_spec.trigger_specs is Array and not Array(runtime_spec.trigger_specs).is_empty():
+		trigger_instances = build_runtime_triggers_from_specs(
 			entity_kind,
-			Array(runtime_spec.compiled_trigger_bindings),
+			Array(runtime_spec.trigger_specs),
 			params,
 			projectile_flight_profile,
 			projectile_template
@@ -131,8 +126,8 @@ func instantiate_entity(entity_kind: StringName, position: Vector2, template = n
 		return null
 	if entity is Node2D:
 		(entity as Node2D).position = position
-	_ensure_template_components(entity, entity_kind, template, params)
-	_apply_template_metadata(entity, template)
+	_ensure_archetype_components(entity, entity_kind, template, params)
+	_apply_archetype_metadata(entity, template)
 	_apply_entity_property_overrides(entity, params)
 	_apply_runtime_param_metadata(entity, params)
 	return entity
@@ -157,14 +152,14 @@ func create_projectile(position: Vector2, projectile_template = null, params: Di
 	return projectile
 
 
-func build_runtime_triggers_from_bindings(
+func build_runtime_triggers_from_specs(
 	entity_kind: StringName,
-	trigger_bindings: Array,
+	trigger_specs: Array,
 	params: Dictionary = {},
 	projectile_flight_profile: Resource = null,
 	projectile_template = null
 ) -> Array:
-	return _build_triggers_from_bindings(trigger_bindings, entity_kind, params, projectile_flight_profile, projectile_template)
+	return _build_triggers_from_specs(trigger_specs, entity_kind, params, projectile_flight_profile, projectile_template)
 
 
 func _resolve_spawn_overrides(spawn_entry: Resource) -> Dictionary:
@@ -198,13 +193,13 @@ func _instantiate_builtin_root(entity_kind: StringName, template = null):
 
 func _instantiate_field_object(template):
 	if template is CombatArchetypeRef:
-		match StringName(template.legacy_template_id):
-			&"field_object_lawn_mower":
+		match StringName(template.archetype_id):
+			&"archetype_lawn_mower", &"archetype_lawn_mower_skeleton":
 				return LawnMowerRef.new()
 	return FieldObjectRootRef.new()
 
 
-func _ensure_template_components(entity: Node, entity_kind: StringName, template = null, params: Dictionary = {}) -> void:
+func _ensure_archetype_components(entity: Node, entity_kind: StringName, template = null, params: Dictionary = {}) -> void:
 	if entity == null:
 		return
 	var config := _default_config_for_kind(entity_kind)
@@ -218,7 +213,7 @@ func _ensure_template_components(entity: Node, entity_kind: StringName, template
 	_ensure_passive_hitbox(entity, resolved_hitbox_size)
 	if bool(config.get("debug_view_component", false)):
 		_ensure_named_child(entity, "DebugViewComponent", func(): return _make_debug_component())
-	_ensure_required_template_components(entity, template)
+	_ensure_required_archetype_components(entity, template)
 
 
 func _default_config_for_kind(entity_kind: StringName) -> Dictionary:
@@ -355,17 +350,14 @@ func _make_debug_component():
 	return component
 
 
-func _apply_template_metadata(entity: Node, template) -> void:
+func _apply_archetype_metadata(entity: Node, template) -> void:
 	if entity == null or template == null:
 		return
 	if template is CombatArchetypeRef and template.archetype_id != StringName():
 		entity.set("archetype_id", template.archetype_id)
 		entity.set("tags", PackedStringArray(template.tags))
-		if template.legacy_template_id != StringName():
-			entity.set("template_id", template.legacy_template_id)
 		if entity.has_method("set_state_value"):
 			entity.call("set_state_value", &"archetype_id", template.archetype_id)
-			entity.call("set_state_value", &"legacy_template_id", template.legacy_template_id)
 			entity.call("set_state_value", &"archetype_tags", template.tags)
 			entity.call("set_state_value", &"archetype_required_components", template.required_components)
 			entity.call("set_state_value", &"archetype_optional_components", template.optional_components)
@@ -375,56 +367,55 @@ func _build_simple_effect_node(effect_id: StringName, effect_params: Dictionary)
 	return EffectNodeRef.new(effect_id, effect_params.duplicate(true))
 
 
-func _build_triggers_from_bindings(
-	trigger_bindings: Array,
+func _build_triggers_from_specs(
+	trigger_specs: Array,
 	entity_kind: StringName,
 	params: Dictionary,
 	projectile_flight_profile: Resource,
 	projectile_template
 ) -> Array:
 	var triggers: Array = []
-	for binding in trigger_bindings:
-		if not (binding is TriggerBindingRef):
-			continue
-		if not bool(binding.enabled):
+	for trigger_spec in trigger_specs:
+		if trigger_spec == null:
 			continue
 		var trigger = TriggerInstanceRef.new()
-		trigger.def_id = StringName(binding.trigger_id)
-		trigger.event_name = StringName(binding.event_name)
-		trigger.condition_values = _merge_binding_condition_values(binding, params)
+		trigger.def_id = StringName(trigger_spec.trigger_id)
+		trigger.event_name = StringName(trigger_spec.event_name)
+		trigger.condition_values = _merge_spec_condition_values(trigger_spec, params)
 		trigger.bind_time = GameState.current_time
-		var effect_node = _build_effect_node_from_binding(binding, entity_kind, params, projectile_flight_profile, projectile_template)
+		var effect_node = _build_effect_node_from_spec(trigger_spec, entity_kind, params, projectile_flight_profile, projectile_template)
 		if effect_node != null:
 			trigger.effect_roots = [effect_node]
 			triggers.append(trigger)
 	return triggers
 
 
-func _merge_binding_condition_values(binding, params: Dictionary) -> Dictionary:
-	var merged: Dictionary = binding.condition_values.duplicate(true)
+func _merge_spec_condition_values(trigger_spec, params: Dictionary) -> Dictionary:
+	var merged: Dictionary = trigger_spec.condition_values.duplicate(true)
 	for key: Variant in merged.keys():
 		if params.has(key):
 			merged[key] = params[key]
 	return merged
 
 
-func _build_effect_node_from_binding(
-	binding,
+func _build_effect_node_from_spec(
+	trigger_spec,
 	entity_kind: StringName,
 	params: Dictionary,
 	projectile_flight_profile: Resource,
 	projectile_template
 ):
-	if binding == null or not (binding is TriggerBindingRef):
+	if trigger_spec == null or trigger_spec.effect_root == null:
 		return null
-	var effect_id := StringName(binding.effect_id)
+	var source_effect = trigger_spec.effect_root
+	var effect_id := StringName(source_effect.effect_id)
 	if effect_id == StringName():
 		return null
-	var effect_params: Dictionary = binding.effect_params.duplicate(true)
+	var effect_params: Dictionary = source_effect.params.duplicate(true)
 	if effect_id == &"spawn_projectile":
-		effect_params = _merge_projectile_binding_params(effect_params, params, projectile_flight_profile, projectile_template, binding.projectile_template)
+		effect_params = _merge_projectile_spec_params(effect_params, params, projectile_flight_profile, projectile_template)
 		return EffectNodeRef.new(effect_id, effect_params, {
-			&"on_hit": _build_binding_on_hit_effect_node(binding, params),
+			&"on_hit": _build_spec_on_hit_effect_node(source_effect, params),
 		})
 	for key: Variant in params.keys():
 		if effect_params.has(key) or _is_direct_effect_override_key(effect_id, key):
@@ -438,21 +429,18 @@ func _is_direct_effect_override_key(effect_id: StringName, key: Variant) -> bool
 	return ["amount", "target_mode", "radius", "lane_id", "target_tags"].has(str(key))
 
 
-func _merge_projectile_binding_params(
+func _merge_projectile_spec_params(
 	effect_params: Dictionary,
 	params: Dictionary,
 	projectile_flight_profile: Resource,
-	template_projectile_template,
-	binding_projectile_template
+	archetype_projectile_template
 ) -> Dictionary:
 	var merged: Dictionary = {}
 	var resolved_projectile_template = null
 	if params.get("projectile_template", null) is ProjectileTemplateRef:
 		resolved_projectile_template = params.get("projectile_template")
-	elif binding_projectile_template is ProjectileTemplateRef:
-		resolved_projectile_template = binding_projectile_template
 	else:
-		resolved_projectile_template = template_projectile_template
+		resolved_projectile_template = archetype_projectile_template
 	if resolved_projectile_template is ProjectileTemplateRef and resolved_projectile_template.default_params is Dictionary:
 		merged = resolved_projectile_template.default_params.duplicate(true)
 	for key: Variant in params.keys():
@@ -495,9 +483,13 @@ func _is_spawn_projectile_override_key(key: Variant) -> bool:
 	]
 
 
-func _build_binding_on_hit_effect_node(binding, params: Dictionary):
-	var effect_id := StringName(params.get("on_hit_effect_id", binding.on_hit_effect_id))
-	var effect_params: Dictionary = binding.on_hit_effect_params.duplicate(true)
+func _build_spec_on_hit_effect_node(effect_root, params: Dictionary):
+	var source_on_hit = effect_root.get_child(&"on_hit") if effect_root != null and effect_root.has_method("get_child") else null
+	var effect_id := StringName(params.get("on_hit_effect_id", StringName()))
+	var effect_params: Dictionary = {}
+	if source_on_hit != null:
+		effect_id = StringName(params.get("on_hit_effect_id", source_on_hit.effect_id))
+		effect_params = source_on_hit.params.duplicate(true)
 	var override_on_hit_params: Dictionary = {}
 	if params.get("on_hit_effect_params", null) is Dictionary:
 		override_on_hit_params = params.get("on_hit_effect_params").duplicate(true)
@@ -515,7 +507,7 @@ func _build_binding_on_hit_effect_node(binding, params: Dictionary):
 		if params.has("damage") and not override_on_hit_params.has("amount") and not effect_params.has("amount"):
 			effect_params["amount"] = params.get("damage")
 		elif not effect_params.has("amount"):
-			effect_params["amount"] = params.get("damage", binding.effect_params.get("damage", 10))
+			effect_params["amount"] = params.get("damage", effect_root.params.get("damage", 10))
 	return EffectNodeRef.new(effect_id, effect_params)
 
 
@@ -553,9 +545,9 @@ func _apply_projectile_template_metadata(projectile: Node, projectile_template) 
 	if projectile == null or not (projectile_template is ProjectileTemplateRef):
 		return
 	if projectile_template.template_id != StringName():
-		projectile.set("template_id", projectile_template.template_id)
+		projectile.set("projectile_template_id", projectile_template.template_id)
 	if projectile.has_method("set_state_value"):
-		projectile.call("set_state_value", &"template_tags", projectile_template.tags)
+		projectile.call("set_state_value", &"projectile_template_tags", projectile_template.tags)
 		projectile.call("set_state_value", &"projectile_template_id", projectile_template.template_id)
 
 
@@ -568,7 +560,7 @@ func _apply_projectile_property_overrides(projectile: Node, projectile_template,
 		projectile.set("lifetime", params["lifetime"])
 
 
-func _ensure_required_template_components(entity: Node, template) -> void:
+func _ensure_required_archetype_components(entity: Node, template) -> void:
 	if entity == null or template == null:
 		return
 	var required_components: PackedStringArray = PackedStringArray()
@@ -609,7 +601,6 @@ func _make_minimal_archetype_for_root(runtime_spec) -> Resource:
 	archetype.entity_kind = runtime_spec.entity_kind
 	archetype.display_name = runtime_spec.display_name
 	archetype.tags = PackedStringArray(runtime_spec.tags)
-	archetype.legacy_template_id = runtime_spec.legacy_template_id
 	archetype.required_components = PackedStringArray(runtime_spec.required_components)
 	archetype.optional_components = PackedStringArray(runtime_spec.optional_components)
 	archetype.max_health = runtime_spec.max_health

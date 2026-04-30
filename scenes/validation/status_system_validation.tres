@@ -33,7 +33,7 @@ spawn_overrides = {
 [sub_resource type="Resource" id="StatusApplication_stunned"]
 script = ExtResource("3_status_request")
 at_time = 0.25
-target_template_id = &"zombie_basic_walker"
+target_archetype_id = &"archetype_basic_walker"
 lane_id = 0
 status_id = &"stunned"
 duration = 1.0
@@ -43,7 +43,7 @@ blocks_attack = true
 [sub_resource type="Resource" id="StatusApplication_slowed"]
 script = ExtResource("3_status_request")
 at_time = 0.25
-target_template_id = &"zombie_brisk_runner"
+target_archetype_id = &"archetype_brisk_runner"
 lane_id = 1
 status_id = &"slowed"
 duration = 1.0

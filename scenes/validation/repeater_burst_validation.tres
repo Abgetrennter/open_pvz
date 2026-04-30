@@ -36,8 +36,8 @@ event_name = &"projectile.spawned"
 min_count = 4
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_repeater_burst",
-"target_template_id": &"pea_burst"
+"source_archetype_id": &"archetype_repeater_burst",
+"target_projectile_template_id": &"pea_burst"
 }
 
 [sub_resource type="Resource" id="Rule_repeater_hit_basic"]
@@ -46,8 +46,8 @@ rule_id = &"repeater_hit_basic"
 description = "repeater burst should damage the basic walker target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_repeater_burst",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_repeater_burst",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0,
 "value": 20
 }
@@ -58,8 +58,8 @@ rule_id = &"repeater_hit_runner"
 description = "repeater burst should damage the brisk runner target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_repeater_burst",
-"target_template_id": &"zombie_brisk_runner",
+"source_archetype_id": &"archetype_repeater_burst",
+"target_archetype_id": &"archetype_brisk_runner",
 "target_lane": 1,
 "value": 20
 }
@@ -68,8 +68,8 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"repeater_burst_validation"
 display_name = "Repeater Burst Validation"
-description = "Validates that the repeater burst sample can instantiate from templates, spawn repeated pea_burst projectiles, and damage targets in two lanes."
-goals = PackedStringArray("Verify plant_repeater_burst can spawn repeated projectiles through its binding resource.", "Verify the pea_burst projectile template enters runtime events.", "Verify both walker and runner zombie samples take repeater damage in their respective lanes.")
+description = "Validates that the repeater burst sample can instantiate from archetypes, spawn repeated pea_burst projectiles, and damage targets in two lanes."
+goals = PackedStringArray("Verify plant_repeater_burst can spawn repeated projectiles through its RuntimeTriggerSpec.", "Verify the pea_burst projectile template enters runtime events.", "Verify both walker and runner zombie samples take repeater damage in their respective lanes.")
 validation_time_limit = 3.0
 validation_rules = [SubResource("Rule_repeater_spawn"), SubResource("Rule_repeater_hit_basic"), SubResource("Rule_repeater_hit_runner")]
 spawns = [SubResource("Spawn_repeater_lane0"), SubResource("Spawn_basic_target"), SubResource("Spawn_repeater_lane1"), SubResource("Spawn_runner_target")]

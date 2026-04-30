@@ -30,8 +30,8 @@ rule_id = &"splitpea_front_damage"
 description = "Split Pea should damage the target in front."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_splitpea",
-"target_template_id": &"zombie_basic_walker"
+"source_archetype_id": &"archetype_original_splitpea",
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_back_damage"]
@@ -40,8 +40,8 @@ rule_id = &"splitpea_back_damage"
 description = "Split Pea should damage the target behind it."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_splitpea",
-"target_template_id": &"zombie_brisk_runner"
+"source_archetype_id": &"archetype_original_splitpea",
+"target_archetype_id": &"archetype_brisk_runner"
 }
 
 [resource]

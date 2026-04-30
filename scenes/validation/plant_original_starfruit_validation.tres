@@ -37,8 +37,8 @@ rule_id = &"starfruit_forward_damage"
 description = "Starfruit should damage a forward target."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_starfruit",
-"target_template_id": &"zombie_basic_walker"
+"source_archetype_id": &"archetype_original_starfruit",
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_upper_damage"]
@@ -47,8 +47,8 @@ rule_id = &"starfruit_upper_damage"
 description = "Starfruit should damage an upper diagonal target."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_starfruit",
-"target_template_id": &"zombie_brisk_runner"
+"source_archetype_id": &"archetype_original_starfruit",
+"target_archetype_id": &"archetype_brisk_runner"
 }
 
 [sub_resource type="Resource" id="Rule_lower_damage"]
@@ -57,8 +57,8 @@ rule_id = &"starfruit_lower_damage"
 description = "Starfruit should damage a lower diagonal target."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_starfruit",
-"target_template_id": &"zombie_bucket_tank"
+"source_archetype_id": &"archetype_original_starfruit",
+"target_archetype_id": &"archetype_bucket_tank"
 }
 
 [resource]

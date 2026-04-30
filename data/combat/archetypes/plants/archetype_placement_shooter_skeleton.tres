@@ -12,7 +12,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_placement_shooter_skeleton"
-legacy_template_id = &"plant_basic_shooter"
 entity_kind = &"plant"
 display_name = "Placement Shooter Archetype Skeleton"
 projectile_template = ExtResource("migrated_4_projectile_template")

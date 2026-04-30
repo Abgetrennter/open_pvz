@@ -77,8 +77,8 @@ description = "Jalapeno should damage a distant target in its lane after card pl
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
-"source_template_id": &"plant_jalapeno",
-"target_template_id": &"zombie_brisk_runner",
+"source_archetype_id": &"archetype_original_jalapeno",
+"target_archetype_id": &"archetype_brisk_runner",
 "target_lane": 1
 }
 
@@ -89,8 +89,8 @@ description = "Cherry Bomb should damage a nearby target after card placement"
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
-"source_template_id": &"plant_cherrybomb",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_original_cherrybomb",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0
 }
 
@@ -100,7 +100,7 @@ rule_id = &"tallnut_damaged"
 description = "Tall-nut should receive damage from a zombie bite"
 event_name = &"entity.damaged"
 required_core_values = {
-"target_template_id": &"plant_tallnut",
+"target_archetype_id": &"archetype_original_tallnut",
 "target_lane": 2
 }
 

@@ -41,8 +41,8 @@ description = "basic walker should damage the wall barrier through its zombie ru
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("bite")
 required_core_values = {
-"source_template_id": &"zombie_basic_walker",
-"target_template_id": &"plant_wall_barrier"
+"source_archetype_id": &"archetype_basic_walker",
+"target_archetype_id": &"archetype_wall_barrier"
 }
 
 [sub_resource type="Resource" id="Rule_runner_attack"]
@@ -52,8 +52,8 @@ description = "brisk runner should damage the wall barrier through its zombie ru
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("bite")
 required_core_values = {
-"source_template_id": &"zombie_brisk_runner",
-"target_template_id": &"plant_wall_barrier"
+"source_archetype_id": &"archetype_brisk_runner",
+"target_archetype_id": &"archetype_wall_barrier"
 }
 
 [sub_resource type="Resource" id="Rule_bucket_attack"]
@@ -63,8 +63,8 @@ description = "bucket tank should damage the wall barrier through its zombie run
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("bite")
 required_core_values = {
-"source_template_id": &"zombie_bucket_tank",
-"target_template_id": &"plant_wall_barrier"
+"source_archetype_id": &"archetype_bucket_tank",
+"target_archetype_id": &"archetype_wall_barrier"
 }
 
 [sub_resource type="Resource" id="Rule_boss_attack"]
@@ -74,16 +74,16 @@ description = "boss heavy should damage the wall barrier through its zombie runt
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("bite")
 required_core_values = {
-"source_template_id": &"zombie_boss_heavy",
-"target_template_id": &"plant_wall_barrier"
+"source_archetype_id": &"archetype_boss_heavy",
+"target_archetype_id": &"archetype_wall_barrier"
 }
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"zombie_roster_attack_validation"
 display_name = "Zombie Roster Attack Validation"
-description = "Validates that the new zombie roster samples can instantiate from templates and reach the shared bite damage path against the wall barrier sample."
-goals = PackedStringArray("Verify the wall barrier sample can tank multiple zombie attackers.", "Verify the basic walker, brisk runner, bucket tank, and boss heavy samples all instantiate and attack through the common zombie runtime.", "Verify these roster samples appear in runtime events with stable template ids.")
+description = "Validates that the new zombie roster samples can instantiate from archetypes and reach the shared bite damage path against the wall barrier sample."
+goals = PackedStringArray("Verify the wall barrier sample can tank multiple zombie attackers.", "Verify the basic walker, brisk runner, bucket tank, and boss heavy samples all instantiate and attack through the common zombie runtime.", "Verify these roster samples appear in runtime events with stable archetype ids.")
 validation_time_limit = 3.2
 validation_rules = [SubResource("Rule_basic_attack"), SubResource("Rule_runner_attack"), SubResource("Rule_bucket_attack"), SubResource("Rule_boss_attack")]
 spawns = [SubResource("Spawn_wall_barrier"), SubResource("Spawn_basic_walker"), SubResource("Spawn_brisk_runner"), SubResource("Spawn_bucket_tank"), SubResource("Spawn_boss_heavy")]

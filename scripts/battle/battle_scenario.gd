@@ -24,7 +24,7 @@ class_name BattleScenario
 @export var battle_goal: StringName = &"all_waves_cleared"
 @export var defeat_conditions: PackedStringArray = PackedStringArray(["zombie_reached_goal"])
 @export var survival_duration := 0.0
-@export var protected_template_id: StringName = StringName()
+@export var protected_archetype_id: StringName = StringName()
 @export var defeat_line_x := 80.0
 @export var validation_rules: Array = []
 @export var spawns: Array = []

@@ -43,7 +43,7 @@ description = "trajectory mechanic should inject movement_mode into effect_param
 event_name = &"projectile.hit"
 required_core_values = {
 "source_archetype_id": &"archetype_trajectory_shooter_skeleton",
-"target_template_id": &"zombie_lane_dummy"
+"target_archetype_id": &"archetype_lane_dummy"
 }
 
 [resource]

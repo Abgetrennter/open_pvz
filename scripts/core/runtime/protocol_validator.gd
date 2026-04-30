@@ -6,7 +6,6 @@ const CombatMechanicRef = preload("res://scripts/core/defs/combat_mechanic.gd")
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
-const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
 const CardDefRef = preload("res://scripts/battle/card_def.gd")
 const BattleCardPlayRequestRef = preload("res://scripts/battle/card_play_request.gd")
 const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd")
@@ -334,11 +333,6 @@ static func validate_combat_archetype(archetype: Resource) -> Array[String]:
 		for mechanic in archetype.mechanics:
 			for error in validate_combat_mechanic(mechanic):
 				errors.append("CombatArchetype mechanics: %s" % error)
-	if archetype.get("backend_entity_template") != null:
-		errors.append("CombatArchetype.backend_entity_template is retired. Move data onto archetype fields and mechanics.")
-	var backend_id_value: Variant = archetype.get("backend_entity_template_id")
-	if backend_id_value != null and String(backend_id_value) != "":
-		errors.append("CombatArchetype.backend_entity_template_id is retired. Use legacy_template_id only for event identity.")
 	if not _can_validate_native_archetype(archetype):
 		errors.append("CombatArchetype must define native runtime data through archetype fields or mechanics.")
 	var placement_errors := _validate_archetype_placement_spec(archetype)
@@ -387,72 +381,6 @@ static func _can_validate_native_archetype(archetype: Resource) -> bool:
 	if archetype.hit_height_band == null:
 		return false
 	return true
-
-
-static func validate_trigger_binding(trigger_binding: Resource) -> Array[String]:
-	var errors: Array[String] = []
-	if trigger_binding == null:
-		errors.append("TriggerBinding is null.")
-		return errors
-	if trigger_binding.get_script() != TriggerBindingRef:
-		errors.append("TriggerBinding resource must use trigger_binding.gd.")
-		return errors
-	if StringName(trigger_binding.binding_id) == StringName():
-		errors.append("TriggerBinding.binding_id must not be empty.")
-	if StringName(trigger_binding.behavior_key) == StringName():
-		errors.append("TriggerBinding.behavior_key must not be empty.")
-	else:
-		var behavior_key := StringName(trigger_binding.behavior_key)
-		var expected_behavior := _trigger_behavior_spec(behavior_key)
-		if expected_behavior.is_empty():
-			errors.append("TriggerBinding.behavior_key must be one of %s." % _join_strings(_allowed_trigger_behavior_keys()))
-		else:
-			var expected_trigger_id := StringName(expected_behavior.get("trigger_id", StringName()))
-			if StringName(trigger_binding.trigger_id) != StringName() and StringName(trigger_binding.trigger_id) != expected_trigger_id:
-				errors.append("TriggerBinding %s behavior_key %s must use trigger_id %s." % [
-					String(trigger_binding.binding_id),
-					String(behavior_key),
-					String(expected_trigger_id),
-				])
-	if StringName(trigger_binding.trigger_id) == StringName():
-		errors.append("TriggerBinding.trigger_id must not be empty.")
-	if StringName(trigger_binding.effect_id) == StringName():
-		errors.append("TriggerBinding.effect_id must not be empty.")
-	if not (trigger_binding.condition_values is Dictionary):
-		errors.append("TriggerBinding.condition_values must be a Dictionary.")
-	if not (trigger_binding.effect_params is Dictionary):
-		errors.append("TriggerBinding.effect_params must be a Dictionary.")
-	if not (trigger_binding.on_hit_effect_params is Dictionary):
-		errors.append("TriggerBinding.on_hit_effect_params must be a Dictionary.")
-	if StringName(trigger_binding.trigger_id) != StringName():
-		var trigger_def = TriggerRegistry.get_def(StringName(trigger_binding.trigger_id))
-		if trigger_def == null:
-			errors.append("TriggerBinding %s references unknown trigger_id %s." % [
-				String(trigger_binding.binding_id),
-				String(trigger_binding.trigger_id),
-			])
-		elif trigger_binding.condition_values is Dictionary:
-			var trigger_normalization := _normalize_trigger_event_and_conditions(
-				StringName(trigger_binding.event_name),
-				trigger_binding.condition_values,
-				trigger_def,
-				"TriggerBinding %s" % String(trigger_binding.binding_id)
-			)
-			for error in PackedStringArray(trigger_normalization.get("errors", PackedStringArray())):
-				errors.append(String(error))
-	if trigger_binding.projectile_template != null:
-		for error in validate_projectile_template(trigger_binding.projectile_template):
-			errors.append("TriggerBinding projectile_template: %s" % error)
-	return errors
-
-
-static func validate_entity_template(entity_template: Resource) -> Array[String]:
-	var errors: Array[String] = []
-	if entity_template == null:
-		errors.append("EntityTemplate is null.")
-		return errors
-	errors.append("EntityTemplate is retired. Official content must use CombatArchetype + CombatMechanic + RuntimeSpec.")
-	return errors
 
 
 static func validate_battle_mode_def(mode_def: Resource) -> Array[String]:
@@ -537,8 +465,8 @@ static func validate_battle_objective_def(objective_def: Resource) -> Array[Stri
 	var objective_type := StringName(objective_def.get("objective_type"))
 	if objective_type == StringName():
 		errors.append("BattleObjectiveDef.objective_type must not be empty.")
-	elif objective_type not in [&"all_waves_cleared", &"survive_duration", &"protect_template", &"score_threshold", &"combo_threshold", &"clear_special_targets", &"collect_resource", &"defeat_named_spawn"]:
-		errors.append("BattleObjectiveDef.objective_type must be one of all_waves_cleared, survive_duration, protect_template, score_threshold, combo_threshold, clear_special_targets, collect_resource, defeat_named_spawn.")
+	elif objective_type not in [&"all_waves_cleared", &"survive_duration", &"protect_archetype", &"score_threshold", &"combo_threshold", &"clear_special_targets", &"collect_resource", &"defeat_named_spawn"]:
+		errors.append("BattleObjectiveDef.objective_type must be one of all_waves_cleared, survive_duration, protect_archetype, score_threshold, combo_threshold, clear_special_targets, collect_resource, defeat_named_spawn.")
 	if not (objective_def.get("params") is Dictionary):
 		errors.append("BattleObjectiveDef.params must be a Dictionary.")
 	else:
@@ -551,18 +479,17 @@ static func validate_battle_objective_def(objective_def: Resource) -> Array[Stri
 				if int(params.get("threshold", 0)) <= 0:
 					errors.append("BattleObjectiveDef %s requires params.threshold > 0." % String(objective_type))
 			&"clear_special_targets":
-				var target_template_ids := PackedStringArray(params.get("target_template_ids", PackedStringArray()))
 				var target_archetype_ids := PackedStringArray(params.get("target_archetype_ids", PackedStringArray()))
-				if target_template_ids.is_empty() and target_archetype_ids.is_empty():
-					errors.append("BattleObjectiveDef clear_special_targets requires params.target_template_ids or params.target_archetype_ids.")
+				if target_archetype_ids.is_empty():
+					errors.append("BattleObjectiveDef clear_special_targets requires params.target_archetype_ids.")
 			&"collect_resource":
 				if int(params.get("amount", 0)) <= 0:
 					errors.append("BattleObjectiveDef collect_resource requires params.amount > 0.")
 				if StringName(params.get("resource_id")) == StringName():
 					errors.append("BattleObjectiveDef collect_resource requires params.resource_id.")
 			&"defeat_named_spawn":
-				if StringName(params.get("template_id")) == StringName() and StringName(params.get("archetype_id")) == StringName():
-					errors.append("BattleObjectiveDef defeat_named_spawn requires params.template_id or params.archetype_id.")
+				if StringName(params.get("archetype_id")) == StringName():
+					errors.append("BattleObjectiveDef defeat_named_spawn requires params.archetype_id.")
 	if not (objective_def.get("failure_conditions") is PackedStringArray):
 		errors.append("BattleObjectiveDef.failure_conditions must be a PackedStringArray.")
 	else:
@@ -622,9 +549,8 @@ static func validate_battle_mode_input_request(input_request: Resource) -> Array
 		&"entity_click":
 			var entity_id := int(input_request.get("entity_id"))
 			var entity_archetype_id := StringName(input_request.get("entity_archetype_id"))
-			var legacy_template_id := StringName(input_request.get("legacy_template_id"))
-			if entity_id < 0 and entity_archetype_id == StringName() and legacy_template_id == StringName():
-				errors.append("BattleModeInputRequest entity_click requires entity_id, entity_archetype_id, or legacy_template_id.")
+			if entity_id < 0 and entity_archetype_id == StringName():
+				errors.append("BattleModeInputRequest entity_click requires entity_id or entity_archetype_id.")
 		&"cell_click":
 			if int(input_request.get("lane_id")) < 0:
 				errors.append("BattleModeInputRequest cell_click requires lane_id >= 0.")
@@ -671,12 +597,12 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		errors.append("BattleScenario.battle_goal must be all_waves_cleared, survive_duration, or protect_and_clear.")
 	var defeat_conditions := PackedStringArray(scenario.get("defeat_conditions"))
 	for defeat_condition in defeat_conditions:
-		if StringName(defeat_condition) not in [&"zombie_reached_goal", &"protect_template"]:
-			errors.append("BattleScenario.defeat_conditions entries must be zombie_reached_goal or protect_template.")
+		if StringName(defeat_condition) not in [&"zombie_reached_goal", &"protect_archetype"]:
+			errors.append("BattleScenario.defeat_conditions entries must be zombie_reached_goal or protect_archetype.")
 	if battle_goal == &"survive_duration" and float(scenario.get("survival_duration")) <= 0.0:
 		errors.append("BattleScenario.survival_duration must be > 0 when battle_goal is survive_duration.")
-	if defeat_conditions.has("protect_template") and StringName(scenario.get("protected_template_id")) == StringName():
-		errors.append("BattleScenario.protected_template_id must not be empty when defeat_conditions includes protect_template.")
+	if defeat_conditions.has("protect_archetype") and StringName(scenario.get("protected_archetype_id")) == StringName():
+		errors.append("BattleScenario.protected_archetype_id must not be empty when defeat_conditions includes protect_archetype.")
 
 	var mode_def: Variant = scenario.get("mode_def")
 	if mode_def != null:
@@ -794,13 +720,10 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 
 	var resolved_archetype = CombatContentResolverRef.resolve_spawn_entry_archetype(spawn_entry)
 	var entity_kind := String(spawn_entry.entity_kind)
-	var legacy_entity_template_value: Variant = spawn_entry.get("entity_template_id")
 	if resolved_archetype == null:
 		errors.append("%s must resolve an archetype through archetype/archetype_id." % scope)
 	if StringName(spawn_entry.get("archetype_id")) != StringName() and resolved_archetype == null:
 		errors.append("%s.archetype_id must resolve through SceneRegistry." % scope)
-	if (legacy_entity_template_value != null and String(legacy_entity_template_value) != "") or spawn_entry.get("entity_template") != null:
-		errors.append("%s must not define entity_template/entity_template_id. Official content must spawn through archetype only." % scope)
 	if resolved_archetype != null:
 		for error in validate_combat_archetype(resolved_archetype):
 			errors.append("%s archetype: %s" % [scope, error])
@@ -844,11 +767,11 @@ static func validate_battle_spawn_entry(spawn_entry: Resource, scenario_id: Stri
 		"%s params" % scope
 	))
 	if resolved_archetype != null:
-		errors.append_array(_validate_archetype_compiled_bindings(
+		errors.append_array(_validate_archetype_trigger_specs(
 			StringName(entity_kind),
 			resolved_archetype,
 			spawn_entry,
-			"%s archetype compiled_bindings" % scope
+			"%s archetype trigger_specs" % scope
 		))
 	return errors
 
@@ -1052,7 +975,6 @@ static func _validate_card_def(card_def: Resource, scenario_id: StringName) -> A
 	if StringName(card_def.get("card_id")) == StringName():
 		errors.append("BattleScenario %s card def must define card_id." % String(scenario_id))
 	var archetype_id := StringName(card_def.get("archetype_id"))
-	var entity_template_value: Variant = card_def.get("entity_template_id")
 	if archetype_id == StringName():
 		errors.append("BattleScenario %s card def %s must define archetype_id." % [String(scenario_id), String(card_def.get("card_id"))])
 	elif archetype_id != StringName():
@@ -1062,8 +984,6 @@ static func _validate_card_def(card_def: Resource, scenario_id: StringName) -> A
 				String(card_def.get("card_id")),
 				String(archetype_id),
 			])
-	if entity_template_value != null and String(entity_template_value) != "":
-		errors.append("BattleScenario %s card def %s must not define entity_template_id." % [String(scenario_id), String(card_def.get("card_id"))])
 	if int(card_def.get("sun_cost")) < 0:
 		errors.append("BattleScenario %s card def %s sun_cost must be >= 0." % [String(scenario_id), String(card_def.get("card_id"))])
 	if float(card_def.get("cooldown_seconds")) < 0.0:
@@ -1182,7 +1102,6 @@ static func _validate_field_object_config(field_object_config: Resource, scenari
 		errors.append("BattleScenario %s field_object_configs must use field_object_config.gd." % String(scenario_id))
 		return errors
 	var archetype_id := StringName(field_object_config.get("archetype_id"))
-	var template_value: Variant = field_object_config.get("object_template_id")
 	if archetype_id == StringName():
 		errors.append("BattleScenario %s field object config must define archetype_id." % String(scenario_id))
 	elif archetype_id != StringName():
@@ -1195,8 +1114,6 @@ static func _validate_field_object_config(field_object_config: Resource, scenari
 					errors.append("BattleScenario %s field object config archetype: %s" % [String(scenario_id), error])
 				if StringName(archetype.get("entity_kind")) != &"field_object":
 					errors.append("BattleScenario %s field object config archetype %s must have entity_kind field_object." % [String(scenario_id), String(archetype_id)])
-	if template_value != null and String(template_value) != "":
-		errors.append("BattleScenario %s field object config must not define object_template_id." % String(scenario_id))
 	if int(field_object_config.get("lane_id")) < 0:
 		errors.append("BattleScenario %s field object config lane_id must be >= 0." % String(scenario_id))
 	return errors
@@ -1450,13 +1367,6 @@ static func _validate_projectile_config_consistency(params: Dictionary, projecti
 	return errors
 
 
-static func _entity_template_trigger_bindings(entity_template) -> Array:
-	if entity_template == null:
-		return []
-	var trigger_bindings: Variant = entity_template.get("trigger_bindings")
-	return trigger_bindings if trigger_bindings is Array else []
-
-
 static func _resolve_battlefield_preset(scenario: Resource):
 	if scenario == null:
 		return null
@@ -1485,7 +1395,7 @@ static func _load_resource_script(resource_script_path: String):
 	return loaded if loaded is Script else null
 
 
-static func _validate_archetype_compiled_bindings(
+static func _validate_archetype_trigger_specs(
 	entity_kind: StringName,
 	archetype,
 	spawn_entry: Resource,
@@ -1494,8 +1404,8 @@ static func _validate_archetype_compiled_bindings(
 	var runtime_spec = CombatContentResolverRef.resolve_spawn_entry_runtime_spec(spawn_entry)
 	if runtime_spec == null:
 		return []
-	var compiled_bindings: Variant = runtime_spec.get("compiled_trigger_bindings")
-	if compiled_bindings == null or not (compiled_bindings is Array) or Array(compiled_bindings).is_empty():
+	var trigger_specs: Variant = runtime_spec.get("trigger_specs")
+	if trigger_specs == null or not (trigger_specs is Array) or Array(trigger_specs).is_empty():
 		return []
 	var factory: Variant = EntityFactoryRef.new()
 	var merged_params: Dictionary = {}
@@ -1504,7 +1414,7 @@ static func _validate_archetype_compiled_bindings(
 	var projectile_flight_profile: Resource = runtime_spec.get("projectile_flight_profile") if runtime_spec.get("projectile_flight_profile") is Resource else null
 	var projectile_template = runtime_spec.get("projectile_template")
 	var errors: Array[String] = []
-	for trigger_instance in factory.build_runtime_triggers_from_bindings(entity_kind, Array(compiled_bindings), merged_params, projectile_flight_profile, projectile_template):
+	for trigger_instance in factory.build_runtime_triggers_from_specs(entity_kind, Array(trigger_specs), merged_params, projectile_flight_profile, projectile_template):
 		var validation: Dictionary = normalize_trigger_instance(trigger_instance)
 		if not bool(validation.get("valid", false)):
 			for error in PackedStringArray(validation.get("errors", PackedStringArray())):

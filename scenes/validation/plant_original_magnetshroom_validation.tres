@@ -41,7 +41,7 @@ rule_id = &"magnet_awake"
 description = "Coffee Bean should wake Magnet-shroom."
 event_name = &"entity.state_entered"
 required_core_values = {
-"source_template_id": &"plant_magnetshroom",
+"source_archetype_id": &"archetype_original_magnetshroom",
 "state_id": &"awake"
 }
 
@@ -51,8 +51,8 @@ rule_id = &"magnet_metal_damage"
 description = "Magnet-shroom should affect metal-tagged targets."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_magnetshroom",
-"target_template_id": &"zombie_bucket_tank"
+"source_archetype_id": &"archetype_original_magnetshroom",
+"target_archetype_id": &"archetype_bucket_tank"
 }
 
 [sub_resource type="Resource" id="Rule_plain_untouched"]
@@ -63,8 +63,8 @@ event_name = &"entity.damaged"
 min_count = 0
 max_count = 0
 required_core_values = {
-"source_template_id": &"plant_magnetshroom",
-"target_template_id": &"zombie_basic_walker"
+"source_archetype_id": &"archetype_original_magnetshroom",
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [resource]

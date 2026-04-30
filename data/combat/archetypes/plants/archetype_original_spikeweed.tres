@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_spikeweed"
-legacy_template_id = &"plant_spikeweed"
 display_name = "Spikeweed"
 hit_height_band = ExtResource("3_height")
 entity_kind = &"plant"

@@ -42,7 +42,7 @@ min_count = 2
 required_tags = PackedStringArray("projectile")
 required_core_values = {
 "profile_id": &"track_air",
-"source_template_id": &"plant_air_interceptor"
+"source_archetype_id": &"archetype_air_interceptor"
 }
 
 [sub_resource type="Resource" id="Rule_air_hit_low"]
@@ -52,8 +52,8 @@ description = "air interceptor should hit the low air scout target"
 event_name = &"projectile.hit"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_air_interceptor",
-"target_template_id": &"zombie_air_scout",
+"source_archetype_id": &"archetype_air_interceptor",
+"target_archetype_id": &"archetype_air_scout",
 "target_lane": 0
 }
 
@@ -64,8 +64,8 @@ description = "air interceptor should also hit a target promoted to the medium a
 event_name = &"projectile.hit"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_air_interceptor",
-"target_template_id": &"zombie_lane_dummy",
+"source_archetype_id": &"archetype_air_interceptor",
+"target_archetype_id": &"archetype_lane_dummy",
 "target_lane": 1
 }
 
@@ -73,7 +73,7 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"air_interceptor_validation"
 display_name = "Air Interceptor Validation"
-description = "Validates that the new air interceptor sample can spawn track_air projectiles and resolve hits against low and medium air targets through the unified template chain."
+description = "Validates that the new air interceptor sample can spawn track_air projectiles and resolve hits against low and medium air targets through the unified projectile content chain."
 goals = PackedStringArray("Verify plant_air_interceptor can be resolved through archetype_id.", "Verify track_air projectile samples spawn through the mechanic-first chain.", "Verify low and medium air targets can both be hit by the interceptor sample.")
 validation_time_limit = 3.0
 validation_rules = [SubResource("Rule_air_spawn"), SubResource("Rule_air_hit_low"), SubResource("Rule_air_hit_medium")]

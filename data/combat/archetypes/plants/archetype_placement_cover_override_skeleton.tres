@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_placement_cover_override_skeleton"
-legacy_template_id = &"plant_wall_barrier"
 entity_kind = &"plant"
 display_name = "Placement Cover Override Archetype Skeleton"
 hit_height_band = ExtResource("migrated_2_height")

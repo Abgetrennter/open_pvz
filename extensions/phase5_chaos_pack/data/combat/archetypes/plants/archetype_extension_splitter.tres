@@ -10,7 +10,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_extension_splitter"
-legacy_template_id = &"plant_extension_splitter"
 display_name = "Extension Splitter"
 projectile_template = ExtResource("migrated_4_projectile_template")
 projectile_flight_profile = ExtResource("migrated_3_profile")

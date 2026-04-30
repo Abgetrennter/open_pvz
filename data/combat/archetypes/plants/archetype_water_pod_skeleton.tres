@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_water_pod_skeleton"
-legacy_template_id = &"plant_water_pod"
 display_name = "Water Pod Archetype Skeleton"
 hit_height_band = ExtResource("migrated_2_height")
 hitbox_size = Vector2(42, 54)

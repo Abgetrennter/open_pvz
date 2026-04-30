@@ -45,7 +45,7 @@ description = "delayed_explode should damage the primary tank target after the d
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode", "delayed_explode", "extension")
 required_core_values = {
-"target_template_id": &"zombie_bucket_tank",
+"target_archetype_id": &"archetype_bucket_tank",
 "value": 20
 }
 
@@ -56,7 +56,7 @@ description = "delayed_explode should also damage a nearby walker inside the bla
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode", "delayed_explode", "extension")
 required_core_values = {
-"target_template_id": &"zombie_basic_walker",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 20
 }
 

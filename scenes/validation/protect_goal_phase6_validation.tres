@@ -19,22 +19,22 @@ x_position = 300.0
 [sub_resource type="Resource" id="Rule_protect_defeat"]
 script = ExtResource("2_rule")
 rule_id = &"protect_goal_defeat"
-description = "protect-template defeat condition should trigger when the protected template is lost"
+description = "protect-template defeat condition should trigger when the protected archetype is lost"
 event_name = &"battle.defeat"
 required_core_values = {
-"reason": &"protected_template_lost"
+"reason": &"protected_archetype_lost"
 }
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"protect_goal_phase6_validation"
 display_name = "Protect Goal Phase 6 Validation"
-description = "Validates the protect_template defeat condition by requiring a sunflower anchor to survive a ranged zombie attack."
-goals = PackedStringArray("Verify a scenario can fail when a protected template is destroyed, independent of the goal line.")
+description = "Validates the protect_archetype defeat condition by requiring a sunflower anchor to survive a ranged zombie attack."
+goals = PackedStringArray("Verify a scenario can fail when a protected archetype is destroyed, independent of the goal line.")
 validation_time_limit = 4.5
 battle_goal = &"protect_and_clear"
-defeat_conditions = PackedStringArray("protect_template")
-protected_template_id = &"plant_sunflower"
+defeat_conditions = PackedStringArray("protect_archetype")
+protected_archetype_id = &"archetype_sunflower"
 spawns = [SubResource("Spawn_protected_sunflower"), SubResource("Spawn_bone_thrower")]
 validation_rules = [SubResource("Rule_protect_defeat")]
 

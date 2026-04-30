@@ -21,7 +21,6 @@ var _objective_failed := false
 var _runtime_state: Dictionary = {}
 var _processed_input_request_indices: Dictionary = {}
 var _latest_entity_id_by_archetype: Dictionary = {}
-var _latest_entity_id_by_template: Dictionary = {}
 
 
 func setup(battle: Node, scenario: Resource, mode_def: Resource = null) -> void:
@@ -40,7 +39,6 @@ func setup(battle: Node, scenario: Resource, mode_def: Resource = null) -> void:
 	_runtime_state = {}
 	_processed_input_request_indices.clear()
 	_latest_entity_id_by_archetype.clear()
-	_latest_entity_id_by_template.clear()
 	if _mode_def == null:
 		return
 	_resolve_mode()
@@ -76,7 +74,6 @@ func teardown() -> void:
 	_runtime_state = {}
 	_processed_input_request_indices.clear()
 	_latest_entity_id_by_archetype.clear()
-	_latest_entity_id_by_template.clear()
 
 
 func get_mode_def() -> Resource:
@@ -171,7 +168,7 @@ func get_debug_name() -> String:
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"entity_id": -1,
-		"template_id": StringName(),
+		"archetype_id": StringName(),
 		"entity_kind": &"battle_mode_host",
 		"team": &"neutral",
 		"lane_id": -1,
@@ -332,9 +329,6 @@ func _resolve_input_request_entity_id(input_request: Resource) -> int:
 	var entity_archetype_id := StringName(input_request.get("entity_archetype_id"))
 	if entity_archetype_id != StringName():
 		return int(_latest_entity_id_by_archetype.get(entity_archetype_id, -1))
-	var legacy_template_id := StringName(input_request.get("legacy_template_id"))
-	if legacy_template_id != StringName():
-		return int(_latest_entity_id_by_template.get(legacy_template_id, -1))
 	return -1
 
 
@@ -363,18 +357,9 @@ func _track_runtime_event(event_name: StringName, event_data: Variant) -> void:
 		var archetype_id := StringName(event_data.core.get("archetype_id", StringName()))
 		if archetype_id != StringName():
 			_latest_entity_id_by_archetype[archetype_id] = entity_id
-		var legacy_template_id := StringName(event_data.core.get("legacy_template_id", StringName()))
-		if legacy_template_id != StringName():
-			_latest_entity_id_by_template[legacy_template_id] = entity_id
-		_track_objective_target_seen(
-			legacy_template_id,
-			StringName(event_data.core.get("archetype_id", StringName()))
-		)
+		_track_objective_target_seen(archetype_id)
 	elif event_name == &"entity.died":
-		_track_objective_target_seen(
-			StringName(event_data.core.get("target_template_id", StringName())),
-			StringName(event_data.core.get("target_archetype_id", StringName()))
-		)
+		_track_objective_target_seen(StringName(event_data.core.get("target_archetype_id", StringName())))
 
 
 func _emit_input_action(event_name: StringName, metadata: Dictionary) -> void:
@@ -421,9 +406,9 @@ func _evaluate_objective(game_time: float) -> void:
 		&"collect_resource":
 			is_win = _check_collect_resource(params)
 			reason = &"collect_resource"
-		&"protect_template":
-			is_win = _check_protect_template(flow_state, params)
-			reason = &"protect_template"
+		&"protect_archetype":
+			is_win = _check_protect_archetype(flow_state, params)
+			reason = &"protect_archetype"
 		&"clear_special_targets":
 			is_win = _check_clear_special_targets(params)
 			reason = &"clear_special_targets"
@@ -472,42 +457,37 @@ func _check_collect_resource(params: Dictionary) -> bool:
 	return current >= target
 
 
-func _check_protect_template(flow_state: Node, params: Dictionary) -> bool:
-	var template_id := _resolve_protected_template_id(params, flow_state)
-	if template_id == StringName():
+func _check_protect_archetype(flow_state: Node, params: Dictionary) -> bool:
+	var archetype_id := _resolve_protected_archetype_id(params, flow_state)
+	if archetype_id == StringName():
 		return false
-	var protected_alive := not _is_template_missing(template_id)
+	var protected_alive := not _is_archetype_missing(archetype_id)
 	_objective_progress[&"protected_alive"] = 1 if protected_alive else 0
 	if not protected_alive:
 		if not _objective_failed and flow_state.has_method("mark_defeat"):
 			_objective_failed = true
-			flow_state.call("mark_defeat", &"protected_template_lost")
+			flow_state.call("mark_defeat", &"protected_archetype_lost")
 		return false
 	return _check_all_waves_cleared(flow_state)
 
 
 func _check_clear_special_targets(params: Dictionary) -> bool:
-	var target_template_ids := PackedStringArray(params.get("target_template_ids", PackedStringArray()))
 	var target_archetype_ids := PackedStringArray(params.get("target_archetype_ids", PackedStringArray()))
-	var seen_key := _objective_seen_state_key(target_template_ids, target_archetype_ids)
+	var seen_key := _objective_seen_state_key(target_archetype_ids)
 	var has_seen_target := bool(_runtime_state.get(seen_key, false))
-	var remaining_count := _count_active_matching_entities(target_template_ids, target_archetype_ids)
+	var remaining_count := _count_active_matching_entities(target_archetype_ids)
 	_objective_progress[&"remaining_targets"] = remaining_count
 	return has_seen_target and remaining_count == 0
 
 
 func _check_defeat_named_spawn(params: Dictionary) -> bool:
-	var target_template_ids := PackedStringArray()
 	var target_archetype_ids := PackedStringArray()
-	var template_id := StringName(params.get("template_id", StringName()))
-	if template_id != StringName():
-		target_template_ids.append(String(template_id))
 	var archetype_id := StringName(params.get("archetype_id", StringName()))
 	if archetype_id != StringName():
 		target_archetype_ids.append(String(archetype_id))
-	var seen_key := _objective_seen_state_key(target_template_ids, target_archetype_ids)
+	var seen_key := _objective_seen_state_key(target_archetype_ids)
 	var has_seen_target := bool(_runtime_state.get(seen_key, false))
-	var remaining_count := _count_active_matching_entities(target_template_ids, target_archetype_ids)
+	var remaining_count := _count_active_matching_entities(target_archetype_ids)
 	_objective_progress[&"remaining_named_spawns"] = remaining_count
 	return has_seen_target and remaining_count == 0
 
@@ -545,26 +525,26 @@ func _resolve_flow_state() -> Node:
 	return null
 
 
-func _resolve_protected_template_id(params: Dictionary, flow_state: Node) -> StringName:
-	var template_id := StringName(params.get("template_id", StringName()))
-	if template_id != StringName():
-		return template_id
-	if flow_state != null and flow_state.get("protected_template_id") != null:
-		template_id = StringName(flow_state.get("protected_template_id"))
-		if template_id != StringName():
-			return template_id
+func _resolve_protected_archetype_id(params: Dictionary, flow_state: Node) -> StringName:
+	var archetype_id := StringName(params.get("archetype_id", StringName()))
+	if archetype_id != StringName():
+		return archetype_id
+	if flow_state != null and flow_state.get("protected_archetype_id") != null:
+		archetype_id = StringName(flow_state.get("protected_archetype_id"))
+		if archetype_id != StringName():
+			return archetype_id
 	if _scenario != null:
-		return StringName(_scenario.get("protected_template_id"))
+		return StringName(_scenario.get("protected_archetype_id"))
 	return StringName()
 
 
-func _is_template_missing(template_id: StringName) -> bool:
-	if template_id == StringName() or _battle == null:
+func _is_archetype_missing(archetype_id: StringName) -> bool:
+	if archetype_id == StringName() or _battle == null:
 		return false
 	for entity in _battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
-		if StringName(entity.get("template_id")) != template_id:
+		if StringName(entity.get("archetype_id")) != archetype_id:
 			continue
 		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
 			continue
@@ -572,7 +552,7 @@ func _is_template_missing(template_id: StringName) -> bool:
 	return true
 
 
-func _count_active_matching_entities(target_template_ids: PackedStringArray, target_archetype_ids: PackedStringArray) -> int:
+func _count_active_matching_entities(target_archetype_ids: PackedStringArray) -> int:
 	if _battle == null:
 		return 0
 	var count := 0
@@ -581,45 +561,35 @@ func _count_active_matching_entities(target_template_ids: PackedStringArray, tar
 			continue
 		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
 			continue
-		if _matches_objective_target(entity, target_template_ids, target_archetype_ids):
+		if _matches_objective_target(entity, target_archetype_ids):
 			count += 1
 	return count
 
 
-func _matches_objective_target(entity: Node, target_template_ids: PackedStringArray, target_archetype_ids: PackedStringArray) -> bool:
-	var template_id := StringName(entity.get("template_id"))
-	if template_id != StringName() and target_template_ids.has(String(template_id)):
-		return true
+func _matches_objective_target(entity: Node, target_archetype_ids: PackedStringArray) -> bool:
 	var archetype_id := StringName(entity.get("archetype_id"))
 	if archetype_id != StringName() and target_archetype_ids.has(String(archetype_id)):
 		return true
 	return false
 
 
-func _track_objective_target_seen(template_id: StringName, archetype_id: StringName) -> void:
+func _track_objective_target_seen(archetype_id: StringName) -> void:
 	if _resolved_objective_def == null:
 		return
 	var objective_type := StringName(_resolved_objective_def.get("objective_type"))
 	if objective_type not in [&"clear_special_targets", &"defeat_named_spawn"]:
 		return
 	var params: Dictionary = _resolved_objective_def.get("params")
-	var target_template_ids := PackedStringArray(params.get("target_template_ids", PackedStringArray()))
 	var target_archetype_ids := PackedStringArray(params.get("target_archetype_ids", PackedStringArray()))
-	var target_template_id := StringName(params.get("template_id", StringName()))
-	if target_template_id != StringName() and not target_template_ids.has(String(target_template_id)):
-		target_template_ids.append(String(target_template_id))
 	var target_archetype_id := StringName(params.get("archetype_id", StringName()))
 	if target_archetype_id != StringName() and not target_archetype_ids.has(String(target_archetype_id)):
 		target_archetype_ids.append(String(target_archetype_id))
-	if template_id != StringName() and target_template_ids.has(String(template_id)):
-		_runtime_state[_objective_seen_state_key(target_template_ids, target_archetype_ids)] = true
-		return
 	if archetype_id != StringName() and target_archetype_ids.has(String(archetype_id)):
-		_runtime_state[_objective_seen_state_key(target_template_ids, target_archetype_ids)] = true
+		_runtime_state[_objective_seen_state_key(target_archetype_ids)] = true
 
 
-func _objective_seen_state_key(target_template_ids: PackedStringArray, target_archetype_ids: PackedStringArray) -> StringName:
-	return StringName("objective_seen|%s|%s" % [",".join(target_template_ids), ",".join(target_archetype_ids)])
+func _objective_seen_state_key(target_archetype_ids: PackedStringArray) -> StringName:
+	return StringName("objective_seen|%s" % ",".join(target_archetype_ids))
 
 
 func _emit_mode_event(event_name: StringName, metadata: Dictionary, tags: PackedStringArray = PackedStringArray()) -> void:

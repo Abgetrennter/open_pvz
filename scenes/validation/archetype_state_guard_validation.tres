@@ -35,7 +35,7 @@ min_count = 0
 max_count = 0
 required_core_values = {
 "source_archetype_id": &"archetype_arming_striker_skeleton",
-"target_template_id": &"zombie_lane_dummy"
+"target_archetype_id": &"archetype_lane_dummy"
 }
 
 [resource]

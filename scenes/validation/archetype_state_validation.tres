@@ -29,11 +29,10 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Rule_state_spawned"]
 script = ExtResource("3_rule")
 rule_id = &"state_spawned"
-description = "stateful archetype should spawn with archetype identity and backend template identity"
+description = "stateful archetype should spawn with archetype identity and archetype identity"
 event_name = &"entity.spawned"
 required_core_values = {
 "target_archetype_id": &"archetype_arming_striker_skeleton",
-"target_template_id": &"plant_wall_barrier",
 "target_kind": &"plant"
 }
 
@@ -54,8 +53,7 @@ description = "once active, the archetype should start damaging the zombie targe
 event_name = &"entity.damaged"
 required_core_values = {
 "source_archetype_id": &"archetype_arming_striker_skeleton",
-"source_template_id": &"plant_wall_barrier",
-"target_template_id": &"zombie_lane_dummy",
+"target_archetype_id": &"archetype_lane_dummy",
 "target_kind": &"zombie"
 }
 
@@ -68,4 +66,3 @@ goals = PackedStringArray("Verify a state archetype can be instantiated through 
 validation_time_limit = 1.6
 validation_rules = [SubResource("Rule_state_spawned"), SubResource("Rule_state_entered_active"), SubResource("Rule_state_damage_after_active")]
 spawns = [SubResource("Spawn_archetype_arming_striker"), SubResource("Spawn_target_dummy")]
-

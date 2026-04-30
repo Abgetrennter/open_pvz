@@ -25,7 +25,7 @@ rule_id = &"potatomine_armed"
 description = "Potato Mine should transition from arming to active before dealing proximity damage"
 event_name = &"entity.state_entered"
 required_core_values = {
-"source_template_id": &"plant_potatomine",
+"source_archetype_id": &"archetype_original_potatomine",
 "state_id": &"active"
 }
 
@@ -36,8 +36,8 @@ description = "Potato Mine should damage a nearby zombie only after the active s
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
-"source_template_id": &"plant_potatomine",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_original_potatomine",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0
 }
 

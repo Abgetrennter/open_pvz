@@ -3,7 +3,6 @@ class_name CombatArchetype
 
 @export var archetype_id: StringName = StringName()
 @export var entity_kind: StringName = &"plant"
-@export var legacy_template_id: StringName = StringName()
 @export var display_name := ""
 @export var tags: PackedStringArray = PackedStringArray()
 @export var root_scene: PackedScene

@@ -13,6 +13,7 @@ const ProjectileMoveResultRef = preload("res://scripts/projectile/projectile_mov
 @onready var hitbox_component: Variant = get_node_or_null("HitboxComponent")
 
 @export var lifetime := 5.0
+@export var projectile_template_id: StringName = StringName()
 
 const PROJECTILE_COLOR_LINEAR := Color("f2c94c")
 const PROJECTILE_COLOR_TRACK := Color("5cc8ff")

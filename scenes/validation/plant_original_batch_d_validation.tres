@@ -69,7 +69,7 @@ rule_id = &"multi_lane_lane0"
 description = "Threepeater should damage targets in lane 0 (adjacent)"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_threepeater",
+"source_archetype_id": &"archetype_original_threepeater",
 "target_lane": 0
 }
 
@@ -79,7 +79,7 @@ rule_id = &"multi_lane_lane1"
 description = "Threepeater should damage targets in its own lane 1"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_threepeater",
+"source_archetype_id": &"archetype_original_threepeater",
 "target_lane": 1
 }
 
@@ -89,7 +89,7 @@ rule_id = &"multi_lane_lane2"
 description = "Threepeater should damage targets in lane 2 (adjacent)"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_threepeater",
+"source_archetype_id": &"archetype_original_threepeater",
 "target_lane": 2
 }
 
@@ -100,7 +100,7 @@ description = "Spikeweed should deal ground damage to a nearby zombie"
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("ground_damage")
 required_core_values = {
-"source_template_id": &"plant_spikeweed"
+"source_archetype_id": &"archetype_original_spikeweed"
 }
 
 [sub_resource type="Resource" id="Rule_peashooter_torchwood_damage"]
@@ -109,7 +109,7 @@ rule_id = &"peashooter_torchwood"
 description = "Peashooter behind Torchwood should still damage a target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_peashooter"
+"source_archetype_id": &"archetype_original_peashooter"
 }
 
 [resource]

@@ -46,9 +46,9 @@ rule_id = &"interaction_runner_slowed"
 description = "control plants should slow fast pressure targets"
 event_name = &"entity.status_applied"
 required_core_values = {
-"source_template_id": &"plant_frost_pea",
+"source_archetype_id": &"archetype_frost_pea",
 "status_id": &"slowed",
-"target_template_id": &"zombie_brisk_runner"
+"target_archetype_id": &"archetype_brisk_runner"
 }
 
 [sub_resource type="Resource" id="Rule_sporeling_hits_tank"]
@@ -57,8 +57,8 @@ rule_id = &"interaction_sporeling_hits_tank"
 description = "summoned units should contribute pressure into armored targets"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_sporeling",
-"target_template_id": &"zombie_bucket_tank"
+"source_archetype_id": &"archetype_sporeling",
+"target_archetype_id": &"archetype_bucket_tank"
 }
 
 [sub_resource type="Resource" id="Rule_tar_jams_repeater"]
@@ -67,9 +67,9 @@ rule_id = &"interaction_tar_jams_repeater"
 description = "support disruption should interfere with established ranged plants"
 event_name = &"entity.status_applied"
 required_core_values = {
-"source_template_id": &"zombie_tar_spitter",
+"source_archetype_id": &"archetype_tar_spitter",
 "status_id": &"jammed",
-"target_template_id": &"plant_repeater_burst"
+"target_archetype_id": &"archetype_repeater_burst"
 }
 
 [resource]

@@ -26,7 +26,7 @@ description = "delayed_trigger should emit effect.delayed_triggered after the co
 event_name = &"effect.delayed_triggered"
 required_tags = PackedStringArray("extension", "delayed_trigger")
 required_core_values = {
-"target_template_id": &"zombie_basic_walker",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 15
 }
 
@@ -37,8 +37,8 @@ description = "delayed_trigger should damage the target after the delay instead 
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("effect", "delayed_trigger", "extension")
 required_core_values = {
-"source_template_id": &"plant_extension_delayed_caster",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_extension_delayed_caster",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 15
 }
 

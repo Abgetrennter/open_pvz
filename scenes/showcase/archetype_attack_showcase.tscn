@@ -10,4 +10,4 @@ allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
 showcase_title = "Mechanic-first 攻击骨架展示"
-showcase_summary = "一个 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 trigger binding，并直接对目标造成伤害和击杀。这个场景用于直观看第一版 Mechanic-first 攻击链是否已经接通。"
+showcase_summary = "一个 archetype 通过 Trigger + Payload skeleton mechanic 编译出RuntimeTriggerSpec，并直接对目标造成伤害和击杀。这个场景用于直观看第一版 Mechanic-first 攻击链是否已经接通。"

@@ -15,9 +15,9 @@ sun_cost = 25
 cooldown_seconds = 0.0
 placement_tags = PackedStringArray("ground")
 
-[sub_resource type="Resource" id="CardDef_template_ground_mismatch"]
+[sub_resource type="Resource" id="CardDef_archetype_ground_mismatch"]
 script = ExtResource("2_card_def")
-card_id = &"template_ground_mismatch_card"
+card_id = &"archetype_ground_mismatch_card"
 display_name = "Template Ground Mismatch Card"
 archetype_id = &"archetype_basic_shooter"
 sun_cost = 25
@@ -55,10 +55,10 @@ card_id = &"water_only_card"
 lane_id = 0
 slot_index = 1
 
-[sub_resource type="Resource" id="BattleCardPlayRequest_template_mismatch"]
+[sub_resource type="Resource" id="BattleCardPlayRequest_archetype_mismatch"]
 script = ExtResource("3_card_request")
 at_time = 0.75
-card_id = &"template_ground_mismatch_card"
+card_id = &"archetype_ground_mismatch_card"
 lane_id = 0
 slot_index = 1
 
@@ -112,14 +112,14 @@ required_core_values = {
 "slot_type": &"water"
 }
 
-[sub_resource type="Resource" id="BattleValidationRule_template_reject"]
+[sub_resource type="Resource" id="BattleValidationRule_archetype_reject"]
 script = ExtResource("5_rule")
-rule_id = &"template_reject"
-description = "template static placement constraints reject a mismatched template"
+rule_id = &"archetype_reject"
+description = "archetype placement constraints reject a mismatched template"
 event_name = &"placement.rejected"
 required_core_values = {
-"card_id": &"template_ground_mismatch_card",
-"reason": &"template_tag_mismatch",
+"card_id": &"archetype_ground_mismatch_card",
+"reason": &"archetype_tag_mismatch",
 "slot_index": 1,
 "slot_type": &"water"
 }
@@ -165,15 +165,15 @@ script = ExtResource("1_scenario")
 scenario_id = &"board_slot_tag_validation"
 display_name = "Board Slot Tag Validation"
 description = "Validates that the board layer owns slot_type and placement_tags, rejecting mismatched requests and accepting matched requests without card-side special cases."
-goals = PackedStringArray("Reject a ground-tag request into a water slot.", "Reject a template whose static constraints still do not match the water slot.", "Accept a surface container into the water slot and let it grant support tags.", "Accept a primary plant onto the same slot through a different placement role.", "Reject a second primary request because the primary role is already occupied.")
+goals = PackedStringArray("Reject a ground-tag request into a water slot.", "Reject a archetype whose placement constraints still do not match the water slot.", "Accept a surface container into the water slot and let it grant support tags.", "Accept a primary plant onto the same slot through a different placement role.", "Reject a second primary request because the primary role is already occupied.")
 validation_time_limit = 3.2
 initial_sun = 100
 board_slot_count = 2
 board_slot_origin_x = 160.0
 board_slot_spacing = 96.0
 board_slot_configs = [SubResource("BoardSlotConfig_water_slot")]
-card_defs = [SubResource("CardDef_ground_card"), SubResource("CardDef_template_ground_mismatch"), SubResource("CardDef_water_card"), SubResource("CardDef_surface_supported_primary")]
-card_play_requests = [SubResource("BattleCardPlayRequest_ground_fail"), SubResource("BattleCardPlayRequest_template_mismatch"), SubResource("BattleCardPlayRequest_water_ok"), SubResource("BattleCardPlayRequest_primary_on_surface"), SubResource("BattleCardPlayRequest_primary_duplicate")]
-validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_tag_reject"), SubResource("BattleValidationRule_template_reject"), SubResource("BattleValidationRule_water_accept"), SubResource("BattleValidationRule_primary_on_surface_accept"), SubResource("BattleValidationRule_primary_duplicate_reject"), SubResource("BattleValidationRule_water_spawn")]
+card_defs = [SubResource("CardDef_ground_card"), SubResource("CardDef_archetype_ground_mismatch"), SubResource("CardDef_water_card"), SubResource("CardDef_surface_supported_primary")]
+card_play_requests = [SubResource("BattleCardPlayRequest_ground_fail"), SubResource("BattleCardPlayRequest_archetype_mismatch"), SubResource("BattleCardPlayRequest_water_ok"), SubResource("BattleCardPlayRequest_primary_on_surface"), SubResource("BattleCardPlayRequest_primary_duplicate")]
+validation_rules = [SubResource("BattleValidationRule_tick"), SubResource("BattleValidationRule_tag_reject"), SubResource("BattleValidationRule_archetype_reject"), SubResource("BattleValidationRule_water_accept"), SubResource("BattleValidationRule_primary_on_surface_accept"), SubResource("BattleValidationRule_primary_duplicate_reject"), SubResource("BattleValidationRule_water_spawn")]
 spawns = []
 

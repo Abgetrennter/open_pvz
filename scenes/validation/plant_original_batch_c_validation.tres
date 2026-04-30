@@ -97,8 +97,8 @@ description = "Ice-shroom should damage nearby enemies after card placement"
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
-"source_template_id": &"plant_iceshroom",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_original_iceshroom",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 3
 }
 
@@ -109,8 +109,8 @@ description = "Doom-shroom should damage nearby tank targets after card placemen
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
-"source_template_id": &"plant_doomshroom",
-"target_template_id": &"zombie_bucket_tank",
+"source_archetype_id": &"archetype_original_doomshroom",
+"target_archetype_id": &"archetype_bucket_tank",
 "target_lane": 4
 }
 

@@ -26,7 +26,7 @@ description = "extension apply_status effect should emit entity.status_applied o
 event_name = &"entity.status_applied"
 required_core_values = {
 "status_id": &"slowed",
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_movement_scaled"]

@@ -53,7 +53,7 @@ rule_id = &"puff_awake"
 description = "Coffee Bean should wake the covered Puff-shroom primary"
 event_name = &"entity.state_entered"
 required_core_values = {
-"source_template_id": &"plant_puffshroom",
+"source_archetype_id": &"archetype_original_puffshroom",
 "state_id": &"awake"
 }
 
@@ -63,8 +63,8 @@ rule_id = &"puff_damage_after_wake"
 description = "The awakened Puff-shroom should damage its lane target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_puffshroom",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_original_puffshroom",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0
 }
 
@@ -76,7 +76,7 @@ event_name = &"entity.state_entered"
 min_count = 0
 max_count = 0
 required_core_values = {
-"source_template_id": &"plant_fumeshroom",
+"source_archetype_id": &"archetype_original_fumeshroom",
 "state_id": &"awake"
 }
 
@@ -88,7 +88,7 @@ event_name = &"entity.damaged"
 min_count = 0
 max_count = 0
 required_core_values = {
-"source_template_id": &"plant_fumeshroom",
+"source_archetype_id": &"archetype_original_fumeshroom",
 "target_lane": 1
 }
 

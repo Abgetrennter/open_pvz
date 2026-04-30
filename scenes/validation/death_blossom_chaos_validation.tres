@@ -35,7 +35,7 @@ description = "basic shooter should finish the reactive bomber and emit a shared
 event_name = &"entity.died"
 required_core_values = {
 "target_kind": &"zombie",
-"target_template_id": &"zombie_reactive_bomber"
+"target_archetype_id": &"archetype_reactive_bomber"
 }
 
 [sub_resource type="Resource" id="Rule_death_blossom_hits_walls"]
@@ -46,8 +46,8 @@ event_name = &"entity.damaged"
 min_count = 2
 required_tags = PackedStringArray("explode", "entity.died")
 required_core_values = {
-"source_template_id": &"zombie_reactive_bomber",
-"target_template_id": &"plant_wall_barrier",
+"source_archetype_id": &"archetype_reactive_bomber",
+"target_archetype_id": &"archetype_wall_barrier",
 "value": 21
 }
 
@@ -57,8 +57,8 @@ rule_id = &"shooter_triggers_chain"
 description = "basic shooter should provide the initial damage chain that feeds the death blossom sample"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_basic_shooter",
-"target_template_id": &"zombie_reactive_bomber",
+"source_archetype_id": &"archetype_basic_shooter",
+"target_archetype_id": &"archetype_reactive_bomber",
 "value": 20
 }
 

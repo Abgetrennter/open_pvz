@@ -19,22 +19,20 @@ spawn_overrides = {
 [sub_resource type="Resource" id="Rule_archetype_spawned"]
 script = ExtResource("3_rule")
 rule_id = &"archetype_spawned"
-description = "archetype-instantiated sunflower should enter the runtime with both backend template identity and archetype identity"
+description = "archetype-instantiated sunflower should enter the runtime with archetype identity"
 event_name = &"entity.spawned"
 required_core_values = {
 "target_archetype_id": &"archetype_sunflower_skeleton",
-"target_template_id": &"plant_sunflower",
 "target_kind": &"plant"
 }
 
 [sub_resource type="Resource" id="Rule_archetype_sun_spawn"]
 script = ExtResource("3_rule")
 rule_id = &"archetype_sun_spawn"
-description = "compiled archetype trigger binding should generate plant sun through the shared produce_sun effect"
+description = "compiled archetype RuntimeTriggerSpec should generate plant sun through the shared produce_sun effect"
 event_name = &"sun.spawned"
 required_core_values = {
 "source_archetype_id": &"archetype_sunflower_skeleton",
-"source_template_id": &"plant_sunflower",
 "source_type": &"plant_generated",
 "resource_id": &"sun"
 }
@@ -53,8 +51,8 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"archetype_instantiation_validation"
 display_name = "Archetype Instantiation Validation"
-description = "Validates the first Mechanic-first skeleton path: BattleSpawnEntry resolves an archetype id, MechanicCompiler emits compiled trigger bindings, and the spawned entity generates sun through the shared runtime."
-goals = PackedStringArray("Verify BattleSpawnEntry can resolve a CombatArchetype through archetype_id.", "Verify the spawned entity carries both archetype identity and backend template identity into events.", "Verify the compiled trigger binding can drive produce_sun through the shared runtime.")
+description = "Validates the first Mechanic-first skeleton path: BattleSpawnEntry resolves an archetype id, MechanicCompiler emits compiled RuntimeTriggerSpecs, and the spawned entity generates sun through the shared runtime."
+goals = PackedStringArray("Verify BattleSpawnEntry can resolve a CombatArchetype through archetype_id.", "Verify the spawned entity carries archetype identity into events.", "Verify the compiled RuntimeTriggerSpec can drive produce_sun through the shared runtime.")
 validation_time_limit = 2.0
 initial_sun = 0
 sun_auto_collect_delay = 0.2

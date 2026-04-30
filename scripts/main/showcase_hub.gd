@@ -18,23 +18,13 @@ const GROUPS := [
 	},
 	{
 		"group_title": "引擎核心",
-		"group_summary": "事件链、archetype 装配与迁移兼容层的基础展示；旧模板路径仅作为 legacy 对照保留。",
+		"group_summary": "事件链、archetype 装配与运行时编译链的基础展示。",
 		"color": Color("4db6ac"),
 		"items": [
 			{
 				"title": "最小验证场景",
 				"summary": "原始主干演示场景，包含直线、追踪和抛物线三种基础投射表现。",
 				"scene": "res://scenes/showcase/minimal_validation_showcase.tscn",
-			},
-			{
-				"title": "Legacy 模板实例化",
-				"summary": "观察旧模板兼容层如何继续生成实体，并把 legacy 模板身份带进事件链。",
-				"scene": "res://scenes/showcase/template_instantiation_showcase.tscn",
-			},
-			{
-				"title": "Legacy 模板工厂",
-				"summary": "观察旧模板工厂如何作为迁移兼容层继续工作，而主作者入口已经切到 archetype。",
-				"scene": "res://scenes/showcase/template_factory_showcase.tscn",
 			},
 		],
 	},
@@ -45,7 +35,7 @@ const GROUPS := [
 		"items": [
 			{
 				"title": "产阳骨架展示",
-				"summary": "一个资源生产型 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 trigger binding，并沿共享产阳链生成和收集阳光。",
+				"summary": "一个资源生产型 archetype 通过 Trigger + Payload skeleton mechanic 编译出 RuntimeTriggerSpec，并沿共享产阳链生成和收集阳光。",
 				"scene": "res://scenes/showcase/archetype_sunflower_showcase.tscn",
 			},
 			{
@@ -65,7 +55,7 @@ const GROUPS := [
 			},
 			{
 				"title": "攻击骨架展示",
-				"summary": "一个攻击型 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 trigger binding，并直接伤害和击杀目标。",
+				"summary": "一个攻击型 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 RuntimeTriggerSpec，并直接伤害和击杀目标。",
 				"scene": "res://scenes/showcase/archetype_attack_showcase.tscn",
 			},
 			{

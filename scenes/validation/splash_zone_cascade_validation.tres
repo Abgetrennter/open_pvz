@@ -33,7 +33,7 @@ event_name = &"entity.damaged"
 min_count = 1
 required_tags = PackedStringArray("explode", "projectile.hit")
 required_core_values = {
-"target_template_id": &"zombie_bucket_tank"
+"target_archetype_id": &"archetype_bucket_tank"
 }
 
 [sub_resource type="Resource" id="Rule_splash_hits_walker"]
@@ -44,18 +44,18 @@ event_name = &"entity.damaged"
 min_count = 1
 required_tags = PackedStringArray("explode", "projectile.hit")
 required_core_values = {
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_melon_fired"]
 script = ExtResource("3_rule")
 rule_id = &"melon_projectile_fired"
-description = "melon lobber should spawn at least one parabola projectile through the template chain"
+description = "melon lobber should spawn at least one parabola projectile through the projectile content chain"
 event_name = &"projectile.spawned"
 min_count = 1
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_melon_lobber",
+"source_archetype_id": &"archetype_melon_lobber",
 "move_mode": &"parabola"
 }
 
@@ -64,7 +64,7 @@ script = ExtResource("1_scenario")
 scenario_id = &"splash_zone_cascade_validation"
 display_name = "Splash Zone Chaos Validation"
 description = "Validates that a melon lobber's terminal explosion can simultaneously damage both a heavy tank and a nearby walker through the shared on_hit explode runtime."
-goals = PackedStringArray("Verify the melon lobber fires a parabola projectile through the shared template chain.", "Verify the terminal on_hit explode damages the bucket tank.", "Verify the same explosion also damages the basic walker standing nearby.", "Verify the splash emerges from template composition without special-case area-damage scripts.")
+goals = PackedStringArray("Verify the melon lobber fires a parabola projectile through the shared projectile content chain.", "Verify the terminal on_hit explode damages the bucket tank.", "Verify the same explosion also damages the basic walker standing nearby.", "Verify the splash emerges from archetype composition without special-case area-damage scripts.")
 validation_time_limit = 3.0
 validation_rules = [SubResource("Rule_melon_fired"), SubResource("Rule_splash_hits_tank"), SubResource("Rule_splash_hits_walker")]
 spawns = [SubResource("Spawn_melon"), SubResource("Spawn_tank"), SubResource("Spawn_walker")]

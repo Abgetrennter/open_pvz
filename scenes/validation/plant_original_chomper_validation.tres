@@ -29,8 +29,8 @@ description = "Chomper should damage a nearby zombie through its devour payload"
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
-"source_template_id": &"plant_chomper",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_original_chomper",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0
 }
 

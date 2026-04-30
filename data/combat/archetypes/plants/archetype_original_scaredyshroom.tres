@@ -9,7 +9,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_scaredyshroom"
-legacy_template_id = &"plant_scaredyshroom"
 display_name = "Scaredy-shroom"
 hit_height_band = ExtResource("5_height")
 entity_kind = &"plant"

@@ -10,4 +10,4 @@ allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
 showcase_title = "Mechanic-first 产阳骨架展示"
-showcase_summary = "一个 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 trigger binding，并沿共享 produce_sun 效果链生成并收集阳光。这个场景用于直观看第一版 Mechanic-first 资源生产链是否已经接通。"
+showcase_summary = "一个 archetype 通过 Trigger + Payload skeleton mechanic 编译出RuntimeTriggerSpec，并沿共享 produce_sun 效果链生成并收集阳光。这个场景用于直观看第一版 Mechanic-first 资源生产链是否已经接通。"

@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_spore_summoner_skeleton"
-legacy_template_id = &"plant_spore_summoner"
 display_name = "Spore Summoner Archetype Skeleton"
 hit_height_band = ExtResource("migrated_2_height")
 hitbox_size = Vector2(44, 56)

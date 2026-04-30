@@ -10,7 +10,7 @@
 
 | 文件 | 类名 | 继承 | 职责 |
 |------|------|------|------|
-| `base_entity.gd` | `BaseEntity` | Node2D | 所有实体基类。管理 entity_id, team, lane_id, template_id, entity_state, 高度段 |
+| `base_entity.gd` | `BaseEntity` | Node2D | 所有实体基类。管理 entity_id, team, lane_id, archetype_id, entity_state, 高度段 |
 | `plant_root.gd` | `PlantRoot` | BaseEntity | 植物根节点。team = "plant"，包含 take_damage 接口（委托给 HealthComponent） |
 | `zombie_root.gd` | `ZombieRoot` | BaseEntity | 僵尸根节点。team = "zombie"，包含 move_speed、自动移动逻辑、take_damage 接口 |
 | `projectile_root.gd` | `ProjectileRoot` | BaseEntity | 抛射体根节点。管理飞行状态、3D-2D 投影、命中检测（swept_segment / terminal / overlap）、on_hit 效果链 |
@@ -44,6 +44,6 @@
 - `minimal_battle_validation` -- 基础实体生成和交互
 - `height_hit_validation` -- 高度段过滤
 - `swept_segment_validation` -- 扫掠碰撞
-- `template_instantiation_validation` -- 模板身份保持
+- `archetype_instantiation_validation` -- Archetype 身份保持
 
 <!-- 由 init-architect 自动生成，时间：2026-04-15 21:39:03 -->

@@ -100,7 +100,7 @@ WaveRunner._on_game_tick()
 - `mode_manual_aim_lane_validation` -- 手动技能试点闭环
 - `mode_input_profile_guard_validation` -- 输入 profile 守卫
 - `mode_objective_score_validation` -- 分数目标推进
-- `mode_objective_protect_template_validation` -- protect_template 目标
+- `mode_objective_protect_archetype_validation` -- protect_archetype 目标
 - `mode_objective_clear_special_targets_validation` -- clear_special_targets 目标
 - `mode_objective_defeat_named_spawn_validation` -- defeat_named_spawn 目标
 - `mode_module_override_validation` -- scenario module 覆盖语义

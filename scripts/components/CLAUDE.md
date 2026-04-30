@@ -25,7 +25,7 @@ EntityFactory 根据 entity_kind 自动挂载组件：
 | plant | Yes | No | Yes (100 HP) | Yes (42x54) | Yes |
 | zombie | Yes | Yes | Yes (120 HP) | Yes (44x60) | No |
 
-EntityTemplate 的 `required_components` 字段可要求额外组件。
+CombatArchetype 的 `required_components` 字段可要求额外组件。
 
 ## 关键接口
 

@@ -29,7 +29,7 @@ description = "bone thrower should fire a ranged projectile through the shared z
 event_name = &"projectile.spawned"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"zombie_bone_thrower"
+"source_archetype_id": &"archetype_bone_thrower"
 }
 
 [sub_resource type="Resource" id="Rule_bone_damage"]
@@ -38,8 +38,8 @@ rule_id = &"phase6_zombie_bone_damage"
 description = "bone thrower ranged projectiles should damage a defended plant"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"zombie_bone_thrower",
-"target_template_id": &"plant_wall_barrier"
+"source_archetype_id": &"archetype_bone_thrower",
+"target_archetype_id": &"archetype_wall_barrier"
 }
 
 [sub_resource type="Resource" id="Rule_tar_status"]
@@ -48,9 +48,9 @@ rule_id = &"phase6_zombie_tar_status"
 description = "tar spitter should apply jammed to a defended plant through the shared status effect chain"
 event_name = &"entity.status_applied"
 required_core_values = {
-"source_template_id": &"zombie_tar_spitter",
+"source_archetype_id": &"archetype_tar_spitter",
 "status_id": &"jammed",
-"target_template_id": &"plant_wall_barrier"
+"target_archetype_id": &"archetype_wall_barrier"
 }
 
 [resource]

@@ -34,8 +34,8 @@ rule_id = &"primary_hit_front_tank"
 description = "extension splitter should land its primary shot on the front tank before splitting"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_extension_splitter",
-"target_template_id": &"zombie_bucket_tank",
+"source_archetype_id": &"archetype_extension_splitter",
+"target_archetype_id": &"archetype_bucket_tank",
 "value": 20
 }
 
@@ -47,8 +47,8 @@ event_name = &"projectile.spawned"
 min_count = 2
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_extension_splitter",
-"target_template_id": &"track_bomb"
+"source_archetype_id": &"archetype_extension_splitter",
+"target_projectile_template_id": &"track_bomb"
 }
 
 [sub_resource type="Resource" id="Rule_split_damage"]
@@ -58,8 +58,8 @@ description = "split follow-up projectiles should damage nearby walkers through 
 event_name = &"entity.damaged"
 min_count = 2
 required_core_values = {
-"source_template_id": &"plant_extension_splitter",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_extension_splitter",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 12
 }
 

@@ -34,7 +34,7 @@ min_count = 1
 required_tags = PackedStringArray("status", "applied", "extension", "aura")
 required_core_values = {
 "status_id": &"slowed",
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_far_status_blocked"]
@@ -46,7 +46,7 @@ min_count = 0
 max_count = 0
 required_tags = PackedStringArray("status", "applied", "extension", "aura")
 required_core_values = {
-"target_template_id": &"zombie_brisk_runner"
+"target_archetype_id": &"archetype_brisk_runner"
 }
 
 [sub_resource type="Resource" id="Rule_near_movement_scaled"]

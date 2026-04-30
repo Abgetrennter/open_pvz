@@ -10,7 +10,7 @@
 
 ## 项目愿景
 
-Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规则"成为核心玩法驱动力。项目已从旧作者模型（`EntityTemplate / TriggerBinding`）切换到 **Mechanic-first** 架构：`Archetype + Mechanic[]` + 多阶段编译链。
+Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规则"成为核心玩法驱动力。项目已完成旧实体作者模型归档，正式运行时唯一入口是 **Mechanic-first** 架构：`CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory`。
 
 当前阶段：**Mechanic-first 重构阶段已完成三阶段**。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md) 和 [wiki/decisions/](wiki/decisions/README.md)。
 
@@ -91,7 +91,6 @@ graph TD
     Core --> CoreRuntime["core/runtime (MechanicCompiler, RuntimeSpec, EffectExecutor, ShuffleBag...)"]
 
     Data --> Archetypes["data/combat/archetypes/ (50 个 .tres)"]
-    Data --> Templates["data/combat/entity_templates/ (兼容层)"]
     Data --> Projectiles["data/combat/projectile_templates/"]
 
     click Autoload "./autoload/AGENTS.md" "查看 autoload 模块文档"
@@ -108,9 +107,9 @@ graph TD
 | 模块路径 | 语言 | 文件数 | 职责概述 |
 |----------|------|--------|----------|
 | `autoload/` | GDScript | 11 | 全局单例：事件总线、注册表、编译器分发、游戏状态 |
-| `scripts/core/defs/` | GDScript | 13 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, EntityTemplate 等 |
-| `scripts/core/runtime/` | GDScript | 15 | 运行时：MechanicCompiler, RuntimeSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
-| `scripts/battle/` | GDScript | 28 | 战斗协调：BattleManager, EntityFactory（双路径）, 经济/棋盘/卡片/波次子系统, 模式层 |
+| `scripts/core/defs/` | GDScript | 11 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, ProjectileTemplate 等 |
+| `scripts/core/runtime/` | GDScript | 16 | 运行时：MechanicCompiler, RuntimeSpec, RuntimeTriggerSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
+| `scripts/battle/` | GDScript | 28 | 战斗协调：BattleManager, EntityFactory（archetype-only）, 经济/棋盘/卡片/波次子系统, 模式层 |
 | `scripts/entities/` | GDScript | 4 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot |
 | `scripts/components/` | GDScript | 7 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
 | `scripts/projectile/` | GDScript | 5 | 抛射体运动系统：linear / parabola / track 运动模式 |
@@ -217,7 +216,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 ## AI 使用指引
 
 - 修改冻结协议或新增 Mechanic family 前务必获得设计审批
-- 新增实体时使用 Archetype + Mechanic[]，不再使用 EntityTemplate / TriggerBinding 作为顶层入口
+- 新增实体时只使用 CombatArchetype + CombatMechanic[]；旧实体作者模型仅作为历史归档，不参与运行时
 - 新增实体功能时，必须同时创建验证场景
 - 优先通过 `.tres` Resource 扩展内容，而非修改 GDScript 代码
 - 调试时使用 `DebugService` 记录，不要用 `print`

@@ -15,9 +15,9 @@
 | `trigger_def.gd` | `TriggerDef` | 触发器定义：trigger_id, event_name, condition_params, max_bound_effects |
 | `effect_def.gd` | `EffectDef` | 效果定义：effect_id, param_defs, slots, 允许额外参数/子效果 |
 | `effect_slot_def.gd` | `EffectSlotDef` | 效果槽定义：slot_name, slot_type, allowed_effect_ids |
-| `entity_template.gd` | `EntityTemplate` | 实体模板：template_id, entity_kind, 组件配置, 放置约束, trigger_bindings |
-| `trigger_binding.gd` | `TriggerBinding` | 触发绑定：将 behavior_key 映射到 trigger_id + effect_id + 参数 |
-| `projectile_template.gd` | `ProjectileTemplate` | 抛射体模板：template_id, flight_profile, default_params, lifetime, hitbox_radius |
+| `combat_archetype.gd` | `CombatArchetype` | 实体作者入口：archetype_id, entity_kind, stats, mechanics |
+| `combat_mechanic.gd` | `CombatMechanic` | 行为机制定义：family, type_id, priority, params |
+| `projectile_template.gd` | `ProjectileTemplate` | 抛射体内容资源：template_id, flight_profile, default_params, lifetime, hitbox_radius |
 | `height_band.gd` | `HeightBand` | 高度段定义：band_id, min_height, max_height |
 | `movement_contribution_def.gd` | `MovementContributionDef` | 运动贡献定义 |
 
@@ -27,6 +27,8 @@
 |------|------|------|
 | `effect_executor.gd` | `EffectExecutor` | 效果执行器：递归执行 EffectNode 树，最大深度 5，调用 EffectRegistry 策略 |
 | `protocol_validator.gd` | `ProtocolValidator` | 协议验证器：验证所有定义和运行时数据的完整性。冻结协议的守门人 |
+| `runtime_spec.gd` | `RuntimeSpec` | CombatArchetype + CombatMechanic[] 的实体运行时规格 |
+| `runtime_trigger_spec.gd` | `RuntimeTriggerSpec` | 编译后的触发器规格：trigger_id, event_name, condition_values, effect_root |
 | `rule_context.gd` | `RuleContext` | 规则上下文：在触发器和效果执行间传递状态（source/target/position/event_data） |
 | `trigger_instance.gd` | `TriggerInstance` | 触发器实例：运行时触发器，绑定 owner 实体，执行条件检查和效果链 |
 | `effect_node.gd` | `EffectNode` | 效果节点：效果树的节点，包含 effect_id, params, children |
@@ -49,7 +51,7 @@ FROZEN_TRIGGER_BEHAVIOR_SPECS = {
 # 主要验证方法
 validate_trigger_def(trigger_def) -> Array[String]
 validate_effect_def(effect_def) -> Array[String]
-validate_entity_template(entity_template) -> Array[String]  # retired guardrail: always rejects official EntityTemplate use
+validate_combat_archetype(archetype) -> Array[String]
 validate_battle_scenario(scenario) -> Array[String]
 validate_battle_spawn_entry(spawn_entry) -> Array[String]
 normalize_trigger_instance(instance) -> Dictionary
@@ -65,8 +67,7 @@ normalize_effect_node(node) -> Dictionary
 ## 相关验证场景
 
 - `protocol_guardrail_validation` -- 协议护栏验证
-- `template_guardrail_validation` -- 模板护栏验证
-- `template_instantiation_validation` -- 模板实例化
-- `template_factory_validation` -- 模板工厂
+- `archetype_instantiation_validation` -- Archetype 实例化
+- `full_chain_compile_validation` -- Mechanic 编译链
 
 <!-- 由 init-architect 自动生成，时间：2026-04-15 21:39:03 -->

@@ -10,7 +10,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_track_bomber"
-legacy_template_id = &"plant_track_bomber"
 display_name = "Track Bomber Plant"
 projectile_template = ExtResource("migrated_4_projectile_template")
 projectile_flight_profile = ExtResource("migrated_3_profile")

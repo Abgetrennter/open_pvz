@@ -56,8 +56,8 @@ rule_id = &"repeater_damage"
 description = "Repeater should damage the bucket tank target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_repeater",
-"target_template_id": &"zombie_bucket_tank"
+"source_archetype_id": &"archetype_original_repeater",
+"target_archetype_id": &"archetype_bucket_tank"
 }
 
 [sub_resource type="Resource" id="Rule_sunflower_sun_production"]
@@ -78,7 +78,7 @@ event_name = &"entity.damaged"
 min_count = 2
 required_tags = PackedStringArray("explode", "projectile.hit")
 required_core_values = {
-"source_template_id": &"plant_wintermelon",
+"source_archetype_id": &"archetype_original_wintermelon",
 "target_lane": 2
 }
 

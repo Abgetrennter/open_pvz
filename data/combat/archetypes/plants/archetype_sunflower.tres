@@ -8,7 +8,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_sunflower"
-legacy_template_id = &"plant_sunflower"
 display_name = "Sunflower"
 hit_height_band = ExtResource("migrated_2_height")
 required_empty_roles = PackedStringArray("blocker")

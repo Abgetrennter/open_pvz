@@ -28,7 +28,7 @@ func get_debug_name() -> String:
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"entity_id": -1,
-		"template_id": StringName(),
+		"archetype_id": StringName(),
 		"entity_kind": &"status_state",
 		"team": &"neutral",
 		"lane_id": -1,
@@ -66,7 +66,7 @@ func _on_game_tick(event_data: Variant) -> void:
 			})
 		var applied_event: Variant = EventDataRef.create(null, target_entity, null, PackedStringArray(["status", "applied"]))
 		applied_event.core["status_id"] = StringName(request.get("status_id"))
-		applied_event.core["target_template_id"] = StringName(request.get("target_template_id"))
+		applied_event.core["target_archetype_id"] = StringName(request.get("target_archetype_id"))
 		applied_event.core["lane_id"] = int(request.get("lane_id"))
 		applied_event.core["duration"] = float(request.get("duration"))
 		applied_event.core["movement_scale"] = float(request.get("movement_scale"))
@@ -87,14 +87,14 @@ func _update_entity_statuses(game_time: float) -> void:
 func _resolve_target_entity(request: Resource):
 	if battle == null or not is_instance_valid(battle):
 		return null
-	var target_template_id := StringName(request.get("target_template_id"))
+	var target_archetype_id := StringName(request.get("target_archetype_id"))
 	var target_lane := int(request.get("lane_id"))
 	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
 		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
 			continue
-		if target_template_id != StringName() and StringName(entity.get("template_id")) != target_template_id:
+		if target_archetype_id != StringName() and StringName(entity.get("archetype_id")) != target_archetype_id:
 			continue
 		if target_lane >= 0 and int(entity.get("lane_id")) != target_lane:
 			continue

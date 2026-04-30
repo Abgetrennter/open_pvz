@@ -28,9 +28,9 @@ rule_id = &"phase6_plant_slow"
 description = "frost pea should apply slowed to a frontline zombie through the shared status effect chain"
 event_name = &"entity.status_applied"
 required_core_values = {
-"source_template_id": &"plant_frost_pea",
+"source_archetype_id": &"archetype_frost_pea",
 "status_id": &"slowed",
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_spore_summon"]
@@ -40,7 +40,7 @@ description = "spore summoner should periodically spawn a sporeling through the 
 event_name = &"entity.spawned"
 required_core_values = {
 "archetype_id": &"archetype_sporeling",
-"source_template_id": &"plant_spore_summoner",
+"source_archetype_id": &"archetype_spore_summoner",
 "spawn_reason": &"summon"
 }
 
@@ -51,7 +51,7 @@ description = "summoned sporelings should enter the shared attack runtime and sp
 event_name = &"projectile.spawned"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_sporeling"
+"source_archetype_id": &"archetype_sporeling"
 }
 
 [resource]
@@ -59,7 +59,7 @@ script = ExtResource("1_scenario")
 scenario_id = &"plant_roster_phase6_validation"
 display_name = "Plant Roster Phase 6 Validation"
 description = "Validates the first formal Phase 6 plant roster additions for control and summon roles through shared built-in runtime effects."
-goals = PackedStringArray("Verify a formal control plant applies slowed through the built-in status effect.", "Verify a formal summon plant spawns combat-ready sporelings through the built-in summon effect.", "Verify summoned units reuse the same projectile runtime as normal template content.")
+goals = PackedStringArray("Verify a formal control plant applies slowed through the built-in status effect.", "Verify a formal summon plant spawns combat-ready sporelings through the built-in summon effect.", "Verify summoned units reuse the same projectile runtime as normal archetype content.")
 validation_time_limit = 6.5
 validation_rules = [SubResource("Rule_slow_applied"), SubResource("Rule_spore_summon"), SubResource("Rule_sporeling_attack")]
 spawns = [SubResource("Spawn_frost_pea"), SubResource("Spawn_spore_summoner"), SubResource("Spawn_target_dummy")]

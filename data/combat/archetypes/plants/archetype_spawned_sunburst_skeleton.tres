@@ -8,7 +8,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_spawned_sunburst_skeleton"
-legacy_template_id = &"plant_sunflower"
 display_name = "Spawned Sunburst Archetype Skeleton"
 hit_height_band = ExtResource("migrated_2_height")
 hitbox_size = Vector2(38, 50)

@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_tombstone_blocker"
-legacy_template_id = &"plant_tombstone_blocker"
 display_name = "Tombstone Blocker"
 hit_height_band = ExtResource("migrated_2_height")
 entity_kind = &"plant"

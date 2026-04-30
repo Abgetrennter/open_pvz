@@ -23,7 +23,7 @@ func get_debug_name() -> String:
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"entity_id": -1,
-		"template_id": StringName(),
+		"archetype_id": StringName(),
 		"entity_kind": &"field_object_state",
 		"team": &"neutral",
 		"lane_id": -1,
@@ -80,10 +80,10 @@ func _spawn_field_object(config: Resource, scenario: Resource) -> void:
 		battle.finalize_spawned_entity(entity, lane_id, spawn_resolution.get("hit_height_band", null), spawn_resolution.get("trigger_instances", []), null, {
 			"spawn_reason": &"field_object_spawn",
 			"archetype_id": archetype_id,
-			"object_template_id": StringName(entity.get("template_id")),
+			"object_archetype_id": archetype_id,
 		})
 		_field_objects.append(entity)
-		_emit_field_object_spawned(entity, lane_id, StringName(entity.get("template_id")), archetype_id)
+		_emit_field_object_spawned(entity, lane_id, archetype_id)
 		return
 	return
 
@@ -95,11 +95,11 @@ func _build_spawn_position(lane_id: int, x_position: float) -> Vector2:
 	return Vector2(x_position, lane_y)
 
 
-func _emit_field_object_spawned(entity: Node, lane_id: int, template_id: StringName, archetype_id: StringName = StringName()) -> void:
+func _emit_field_object_spawned(entity: Node, lane_id: int, archetype_id: StringName = StringName()) -> void:
 	var spawned_event: Variant = EventDataRef.create(null, entity, null, PackedStringArray(["field_object", "spawned"]))
 	spawned_event.core["lane_id"] = lane_id
 	if entity.has_method("get_entity_id"):
 		spawned_event.core["entity_id"] = int(entity.call("get_entity_id"))
-	spawned_event.core["object_template_id"] = template_id
+	spawned_event.core["object_archetype_id"] = archetype_id
 	spawned_event.core["archetype_id"] = archetype_id
 	EventBus.push_event(&"field_object.spawned", spawned_event)

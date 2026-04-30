@@ -57,7 +57,6 @@ required_tags = PackedStringArray("projectile")
 required_core_values = {
 "profile_id": &"linear_ground",
 "source_archetype_id": &"archetype_peashooter_skeleton",
-"source_template_id": &"plant_basic_shooter"
 }
 
 [sub_resource type="Resource" id="Rule_pea_projectile_hit"]
@@ -68,8 +67,7 @@ event_name = &"projectile.hit"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
 "source_archetype_id": &"archetype_peashooter_skeleton",
-"source_template_id": &"plant_basic_shooter",
-"target_template_id": &"zombie_lane_dummy",
+"target_archetype_id": &"archetype_lane_dummy",
 "target_lane": 0
 }
 
@@ -82,7 +80,6 @@ required_tags = PackedStringArray("projectile")
 required_core_values = {
 "profile_id": &"parabola_cabbage_arc",
 "source_archetype_id": &"archetype_cabbage_skeleton",
-"source_template_id": &"plant_cabbage_lobber"
 }
 
 [sub_resource type="Resource" id="Rule_cabbage_projectile_hit"]
@@ -93,8 +90,7 @@ event_name = &"projectile.hit"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
 "source_archetype_id": &"archetype_cabbage_skeleton",
-"source_template_id": &"plant_cabbage_lobber",
-"target_template_id": &"zombie_lane_dummy",
+"target_archetype_id": &"archetype_lane_dummy",
 "target_lane": 1
 }
 
@@ -108,4 +104,3 @@ validation_time_limit = 2.4
 lane_count = 2
 validation_rules = [SubResource("Rule_pea_projectile_spawn"), SubResource("Rule_pea_projectile_hit"), SubResource("Rule_cabbage_projectile_spawn"), SubResource("Rule_cabbage_projectile_hit")]
 spawns = [SubResource("Spawn_archetype_peashooter"), SubResource("Spawn_archetype_cabbage"), SubResource("Spawn_target_lane0"), SubResource("Spawn_target_lane1")]
-

@@ -2,7 +2,6 @@ extends RefCounted
 class_name EntityState
 
 var entity_id := -1
-var template_id: StringName = StringName()
 var entity_kind: StringName = &"entity"
 var team: StringName = &"neutral"
 var lane_id := -1
@@ -34,7 +33,6 @@ func set_health(current_health: int, maximum_health: int) -> void:
 func snapshot() -> Dictionary:
 	return {
 		"entity_id": entity_id,
-		"template_id": template_id,
 		"entity_kind": entity_kind,
 		"team": team,
 		"lane_id": lane_id,

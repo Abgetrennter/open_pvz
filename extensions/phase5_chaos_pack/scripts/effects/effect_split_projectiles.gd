@@ -108,7 +108,7 @@ func _find_split_targets(context, impact_position: Vector2, search_radius: float
 func _apply_target_to_context(split_context, target: Node) -> void:
 	split_context.core["target_node"] = target
 	split_context.core["target_id"] = _extract_entity_id(target)
-	split_context.core["target_template_id"] = _extract_template_id(target)
+	split_context.core["target_archetype_id"] = _extract_archetype_id(target)
 	split_context.core["target_kind"] = _extract_kind(target)
 	split_context.core["target_lane"] = _extract_lane(target)
 	split_context.core["target_team"] = _extract_team(target)
@@ -135,10 +135,10 @@ func _extract_entity_id(node: Node) -> int:
 	return int(node.call("get_entity_id"))
 
 
-func _extract_template_id(node: Node) -> StringName:
+func _extract_archetype_id(node: Node) -> StringName:
 	if node == null:
 		return StringName()
-	var value: Variant = node.get("template_id")
+	var value: Variant = node.get("archetype_id")
 	return StringName(value) if value is String or value is StringName else StringName()
 
 

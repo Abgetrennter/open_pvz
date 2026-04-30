@@ -43,7 +43,7 @@ description = "full chain (Trigger+Targeting+Trajectory+HitPolicy+Emission+Paylo
 event_name = &"projectile.hit"
 required_core_values = {
 "source_archetype_id": &"archetype_full_chain_shooter_skeleton",
-"target_template_id": &"zombie_lane_dummy"
+"target_archetype_id": &"archetype_lane_dummy"
 }
 min_count = 2
 
@@ -52,7 +52,7 @@ script = ExtResource("1_scenario")
 scenario_id = &"full_chain_compile_validation"
 display_name = "Full Chain Compile Validation"
 description = "Validates that an archetype with all 6 attack-chain family mechanics compiles and executes correctly."
-goals = PackedStringArray("Verify Trigger + Targeting + Trajectory + HitPolicy + Emission + Payload all compile into a single TriggerBinding.", "Verify burst projectiles spawn and hit the target.")
+goals = PackedStringArray("Verify Trigger + Targeting + Trajectory + HitPolicy + Emission + Payload all compile into a single RuntimeTriggerSpec.", "Verify burst projectiles spawn and hit the target.")
 validation_time_limit = 3.0
 validation_rules = [SubResource("Rule_full_chain_spawned"), SubResource("Rule_full_chain_hit")]
 spawns = [SubResource("Spawn_full_chain_shooter"), SubResource("Spawn_target_dummy")]

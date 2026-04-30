@@ -19,22 +19,22 @@ x_position = 420.0
 [sub_resource type="Resource" id="Rule_extension_spawn"]
 script = ExtResource("3_rule")
 rule_id = &"extension_spawn"
-description = "extension template should register through SceneRegistry and spawn a linear projectile without touching core code"
+description = "extension archetype should register through SceneRegistry and spawn a linear projectile without touching core code"
 event_name = &"projectile.spawned"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
 "move_mode": &"linear",
-"source_template_id": &"plant_extension_glass_cannon"
+"source_archetype_id": &"archetype_extension_glass_cannon"
 }
 
 [sub_resource type="Resource" id="Rule_extension_damage"]
 script = ExtResource("3_rule")
 rule_id = &"extension_damage"
-description = "extension template should damage a core zombie sample through the shared runtime"
+description = "extension archetype should damage a core zombie sample through the shared runtime"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_extension_glass_cannon",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_extension_glass_cannon",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 18
 }
 
@@ -42,7 +42,7 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"extension_pack_smoke_validation"
 display_name = "Extension Pack Smoke Validation"
-description = "Validates that a minimal external content pack can register a template and validation scenario without modifying the main runtime after the extension contract is in place."
+description = "Validates that a minimal external content pack can register an archetype and validation scenario without modifying the main runtime after the extension contract is in place."
 goals = PackedStringArray("Verify extension validation scenarios can load from the extension directory tree.", "Verify extension archetypes register through SceneRegistry by archetype_id.", "Verify extension content still runs on the shared projectile and damage runtime.")
 validation_time_limit = 2.2
 validation_rules = [SubResource("Rule_extension_spawn"), SubResource("Rule_extension_damage")]

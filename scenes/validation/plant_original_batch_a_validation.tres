@@ -102,8 +102,8 @@ rule_id = &"peashooter_hit"
 description = "Peashooter should damage the basic walker target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_peashooter",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_original_peashooter",
+"target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0
 }
 
@@ -123,7 +123,7 @@ rule_id = &"wallnut_damaged"
 description = "Wall-nut should receive damage from a zombie bite"
 event_name = &"entity.damaged"
 required_core_values = {
-"target_template_id": &"plant_wallnut",
+"target_archetype_id": &"archetype_original_wallnut",
 "target_lane": 2
 }
 
@@ -133,9 +133,9 @@ rule_id = &"snowpea_slow"
 description = "Snow Pea should apply slowed to the basic walker"
 event_name = &"entity.status_applied"
 required_core_values = {
-"source_template_id": &"plant_snowpea",
+"source_archetype_id": &"archetype_original_snowpea",
 "status_id": &"slowed",
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_repeater_hit"]
@@ -144,8 +144,8 @@ rule_id = &"repeater_hit"
 description = "Repeater should damage the brisk runner target"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_repeater",
-"target_template_id": &"zombie_brisk_runner",
+"source_archetype_id": &"archetype_original_repeater",
+"target_archetype_id": &"archetype_brisk_runner",
 "target_lane": 4
 }
 
@@ -155,8 +155,8 @@ rule_id = &"cabbage_hit"
 description = "Cabbage-pult should damage the basic walker target in lane 5"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_cabbagepult",
-"target_template_id": &"zombie_basic_walker"
+"source_archetype_id": &"archetype_original_cabbagepult",
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_melon_explode"]
@@ -167,7 +167,7 @@ event_name = &"entity.damaged"
 min_count = 2
 required_tags = PackedStringArray("explode", "projectile.hit")
 required_core_values = {
-"source_template_id": &"plant_melonpult",
+"source_archetype_id": &"archetype_original_melonpult",
 "target_lane": 5
 }
 

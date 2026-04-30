@@ -25,7 +25,7 @@ rule_id = &"extension_knockback_event"
 description = "extension knockback effect should emit entity.knockback_applied for the target zombie"
 event_name = &"entity.knockback_applied"
 required_core_values = {
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_knockback_damage"]
@@ -34,8 +34,8 @@ rule_id = &"extension_knockback_damage"
 description = "the knockback binder should still land its primary projectile damage"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_extension_knockback_binder",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_extension_knockback_binder",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 10
 }
 

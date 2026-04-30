@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_basic_zombie_skeleton"
-legacy_template_id = &"zombie_basic_walker"
 display_name = "Basic Zombie Archetype Skeleton"
 default_params = {
 "move_speed": 55.0

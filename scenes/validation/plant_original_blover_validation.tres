@@ -33,8 +33,8 @@ rule_id = &"blover_air_damage"
 description = "Blover should affect air-tagged targets."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_blover",
-"target_template_id": &"zombie_air_scout"
+"source_archetype_id": &"archetype_original_blover",
+"target_archetype_id": &"archetype_air_scout"
 }
 
 [sub_resource type="Resource" id="Rule_ground_untouched"]
@@ -45,8 +45,8 @@ event_name = &"entity.damaged"
 min_count = 0
 max_count = 0
 required_core_values = {
-"source_template_id": &"plant_blover",
-"target_template_id": &"zombie_basic_walker"
+"source_archetype_id": &"archetype_original_blover",
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [resource]

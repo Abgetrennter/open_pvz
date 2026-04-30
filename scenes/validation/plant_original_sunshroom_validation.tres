@@ -26,7 +26,7 @@ rule_id = &"sunshroom_awake"
 description = "Coffee Bean should wake the covered Sun-shroom."
 event_name = &"entity.state_entered"
 required_core_values = {
-"source_template_id": &"plant_sunshroom",
+"source_archetype_id": &"archetype_original_sunshroom",
 "state_id": &"awake"
 }
 
@@ -36,7 +36,7 @@ rule_id = &"sunshroom_sun_spawn"
 description = "Awakened Sun-shroom should produce plant-generated sun."
 event_name = &"sun.spawned"
 required_core_values = {
-"source_template_id": &"plant_sunshroom",
+"source_archetype_id": &"archetype_original_sunshroom",
 "source_type": &"plant_generated",
 "value": 15
 }

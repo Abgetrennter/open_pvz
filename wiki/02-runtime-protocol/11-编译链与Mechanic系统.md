@@ -13,13 +13,13 @@
 - 当前唯一正式作者入口是什么。
 - 10 个一级 family 如何理解。
 - 编译链如何把 archetype 变成 `RuntimeSpec`。
-- legacy 兼容层当前处于什么位置。
+- 旧实体模型的归档边界是什么。
 
 本文不负责：
 
 - 替代各 family 的字段级协议说明。
 - 重讲历史阶段切换。
-- 把 legacy 模型重新写成正式作者入口。
+- 把旧实体模型重新写成正式作者入口。
 
 ---
 
@@ -45,11 +45,7 @@ Mechanic 负责定义：
 - 状态与生命周期
 - 攻击链各 family 的组合
 
-legacy 资源当前仍存在，但只承担：
-
-- 兼容层
-- 后端素材层
-- 迁移对照层
+旧实体模型已归档，不再承担兼容层、后端素材层或迁移对照运行职责。
 
 ---
 
@@ -177,19 +173,19 @@ EntityFactory.instantiate_runtime_spec()
 
 ---
 
-## legacy 兼容层当前定位
+## 旧实体模型归档边界
 
 当前仓库事实是：
 
-- `data/combat/archetypes/` 下当前仍有 `48` 个 archetype 带有 `backend_entity_template*` 字段。
-- `EntityFactory` 仍保留旧路径兜底。
-- `data/combat/entity_templates/` 与 `data/combat/trigger_bindings/` 仍在仓库中。
+- 实体运行时只消费 `CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory`。
+- 触发器编译产物是 `RuntimeTriggerSpec[]`，由 `EntityFactory` 构造 `TriggerInstance`。
+- `ProjectileTemplate` 只保留为抛射体内容资源。
 
 但这些事实不改变当前正文口径：
 
-- 它们不是正式作者入口。
-- 它们只说明 legacy 收口尚未完成。
-- 后续路线是继续收紧兼容层，而不是重新扩大双轨。
+- 实体旧作者模型不是正式作者入口。
+- 旧资源脚本和旧资源目录不参与运行时、验证主线或扩展模板。
+- 历史术语只允许出现在 ADR、归档计划或迁移背景叙述中。
 
 ---
 
@@ -197,7 +193,7 @@ EntityFactory.instantiate_runtime_spec()
 
 任何正文页如果提到 `EntityTemplate / TriggerBinding`，都必须同时满足：
 
-1. 明确标注其为 legacy/兼容层。
+1. 明确标注其为历史归档。
 2. 不再把它写成新增内容的正式入口。
 3. 不与 ADR-002、ADR-005 的结论冲突。
 

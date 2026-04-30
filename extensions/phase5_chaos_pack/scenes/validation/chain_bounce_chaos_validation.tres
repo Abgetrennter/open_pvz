@@ -35,8 +35,8 @@ description = "chain_bounce should damage the first target with bounce tags"
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("chain_bounce")
 required_core_values = {
-"source_template_id": &"plant_extension_chain_bouncer",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_extension_chain_bouncer",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 18
 }
 
@@ -47,8 +47,8 @@ description = "chain_bounce should continue to a second nearby target with reduc
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("chain_bounce")
 required_core_values = {
-"source_template_id": &"plant_extension_chain_bouncer",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_extension_chain_bouncer",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 14
 }
 
@@ -59,8 +59,8 @@ description = "chain_bounce should continue to a third nearby target with reduce
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("chain_bounce")
 required_core_values = {
-"source_template_id": &"plant_extension_chain_bouncer",
-"target_template_id": &"zombie_basic_walker",
+"source_archetype_id": &"archetype_extension_chain_bouncer",
+"target_archetype_id": &"archetype_basic_walker",
 "value": 10
 }
 

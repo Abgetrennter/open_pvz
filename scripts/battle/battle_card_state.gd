@@ -56,7 +56,7 @@ func get_debug_name() -> String:
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"entity_id": -1,
-		"template_id": StringName(),
+		"archetype_id": StringName(),
 		"entity_kind": &"card_state",
 		"team": &"neutral",
 		"lane_id": -1,

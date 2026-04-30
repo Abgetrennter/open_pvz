@@ -38,13 +38,13 @@
   {
     "id": "archetype_instantiation_validation",
     "scenario": "res://scenes/validation/archetype_instantiation_validation.tres",
-    "description": "Validates the first Mechanic-first skeleton path from archetype resolution to compiled trigger binding execution.",
+    "description": "Validates the first Mechanic-first skeleton path from archetype resolution to compiled RuntimeTriggerSpec execution.",
     "layers": ["core"]
   },
   {
     "id": "archetype_attack_validation",
     "scenario": "res://scenes/validation/archetype_attack_validation.tres",
-    "description": "Validates the first attack-side Mechanic-first skeleton path from archetype resolution to compiled trigger binding damage execution.",
+    "description": "Validates the first attack-side Mechanic-first skeleton path from archetype resolution to compiled RuntimeTriggerSpec damage execution.",
     "layers": ["core"]
   },
   {
@@ -158,13 +158,13 @@
   {
     "id": "spawn_override_priority_validation",
     "scenario": "res://scenes/validation/spawn_override_priority_validation.tres",
-    "description": "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides win over template projectile defaults.",
+    "description": "Validates that BattleSpawnEntry can resolve archetypes by registry id and that scene-level overrides win over template projectile defaults.",
     "layers": ["core"]
   },
   {
     "id": "air_interceptor_validation",
     "scenario": "res://scenes/validation/air_interceptor_validation.tres",
-    "description": "Validates that the air interceptor sample can hit low and medium air targets through the shared template chain.",
+    "description": "Validates that the air interceptor sample can hit low and medium air targets through the shared projectile content chain.",
     "layers": ["core"]
   },
   {
@@ -218,7 +218,7 @@
   {
     "id": "protect_goal_phase6_validation",
     "scenario": "res://scenes/validation/protect_goal_phase6_validation.tres",
-    "description": "Validates the protect_template defeat condition by requiring a sunflower anchor to survive a ranged zombie attack.",
+    "description": "Validates the protect_archetype defeat condition by requiring a sunflower anchor to survive a ranged zombie attack.",
     "layers": ["core"]
   },
   {
@@ -236,7 +236,7 @@
   {
     "id": "sunflower_sun_production_validation",
     "scenario": "res://scenes/validation/sunflower_sun_production_validation.tres",
-    "description": "Validates sunflower sun production using the actual plant_sunflower template across multiple lanes, including plant-generated sun with different intervals and values, sky-drop sun, automatic collection, and resource state changes.",
+    "description": "Validates sunflower sun production using the actual archetype_sunflower archetype across multiple lanes, including plant-generated sun with different intervals and values, sky-drop sun, automatic collection, and resource state changes.",
     "layers": ["smoke", "core"]
   },
   {
@@ -272,7 +272,7 @@
   {
     "id": "air_slot_validation",
     "scenario": "res://scenes/validation/air_slot_validation.tres",
-    "description": "Validates that air-only slots reject unsupported templates and accept a template with matching static air-only constraints.",
+    "description": "Validates that air-only slots reject unsupported archetypes and accept a template with matching static air-only constraints.",
     "layers": ["core"]
   },
   {
@@ -326,7 +326,7 @@
   {
     "id": "extension_pack_smoke_validation",
     "scenario": "res://extensions/minimal_chaos_pack/scenes/validation/extension_pack_smoke_validation.tres",
-    "description": "Validates that a minimal external content pack can register an entity template and validation scenario through the extension scan path.",
+    "description": "Validates that a minimal external content pack can register an archetype and validation scenario through the extension scan path.",
     "layers": ["smoke", "extension"]
   },
   {
@@ -444,9 +444,9 @@
     "layers": ["core"]
   },
   {
-    "id": "mode_objective_protect_template_validation",
-    "scenario": "res://scenes/validation/mode_objective_protect_template_validation.tres",
-    "description": "Validates mode-level protect_template objective evaluation and defeat handling.",
+    "id": "mode_objective_protect_archetype_validation",
+    "scenario": "res://scenes/validation/mode_objective_protect_archetype_validation.tres",
+    "description": "Validates mode-level protect_archetype objective evaluation and defeat handling.",
     "layers": ["core"]
   },
   {

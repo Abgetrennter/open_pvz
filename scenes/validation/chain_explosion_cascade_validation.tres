@@ -35,8 +35,8 @@ description = "basic shooter should land linear projectile damage on the reactiv
 event_name = &"entity.damaged"
 min_count = 1
 required_core_values = {
-"source_template_id": &"plant_basic_shooter",
-"target_template_id": &"zombie_reactive_bomber",
+"source_archetype_id": &"archetype_basic_shooter",
+"target_archetype_id": &"archetype_reactive_bomber",
 "value": 20
 }
 
@@ -47,8 +47,8 @@ description = "track bomber should land tracking projectile damage on the reacti
 event_name = &"entity.damaged"
 min_count = 1
 required_core_values = {
-"source_template_id": &"plant_track_bomber",
-"target_template_id": &"zombie_reactive_bomber",
+"source_archetype_id": &"archetype_track_bomber",
+"target_archetype_id": &"archetype_reactive_bomber",
 "value": 12
 }
 
@@ -60,8 +60,8 @@ event_name = &"entity.damaged"
 min_count = 1
 required_tags = PackedStringArray("effect", "entity.damaged")
 required_core_values = {
-"source_template_id": &"zombie_reactive_bomber",
-"target_template_id": &"plant_basic_shooter",
+"source_archetype_id": &"archetype_reactive_bomber",
+"target_archetype_id": &"archetype_basic_shooter",
 "value": 7
 }
 
@@ -73,8 +73,8 @@ event_name = &"entity.damaged"
 min_count = 1
 required_tags = PackedStringArray("effect", "entity.damaged")
 required_core_values = {
-"source_template_id": &"zombie_reactive_bomber",
-"target_template_id": &"plant_track_bomber",
+"source_archetype_id": &"archetype_reactive_bomber",
+"target_archetype_id": &"archetype_track_bomber",
 "value": 7
 }
 
@@ -86,8 +86,8 @@ event_name = &"entity.damaged"
 min_count = 1
 required_tags = PackedStringArray("explode", "entity.died")
 required_core_values = {
-"source_template_id": &"zombie_reactive_bomber",
-"target_template_id": &"plant_wall_barrier",
+"source_archetype_id": &"archetype_reactive_bomber",
+"target_archetype_id": &"archetype_wall_barrier",
 "value": 21
 }
 
@@ -96,7 +96,7 @@ script = ExtResource("1_scenario")
 scenario_id = &"chain_explosion_cascade_validation"
 display_name = "Chain Explosion Cascade Chaos Validation"
 description = "Validates a cross-type attack cascade where two different plant types strike a reactive bomber, triggering separate retaliations and a death explosion against a wall."
-goals = PackedStringArray("Verify both shooter and track bomber independently damage the reactive bomber through different projectile types.", "Verify the bomber retaliates against each attacker through when_damaged, proving multi-source retaliation works.", "Verify the bomber death explosion damages the wall through on_death, completing the attack-retaliate-explode chain.", "Verify the entire cascade emerges from template composition without BattleManager branches.")
+goals = PackedStringArray("Verify both shooter and track bomber independently damage the reactive bomber through different projectile types.", "Verify the bomber retaliates against each attacker through when_damaged, proving multi-source retaliation works.", "Verify the bomber death explosion damages the wall through on_death, completing the attack-retaliate-explode chain.", "Verify the entire cascade emerges from archetype composition without BattleManager branches.")
 validation_time_limit = 3.0
 validation_rules = [SubResource("Rule_shooter_hits"), SubResource("Rule_tracker_hits"), SubResource("Rule_retaliates_shooter"), SubResource("Rule_retaliates_tracker"), SubResource("Rule_death_explode")]
 spawns = [SubResource("Spawn_shooter"), SubResource("Spawn_tracker"), SubResource("Spawn_bomber"), SubResource("Spawn_wall")]

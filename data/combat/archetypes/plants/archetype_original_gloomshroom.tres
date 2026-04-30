@@ -10,7 +10,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_gloomshroom"
-legacy_template_id = &"plant_gloomshroom"
 display_name = "Gloom-shroom"
 projectile_template = ExtResource("6_projectile_template")
 projectile_flight_profile = ExtResource("5_profile")

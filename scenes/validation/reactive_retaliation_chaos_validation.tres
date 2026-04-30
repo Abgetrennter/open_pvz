@@ -29,8 +29,8 @@ description = "double repeater burst should land repeated projectile damage on t
 event_name = &"entity.damaged"
 min_count = 2
 required_core_values = {
-"source_template_id": &"plant_repeater_burst",
-"target_template_id": &"zombie_reactive_bomber",
+"source_archetype_id": &"archetype_repeater_burst",
+"target_archetype_id": &"archetype_reactive_bomber",
 "value": 20
 }
 
@@ -42,8 +42,8 @@ event_name = &"entity.damaged"
 min_count = 2
 required_tags = PackedStringArray("effect", "entity.damaged")
 required_core_values = {
-"source_template_id": &"zombie_reactive_bomber",
-"target_template_id": &"plant_repeater_burst",
+"source_archetype_id": &"archetype_reactive_bomber",
+"target_archetype_id": &"archetype_repeater_burst",
 "value": 7
 }
 
@@ -54,7 +54,7 @@ description = "reactive bomber should still die through the shared runtime after
 event_name = &"entity.died"
 required_core_values = {
 "target_kind": &"zombie",
-"target_template_id": &"zombie_reactive_bomber"
+"target_archetype_id": &"archetype_reactive_bomber"
 }
 
 [resource]

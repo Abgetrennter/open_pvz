@@ -66,8 +66,8 @@ func _apply_pending_context_overrides(context) -> void:
 		context.target_node = target_node
 		context.core["target_node"] = target_node
 		context.core["target_id"] = _extract_entity_id(target_node)
-		context.core["target_template_id"] = _extract_template_id(target_node)
 		context.core["target_archetype_id"] = _extract_archetype_id(target_node)
+		context.core["target_projectile_template_id"] = _extract_projectile_template_id(target_node)
 		context.core["target_kind"] = _extract_entity_kind(target_node)
 		context.core["target_lane"] = _extract_lane_id(target_node)
 		context.core["target_team"] = _extract_team(target_node)
@@ -94,17 +94,6 @@ func _extract_entity_kind(node: Node) -> StringName:
 	return StringName()
 
 
-func _extract_template_id(node: Node) -> StringName:
-	if node == null:
-		return StringName()
-	var template_value: Variant = node.get("template_id")
-	if template_value is StringName:
-		return template_value
-	if template_value is String:
-		return StringName(template_value)
-	return StringName()
-
-
 func _extract_archetype_id(node: Node) -> StringName:
 	if node == null:
 		return StringName()
@@ -113,6 +102,17 @@ func _extract_archetype_id(node: Node) -> StringName:
 		return archetype_value
 	if archetype_value is String:
 		return StringName(archetype_value)
+	return StringName()
+
+
+func _extract_projectile_template_id(node: Node) -> StringName:
+	if node == null:
+		return StringName()
+	var value: Variant = node.get("projectile_template_id")
+	if value is StringName:
+		return value
+	if value is String:
+		return StringName(value)
 	return StringName()
 
 

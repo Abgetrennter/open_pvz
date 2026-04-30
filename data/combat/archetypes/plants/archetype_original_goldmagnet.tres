@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_goldmagnet"
-legacy_template_id = &"plant_goldmagnet"
 display_name = "Gold Magnet"
 hit_height_band = ExtResource("2_height")
 entity_kind = &"plant"

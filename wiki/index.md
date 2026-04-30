@@ -13,13 +13,13 @@
 - 正式 archetype 总数为 `51`：`39` 植物、`10` 僵尸、`2` 场上物件。
 - 验证场景总数为 `87`，其中包含 `9` 个 `smoke`、`67` 个 `core`、`10` 个 `extension`、`10` 个 `guardrail`、`3` 个 `migration` 分层标签。
 - Mechanic 一级 family 已冻结为 `10` 个；当前正文已按 `10/10` 建立正式编译覆盖理解。
-- `EntityTemplate / TriggerBinding` 仍存在于仓库中，但仅作为 legacy 兼容层和后端资源层，不再作为正式作者入口。
-- 当前仍有 `48` 个 archetype 保留 `backend_entity_template*` 字段，说明 legacy 收口尚未完成，但第一批 backend-free archetype 已经出现。
+- `EntityTemplate / TriggerBinding` 已从运行时、正式内容入口、扩展模板和验证主线中移除；历史记录只允许留在归档叙述中。
+- `ProjectileTemplate` 继续保留为抛射体内容资源，不再与实体旧作者模型并列为顶层入口。
 - battle 模式组织层 v1 已经进入主干：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef` 已具备运行时主链和批量验证入口。
 
 一句话判断：
 
-> Open PVZ 当前是一个以 `Archetype + Mechanic[]` 为正式作者模型、以批量验证为回归基线、仍在继续收口 legacy 兼容层的 PVZ-like 战斗引擎。
+> Open PVZ 当前是一个以 `CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory` 为唯一实体运行时入口、以批量验证为回归基线的 PVZ-like 战斗引擎。
 
 ---
 
@@ -114,7 +114,7 @@
 
 - 当前正文优先写“已成立事实”和“当前有效路线”，不再承载阶段任务单。
 - 任何新 ADR 完成后，必须同步回写至少一篇当前正文和一篇运行时/验证文档。
-- `EntityTemplate / TriggerBinding` 在当前正文中只能以 legacy/兼容层语义出现。
+- 当前正文不得把实体旧模型写成运行时兜底或正式内容入口；历史术语只用于归档记录。
 - 历史材料统一进入 `plans/archive/`，未来方向草案统一进入 `plans/draft/`。
 
 ---

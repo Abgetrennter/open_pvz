@@ -43,7 +43,7 @@ description = "burst emission should spawn multiple projectiles that each hit th
 event_name = &"projectile.hit"
 required_core_values = {
 "source_archetype_id": &"archetype_burst_shooter_skeleton",
-"target_template_id": &"zombie_lane_dummy"
+"target_archetype_id": &"archetype_lane_dummy"
 }
 min_count = 2
 

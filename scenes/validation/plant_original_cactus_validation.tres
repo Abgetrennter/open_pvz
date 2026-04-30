@@ -23,8 +23,8 @@ rule_id = &"cactus_air_damage"
 description = "Cactus should damage an air target with its track-air projectile."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_cactus",
-"target_template_id": &"zombie_air_scout"
+"source_archetype_id": &"archetype_original_cactus",
+"target_archetype_id": &"archetype_air_scout"
 }
 
 [resource]

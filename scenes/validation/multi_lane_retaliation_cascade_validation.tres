@@ -35,8 +35,8 @@ description = "basic shooter in lane 0 should damage the bomber in lane 0"
 event_name = &"entity.damaged"
 min_count = 1
 required_core_values = {
-"source_template_id": &"plant_basic_shooter",
-"target_template_id": &"zombie_reactive_bomber",
+"source_archetype_id": &"archetype_basic_shooter",
+"target_archetype_id": &"archetype_reactive_bomber",
 "value": 20
 }
 
@@ -47,8 +47,8 @@ description = "repeater burst in lane 1 should damage the bomber in lane 1"
 event_name = &"entity.damaged"
 min_count = 1
 required_core_values = {
-"source_template_id": &"plant_repeater_burst",
-"target_template_id": &"zombie_reactive_bomber",
+"source_archetype_id": &"archetype_repeater_burst",
+"target_archetype_id": &"archetype_reactive_bomber",
 "value": 20
 }
 
@@ -60,8 +60,8 @@ event_name = &"entity.damaged"
 min_count = 1
 required_tags = PackedStringArray("effect", "entity.damaged")
 required_core_values = {
-"source_template_id": &"zombie_reactive_bomber",
-"target_template_id": &"plant_basic_shooter",
+"source_archetype_id": &"archetype_reactive_bomber",
+"target_archetype_id": &"archetype_basic_shooter",
 "value": 7
 }
 
@@ -73,8 +73,8 @@ event_name = &"entity.damaged"
 min_count = 1
 required_tags = PackedStringArray("effect", "entity.damaged")
 required_core_values = {
-"source_template_id": &"zombie_reactive_bomber",
-"target_template_id": &"plant_repeater_burst",
+"source_archetype_id": &"archetype_reactive_bomber",
+"target_archetype_id": &"archetype_repeater_burst",
 "value": 7
 }
 

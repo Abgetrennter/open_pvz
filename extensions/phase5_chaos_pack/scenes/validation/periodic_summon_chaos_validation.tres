@@ -24,7 +24,7 @@ event_name = &"entity.spawned"
 min_count = 2
 required_core_values = {
 "archetype_id": &"archetype_extension_shardling",
-"source_template_id": &"plant_extension_summoner",
+"source_archetype_id": &"archetype_extension_summoner",
 "spawn_reason": &"extension_summon"
 }
 
@@ -35,8 +35,8 @@ description = "summoned shardlings should damage the bucket tank through their o
 event_name = &"entity.damaged"
 min_count = 1
 required_core_values = {
-"source_template_id": &"plant_extension_shardling",
-"target_template_id": &"zombie_bucket_tank",
+"source_archetype_id": &"archetype_extension_shardling",
+"target_archetype_id": &"archetype_bucket_tank",
 "value": 14
 }
 
@@ -48,8 +48,8 @@ event_name = &"projectile.spawned"
 min_count = 1
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_extension_shardling",
-"target_template_id": &"pea_linear"
+"source_archetype_id": &"archetype_extension_shardling",
+"target_projectile_template_id": &"pea_linear"
 }
 
 [resource]

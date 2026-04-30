@@ -10,7 +10,7 @@ var defeat_line_x := 80.0
 var battle_goal: StringName = &"all_waves_cleared"
 var defeat_conditions: PackedStringArray = PackedStringArray(["zombie_reached_goal"])
 var survival_duration := 0.0
-var protected_template_id: StringName = StringName()
+var protected_archetype_id: StringName = StringName()
 
 var _wave_defs: Array[Resource] = []
 var _started_waves: Dictionary = {}
@@ -29,7 +29,7 @@ func setup(battle_node: Node, flow_state_node: Node, scenario: Resource) -> void
 	if defeat_conditions.is_empty():
 		defeat_conditions = PackedStringArray(["zombie_reached_goal"])
 	survival_duration = float(scenario.get("survival_duration"))
-	protected_template_id = StringName(scenario.get("protected_template_id"))
+	protected_archetype_id = StringName(scenario.get("protected_archetype_id"))
 	defeat_line_x = float(scenario.get("defeat_line_x"))
 	if defeat_line_x <= 0.0:
 		defeat_line_x = 80.0
@@ -57,7 +57,7 @@ func get_debug_name() -> String:
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"entity_id": -1,
-		"template_id": StringName(),
+		"archetype_id": StringName(),
 		"entity_kind": &"wave_runner",
 		"team": &"neutral",
 		"lane_id": -1,
@@ -72,7 +72,7 @@ func get_debug_snapshot() -> Dictionary:
 			"battle_goal": battle_goal,
 			"defeat_conditions": PackedStringArray(defeat_conditions),
 			"survival_duration": survival_duration,
-			"protected_template_id": protected_template_id,
+			"protected_archetype_id": protected_archetype_id,
 		},
 	}
 
@@ -184,8 +184,8 @@ func _check_defeat() -> void:
 			if (entity as Node2D).global_position.x <= defeat_line_x:
 				flow_state.mark_defeat(&"zombie_reached_goal")
 				return
-	if defeat_conditions.has(&"protect_template") and _is_protected_target_missing():
-		flow_state.mark_defeat(&"protected_template_lost")
+	if defeat_conditions.has(&"protect_archetype") and _is_protected_target_missing():
+		flow_state.mark_defeat(&"protected_archetype_lost")
 		return
 
 
@@ -215,12 +215,12 @@ func _has_active_enemies() -> bool:
 
 
 func _is_protected_target_missing() -> bool:
-	if protected_template_id == StringName():
+	if protected_archetype_id == StringName():
 		return false
 	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
-		if StringName(entity.get("template_id")) != protected_template_id:
+		if StringName(entity.get("archetype_id")) != protected_archetype_id:
 			continue
 		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
 			continue

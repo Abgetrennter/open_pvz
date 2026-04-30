@@ -9,7 +9,6 @@ const EntityStateRef = preload("res://scripts/core/runtime/entity_state.gd")
 @export var archetype_id: StringName = StringName()
 @export var tags: PackedStringArray = PackedStringArray()
 var entity_id := -1
-var template_id: StringName = StringName()
 var entity_state: Variant = EntityStateRef.new()
 var _hit_height_range := Vector2(0.0, 24.0)
 var _active_statuses: Dictionary = {}
@@ -183,7 +182,6 @@ func _physics_process(_delta: float) -> void:
 
 func _sync_entity_state() -> void:
 	entity_state.entity_id = entity_id
-	entity_state.template_id = template_id
 	entity_state.entity_kind = entity_kind
 	entity_state.team = team
 	entity_state.lane_id = lane_id

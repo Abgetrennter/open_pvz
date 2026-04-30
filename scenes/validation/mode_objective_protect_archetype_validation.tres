@@ -6,12 +6,12 @@
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="4_spawn"]
 [ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
 
-[sub_resource type="Resource" id="Objective_protect_template"]
+[sub_resource type="Resource" id="Objective_protect_archetype"]
 script = ExtResource("3_objective")
 objective_id = &"protect_sunflower_mode"
-objective_type = &"protect_template"
+objective_type = &"protect_archetype"
 params = {
-"template_id": &"plant_sunflower"
+"archetype_id": &"archetype_sunflower"
 }
 summary_tags = PackedStringArray("objective", "protect", "mode")
 
@@ -30,20 +30,20 @@ x_position = 300.0
 [sub_resource type="Resource" id="Rule_mode_protect_defeat"]
 script = ExtResource("5_rule")
 rule_id = &"mode_protect_defeat"
-description = "mode objective protect_template should mark defeat when the protected template is destroyed"
+description = "mode objective protect_archetype should mark defeat when the protected archetype is destroyed"
 event_name = &"battle.defeat"
 required_core_values = {
-"reason": &"protected_template_lost"
+"reason": &"protected_archetype_lost"
 }
 
 [resource]
 script = ExtResource("1_scenario")
-scenario_id = &"mode_objective_protect_template_validation"
-display_name = "Mode Objective Protect Template Validation"
-description = "Validates that BattleModeHost can interpret a protect_template objective and mark defeat when the protected entity is lost."
+scenario_id = &"mode_objective_protect_archetype_validation"
+display_name = "Mode Objective Protect Archetype Validation"
+description = "Validates that BattleModeHost can interpret a protect_archetype objective and mark defeat when the protected entity is lost."
 goals = PackedStringArray("Mode objective tracks the protected sunflower.", "The battle fails through mode objective logic when the sunflower is destroyed.")
 validation_time_limit = 4.5
 mode_def = ExtResource("2_mode")
-objective_override = SubResource("Objective_protect_template")
+objective_override = SubResource("Objective_protect_archetype")
 spawns = [SubResource("Spawn_protected_sunflower"), SubResource("Spawn_bone_thrower")]
 validation_rules = [SubResource("Rule_mode_protect_defeat")]

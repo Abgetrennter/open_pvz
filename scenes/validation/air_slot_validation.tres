@@ -52,18 +52,18 @@ event_name = &"game.tick"
 [sub_resource type="Resource" id="BattleValidationRule_ground_fail"]
 script = ExtResource("5_rule")
 rule_id = &"ground_fail"
-description = "ground template is rejected on air-only slot"
+description = "ground archetype is rejected on air-only slot"
 event_name = &"placement.rejected"
 required_core_values = {
 "card_id": &"ground_fail_air_card",
-"reason": &"template_tag_mismatch",
+"reason": &"archetype_tag_mismatch",
 "slot_type": &"air_only"
 }
 
 [sub_resource type="Resource" id="BattleValidationRule_air_accept"]
 script = ExtResource("5_rule")
 rule_id = &"air_accept"
-description = "air-only template is accepted on air-only slot"
+description = "air-only archetype is accepted on air-only slot"
 event_name = &"placement.accepted"
 required_core_values = {
 "card_id": &"air_perch_card",
@@ -74,7 +74,7 @@ required_core_values = {
 [sub_resource type="Resource" id="BattleValidationRule_air_spawn"]
 script = ExtResource("5_rule")
 rule_id = &"air_spawn"
-description = "air-only template spawns on air-only slot"
+description = "air-only archetype spawns on air-only slot"
 event_name = &"entity.spawned"
 required_core_values = {
 "card_id": &"air_perch_card",
@@ -87,8 +87,8 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"air_slot_validation"
 display_name = "Air Slot Validation"
-description = "Validates that air-only slots reject unsupported templates and accept a template with matching static air-only constraints."
-goals = PackedStringArray("Reject a normal primary plant on an air-only slot.", "Accept an air-only template on the same slot.", "Spawn the accepted air-only entity.")
+description = "Validates that air-only slots reject unsupported archetypes and accept a template with matching static air-only constraints."
+goals = PackedStringArray("Reject a normal primary plant on an air-only slot.", "Accept an air-only archetype on the same slot.", "Spawn the accepted air-only entity.")
 validation_time_limit = 2.4
 initial_sun = 100
 board_slot_count = 2

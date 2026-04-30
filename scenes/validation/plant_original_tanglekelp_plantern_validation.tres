@@ -55,9 +55,9 @@ rule_id = &"tanglekelp_damage"
 description = "Tangle Kelp proxy behavior should damage a close water-lane target; original drag/consume semantics remain a protocol gap."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_tanglekelp",
+"source_archetype_id": &"archetype_original_tanglekelp",
 "target_lane": 0,
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [sub_resource type="Resource" id="Rule_plantern_accept"]

@@ -4,7 +4,6 @@
       "id": "plant_roster_v1",
       "description": "Formal plant-side baseline capabilities that should stay independently verifiable.",
       "validations": [
-        "template_factory_validation",
         "repeater_burst_validation",
         "lobber_catalog_validation",
         "air_interceptor_validation",
@@ -14,7 +13,6 @@
         "plant_original_batch_a_validation"
       ],
       "showcases": [
-        "template_factory_showcase",
         "repeater_burst_showcase",
         "lobber_catalog_showcase",
         "air_interceptor_showcase"

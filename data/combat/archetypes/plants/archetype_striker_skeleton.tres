@@ -8,7 +8,6 @@
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_striker_skeleton"
-legacy_template_id = &"plant_wall_barrier"
 display_name = "Striker Archetype Skeleton"
 hit_height_band = ExtResource("migrated_2_height")
 hitbox_size = Vector2(54, 64)

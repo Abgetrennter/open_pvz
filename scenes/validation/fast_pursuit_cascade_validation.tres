@@ -26,7 +26,7 @@ required_tags = PackedStringArray("projectile")
 required_core_values = {
 "move_mode": &"track",
 "profile_id": &"track_ground",
-"source_template_id": &"plant_track_bomber"
+"source_archetype_id": &"archetype_track_bomber"
 }
 
 [sub_resource type="Resource" id="Rule_track_hit"]
@@ -37,8 +37,8 @@ event_name = &"projectile.hit"
 min_count = 2
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_track_bomber",
-"target_template_id": &"zombie_brisk_runner"
+"source_archetype_id": &"archetype_track_bomber",
+"target_archetype_id": &"archetype_brisk_runner"
 }
 
 [sub_resource type="Resource" id="Rule_damage_accumulated"]
@@ -48,8 +48,8 @@ description = "multiple tracking hits should accumulate damage on the brisk runn
 event_name = &"entity.damaged"
 min_count = 2
 required_core_values = {
-"source_template_id": &"plant_track_bomber",
-"target_template_id": &"zombie_brisk_runner",
+"source_archetype_id": &"archetype_track_bomber",
+"target_archetype_id": &"archetype_brisk_runner",
 "value": 12
 }
 

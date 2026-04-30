@@ -56,8 +56,8 @@ event_name = &"projectile.spawned"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
 "profile_id": &"parabola_cabbage_arc",
-"source_template_id": &"plant_cabbage_lobber",
-"target_template_id": &"cabbage_arc"
+"source_archetype_id": &"archetype_cabbage_lobber",
+"target_projectile_template_id": &"cabbage_arc"
 }
 
 [sub_resource type="Resource" id="Rule_cabbage_hit_bucket"]
@@ -67,8 +67,8 @@ description = "cabbage lobber should hit the bucket tank target"
 event_name = &"projectile.hit"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
-"source_template_id": &"plant_cabbage_lobber",
-"target_template_id": &"zombie_bucket_tank",
+"source_archetype_id": &"archetype_cabbage_lobber",
+"target_archetype_id": &"archetype_bucket_tank",
 "target_lane": 0
 }
 
@@ -80,8 +80,8 @@ event_name = &"projectile.spawned"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
 "profile_id": &"parabola_terminal_blast",
-"source_template_id": &"plant_melon_lobber",
-"target_template_id": &"melon_blast"
+"source_archetype_id": &"archetype_melon_lobber",
+"target_projectile_template_id": &"melon_blast"
 }
 
 [sub_resource type="Resource" id="Rule_melon_explode"]
@@ -92,7 +92,7 @@ event_name = &"entity.damaged"
 min_count = 2
 required_tags = PackedStringArray("explode", "projectile.hit")
 required_core_values = {
-"source_template_id": &"plant_melon_lobber",
+"source_archetype_id": &"archetype_melon_lobber",
 "target_lane": 1
 }
 
@@ -100,7 +100,7 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"lobber_catalog_validation"
 display_name = "Lobber Catalog Validation"
-description = "Validates that the cabbage and melon lobber samples can spawn their dedicated projectile templates and resolve direct-hit and terminal-blast behaviors through the template chain."
+description = "Validates that the cabbage and melon lobber samples can spawn their dedicated projectile templates and resolve direct-hit and terminal-blast behaviors through the projectile content chain."
 goals = PackedStringArray("Verify plant_cabbage_lobber can spawn cabbage_arc projectiles.", "Verify plant_melon_lobber can spawn melon_blast projectiles.", "Verify melon_blast can hand off to explode-tagged clustered damage.")
 validation_time_limit = 4.5
 validation_rules = [SubResource("Rule_cabbage_spawn"), SubResource("Rule_cabbage_hit_bucket"), SubResource("Rule_melon_spawn"), SubResource("Rule_melon_explode")]

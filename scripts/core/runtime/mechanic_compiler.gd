@@ -5,7 +5,8 @@ const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd"
 const CombatMechanicRef = preload("res://scripts/core/defs/combat_mechanic.gd")
 const NormalizedMechanicSetRef = preload("res://scripts/core/runtime/normalized_mechanic_set.gd")
 const RuntimeSpecRef = preload("res://scripts/core/runtime/runtime_spec.gd")
-const TriggerBindingRef = preload("res://scripts/core/defs/trigger_binding.gd")
+const RuntimeTriggerSpecRef = preload("res://scripts/core/runtime/runtime_trigger_spec.gd")
+const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 
 const COMPILER_VERSION := &"mechanic_first_v0"
 
@@ -122,7 +123,6 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 	var runtime_spec = RuntimeSpecRef.new()
 	runtime_spec.compiler_version = COMPILER_VERSION
 	runtime_spec.source_archetype_id = archetype.archetype_id
-	runtime_spec.legacy_template_id = archetype.legacy_template_id
 	runtime_spec.entity_kind = archetype.entity_kind
 	runtime_spec.display_name = archetype.display_name
 	runtime_spec.tags = archetype.tags
@@ -135,7 +135,7 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 		archetype,
 		runtime_spec.projectile_template
 	)
-	runtime_spec.compiled_trigger_bindings = _compile_trigger_payload_bindings(normalized, archetype)
+	runtime_spec.trigger_specs = _compile_trigger_payload_specs(normalized, archetype)
 	runtime_spec.controller_specs = _compile_controller_specs(normalized, archetype)
 	runtime_spec.state_specs = _compile_state_specs(normalized, archetype)
 	runtime_spec.placement_spec = _compile_placement_spec(normalized, archetype)
@@ -179,7 +179,7 @@ static func normalize_archetype(archetype, spawn_overrides: Dictionary = {}):
 	return normalized
 
 
-static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
+static func _compile_trigger_payload_specs(normalized, archetype) -> Array:
 	var trigger_mechanics: Array = []
 	var payload_mechanics: Array = []
 	var targeting_params: Dictionary = {}
@@ -238,7 +238,7 @@ static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 				continue
 			if grouped_payloads.size() > 1 and StringName(group_key) == StringName():
 				normalized.warnings.append("Archetype %s compiles multiple ungrouped payload mechanics per trigger (%d payloads)." % [String(archetype.archetype_id), grouped_payloads.size()])
-			_compile_binding_pairs(
+			_compile_spec_pairs(
 				archetype,
 				grouped_triggers,
 				grouped_payloads,
@@ -250,7 +250,7 @@ static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 				compiled
 			)
 		return compiled
-	_compile_binding_pairs(
+	_compile_spec_pairs(
 		archetype,
 		trigger_mechanics,
 		payload_mechanics,
@@ -264,7 +264,7 @@ static func _compile_trigger_payload_bindings(normalized, archetype) -> Array:
 	return compiled
 
 
-static func _compile_binding_pairs(
+static func _compile_spec_pairs(
 	archetype,
 	trigger_mechanics: Array,
 	payload_mechanics: Array,
@@ -277,14 +277,14 @@ static func _compile_binding_pairs(
 ) -> void:
 	for trigger_mechanic in trigger_mechanics:
 		for payload_mechanic in payload_mechanics:
-			var trigger_binding = _build_binding_from_mechanics(archetype, trigger_mechanic, payload_mechanic)
-			if trigger_binding == null:
+			var trigger_spec = _build_spec_from_mechanics(archetype, trigger_mechanic, payload_mechanic, merged_params)
+			if trigger_spec == null:
 				continue
-			_inject_targeting(trigger_binding, targeting_params, merged_params)
-			_inject_trajectory(trigger_binding, trajectory_params)
-			_inject_hit_policy(trigger_binding, hit_policy_params)
-			_inject_emission(trigger_binding, emission_params)
-			compiled.append(trigger_binding)
+			_inject_targeting(trigger_spec, targeting_params, merged_params)
+			_inject_trajectory(trigger_spec, trajectory_params)
+			_inject_hit_policy(trigger_spec, hit_policy_params)
+			_inject_emission(trigger_spec, emission_params)
+			compiled.append(trigger_spec)
 
 
 static func _group_mechanics_by_binding_group(mechanics: Array) -> Dictionary:
@@ -305,7 +305,7 @@ static func _binding_group_for_mechanic(mechanic) -> StringName:
 	return StringName(mechanic.params.get("binding_group", StringName()))
 
 
-static func _build_binding_from_mechanics(archetype, trigger_mechanic, payload_mechanic):
+static func _build_spec_from_mechanics(archetype, trigger_mechanic, payload_mechanic, merged_params: Dictionary):
 	var trigger_mapping := _map_trigger_type(trigger_mechanic.type_id)
 	if trigger_mapping.is_empty():
 		return null
@@ -313,19 +313,18 @@ static func _build_binding_from_mechanics(archetype, trigger_mechanic, payload_m
 	if payload_mapping.is_empty():
 		return null
 
-	var binding = TriggerBindingRef.new()
-	binding.binding_id = StringName("%s__%s__%s" % [
+	var spec = RuntimeTriggerSpecRef.new()
+	spec.spec_id = StringName("%s__%s__%s" % [
 		String(archetype.archetype_id),
 		String(trigger_mechanic.mechanic_id),
 		String(payload_mechanic.mechanic_id),
 	])
-	binding.behavior_key = StringName(trigger_mapping.get("behavior_key", &"attack"))
 	var trigger_id := StringName(trigger_mapping.get("trigger_id", StringName()))
-	binding.trigger_id = trigger_id
-	binding.event_name = StringName(trigger_mapping.get("event_name", StringName()))
+	spec.trigger_id = trigger_id
+	spec.event_name = StringName(trigger_mapping.get("event_name", StringName()))
 	var trigger_params := Dictionary(trigger_mechanic.params).duplicate(true)
 	_strip_compile_only_params(trigger_params)
-	binding.condition_values = _merge_trigger_condition_values(trigger_id, trigger_params, archetype.default_params)
+	spec.condition_values = _merge_trigger_condition_values(trigger_id, trigger_params, merged_params)
 	var payload_params := Dictionary(payload_mechanic.params).duplicate(true)
 	_strip_compile_only_params(payload_params)
 	var effect_id := StringName(payload_mapping.get("effect_id", StringName()))
@@ -335,15 +334,36 @@ static func _build_binding_from_mechanics(archetype, trigger_mechanic, payload_m
 		payload_params.erase(String(effect_id_param))
 	if effect_id == StringName():
 		return null
-	binding.effect_id = effect_id
+	var on_hit_effect_id := StringName()
+	var on_hit_effect_params: Dictionary = {}
 	if payload_params.has("on_hit_effect_id"):
-		binding.on_hit_effect_id = StringName(payload_params["on_hit_effect_id"])
+		on_hit_effect_id = StringName(payload_params["on_hit_effect_id"])
 		payload_params.erase("on_hit_effect_id")
 	if payload_params.has("on_hit_effect_params") and payload_params["on_hit_effect_params"] is Dictionary:
-		binding.on_hit_effect_params = Dictionary(payload_params["on_hit_effect_params"]).duplicate(true)
+		on_hit_effect_params = Dictionary(payload_params["on_hit_effect_params"]).duplicate(true)
 		payload_params.erase("on_hit_effect_params")
-	binding.effect_params = payload_params
-	return binding
+	var children := {}
+	if effect_id == &"spawn_projectile":
+		children[&"on_hit"] = _build_on_hit_effect_node(on_hit_effect_id, on_hit_effect_params, payload_params, merged_params)
+	spec.effect_root = EffectNodeRef.new(effect_id, payload_params, children)
+	return spec
+
+
+static func _build_on_hit_effect_node(effect_id: StringName, effect_params: Dictionary, payload_params: Dictionary, merged_params: Dictionary):
+	var resolved_effect_id := effect_id
+	var resolved_params := effect_params.duplicate(true)
+	if resolved_effect_id == StringName():
+		resolved_effect_id = &"damage"
+		if not resolved_params.has("target_mode"):
+			resolved_params["target_mode"] = &"context_target"
+	if resolved_effect_id == &"damage" and not resolved_params.has("amount"):
+		if merged_params.has("damage"):
+			resolved_params["amount"] = merged_params["damage"]
+		elif payload_params.has("damage"):
+			resolved_params["amount"] = payload_params["damage"]
+		else:
+			resolved_params["amount"] = 10
+	return EffectNodeRef.new(resolved_effect_id, resolved_params)
 
 
 static func _strip_compile_only_params(params: Dictionary) -> void:
@@ -400,10 +420,10 @@ static func _compile_modifier_params(mechanic, archetype, merged_params: Diction
 		_collect_mod_params(mechanic.params, out_params)
 
 
-static func _inject_targeting(binding, targeting_params: Dictionary, merged_params: Dictionary) -> void:
+static func _inject_targeting(trigger_spec, targeting_params: Dictionary, merged_params: Dictionary) -> void:
 	if targeting_params.is_empty():
 		return
-	var trigger_id := StringName(binding.trigger_id)
+	var trigger_id := StringName(trigger_spec.trigger_id)
 	var trigger_def = TriggerRegistry.get_def(trigger_id)
 	var condition_param_names: Dictionary = {}
 	if trigger_def != null:
@@ -415,30 +435,36 @@ static func _inject_targeting(binding, targeting_params: Dictionary, merged_para
 				condition_param_names[param_name] = true
 	for key: Variant in _TARGETING_CONDITION_KEYS.keys():
 		if targeting_params.has(key):
-			binding.condition_values[key] = targeting_params[key]
+			trigger_spec.condition_values[key] = targeting_params[key]
 		elif merged_params.has(key) and condition_param_names.has(String(key)):
-			binding.condition_values[key] = merged_params[key]
+			trigger_spec.condition_values[key] = merged_params[key]
 
 
-static func _inject_trajectory(binding, trajectory_params: Dictionary) -> void:
+static func _inject_trajectory(trigger_spec, trajectory_params: Dictionary) -> void:
 	if trajectory_params.is_empty():
 		return
+	if trigger_spec.effect_root == null:
+		return
 	for key: Variant in trajectory_params.keys():
-		binding.effect_params[key] = trajectory_params[key]
+		trigger_spec.effect_root.params[key] = trajectory_params[key]
 
 
-static func _inject_hit_policy(binding, hit_policy_params: Dictionary) -> void:
+static func _inject_hit_policy(trigger_spec, hit_policy_params: Dictionary) -> void:
 	if hit_policy_params.is_empty():
 		return
+	if trigger_spec.effect_root == null:
+		return
 	for key: Variant in hit_policy_params.keys():
-		binding.effect_params[key] = hit_policy_params[key]
+		trigger_spec.effect_root.params[key] = hit_policy_params[key]
 
 
-static func _inject_emission(binding, emission_params: Dictionary) -> void:
+static func _inject_emission(trigger_spec, emission_params: Dictionary) -> void:
 	if emission_params.is_empty():
 		return
+	if trigger_spec.effect_root == null:
+		return
 	for key: Variant in emission_params.keys():
-		binding.effect_params[key] = emission_params[key]
+		trigger_spec.effect_root.params[key] = emission_params[key]
 
 
 static func _map_trigger_type(type_id: StringName) -> Dictionary:

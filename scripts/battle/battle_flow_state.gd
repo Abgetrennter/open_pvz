@@ -11,7 +11,7 @@ var defeat_reason: StringName = StringName()
 var battle_goal: StringName = &"all_waves_cleared"
 var defeat_conditions: PackedStringArray = PackedStringArray(["zombie_reached_goal"])
 var survival_duration := 0.0
-var protected_template_id: StringName = StringName()
+var protected_archetype_id: StringName = StringName()
 
 
 func setup(_battle: Node, scenario: Resource) -> void:
@@ -27,7 +27,7 @@ func setup(_battle: Node, scenario: Resource) -> void:
 	if defeat_conditions.is_empty():
 		defeat_conditions = PackedStringArray(["zombie_reached_goal"])
 	survival_duration = 0.0 if scenario == null else float(scenario.get("survival_duration"))
-	protected_template_id = StringName() if scenario == null else StringName(scenario.get("protected_template_id"))
+	protected_archetype_id = StringName() if scenario == null else StringName(scenario.get("protected_archetype_id"))
 
 
 func get_debug_name() -> String:
@@ -37,7 +37,7 @@ func get_debug_name() -> String:
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"entity_id": -1,
-		"template_id": StringName(),
+		"archetype_id": StringName(),
 		"entity_kind": &"battle_flow_state",
 		"team": &"neutral",
 		"lane_id": -1,
@@ -53,7 +53,7 @@ func get_debug_snapshot() -> Dictionary:
 			"battle_goal": battle_goal,
 			"defeat_conditions": PackedStringArray(defeat_conditions),
 			"survival_duration": survival_duration,
-			"protected_template_id": protected_template_id,
+			"protected_archetype_id": protected_archetype_id,
 		},
 	}
 

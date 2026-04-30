@@ -40,8 +40,8 @@ description = "Jalapeno enemies_in_lane should damage a distant runner"
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
-"source_template_id": &"plant_jalapeno",
-"target_template_id": &"zombie_brisk_runner",
+"source_archetype_id": &"archetype_original_jalapeno",
+"target_archetype_id": &"archetype_brisk_runner",
 "target_lane": 0
 }
 
@@ -51,7 +51,7 @@ rule_id = &"gloomshroom_damage"
 description = "Gloom-shroom should damage nearby targets with radius_around targeting"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_gloomshroom"
+"source_archetype_id": &"archetype_original_gloomshroom"
 }
 
 [resource]

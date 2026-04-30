@@ -36,7 +36,7 @@ rule_id = &"scaredyshroom_awake"
 description = "Coffee Bean should wake the covered Scaredy-shroom."
 event_name = &"entity.state_entered"
 required_core_values = {
-"source_template_id": &"plant_scaredyshroom",
+"source_archetype_id": &"archetype_original_scaredyshroom",
 "state_id": &"awake"
 }
 
@@ -46,9 +46,9 @@ rule_id = &"scaredyshroom_damage"
 description = "Awakened Scaredy-shroom should damage the forward lane target."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_scaredyshroom",
+"source_archetype_id": &"archetype_original_scaredyshroom",
 "target_lane": 0,
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [resource]

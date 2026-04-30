@@ -19,7 +19,7 @@ func execute(context, params: Dictionary, _node) -> Variant:
 		return result
 	var duration := float(params.get("duration", 1.2))
 	target.call("apply_mark", mark_id, duration, {
-		"source_template_id": StringName(context.core.get("source_template_id", StringName())),
+		"source_archetype_id": StringName(context.core.get("source_archetype_id", StringName())),
 	})
 	var mark_event: Variant = EventDataRef.create(context.source_node, target, null, PackedStringArray(["extension", "mark", "applied"]))
 	mark_event.core["mark_id"] = mark_id

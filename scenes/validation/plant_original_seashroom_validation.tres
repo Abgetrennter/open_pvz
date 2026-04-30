@@ -44,7 +44,7 @@ rule_id = &"seashroom_awake"
 description = "Coffee Bean should wake the covered Sea-shroom."
 event_name = &"entity.state_entered"
 required_core_values = {
-"source_template_id": &"plant_seashroom",
+"source_archetype_id": &"archetype_original_seashroom",
 "state_id": &"awake"
 }
 
@@ -54,9 +54,9 @@ rule_id = &"seashroom_damage"
 description = "Awakened Sea-shroom should damage the close forward water-lane target."
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_seashroom",
+"source_archetype_id": &"archetype_original_seashroom",
 "target_lane": 0,
-"target_template_id": &"zombie_basic_walker"
+"target_archetype_id": &"archetype_basic_walker"
 }
 
 [resource]

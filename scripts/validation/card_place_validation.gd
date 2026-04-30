@@ -138,9 +138,9 @@ func _inject_cell_click() -> void:
 func _on_entity_spawned(event_data: Variant) -> void:
 	var spawn_reason = event_data.core.get("spawn_reason")
 	if spawn_reason == &"card_play":
-		var legacy_template_id := StringName(event_data.core.get("legacy_template_id"))
-		if legacy_template_id != StringName():
-			_mark_passed("entity_spawned_from_card_%s" % String(legacy_template_id))
+		var archetype_id := StringName(event_data.core.get("archetype_id"))
+		if archetype_id != StringName():
+			_mark_passed("entity_spawned_from_card_%s" % String(archetype_id))
 			return
 		var archetype_id := StringName(event_data.core.get("archetype_id"))
 		if archetype_id != StringName():

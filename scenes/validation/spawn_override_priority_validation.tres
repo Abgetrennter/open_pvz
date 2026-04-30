@@ -28,14 +28,14 @@ x_position = 500.0
 [sub_resource type="Resource" id="Rule_override_spawn"]
 script = ExtResource("3_rule")
 rule_id = &"override_spawn"
-description = "spawn entry should resolve archetype_id through SceneRegistry and let scenario overrides replace backend projectile defaults"
+description = "spawn entry should resolve archetype_id through SceneRegistry and let scenario overrides replace projectile content defaults"
 event_name = &"projectile.spawned"
 required_tags = PackedStringArray("projectile")
 required_core_values = {
 "move_mode": &"parabola",
 "profile_id": &"parabola_arc",
-"source_template_id": &"plant_basic_shooter",
-"target_template_id": &"track_bomb"
+"source_archetype_id": &"archetype_basic_shooter",
+"target_projectile_template_id": &"track_bomb"
 }
 
 [sub_resource type="Resource" id="Rule_override_damage"]
@@ -44,8 +44,8 @@ rule_id = &"override_damage"
 description = "spawn_overrides damage should win over template and binding defaults"
 event_name = &"entity.damaged"
 required_core_values = {
-"source_template_id": &"plant_basic_shooter",
-"target_template_id": &"zombie_lane_dummy",
+"source_archetype_id": &"archetype_basic_shooter",
+"target_archetype_id": &"archetype_lane_dummy",
 "value": 9
 }
 
@@ -53,8 +53,8 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"spawn_override_priority_validation"
 display_name = "Spawn Override Priority Validation"
-description = "Validates that BattleSpawnEntry can resolve templates by registry id and that scene-level overrides take precedence over template projectile defaults for the instantiated scenario."
-goals = PackedStringArray("Verify BattleSpawnEntry can reference combat actors by archetype_id.", "Verify projectile template overrides can replace backend projectile defaults.", "Verify flight profile and damage overrides from the scene win over backend defaults.")
+description = "Validates that BattleSpawnEntry can resolve archetypes by registry id and that scene-level overrides take precedence over template projectile defaults for the instantiated scenario."
+goals = PackedStringArray("Verify BattleSpawnEntry can reference combat actors by archetype_id.", "Verify projectile template overrides can replace projectile content defaults.", "Verify flight profile and damage overrides from the scene win over archetype defaults.")
 validation_time_limit = 2.5
 validation_rules = [SubResource("Rule_override_spawn"), SubResource("Rule_override_damage")]
 spawns = [SubResource("Spawn_override_plant"), SubResource("Spawn_override_zombie")]
