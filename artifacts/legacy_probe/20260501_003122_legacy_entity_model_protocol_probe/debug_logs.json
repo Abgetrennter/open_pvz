@@ -1,0 +1,93 @@
+{
+	"config": {
+		"enable_effect_logging": true,
+		"enable_event_logging": true,
+		"enable_protocol_logging": true,
+		"enable_runtime_snapshot_logging": true,
+		"enable_trigger_logging": true
+	},
+	"effect_log": [],
+	"event_log": [
+		{
+			"chain_id": "821358-3267842776",
+			"depth": 1,
+			"event_id": "821358-3267842776",
+			"event_name": "game.tick",
+			"source": "<null>",
+			"tags": [],
+			"target": "<null>",
+			"value": null
+		},
+		{
+			"chain_id": "676226-930684895",
+			"depth": 1,
+			"event_id": "676226-930684895",
+			"event_name": "protocol.issue",
+			"source": "<null>",
+			"tags": [
+				"protocol",
+				"error"
+			],
+			"target": "<null>",
+			"value": "BattleSpawnEntry in scenario legacy_entity_model_protocol_probe params has unsupported spawn override key legacy_template_id."
+		},
+		{
+			"chain_id": "675965-1582398129",
+			"depth": 1,
+			"event_id": "675965-1582398129",
+			"event_name": "protocol.issue",
+			"source": "<null>",
+			"tags": [
+				"protocol",
+				"error"
+			],
+			"target": "<null>",
+			"value": "BattleSpawnEntry in scenario legacy_entity_model_protocol_probe params has unsupported spawn override key entity_template_id."
+		}
+	],
+	"protocol_log": [
+		{
+			"message": "BattleSpawnEntry in scenario legacy_entity_model_protocol_probe params has unsupported spawn override key legacy_template_id.",
+			"scope": "battle_spawn_entry",
+			"severity": "error"
+		},
+		{
+			"message": "BattleSpawnEntry in scenario legacy_entity_model_protocol_probe params has unsupported spawn override key entity_template_id.",
+			"scope": "battle_spawn_entry",
+			"severity": "error"
+		}
+	],
+	"runtime_snapshot_log": [
+		{
+			"frame": 24,
+			"lines": [
+				"economy:sun lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"current_sun\": 0, \"active_sun_count\": 0 }",
+				"board_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"board_slot_count\": 5, \"occupied_slot_count\": 0, \"occupant_count\": 0, \"slot_type_counts\": { \"ground\": 10 } }",
+				"card_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"selected_card_id\": &\"\", \"hand_order\": [] }",
+				"status_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"scheduled_status_count\": 0, \"processed_status_count\": 0 }",
+				"field_object_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"field_object_count\": 0 }",
+				"flow_state lane=-1 status=preparing pos=(0.0, 0.0) health=0/0 values={ \"active_wave_id\": &\"\", \"completed_wave_ids\": [], \"victory_reason\": &\"\", \"defeat_reason\": &\"\", \"battle_goal\": &\"all_waves_cleared\", \"defeat_conditions\": [\"zombie_reached_goal\"], \"survival_duration\": 0.0, \"protected_archetype_id\": &\"\" }",
+				"wave_runner lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"started_wave_count\": 0, \"completed_wave_count\": 0, \"defeat_line_x\": 80.0, \"battle_goal\": &\"all_waves_cleared\", \"defeat_conditions\": [\"zombie_reached_goal\"], \"survival_duration\": 0.0, \"protected_archetype_id\": &\"\" }",
+				"mode_host lane=-1 status=none pos=(0.0, 0.0) health=0/0 values={ \"mode_id\": &\"\", \"has_input_profile\": false, \"has_objective_def\": false, \"rule_module_count\": 0, \"objective_completed\": false, \"objective_failed\": false, \"objective_progress\": {  }, \"runtime_state\": {  }, \"scheduled_input_count\": 0 }"
+			],
+			"scenario": "Legacy Entity Model Protocol Probe",
+			"time": 0.377432666666666
+		},
+		{
+			"frame": 12,
+			"lines": [
+				"economy:sun lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"current_sun\": 0, \"active_sun_count\": 0 }",
+				"board_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"board_slot_count\": 5, \"occupied_slot_count\": 0, \"occupant_count\": 0, \"slot_type_counts\": { \"ground\": 10 } }",
+				"card_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"selected_card_id\": &\"\", \"hand_order\": [] }",
+				"status_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"scheduled_status_count\": 0, \"processed_status_count\": 0 }",
+				"field_object_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"field_object_count\": 0 }",
+				"flow_state lane=-1 status=preparing pos=(0.0, 0.0) health=0/0 values={ \"active_wave_id\": &\"\", \"completed_wave_ids\": [], \"victory_reason\": &\"\", \"defeat_reason\": &\"\", \"battle_goal\": &\"all_waves_cleared\", \"defeat_conditions\": [\"zombie_reached_goal\"], \"survival_duration\": 0.0, \"protected_archetype_id\": &\"\" }",
+				"wave_runner lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ \"started_wave_count\": 0, \"completed_wave_count\": 0, \"defeat_line_x\": 80.0, \"battle_goal\": &\"all_waves_cleared\", \"defeat_conditions\": [\"zombie_reached_goal\"], \"survival_duration\": 0.0, \"protected_archetype_id\": &\"\" }",
+				"mode_host lane=-1 status=none pos=(0.0, 0.0) health=0/0 values={ \"mode_id\": &\"\", \"has_input_profile\": false, \"has_objective_def\": false, \"rule_module_count\": 0, \"objective_completed\": false, \"objective_failed\": false, \"objective_progress\": {  }, \"runtime_state\": {  }, \"scheduled_input_count\": 0 }"
+			],
+			"scenario": "Legacy Entity Model Protocol Probe",
+			"time": 0.176799333333333
+		}
+	],
+	"trigger_log": []
+}

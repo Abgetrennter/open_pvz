@@ -1,0 +1,51 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+WARNING: BattleSpawnEntry in scenario legacy_entity_model_protocol_probe params has unsupported spawn override key entity_template_id.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] report_protocol_issues (res://scripts/battle/battle_manager.gd:470)
+       [1] _spawn_entry_internal (res://scripts/battle/battle_spawner.gd:243)
+       [2] spawn_scenario (res://scripts/battle/battle_spawner.gd:153)
+       [3] reset_battle (res://scripts/battle/battle_manager.gd:123)
+       [4] _ready (res://scripts/battle/battle_manager.gd:68)
+[Protocol][ERROR][battle_spawn_entry] BattleSpawnEntry in scenario legacy_entity_model_protocol_probe params has unsupported spawn override key entity_template_id.
+WARNING: BattleSpawnEntry in scenario legacy_entity_model_protocol_probe params has unsupported spawn override key legacy_template_id.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] report_protocol_issues (res://scripts/battle/battle_manager.gd:470)
+       [1] _spawn_entry_internal (res://scripts/battle/battle_spawner.gd:243)
+       [2] spawn_scenario (res://scripts/battle/battle_spawner.gd:153)
+       [3] reset_battle (res://scripts/battle/battle_manager.gd:123)
+       [4] _ready (res://scripts/battle/battle_manager.gd:68)
+[Protocol][ERROR][battle_spawn_entry] BattleSpawnEntry in scenario legacy_entity_model_protocol_probe params has unsupported spawn override key legacy_template_id.
+[RuntimeSnapshot] frame=12 time=0.18 scenario=Legacy Entity Model Protocol Probe entities=8
+[RuntimeSnapshot] economy:sun lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "current_sun": 0, "active_sun_count": 0 }
+[RuntimeSnapshot] board_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "board_slot_count": 5, "occupied_slot_count": 0, "occupant_count": 0, "slot_type_counts": { "ground": 10 } }
+[RuntimeSnapshot] card_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "selected_card_id": &"", "hand_order": [] }
+[RuntimeSnapshot] status_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "scheduled_status_count": 0, "processed_status_count": 0 }
+[RuntimeSnapshot] field_object_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "field_object_count": 0 }
+[RuntimeSnapshot] flow_state lane=-1 status=preparing pos=(0.0, 0.0) health=0/0 values={ "active_wave_id": &"", "completed_wave_ids": [], "victory_reason": &"", "defeat_reason": &"", "battle_goal": &"all_waves_cleared", "defeat_conditions": ["zombie_reached_goal"], "survival_duration": 0.0, "protected_archetype_id": &"" }
+[RuntimeSnapshot] wave_runner lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "started_wave_count": 0, "completed_wave_count": 0, "defeat_line_x": 80.0, "battle_goal": &"all_waves_cleared", "defeat_conditions": ["zombie_reached_goal"], "survival_duration": 0.0, "protected_archetype_id": &"" }
+[RuntimeSnapshot] mode_host lane=-1 status=none pos=(0.0, 0.0) health=0/0 values={ "mode_id": &"", "has_input_profile": false, "has_objective_def": false, "rule_module_count": 0, "objective_completed": false, "objective_failed": false, "objective_progress": {  }, "runtime_state": {  }, "scheduled_input_count": 0 }
+[RuntimeSnapshot] frame=24 time=0.38 scenario=Legacy Entity Model Protocol Probe entities=8
+[RuntimeSnapshot] economy:sun lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "current_sun": 0, "active_sun_count": 0 }
+[RuntimeSnapshot] board_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "board_slot_count": 5, "occupied_slot_count": 0, "occupant_count": 0, "slot_type_counts": { "ground": 10 } }
+[RuntimeSnapshot] card_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "selected_card_id": &"", "hand_order": [] }
+[RuntimeSnapshot] status_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "scheduled_status_count": 0, "processed_status_count": 0 }
+[RuntimeSnapshot] field_object_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "field_object_count": 0 }
+[RuntimeSnapshot] flow_state lane=-1 status=preparing pos=(0.0, 0.0) health=0/0 values={ "active_wave_id": &"", "completed_wave_ids": [], "victory_reason": &"", "defeat_reason": &"", "battle_goal": &"all_waves_cleared", "defeat_conditions": ["zombie_reached_goal"], "survival_duration": 0.0, "protected_archetype_id": &"" }
+[RuntimeSnapshot] wave_runner lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "started_wave_count": 0, "completed_wave_count": 0, "defeat_line_x": 80.0, "battle_goal": &"all_waves_cleared", "defeat_conditions": ["zombie_reached_goal"], "survival_duration": 0.0, "protected_archetype_id": &"" }
+[RuntimeSnapshot] mode_host lane=-1 status=none pos=(0.0, 0.0) health=0/0 values={ "mode_id": &"", "has_input_profile": false, "has_objective_def": false, "rule_module_count": 0, "objective_completed": false, "objective_failed": false, "objective_progress": {  }, "runtime_state": {  }, "scheduled_input_count": 0 }
+[Validation] PASSED Legacy Entity Model Protocol Probe (legacy_entity_model_protocol_probe)
+[Validation] Validation PASSED
+[Validation] All scenario checks satisfied.
+[Validation] Artifacts exported to E:\Code\worktree\openpvz\artifacts\legacy_probe\20260501_003122_legacy_entity_model_protocol_probe
+[RuntimeSnapshot] frame=36 time=0.58 scenario=Legacy Entity Model Protocol Probe entities=8
+[RuntimeSnapshot] economy:sun lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "current_sun": 0, "active_sun_count": 0 }
+[RuntimeSnapshot] board_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "board_slot_count": 5, "occupied_slot_count": 0, "occupant_count": 0, "slot_type_counts": { "ground": 10 } }
+[RuntimeSnapshot] card_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "selected_card_id": &"", "hand_order": [] }
+[RuntimeSnapshot] status_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "scheduled_status_count": 0, "processed_status_count": 0 }
+[RuntimeSnapshot] field_object_state lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "field_object_count": 0 }
+[RuntimeSnapshot] flow_state lane=-1 status=preparing pos=(0.0, 0.0) health=0/0 values={ "active_wave_id": &"", "completed_wave_ids": [], "victory_reason": &"", "defeat_reason": &"", "battle_goal": &"all_waves_cleared", "defeat_conditions": ["zombie_reached_goal"], "survival_duration": 0.0, "protected_archetype_id": &"" }
+[RuntimeSnapshot] wave_runner lane=-1 status=active pos=(0.0, 0.0) health=0/0 values={ "started_wave_count": 0, "completed_wave_count": 0, "defeat_line_x": 80.0, "battle_goal": &"all_waves_cleared", "defeat_conditions": ["zombie_reached_goal"], "survival_duration": 0.0, "protected_archetype_id": &"" }
+[RuntimeSnapshot] mode_host lane=-1 status=none pos=(0.0, 0.0) health=0/0 values={ "mode_id": &"", "has_input_profile": false, "has_objective_def": false, "rule_module_count": 0, "objective_completed": false, "objective_failed": false, "objective_progress": {  }, "runtime_state": {  }, "scheduled_input_count": 0 }
