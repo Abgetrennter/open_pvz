@@ -114,9 +114,9 @@ graph TD
 | `scripts/components/` | GDScript | 7 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
 | `scripts/projectile/` | GDScript | 5 | 抛射体运动系统：linear / parabola / track 运动模式 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
-| `data/combat/archetypes/` | .tres | 50 | Archetype 资源（38 植物 + 10 僵尸 + 2 场上物件） |
-| `data/combat/` | .tres | ~100 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
-| `scenes/validation/` | .tres/.tscn | 73 | 自动化验证场景 |
+| `data/combat/archetypes/` | .tres | 95 | Archetype 资源（83 植物 + 10 僵尸 + 2 场上物件） |
+| `data/combat/` | .tres | 260 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
+| `scenes/validation/` | .tres/.tscn | 102 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 105 个场景为准 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |
 | `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
