@@ -1,0 +1,156 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/status_application_request.gd" id="3_status_request"]
+[ext_resource type="Script" path="res://scripts/battle/effect_execution_request.gd" id="4_effect_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="Spawn_owner"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_wall_barrier"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_hidden_enemy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 230.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_normal_enemy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 0
+x_position = 280.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_hidden_friend"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 1
+x_position = 220.0
+spawn_overrides = {
+"interval": 60.0,
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Status_hidden_enemy"]
+script = ExtResource("3_status_request")
+at_time = 0.0
+target_archetype_id = &"archetype_basic_walker"
+lane_id = 0
+status_id = &"hidden"
+duration = 4.0
+
+[sub_resource type="Resource" id="Status_hidden_friend"]
+script = ExtResource("3_status_request")
+at_time = 0.0
+target_archetype_id = &"archetype_basic_shooter"
+lane_id = 1
+status_id = &"hidden"
+duration = 4.0
+
+[sub_resource type="Resource" id="Effect_consume_missing_owner"]
+script = ExtResource("4_effect_request")
+at_time = 0.25
+effect_id = &"consume_self"
+params = {
+"reason": &"guardrail_no_owner"
+}
+position = Vector2(160, 220)
+
+[sub_resource type="Resource" id="Effect_consume_unsupported_target"]
+script = ExtResource("4_effect_request")
+at_time = 0.5
+effect_id = &"consume_self"
+params = {
+"reason": &"guardrail_bad_target",
+"target_mode": &"event_target"
+}
+owner_archetype_id = &"archetype_wall_barrier"
+owner_lane_id = 0
+
+[sub_resource type="Resource" id="Effect_reveal_filter"]
+script = ExtResource("4_effect_request")
+at_time = 0.75
+effect_id = &"reveal"
+params = {
+"duration": 3.0,
+"radius": 180.0,
+"target_mode": &"enemies_in_radius"
+}
+owner_archetype_id = &"archetype_wall_barrier"
+owner_lane_id = 0
+
+[sub_resource type="Resource" id="Rule_effect_protocol_issues"]
+script = ExtResource("5_rule")
+rule_id = &"effect_protocol_issues"
+description = "consume_self guardrail requests should emit effect_node protocol issues."
+event_name = &"protocol.issue"
+min_count = 2
+required_core_values = {
+"scope": &"effect_node"
+}
+
+[sub_resource type="Resource" id="Rule_no_invalid_consume"]
+script = ExtResource("5_rule")
+rule_id = &"no_invalid_consume"
+description = "invalid consume_self requests should not consume any runtime entity."
+event_name = &"entity.consumed"
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_reveal_hidden_enemy"]
+script = ExtResource("5_rule")
+rule_id = &"reveal_hidden_enemy"
+description = "reveal should affect exactly the hidden enemy in range."
+event_name = &"entity.revealed"
+min_count = 1
+max_count = 1
+required_core_values = {
+"status_id": &"revealed",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0,
+"target_team": &"zombie"
+}
+
+[sub_resource type="Resource" id="Rule_no_reveal_normal_enemy"]
+script = ExtResource("5_rule")
+rule_id = &"no_reveal_normal_enemy"
+description = "reveal should not affect enemies that are not hidden or concealed."
+event_name = &"entity.revealed"
+min_count = 0
+max_count = 0
+required_core_values = {
+"target_archetype_id": &"archetype_brisk_runner"
+}
+
+[sub_resource type="Resource" id="Rule_no_reveal_friend"]
+script = ExtResource("5_rule")
+rule_id = &"no_reveal_friend"
+description = "reveal should not affect friendly hidden targets."
+event_name = &"entity.revealed"
+min_count = 0
+max_count = 0
+required_core_values = {
+"target_team": &"plant"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"effect_consume_reveal_guardrail_validation"
+display_name = "Effect Consume and Reveal Guardrail Validation"
+description = "Validates guardrails for consume_self owner binding and reveal target filtering."
+goals = PackedStringArray("Verify consume_self without owner or with unsupported target params emits protocol issues and does not remove entities.", "Verify reveal only affects enemy targets that are hidden or concealed.")
+validation_time_limit = 1.75
+lane_count = 2
+effect_execution_requests = [SubResource("Effect_consume_missing_owner"), SubResource("Effect_consume_unsupported_target"), SubResource("Effect_reveal_filter")]
+status_application_requests = [SubResource("Status_hidden_enemy"), SubResource("Status_hidden_friend")]
+validation_rules = [SubResource("Rule_effect_protocol_issues"), SubResource("Rule_no_invalid_consume"), SubResource("Rule_reveal_hidden_enemy"), SubResource("Rule_no_reveal_normal_enemy"), SubResource("Rule_no_reveal_friend")]
+spawns = [SubResource("Spawn_owner"), SubResource("Spawn_hidden_enemy"), SubResource("Spawn_normal_enemy"), SubResource("Spawn_hidden_friend")]

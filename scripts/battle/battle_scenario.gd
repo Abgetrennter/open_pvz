@@ -19,6 +19,7 @@ class_name BattleScenario
 @export var card_defs: Array = []
 @export var card_play_requests: Array = []
 @export var status_application_requests: Array = []
+@export var effect_execution_requests: Array = []
 @export var field_object_configs: Array = []
 @export var wave_defs: Array = []
 @export var battle_goal: StringName = &"all_waves_cleared"

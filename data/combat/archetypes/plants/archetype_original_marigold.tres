@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_support_cycle.tres" id="2_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_produce_sun_payload.tres" id="3_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_marigold"
+display_name = "Marigold"
+hit_height_band = ExtResource("4_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "marigold", "producer", "coin", "economy")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 300
+hitbox_size = Vector2(38, 50)
+default_params = {
+"interval": 24.0,
+"source_type": &"coin_generated",
+"start_delay": 4.0,
+"value": 50
+}
+mechanics = [ExtResource("2_trigger"), ExtResource("3_payload")]

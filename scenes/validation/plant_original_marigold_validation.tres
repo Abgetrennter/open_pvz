@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_marigold.tres" id="4_card"]
+
+[sub_resource type="Resource" id="Req_marigold"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_marigold"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_marigold_accept"]
+script = ExtResource("3_rule")
+rule_id = &"marigold_accept"
+description = "Marigold should be accepted as a normal ground plant."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_marigold",
+"placement_role": &"primary",
+"slot_type": &"ground"
+}
+
+[sub_resource type="Resource" id="Rule_marigold_coin_collectible"]
+script = ExtResource("3_rule")
+rule_id = &"marigold_coin_collectible"
+description = "Marigold should spawn a coin-tagged collectible through the shared economy path."
+event_name = &"sun.spawned"
+required_core_values = {
+"source_archetype_id": &"archetype_original_marigold",
+"source_type": &"coin_generated",
+"value": 50
+}
+
+[sub_resource type="Resource" id="Rule_marigold_collect"]
+script = ExtResource("3_rule")
+rule_id = &"marigold_collect"
+description = "Marigold generated collectible should be collectable by the economy state."
+event_name = &"resource.changed"
+required_core_values = {
+"delta": 50,
+"reason": &"collect",
+"source_type": &"coin_generated"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_marigold_validation"
+display_name = "Original Marigold Validation"
+description = "Validates Marigold as a minimal economy producer: it places normally and emits a coin-generated collectible through the existing collectible pipeline."
+goals = PackedStringArray("Verify Marigold original archetype/card compiles and places.", "Verify Marigold periodically emits a coin-generated collectible without adding a separate coin economy yet.", "Verify the generated collectible can be collected by the current economy state.")
+validation_time_limit = 5.5
+initial_sun = 1000
+sun_auto_collect_delay = 0.1
+card_defs = [ExtResource("4_card")]
+card_play_requests = [SubResource("Req_marigold")]
+validation_rules = [SubResource("Rule_marigold_accept"), SubResource("Rule_marigold_coin_collectible"), SubResource("Rule_marigold_collect")]

@@ -90,7 +90,7 @@ graph TD
     Core --> CoreDefs["core/defs (Archetype, Mechanic, TriggerDef, EffectDef...)"]
     Core --> CoreRuntime["core/runtime (MechanicCompiler, RuntimeSpec, EffectExecutor, ShuffleBag...)"]
 
-    Data --> Archetypes["data/combat/archetypes/ (96 个 .tres)"]
+    Data --> Archetypes["data/combat/archetypes/ (97 个 .tres)"]
     Data --> Projectiles["data/combat/projectile_templates/"]
 
     click Autoload "./autoload/CLAUDE.md" "查看 autoload 模块文档"
@@ -114,9 +114,9 @@ graph TD
 | `scripts/components/` | GDScript | 7 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
 | `scripts/projectile/` | GDScript | 5 | 抛射体运动系统：linear / parabola / track 运动模式 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
-| `data/combat/archetypes/` | .tres | 96 | Archetype 资源（84 植物 + 10 僵尸 + 2 场上物件） |
-| `data/combat/` | .tres | 268 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
-| `scenes/validation/` | .tres/.tscn | 104 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 107 个场景为准 |
+| `data/combat/archetypes/` | .tres | 97 | Archetype 资源（85 植物 + 10 僵尸 + 2 场上物件） |
+| `data/combat/` | .tres | 270 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
+| `scenes/validation/` | .tres/.tscn | 106 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 109 个场景为准 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |
 | `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
@@ -143,7 +143,7 @@ pwsh tools/run_all_validations.ps1
 pwsh tools/run_validation.ps1 -ScenarioId <id>
 ```
 
-场景定义：`tools/validation_scenarios.json`（107 个场景，分层 smoke / core / extension / guardrail）
+场景定义：`tools/validation_scenarios.json`（109 个场景，分层 smoke / core / extension / guardrail）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 

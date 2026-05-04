@@ -3,7 +3,7 @@
 - 状态：执行中
 - 数据源：`vendor/de-pvz/ConstEnums.h` + `vendor/de-pvz/Lawn/Plant.cpp`
 - 创建日期：2026-04-27
-- 最后更新：2026-05-04 (Grave Buster / D 批次最小语义 / Kernel-pult 验证补齐)
+- 最后更新：2026-05-04 (Grave Buster / D 批次最小语义 / Kernel-pult / Marigold 验证补齐)
 
 > 本文档是阶段 0 产出物，为 49 个原版植物提供可追踪的迁移底账。
 
@@ -23,10 +23,10 @@
 | B | 7 | **7/7** | `plant_original_batch_b_validation` + Potato Mine / Squash / Chomper 单体验证覆盖 7/7 | **完成** |
 | C | 9 | **9/9** | `plant_original_batch_c_validation` + Grave Buster tombstone + Coffee Bean targeted wake + Fume-shroom pierce + Hypno/Sun/Scaredy 单体验证 | 未完成：Sun-shroom 成长、Scaredy-shroom 近敌停火仍是原版精确度缺口 |
 | D | 12 | **12/12** | `plant_original_batch_d_validation` + Split Pea / Starfruit / Cactus / Blover / Magnet / Lily+Sea / Sea wake-damage；Tangle Kelp 致死+自消耗；Plantern reveal | 机制优先完成；完整拖拽动画和全局雾场/视野系统后置 |
-| E | 14 | **10/14** | `plant_original_kernelpult_validation` + `plant_original_batch_e_validation` + Flower Pot roof support + E upgrade placement 依赖验证 | 未完成：升级替换、多格占用、手动/复制等能力未验收 |
-| **总计** | **49** | **45/49** | A/B/C/D/round1 与新增 B/C/D/E 单体验证当前目标均可信通过 | **严格完成 14/49；机制优先覆盖继续扩大** |
+| E | 14 | **11/14** | `plant_original_kernelpult_validation` + `plant_original_marigold_validation` + `plant_original_batch_e_validation` + Flower Pot roof support + E upgrade placement 依赖验证 | 未完成：升级替换、多格占用、完整金币/银币经济、手动/复制等能力未验收 |
+| **总计** | **49** | **46/49** | A/B/C/D/round1 与新增 B/C/D/E 单体验证当前目标均可信通过 | **严格完成 14/49；机制优先覆盖继续扩大** |
 
-> 2026-05-04 已补齐：Grave Buster 墓碑依赖与目标移除、Tangle Kelp 水面近距致死+自身消耗、Plantern reveal、Kernel-pult 玉米/黄油确定性轮换与黄油眩晕。完整拖拽动画、雾场/视野系统、Sun-shroom 成长、Scaredy-shroom 近敌停火、E 批次复杂交互仍后置。
+> 2026-05-04 已补齐：Grave Buster 墓碑依赖与目标移除、Tangle Kelp 水面近距致死+自身消耗、Plantern reveal、Kernel-pult 玉米/黄油确定性轮换与黄油眩晕、Marigold coin_generated collectible 最小经济产出。完整拖拽动画、雾场/视野系统、完整金币/银币经济、Sun-shroom 成长、Scaredy-shroom 近敌停火、E 批次复杂交互仍后置。
 
 ### Round 2 新增植物 (15)
 
@@ -111,6 +111,7 @@
 | Tangle Kelp | D | `archetype_original_tanglekelp` | `card_original_tanglekelp` | ✅ water placement + lethal proximity hit + consume_self |
 | Plantern | D | `archetype_original_plantern` | `card_original_plantern` | ✅ reveal hidden/concealed enemy |
 | Kernel-pult | E | `archetype_original_kernelpult` | `card_original_kernelpult` | ✅ deterministic corn/butter cycle + butter_stun |
+| Marigold | E | `archetype_original_marigold` | `card_original_marigold` | ✅ coin_generated collectible via existing economy path |
 | Flower Pot | E | `archetype_original_flowerpot` | `card_original_flowerpot` | ✅ roof support placement |
 | E upgrades | E | Gatling/Twin/Gloom/Cattail/Winter/Gold/Spikerock | 对应 `card_original_*` | ✅ upgrade role + specific base dependency |
 
@@ -119,8 +120,8 @@
 1. **单体验证缺口** — E 中多数复杂植物仍缺单体验证；C 的 Grave Buster、D 的 Tangle Kelp/Plantern 已补齐机制优先验证。
 2. **sleep/wake 精确语义** — 已修正 `entity.wake` 目标过滤，并以 Coffee Bean targeted wake 验证防止广播唤醒回归。
 3. **升级替换与多格占用** — Cob Cannon 已能表达同格 + 相邻 Kernel-pult 依赖；真正替换/占用两格仍需后续协议。
-4. **缺失资源** — Garlic、Umbrella Leaf、Marigold、Imitater 未落地。
-5. **复杂行为边界** — Sun-shroom 成长、Scaredy-shroom 近敌停火、Tangle Kelp 拖拽动画、完整雾场/视野、Gold Magnet、Cattail、Winter Melon、Cob Cannon 等仍需行为级验证。
+4. **缺失资源** — Garlic、Umbrella Leaf、Imitater 未落地。
+5. **复杂行为边界** — Sun-shroom 成长、Scaredy-shroom 近敌停火、Tangle Kelp 拖拽动画、完整雾场/视野、完整金币/银币经济、Gold Magnet、Cattail、Winter Melon、Cob Cannon 等仍需行为级验证。
 
 ---
 
@@ -755,8 +756,9 @@
 | 子类 | NORMAL |
 | 放置条件 | 地面 |
 | 攻击入口 | 产金币/银币 |
-| 分类 | **需协议设计** |
-| 协议缺口 | 金币/银币资源类型 (当前经济仅支持阳光) |
+| 可复用 Mechanic | `Trigger.core.periodic` + `Payload.core.produce_sun`，以 `source_type=&"coin_generated"` 区分最小金币来源 |
+| 分类 | **已最小落地** |
+| 协议缺口 | 完整金币/银币资源类型仍后置；首轮验证覆盖 coin_generated collectible 产出与可收集 |
 
 ### E-5: Gatling Pea (SEED_GATLINGPEA = 40)
 
@@ -898,7 +900,7 @@
 | B | 7 | **3** (Cherry Bomb, Tall-nut, Pumpkin) | **4** (Potato Mine, Squash, Jalapeno, Chomper) | 0 |
 | C | 9 | **0** | **6** (Puff-shroom, Sun-shroom, Fume-shroom, Scaredy-shroom, Ice-shroom, Grave Buster) | **3** (Hypno-shroom, Doom-shroom, Coffee Bean) |
 | D | 12 | **1** (Lily Pad) | **7** (Tangle Kelp, Threepeater, Sea-shroom, Cactus, Split Pea, Starfruit, Plantern) | **4** (Spikeweed, Torchwood, Blover, Magnet-shroom) |
-| E | 14 | **1** (Flower Pot) | **6** (Kernel-pult, Gatling Pea, Twin Sunflower, Gloom-shroom, Cattail, Winter Melon) | **7** (Garlic, Umbrella Leaf, Marigold, Gold Magnet, Spikerock, Cob Cannon, Imitater) |
+| E | 14 | **1** (Flower Pot) | **7** (Kernel-pult, Marigold, Gatling Pea, Twin Sunflower, Gloom-shroom, Cattail, Winter Melon) | **6** (Garlic, Umbrella Leaf, Gold Magnet, Spikerock, Cob Cannon, Imitater) |
 | **总计** | **49** | **12** | **21** | **16** |
 
 ---
@@ -930,7 +932,7 @@
 | G-21 | 黄油眩晕 | Kernel-pult | 已补齐：`apply_status` + `butter_stun` | E |
 | G-22 | 换道 | Garlic | Effect / RuleModule | E |
 | G-23 | 防护特定攻击 | Umbrella Leaf | RuleModule (protection) | E |
-| G-24 | 金币资源 | Marigold, Gold Magnet | Economy / collectible | E |
+| G-24 | 金币资源 | Marigold, Gold Magnet | Marigold 已最小覆盖：`source_type=coin_generated` collectible；完整 coin/silver economy 后置 | E |
 | G-25 | 手动瞄准 | Cob Cannon | BattleModeHost / InputProfile | E |
 | G-26 | 多格占用 | Cob Cannon | Placement (multi_tile) | E |
 | G-27 | 卡片复制 | Imitater | Card layer 协议 | E |
@@ -972,4 +974,5 @@
 | 2026-04-27(R1) | Round 1: G-06/G-12/G-13/G-14/G-17/G-19/G-20 全部解决，+11 植物，累计 24/49 |
 | 2026-04-27(R2) | Round 2: G-01/G-02/G-05/G-07/G-15 解决，+15 植物，累计 39/49 (80%) |
 | 2026-04-27(R3) | Round 3: G-03/G-04/G-08/G-09/G-10/G-11/G-16 解决，+6 植物，累计 45/49 (92%) |
+| 2026-05-04(Marigold) | Marigold 资源、卡片、单体验证与 Batch E coin_generated collectible 覆盖补齐，累计 46/49 (94%) |
 | 2026-04-28 | 完成度口径校准：资源+卡片落地为 42/49；严格完成仅 A 批次 7/49；A/B/C/D/round1 目标验证可信通过但 B/C/D 仍为代表性覆盖 |

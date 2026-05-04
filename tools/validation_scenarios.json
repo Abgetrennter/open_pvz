@@ -228,6 +228,12 @@
     "layers": ["smoke", "guardrail"]
   },
   {
+    "id": "effect_consume_reveal_guardrail_validation",
+    "scenario": "res://scenes/validation/effect_consume_reveal_guardrail_validation.tres",
+    "description": "Validates consume_self owner guardrails and reveal enemy-hidden target filtering.",
+    "layers": ["guardrail"]
+  },
+  {
     "id": "sun_resource_validation",
     "scenario": "res://scenes/validation/sun_resource_validation.tres",
     "description": "Validates the first-stage sun economy loop, including plant-generated and sky-drop sun, automatic collection, and spend failure/success resource events.",
@@ -624,9 +630,15 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_marigold_validation",
+    "scenario": "res://scenes/validation/plant_original_marigold_validation.tres",
+    "description": "Validates Marigold placement and coin-generated collectible production through the shared economy path.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_batch_e_validation",
     "scenario": "res://scenes/validation/plant_original_batch_e_validation.tres",
-    "description": "Validates Batch E roof and upgrade plants: Repeater damage, Sunflower sun production, Winter Melon splash damage, Flower Pot support spawn.",
+    "description": "Validates Batch E roof, upgrade and economy plants: Repeater damage, Sunflower sun production, Winter Melon splash damage, Flower Pot support spawn, and Marigold coin-generated collectible output.",
     "layers": ["core"]
   },
   {

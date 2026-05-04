@@ -144,9 +144,10 @@
     },
     {
       "id": "original_plants_batch_e",
-      "description": "PVZ1 Batch E weak coverage: 10/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support and available upgrade placement dependencies are validated, but upgrade replacement, multi-slot occupancy, manual/copy behavior and missing Marigold/Imitater/Garlic/Umbrella Leaf still prevent batch completion.",
+      "description": "PVZ1 Batch E weak coverage: 11/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output and available upgrade placement dependencies are validated, but upgrade replacement, multi-slot occupancy, full coin/silver economy, manual/copy behavior and missing Imitater/Garlic/Umbrella Leaf still prevent batch completion.",
       "validations": [
         "plant_original_kernelpult_validation",
+        "plant_original_marigold_validation",
         "plant_original_batch_e_validation",
         "plant_original_flowerpot_validation",
         "plant_original_e_upgrade_placement_validation"

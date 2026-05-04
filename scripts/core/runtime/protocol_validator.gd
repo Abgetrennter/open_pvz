@@ -12,6 +12,7 @@ const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd"
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
 const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
 const StatusApplicationRequestRef = preload("res://scripts/battle/status_application_request.gd")
+const EffectExecutionRequestRef = preload("res://scripts/battle/effect_execution_request.gd")
 const FieldObjectConfigRef = preload("res://scripts/battle/field_object_config.gd")
 const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
 const WaveDefRef = preload("res://scripts/battle/wave_def.gd")
@@ -669,6 +670,11 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		for status_request in configured_status_application_requests:
 			errors.append_array(_validate_status_application_request(status_request, scenario.scenario_id))
 
+	var configured_effect_execution_requests: Variant = scenario.get("effect_execution_requests")
+	if configured_effect_execution_requests is Array:
+		for effect_request in configured_effect_execution_requests:
+			errors.append_array(_validate_effect_execution_request(effect_request, scenario.scenario_id))
+
 	var configured_wave_defs: Variant = scenario.get("wave_defs")
 	if configured_wave_defs is Array:
 		for wave_def in configured_wave_defs:
@@ -1054,6 +1060,29 @@ static func _validate_status_application_request(status_request: Resource, scena
 		errors.append("BattleScenario %s status application duration must be > 0." % String(scenario_id))
 	if float(status_request.get("movement_scale")) < 0.0:
 		errors.append("BattleScenario %s status application movement_scale must be >= 0." % String(scenario_id))
+	return errors
+
+
+static func _validate_effect_execution_request(effect_request: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if effect_request == null:
+		errors.append("BattleScenario %s contains a null effect execution request." % String(scenario_id))
+		return errors
+	if effect_request.get_script() != EffectExecutionRequestRef:
+		errors.append("BattleScenario %s effect_execution_requests must use effect_execution_request.gd." % String(scenario_id))
+		return errors
+	if float(effect_request.get("at_time")) < 0.0:
+		errors.append("BattleScenario %s effect execution at_time must be >= 0." % String(scenario_id))
+	if StringName(effect_request.get("effect_id")) == StringName():
+		errors.append("BattleScenario %s effect execution request must define effect_id." % String(scenario_id))
+	if not (effect_request.get("params") is Dictionary):
+		errors.append("BattleScenario %s effect execution params must be a Dictionary." % String(scenario_id))
+	if int(effect_request.get("owner_lane_id")) < -1:
+		errors.append("BattleScenario %s effect execution owner_lane_id must be >= -1." % String(scenario_id))
+	if int(effect_request.get("source_lane_id")) < -1:
+		errors.append("BattleScenario %s effect execution source_lane_id must be >= -1." % String(scenario_id))
+	if int(effect_request.get("target_lane_id")) < -1:
+		errors.append("BattleScenario %s effect execution target_lane_id must be >= -1." % String(scenario_id))
 	return errors
 
 

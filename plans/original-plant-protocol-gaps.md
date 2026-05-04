@@ -43,7 +43,7 @@
 | G-21 | 黄油眩晕 | apply_status (butter/stun) | E | 低 | ✅ 2026-05-04 |
 | G-22 | 换道 | Effect / RuleModule | E | 中 | ⚠️ Round 3 |
 | G-23 | 防护特定攻击 | RuleModule (protection) | E | 低 | ⚠️ Round 3 |
-| G-24 | 金币资源 | Economy / collectible | E | 低 | ⚠️ Round 3 |
+| G-24 | 金币资源 | Economy / collectible | E | 低 | ⚠️ Round 3（Marigold 已有最小 coin_generated collectible） |
 | G-25 | 手动瞄准 | BattleModeHost / InputProfile | E | 中 | ⚠️ Round 3 |
 | G-26 | 多格占用 | Placement (multi_tile) | E | 中 | ⚠️ Round 3 |
 | G-27 | 卡片复制 | Card layer 协议 | E | 中 | ⚠️ Round 3 |
@@ -53,7 +53,7 @@
 
 **Round 1 解决**: 7/30 (G-06, G-12, G-13, G-14, G-17, G-19, G-20)
 **Round 2 待解决**: 12/30
-**2026-05-04 机制补齐**: G-18, G-21, G-30 已以最小正式语义覆盖；完整雾场、原版黄油概率精确值仍后置。
+**2026-05-04 机制补齐**: G-18, G-21, G-30 已以最小正式语义覆盖；G-24 已先覆盖 Marigold 的 `coin_generated` collectible，完整 coin/silver economy 仍后置。完整雾场、原版黄油概率精确值仍后置。
 
 ---
 
