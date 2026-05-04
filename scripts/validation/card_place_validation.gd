@@ -8,13 +8,16 @@ const CardBarRef = preload("res://scripts/ui/panels/card_bar.gd")
 const InputRouterRef = preload("res://scripts/input/input_router.gd")
 
 var _battle: Node2D = null
+var _hud_canvas: CanvasLayer = null
 var _battle_hud: Control = null
 var _card_bar: Control = null
 var _board_visual: Node2D = null
 var _input_router: Node = null
 var _card_clicked := false
+var _card_click_scheduled := false
 var _validation_passed := false
 var _validation_failed := false
+var _runtime_cleaned := false
 
 
 func _ready() -> void:
@@ -37,24 +40,25 @@ func _ready() -> void:
 	EventBus.subscribe(&"entity.spawned", Callable(self, "_on_entity_spawned"))
 	EventBus.subscribe(&"placement.accepted", Callable(self, "_on_placement_accepted"))
 	EventBus.subscribe(&"card.play_rejected", Callable(self, "_on_card_rejected"))
-	yield(get_tree().create_timer(0.5), "timeout")
+	await get_tree().process_frame
 	_setup_demo_ui(scenario)
+	scenario = null
 
 
 func _setup_demo_ui(scenario: Resource) -> void:
-	var board_state = _battle.get_node_or_null("BattleBoardState")
-	var card_state = _battle.get_node_or_null("BattleCardState")
-	var flow_state = _battle.get_node_or_null("BattleFlowState")
+	var board_state: Node = _battle.call("get_board_state") if _battle.has_method("get_board_state") else _battle.get_node_or_null("BattleBoardState")
+	var card_state: Node = _battle.call("get_card_state") if _battle.has_method("get_card_state") else _battle.get_node_or_null("BattleCardState")
+	var flow_state: Node = _battle.call("get_flow_state") if _battle.has_method("get_flow_state") else _battle.get_node_or_null("BattleFlowState")
 
-	var hud_canvas := CanvasLayer.new()
-	hud_canvas.layer = 50
-	add_child(hud_canvas)
+	_hud_canvas = CanvasLayer.new()
+	_hud_canvas.layer = 50
+	add_child(_hud_canvas)
 
 	_battle_hud = BattleHUDRef.new()
 	_battle_hud.name = "BattleHUD"
 	_battle_hud.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_battle_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud_canvas.add_child(_battle_hud)
+	_hud_canvas.add_child(_battle_hud)
 
 	_board_visual = BoardVisualRef.new()
 	_board_visual.name = "BoardOverlay"
@@ -84,7 +88,7 @@ func _setup_demo_ui(scenario: Resource) -> void:
 
 
 func _on_game_tick(_event_data: Variant) -> void:
-	if _card_clicked:
+	if _card_clicked or _card_click_scheduled or _validation_passed or _validation_failed:
 		return
 	if _card_bar == null or not is_instance_valid(_card_bar):
 		return
@@ -92,7 +96,10 @@ func _on_game_tick(_event_data: Variant) -> void:
 		return
 	if not _card_bar.has_method("get_card_ids"):
 		return
-	yield(get_tree().create_timer(0.3), "timeout")
+	_card_click_scheduled = true
+	await get_tree().process_frame
+	if _validation_passed or _validation_failed:
+		return
 	_inject_card_click()
 
 
@@ -112,7 +119,7 @@ func _inject_card_click() -> void:
 	release.button_index = MOUSE_BUTTON_LEFT
 	release.pressed = false
 	get_viewport().push_input(release)
-	yield(get_tree().create_timer(0.3), "timeout")
+	await get_tree().process_frame
 	if _card_bar.call("get_selected_card_id") != StringName():
 		_inject_cell_click()
 	else:
@@ -142,9 +149,6 @@ func _on_entity_spawned(event_data: Variant) -> void:
 		if archetype_id != StringName():
 			_mark_passed("entity_spawned_from_card_%s" % String(archetype_id))
 			return
-		var archetype_id := StringName(event_data.core.get("archetype_id"))
-		if archetype_id != StringName():
-			_mark_passed("entity_spawned_from_card_%s" % String(archetype_id))
 
 
 func _on_placement_accepted(_event_data: Variant) -> void:
@@ -182,9 +186,55 @@ func _auto_quit() -> void:
 	for raw_arg in OS.get_cmdline_user_args():
 		var arg := String(raw_arg)
 		if arg == "--validation-auto-quit":
-			get_tree().quit()
+			call_deferred("_quit_after_cleanup")
 			return
-	yield(get_tree().create_timer(1.0), "timeout")
+
+
+func _exit_tree() -> void:
+	_teardown_runtime()
+
+
+func _quit_after_cleanup() -> void:
+	_teardown_runtime()
+	get_tree().quit()
+
+
+func _teardown_runtime() -> void:
+	if _runtime_cleaned:
+		return
+	_runtime_cleaned = true
+	EventBus.unsubscribe(&"game.tick", Callable(self, "_on_game_tick"))
+	EventBus.unsubscribe(&"entity.spawned", Callable(self, "_on_entity_spawned"))
+	EventBus.unsubscribe(&"placement.accepted", Callable(self, "_on_placement_accepted"))
+	EventBus.unsubscribe(&"card.play_rejected", Callable(self, "_on_card_rejected"))
+	if _input_router != null and is_instance_valid(_input_router) and _input_router.has_method("teardown"):
+		_input_router.call("teardown")
+	if _board_visual != null and is_instance_valid(_board_visual) and _board_visual.has_method("teardown"):
+		_board_visual.call("teardown")
+	if _battle_hud != null and is_instance_valid(_battle_hud) and _battle_hud.has_method("teardown"):
+		_battle_hud.call("teardown")
+	_free_runtime_node(_input_router)
+	_free_runtime_node(_board_visual)
+	_free_runtime_node(_hud_canvas)
+	if _battle != null and is_instance_valid(_battle):
+		_battle.scenario = null
+		remove_child(_battle)
+		_battle.free()
+	_battle = null
+	_hud_canvas = null
+	_battle_hud = null
+	_card_bar = null
+	_board_visual = null
+	_input_router = null
+
+
+func _free_runtime_node(node: Node) -> void:
+	if node == null or not is_instance_valid(node):
+		return
+	var parent := node.get_parent()
+	if parent != null:
+		parent.remove_child(node)
+	node.free()
 
 
 func _process(_delta: float) -> void:

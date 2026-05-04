@@ -10,7 +10,12 @@ var _active_tweens: Array[Tween] = []
 
 func screen_setup(battle: Node) -> void:
 	super.screen_setup(battle)
-	_flow_state = battle.get_node_or_null("BattleFlowState") if battle != null and is_instance_valid(battle) else null
+	_flow_state = null
+	if battle != null and is_instance_valid(battle):
+		if battle.has_method("get_flow_state"):
+			_flow_state = battle.call("get_flow_state")
+		else:
+			_flow_state = battle.get_node_or_null("BattleFlowState")
 	_build_ui()
 	_track_subscribe(&"battle.victory", Callable(self, "_on_victory"))
 	_track_subscribe(&"battle.defeat", Callable(self, "_on_defeat"))

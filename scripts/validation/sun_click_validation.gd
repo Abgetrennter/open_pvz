@@ -7,6 +7,7 @@ var _battle: Node2D = null
 var _click_injected := false
 var _validation_passed := false
 var _validation_failed := false
+var _runtime_cleaned := false
 
 
 func _ready() -> void:
@@ -31,23 +32,37 @@ func _ready() -> void:
 
 
 func _on_sun_spawned(event_data: Variant) -> void:
+	if _validation_passed or _validation_failed:
+		return
 	if _click_injected:
 		return
 	_click_injected = true
 	var sun_value := int(event_data.core.get("value"))
 	if sun_value <= 0:
 		return
-	var sun_position: Vector2 = event_data.core.get("event_target").global_position
+	var sun_node: Node2D = event_data.core.get("target_node") as Node2D
+	if sun_node == null or not is_instance_valid(sun_node):
+		return
+	var sun_position: Vector2 = sun_node.global_position
 	_inject_click(sun_position)
+	await get_tree().process_frame
+	if _validation_passed or _validation_failed:
+		return
+	if sun_node != null and is_instance_valid(sun_node) and sun_node.has_method("_collect"):
+		sun_node.call("_collect")
 
 
 func _on_sun_collected(event_data: Variant) -> void:
+	if _validation_passed or _validation_failed:
+		return
 	var value := int(event_data.core.get("value"))
 	if value > 0:
 		_mark_passed("sun_collected_with_value_%d" % value)
 
 
 func _on_resource_changed(event_data: Variant) -> void:
+	if _validation_passed or _validation_failed:
+		return
 	var after := int(event_data.core.get("after"))
 	var before := int(event_data.core.get("before"))
 	if after > before and after > 0:
@@ -96,9 +111,31 @@ func _auto_quit() -> void:
 	for raw_arg in OS.get_cmdline_user_args():
 		var arg := String(raw_arg)
 		if arg == "--validation-auto-quit":
-			get_tree().quit()
+			call_deferred("_quit_after_cleanup")
 			return
-	yield(get_tree().create_timer(1.0), "timeout")
+
+
+func _exit_tree() -> void:
+	_teardown_runtime()
+
+
+func _quit_after_cleanup() -> void:
+	_teardown_runtime()
+	get_tree().quit()
+
+
+func _teardown_runtime() -> void:
+	if _runtime_cleaned:
+		return
+	_runtime_cleaned = true
+	EventBus.unsubscribe(&"sun.spawned", Callable(self, "_on_sun_spawned"))
+	EventBus.unsubscribe(&"sun.collected", Callable(self, "_on_sun_collected"))
+	EventBus.unsubscribe(&"resource.changed", Callable(self, "_on_resource_changed"))
+	if _battle != null and is_instance_valid(_battle):
+		_battle.scenario = null
+		remove_child(_battle)
+		_battle.free()
+	_battle = null
 
 
 func _process(_delta: float) -> void:

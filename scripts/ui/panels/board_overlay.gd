@@ -110,7 +110,7 @@ func _on_placement_rejected(event_data: Variant) -> void:
 
 
 func _on_entity_died(event_data: Variant) -> void:
-	var target = event_data.core.get("event_target", null)
+	var target = event_data.core.get("target_node", null)
 	if target == null or not is_instance_valid(target):
 		return
 	if not target.has_method("get_entity_state"):

@@ -125,9 +125,9 @@ func _wire_input() -> void:
 	var active_scenario = _battle.call("_resolve_scenario")
 	if active_scenario == null:
 		return
-	var board_state = _battle.get_node_or_null("BattleBoardState")
-	var card_state = _battle.get_node_or_null("BattleCardState")
-	var flow_state = _battle.get_node_or_null("BattleFlowState")
+	var board_state: Node = _battle.call("get_board_state") if _battle.has_method("get_board_state") else _battle.get_node_or_null("BattleBoardState")
+	var card_state: Node = _battle.call("get_card_state") if _battle.has_method("get_card_state") else _battle.get_node_or_null("BattleCardState")
+	var flow_state: Node = _battle.call("get_flow_state") if _battle.has_method("get_flow_state") else _battle.get_node_or_null("BattleFlowState")
 	_board_visual.call("setup", board_state, lane_count, slot_count, cell_size)
 	if _battle_hud != null and is_instance_valid(_battle_hud) and _battle_hud.has_method("setup"):
 		_battle_hud.call("setup", _battle, active_scenario)

@@ -180,9 +180,13 @@ func _on_card_play_requested(_event_data: Variant) -> void:
 
 
 func _on_card_hand_updated(_event_data: Variant) -> void:
-	if battle == null or not is_instance_valid(battle):
+	if _battle == null or not is_instance_valid(_battle):
 		return
-	var card_state := battle.get_node_or_null("BattleCardState")
+	var card_state: Node = null
+	if _battle.has_method("get_card_state"):
+		card_state = _battle.call("get_card_state")
+	else:
+		card_state = _battle.get_node_or_null("BattleCardState")
 	if card_state == null or not card_state.has_method("get_card_defs_in_hand"):
 		return
 	_card_defs = card_state.call("get_card_defs_in_hand")
