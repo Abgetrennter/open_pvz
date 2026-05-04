@@ -1,9 +1,9 @@
 # 原版植物协议缺口清单
 
-- 状态：执行中 (Round 1 完成)
+- 状态：执行中 (机制补齐口径同步)
 - 关联文件：`plans/original-plant-migration-ledger.md`
 - 创建日期：2026-04-27
-- 最后更新：2026-04-27
+- 最后更新：2026-05-04
 
 > 本文档记录原版植物移植过程中发现的协议能力缺失。每条缺口包含建议落点和阻塞影响。
 
@@ -37,9 +37,10 @@
 | G-13 | 全场追踪 targeting | Targeting (global_track) | E | 中 | ✅ R1-3 |
 | G-14 | 对空高度切换 | HeightBand / State | D | 中 | ✅ R1-7 |
 | G-17 | 全局飞行驱散 | Effect / Targeting (flying_tag) | D | 中 | ✅ R1-5 |
+| G-18 | 反隐机制 | reveal effect | D | 中 | ✅ 2026-05-04 |
 | G-19 | 金属吸附 | Targeting (metal_tag) + Effect | D | 中 | ✅ R1-6 |
 | G-20 | 升级放置依赖 | Placement (upgrade) | E | 高 | ✅ R1-1 |
-| G-21 | 黄油眩晕 | apply_status (butter/stun) | E | 低 | ⚠️ Round 3 |
+| G-21 | 黄油眩晕 | apply_status (butter/stun) | E | 低 | ✅ 2026-05-04 |
 | G-22 | 换道 | Effect / RuleModule | E | 中 | ⚠️ Round 3 |
 | G-23 | 防护特定攻击 | RuleModule (protection) | E | 低 | ⚠️ Round 3 |
 | G-24 | 金币资源 | Economy / collectible | E | 低 | ⚠️ Round 3 |
@@ -48,11 +49,11 @@
 | G-27 | 卡片复制 | Card layer 协议 | E | 中 | ⚠️ Round 3 |
 | G-28 | 跳跃高度阻挡 | HeightBand / collision | B | 低 | ⚠️ Round 3 |
 | G-29 | 坑洞/crater | 场地变形协议 | C | 低 | ⚠️ Round 3 |
-| G-30 | 随机 payload 选择 | Emission (shuffle/random) | E | 低 | ⚠️ Round 3 |
+| G-30 | 随机 payload 选择 | Emission.core.shuffle_cycle | E | 低 | ✅ 2026-05-04 |
 
 **Round 1 解决**: 7/30 (G-06, G-12, G-13, G-14, G-17, G-19, G-20)
 **Round 2 待解决**: 12/30
-**Round 3 待解决**: 11/30 |
+**2026-05-04 机制补齐**: G-18, G-21, G-30 已以最小正式语义覆盖；完整雾场、原版黄油概率精确值仍后置。
 
 ---
 

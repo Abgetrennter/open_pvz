@@ -600,6 +600,12 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_gravebuster_validation",
+    "scenario": "res://scenes/validation/plant_original_gravebuster_validation.tres",
+    "description": "Validates Grave Buster tombstone-dependent placement, rejection without a tombstone, and blocker removal.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_water_pair_validation",
     "scenario": "res://scenes/validation/plant_original_water_pair_validation.tres",
     "description": "Validates Lily Pad support placement and Sea-shroom primary placement on water slots.",
@@ -608,7 +614,13 @@
   {
     "id": "plant_original_tanglekelp_plantern_validation",
     "scenario": "res://scenes/validation/plant_original_tanglekelp_plantern_validation.tres",
-    "description": "Validates partial Tangle Kelp water placement/proximity-damage proxy and Plantern resource/card placement smoke; drag/consume and reveal remain protocol gaps.",
+    "description": "Validates Tangle Kelp water placement, lethal proximity hit and self-consume, plus Plantern reveal against hidden enemies.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_kernelpult_validation",
+    "scenario": "res://scenes/validation/plant_original_kernelpult_validation.tres",
+    "description": "Validates Kernel-pult deterministic corn/butter cycle with damage and butter stun payloads.",
     "layers": ["core"]
   },
   {

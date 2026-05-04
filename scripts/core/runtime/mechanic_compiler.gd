@@ -30,6 +30,8 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.invoke_effect": &"Payload",
 		&"core.wake": &"Payload",
 		&"core.team_switch": &"Payload",
+		&"core.consume_self": &"Payload",
+		&"core.reveal": &"Payload",
 		&"core.bite": &"Controller",
 		&"core.sweep": &"Controller",
 		&"core.ground_damage": &"Controller",
@@ -529,6 +531,10 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"wake"}
 		&"core.team_switch":
 			return {"effect_id": &"team_switch"}
+		&"core.consume_self":
+			return {"effect_id": &"consume_self"}
+		&"core.reveal":
+			return {"effect_id": &"reveal"}
 		_:
 			return {}
 
@@ -556,6 +562,7 @@ static func _compile_placement_spec(normalized, archetype) -> Dictionary:
 				"granted_placement_tags": PackedStringArray(archetype.granted_placement_tags),
 				"placement_role": StringName(archetype.placement_role),
 				"required_present_roles": PackedStringArray(archetype.required_present_roles),
+				"required_present_archetypes": PackedStringArray(archetype.required_present_archetypes),
 				"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
 				"slot_type_hint": slot_type,
 			}
@@ -574,6 +581,7 @@ static func _compile_placement_spec(normalized, archetype) -> Dictionary:
 		"granted_placement_tags": PackedStringArray(archetype.granted_placement_tags),
 		"placement_role": StringName(archetype.placement_role),
 		"required_present_roles": PackedStringArray(archetype.required_present_roles),
+		"required_present_archetypes": PackedStringArray(archetype.required_present_archetypes),
 		"required_empty_roles": PackedStringArray(archetype.required_empty_roles),
 		"slot_type_hint": slot_type_hint,
 	}
@@ -1125,6 +1133,8 @@ static var _compile_emission_shuffle_cycle: Callable = func(mechanic, _archetype
 	var params: Dictionary = Dictionary(mechanic.params).duplicate(true)
 	if not params.has("pool"):
 		params["pool"] = []
+	params["shuffle_mechanic_id"] = mechanic.mechanic_id
+	params.erase("pool")
 	return params
 
 static var _compile_emission_spread: Callable = func(mechanic, _archetype, _merged_params: Dictionary) -> Dictionary:

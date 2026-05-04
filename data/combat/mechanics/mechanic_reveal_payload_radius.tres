@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.payload.reveal_radius"
+display_name = "Reveal Radius Payload"
+family = &"Payload"
+type_id = &"core.reveal"
+priority = 20
+tags = PackedStringArray("control", "reveal", "radius")
+params = {
+"duration": 8.0,
+"radius": 180.0,
+"target_mode": &"enemies_in_radius"
+}

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="2_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_kernelpult_shuffle_cycle.tres" id="3_emission"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_kernelpult_payload.tres" id="4_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/parabola_cabbage_arc.tres" id="6_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/cabbage_arc.tres" id="7_projectile"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_kernelpult"
+display_name = "Kernel-pult"
+projectile_template = ExtResource("7_projectile")
+projectile_flight_profile = ExtResource("6_profile")
+hit_height_band = ExtResource("5_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "kernelpult", "lobber", "butter")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent")
+placement_role = &"primary"
+required_placement_tags = PackedStringArray("supports_primary")
+max_health = 300
+hitbox_size = Vector2(44, 56)
+default_params = {
+"interval": 0.65,
+"scan_range": 900.0,
+"speed": 220.0,
+"start_delay": 0.1
+}
+mechanics = [ExtResource("2_trigger"), ExtResource("3_emission"), ExtResource("4_payload")]

@@ -100,7 +100,7 @@ func snapshot() -> Dictionary:
 func _prune_invalid_occupants() -> void:
 	var stale_roles: Array[StringName] = []
 	for role: Variant in role_occupants.keys():
-		var entity: Node = role_occupants[role]
+		var entity: Variant = role_occupants[role]
 		if entity == null or not is_instance_valid(entity):
 			stale_roles.append(StringName(role))
 			continue

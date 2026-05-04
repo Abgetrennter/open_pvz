@@ -6,6 +6,7 @@ const EffectResultRef = preload("res://scripts/core/runtime/effect_result.gd")
 const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
+const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight_profile.gd"
 const ProjectileTemplatePath := "res://scripts/core/defs/projectile_template.gd"
 const EXTENSION_EFFECT_DEF_DIR := "data/combat/effects"
@@ -82,7 +83,7 @@ func _register_builtin_defs() -> void:
 		"name": "target_mode",
 		"type": "string_name",
 		"default": &"context_target",
-		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "enemies_in_radius", "enemies_in_lane"]),
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "placement_blocker", "enemies_in_radius", "enemies_in_lane"]),
 	}, {
 		"name": "radius",
 		"type": "float",
@@ -272,6 +273,9 @@ func _register_builtin_defs() -> void:
 		"min": 0.0,
 		"max": 90.0,
 		"default": 15.0,
+	}, {
+		"name": "shuffle_mechanic_id",
+		"type": "string_name",
 	}]
 	spawn_projectile.param_defs = spawn_projectile_param_defs
 	var on_hit_slot = EffectSlotDefRef.new()
@@ -296,7 +300,7 @@ func _register_builtin_defs() -> void:
 		"name": "target_mode",
 		"type": "string_name",
 		"default": &"context_target",
-		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "enemies_in_radius", "enemies_in_lane"]),
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "placement_blocker", "enemies_in_radius", "enemies_in_lane"]),
 	}, {
 		"name": "radius",
 		"type": "float",
@@ -323,6 +327,12 @@ func _register_builtin_defs() -> void:
 	var apply_status_param_defs: Array[Dictionary] = [{
 		"name": "status_id",
 		"type": "string_name",
+	}, {
+		"name": "amount",
+		"type": "int",
+		"min": 0,
+		"max": 9999,
+		"default": 0,
 	}, {
 		"name": "duration",
 		"type": "float",
@@ -447,6 +457,45 @@ func _register_builtin_defs() -> void:
 	team_switch.allow_extra_children = false
 	register_def(team_switch)
 
+	var consume_self = EffectDefRef.new()
+	consume_self.effect_id = &"consume_self"
+	consume_self.tags = PackedStringArray(["hit_response", "control", "lifecycle"])
+	var consume_self_param_defs: Array[Dictionary] = [{
+		"name": "reason",
+		"type": "string_name",
+		"default": &"consumed",
+	}]
+	consume_self.param_defs = consume_self_param_defs
+	consume_self.allow_extra_params = false
+	consume_self.allow_extra_children = false
+	register_def(consume_self)
+
+	var reveal = EffectDefRef.new()
+	reveal.effect_id = &"reveal"
+	reveal.tags = PackedStringArray(["hit_response", "control", "reveal"])
+	var reveal_param_defs: Array[Dictionary] = [{
+		"name": "target_mode",
+		"type": "string_name",
+		"default": &"enemies_in_radius",
+		"options": PackedStringArray(["enemies_in_radius"]),
+	}, {
+		"name": "radius",
+		"type": "float",
+		"min": 1.0,
+		"max": 4000.0,
+		"default": 160.0,
+	}, {
+		"name": "duration",
+		"type": "float",
+		"min": 0.1,
+		"max": 60.0,
+		"default": 8.0,
+	}]
+	reveal.param_defs = reveal_param_defs
+	reveal.allow_extra_params = false
+	reveal.allow_extra_children = false
+	register_def(reveal)
+
 
 func _register_builtin_strategies() -> void:
 	register_strategy(&"damage", func(context, params: Dictionary, _node) -> Variant:
@@ -482,7 +531,8 @@ func _register_builtin_strategies() -> void:
 			result.notes.append("No active battle manager available.")
 			return result
 
-		var on_hit_effect = node.get_child(&"on_hit")
+		params = _resolve_shuffle_projectile_params(context, params)
+		var on_hit_effect = _resolve_on_hit_effect_from_params(node.get_child(&"on_hit"), params)
 		var emission_mode := StringName(params.get("emission_mode", StringName()))
 
 		if emission_mode == &"multi_lane":
@@ -564,6 +614,13 @@ func _register_builtin_strategies() -> void:
 		var duration := float(params.get("duration", 2.0))
 		var movement_scale := float(params.get("movement_scale", 1.0))
 		var blocks_attack := bool(params.get("blocks_attack", false))
+		var amount := int(params.get("amount", 0))
+		if amount > 0 and target.has_method("take_damage"):
+			target.call("take_damage", amount, effect_source, PackedStringArray(["status_damage", String(status_id)]), {
+				"depth": int(context.runtime.get("depth", context.depth)) + 1,
+				"chain_id": context.chain_id,
+				"origin_event_name": context.event_name,
+			})
 		target.call("apply_status", status_id, duration, {
 			"movement_scale": movement_scale,
 			"blocks_attack": blocks_attack,
@@ -687,6 +744,54 @@ func _register_builtin_strategies() -> void:
 		return result
 	)
 
+	register_strategy(&"consume_self", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var owner: Node = context.owner_entity
+		if owner == null or not is_instance_valid(owner):
+			result.success = false
+			result.notes.append("consume_self requires a valid owner.")
+			if DebugService.has_method("record_protocol_issue"):
+				DebugService.record_protocol_issue(&"effect_node", "consume_self requires a valid owner.", &"error")
+			return result
+
+		var reason := StringName(params.get("reason", &"consumed"))
+		var consumed_event: Variant = EventDataRef.create(owner, owner, null, PackedStringArray(["consume", String(reason)]))
+		consumed_event.core["reason"] = reason
+		EventBus.push_event(&"entity.consumed", consumed_event)
+		if owner.has_method("set_status"):
+			owner.call("set_status", reason)
+		owner.queue_free()
+		result.terminated = true
+		return result
+	)
+
+	register_strategy(&"reveal", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var reveal_params := params.duplicate(true)
+		reveal_params["target_mode"] = &"enemies_in_radius"
+		reveal_params["target_tags"] = PackedStringArray(["hidden", "concealed"])
+		var targets: Array = _resolve_targets(context, reveal_params)
+		var duration := float(params.get("duration", 8.0))
+		var effect_source := _resolve_effect_source_node(context)
+		var revealed_count := 0
+		for target in targets:
+			if target == null or not is_instance_valid(target):
+				continue
+			if not _node_has_any_tag_or_status(target, PackedStringArray(["hidden", "concealed"])):
+				continue
+			if target.has_method("apply_status"):
+				target.call("apply_status", &"revealed", duration, {})
+			var reveal_event: Variant = EventDataRef.create(effect_source, target, null, PackedStringArray(["reveal", "status"]))
+			reveal_event.core["status_id"] = &"revealed"
+			reveal_event.core["duration"] = duration
+			EventBus.push_event(&"entity.revealed", reveal_event)
+			revealed_count += 1
+		if revealed_count == 0:
+			result.success = false
+			result.notes.append("reveal found no hidden targets.")
+		return result
+	)
+
 
 func _resolve_target(context, params: Dictionary) -> Node:
 	var target_mode := StringName(params.get("target_mode", &"context_target"))
@@ -701,6 +806,8 @@ func _resolve_target(context, params: Dictionary) -> Node:
 			return context.core.get("source_node", context.source_node)
 		&"event_target":
 			return context.core.get("target_node", context.target_node)
+		&"placement_blocker":
+			return context.core.get("blocker_node", null)
 		_:
 			return context.target_node
 
@@ -753,13 +860,50 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 			continue
 		if lane_filter is int and child.get("lane_id") != lane_filter:
 			continue
-		if not target_tags.is_empty() and not _node_has_any_tag(child, target_tags):
+		if not target_tags.is_empty() and not _node_has_any_tag_or_status(child, target_tags):
 			continue
 		var candidate := child as Node2D
 		if _node_ground_position(candidate).distance_to(center) <= radius:
 			targets.append(child)
 
 	return targets
+
+
+func _resolve_shuffle_projectile_params(context, params: Dictionary) -> Dictionary:
+	var mechanic_id := StringName(params.get("shuffle_mechanic_id", StringName()))
+	if mechanic_id == StringName() or context == null or context.owner_entity == null:
+		return params
+	if not context.owner_entity.has_method("get_entity_state_ref"):
+		return params
+	var entity_state = context.owner_entity.call("get_entity_state_ref")
+	if entity_state == null or not entity_state.has_method("get_value"):
+		return params
+	var mechanic_states: Variant = entity_state.call("get_value", &"mechanic_runtime_states")
+	if not (mechanic_states is Dictionary):
+		return params
+	var state: Variant = mechanic_states.get(mechanic_id, null)
+	if not (state is Dictionary):
+		return params
+	var bag = state.get("bag", null)
+	if bag == null or not bag.has_method("next"):
+		return params
+	var next_item: Variant = bag.call("next")
+	if not (next_item is Dictionary):
+		return params
+	var resolved := params.duplicate(true)
+	for key: Variant in Dictionary(next_item).keys():
+		resolved[key] = next_item[key]
+	return resolved
+
+
+func _resolve_on_hit_effect_from_params(default_on_hit, params: Dictionary):
+	var effect_id := StringName(params.get("variant_on_hit_effect_id", StringName()))
+	if effect_id == StringName():
+		return default_on_hit
+	var effect_params: Dictionary = {}
+	if params.get("variant_on_hit_effect_params", null) is Dictionary:
+		effect_params = params.get("variant_on_hit_effect_params").duplicate(true)
+	return EffectNodeRef.new(effect_id, effect_params)
 
 
 func _node_has_any_tag(node: Node, expected_tags: PackedStringArray) -> bool:
@@ -773,6 +917,17 @@ func _node_has_any_tag(node: Node, expected_tags: PackedStringArray) -> bool:
 		node_tags = PackedStringArray(raw_tags)
 	for expected_tag in expected_tags:
 		if node_tags.has(StringName(expected_tag)):
+			return true
+	return false
+
+
+func _node_has_any_tag_or_status(node: Node, expected_tags: PackedStringArray) -> bool:
+	if _node_has_any_tag(node, expected_tags):
+		return true
+	if node == null or expected_tags.is_empty() or not node.has_method("has_status"):
+		return false
+	for expected_tag in expected_tags:
+		if bool(node.call("has_status", StringName(expected_tag))):
 			return true
 	return false
 

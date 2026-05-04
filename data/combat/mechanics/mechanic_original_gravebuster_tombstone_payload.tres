@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.gravebuster.tombstone_payload"
+display_name = "Grave Buster Tombstone Payload"
+family = &"Payload"
+type_id = &"core.damage"
+priority = 20
+tags = PackedStringArray("damage", "tombstone", "placement_blocker")
+params = {
+"amount": 1800,
+"target_mode": &"placement_blocker"
+}

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.kernelpult.shuffle_cycle"
+display_name = "Kernel-pult Shuffle Cycle"
+family = &"Emission"
+type_id = &"core.shuffle_cycle"
+priority = 16
+tags = PackedStringArray("original", "kernelpult", "shuffle", "butter")
+params = {
+"pool": [{
+"damage": 20,
+"variant_on_hit_effect_id": &"damage",
+"variant_on_hit_effect_params": {
+"amount": 20,
+"target_mode": &"context_target"
+}
+}, {
+"damage": 20,
+"variant_on_hit_effect_id": &"apply_status",
+"variant_on_hit_effect_params": {
+"amount": 20,
+"blocks_attack": true,
+"duration": 3.0,
+"movement_scale": 0.0,
+"status_id": &"butter_stun",
+"target_mode": &"context_target"
+}
+}]
+}

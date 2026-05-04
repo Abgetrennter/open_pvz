@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_proximity_trigger.tres" id="2_trigger"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_direct_damage_payload.tres" id="3_payload"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_tanglekelp_lethal_consume_payload.tres" id="3_payload"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_consume_self_payload.tres" id="5_consume"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -11,7 +12,7 @@ archetype_id = &"archetype_original_tanglekelp"
 display_name = "Tangle Kelp"
 hit_height_band = ExtResource("4_height")
 entity_kind = &"plant"
-tags = PackedStringArray("archetype", "plant", "original", "tanglekelp", "water", "instant", "control", "protocol_gap")
+tags = PackedStringArray("archetype", "plant", "original", "tanglekelp", "water", "instant", "control")
 required_components = PackedStringArray("TriggerComponent")
 optional_components = PackedStringArray("DebugViewComponent")
 placement_role = &"primary"
@@ -25,4 +26,4 @@ default_params = {
 "start_delay": 0.0,
 "target_mode": &"context_target"
 }
-mechanics = [ExtResource("2_trigger"), ExtResource("3_payload")]
+mechanics = [ExtResource("2_trigger"), ExtResource("3_payload"), ExtResource("5_consume")]

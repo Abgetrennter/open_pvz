@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.payload.consume_self"
+display_name = "Consume Self Payload"
+family = &"Payload"
+type_id = &"core.consume_self"
+priority = 15
+tags = PackedStringArray("control", "consume", "lifecycle")
+params = {
+"reason": &"consumed"
+}

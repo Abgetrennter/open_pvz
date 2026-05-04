@@ -1,0 +1,102 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="2_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_gravebuster.tres" id="5_grave_card"]
+
+[sub_resource type="Resource" id="Card_tombstone"]
+script = ExtResource("2_card")
+card_id = &"card_validation_tombstone_blocker"
+display_name = "Validation Tombstone"
+archetype_id = &"archetype_tombstone_blocker"
+sun_cost = 0
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="Req_gravebuster_reject"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_gravebuster"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_tombstone"]
+script = ExtResource("3_request")
+at_time = 0.1
+card_id = &"card_validation_tombstone_blocker"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_gravebuster_accept"]
+script = ExtResource("3_request")
+at_time = 0.4
+card_id = &"card_original_gravebuster"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_reject_without_tombstone"]
+script = ExtResource("4_rule")
+rule_id = &"gravebuster_reject_without_tombstone"
+description = "Grave Buster should be rejected when the slot has no tombstone blocker."
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"card_original_gravebuster",
+"reason": &"required_present_archetype_missing"
+}
+
+[sub_resource type="Resource" id="Rule_tombstone_accept"]
+script = ExtResource("4_rule")
+rule_id = &"tombstone_accept"
+description = "Validation tombstone should occupy the blocker role."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_validation_tombstone_blocker",
+"placement_role": &"blocker"
+}
+
+[sub_resource type="Resource" id="Rule_gravebuster_accept"]
+script = ExtResource("4_rule")
+rule_id = &"gravebuster_accept"
+description = "Grave Buster should be accepted on a slot containing the required tombstone archetype."
+event_name = &"placement.accepted"
+required_core_values = {
+"blocker_archetype_id": &"archetype_tombstone_blocker",
+"card_id": &"card_original_gravebuster",
+"placement_role": &"primary"
+}
+
+[sub_resource type="Resource" id="Rule_gravebuster_damage"]
+script = ExtResource("4_rule")
+rule_id = &"gravebuster_damage_tombstone"
+description = "Grave Buster should target and damage the blocker tombstone."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_gravebuster",
+"target_archetype_id": &"archetype_tombstone_blocker"
+}
+
+[sub_resource type="Resource" id="Rule_tombstone_died"]
+script = ExtResource("4_rule")
+rule_id = &"tombstone_died"
+description = "The tombstone blocker should be removed by Grave Buster damage."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_gravebuster",
+"target_archetype_id": &"archetype_tombstone_blocker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_gravebuster_validation"
+display_name = "Original Grave Buster Validation"
+description = "Validates Grave Buster's tombstone placement dependency and blocker-target damage path."
+goals = PackedStringArray("Reject Grave Buster on a slot without a tombstone blocker.", "Accept Grave Buster on a slot containing archetype_tombstone_blocker.", "Verify Grave Buster damages and removes the tombstone blocker through the on_place payload.")
+validation_time_limit = 4.0
+initial_sun = 1000
+lane_count = 2
+board_slot_count = 1
+card_defs = [ExtResource("5_grave_card"), SubResource("Card_tombstone")]
+card_play_requests = [SubResource("Req_gravebuster_reject"), SubResource("Req_tombstone"), SubResource("Req_gravebuster_accept")]
+validation_rules = [SubResource("Rule_reject_without_tombstone"), SubResource("Rule_tombstone_accept"), SubResource("Rule_gravebuster_accept"), SubResource("Rule_gravebuster_damage"), SubResource("Rule_tombstone_died")]

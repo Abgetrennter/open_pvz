@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_kernelpult.tres" id="5_kernel_card"]
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 430.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Req_kernelpult"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_kernelpult"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_kernel_accept"]
+script = ExtResource("4_rule")
+rule_id = &"kernelpult_accept"
+description = "Kernel-pult should be accepted as a primary ground plant."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_kernelpult",
+"placement_role": &"primary"
+}
+
+[sub_resource type="Resource" id="Rule_kernel_damage"]
+script = ExtResource("4_rule")
+rule_id = &"kernelpult_damage"
+description = "Kernel-pult should deal projectile damage through its shuffle-cycle payload."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_kernelpult",
+"target_archetype_id": &"archetype_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_kernel_butter"]
+script = ExtResource("4_rule")
+rule_id = &"kernelpult_butter_stun"
+description = "Kernel-pult butter payload should apply butter_stun."
+event_name = &"entity.status_applied"
+required_core_values = {
+"source_archetype_id": &"archetype_original_kernelpult",
+"status_id": &"butter_stun",
+"target_archetype_id": &"archetype_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_kernelpult_validation"
+display_name = "Original Kernel-pult Validation"
+description = "Validates Kernel-pult resource/card placement plus deterministic shuffle-cycle corn damage and butter stun payloads."
+goals = PackedStringArray("Verify Kernel-pult can be placed as an original plant card.", "Verify Kernel-pult projectile damage reaches a lane target.", "Verify the butter payload applies butter_stun through the shared status effect path.")
+validation_time_limit = 6.0
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 1
+card_defs = [ExtResource("5_kernel_card")]
+card_play_requests = [SubResource("Req_kernelpult")]
+validation_rules = [SubResource("Rule_kernel_accept"), SubResource("Rule_kernel_damage"), SubResource("Rule_kernel_butter")]
+spawns = [SubResource("Spawn_target")]

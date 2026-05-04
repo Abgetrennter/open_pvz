@@ -220,11 +220,11 @@ required_core_values = {
 [sub_resource type="Resource" id="Rule_cob_wrong_base_reject"]
 script = ExtResource("4_rule")
 rule_id = &"cob_wrong_base_reject"
-description = "Cob Cannon should reject a Peashooter base instead of accepting any primary plant."
+description = "Cob Cannon should reject a Peashooter base because Kernel-pult is required."
 event_name = &"card.play_rejected"
 required_core_values = {
 "card_id": &"card_original_cobcannon",
-"placement_reason": &"required_adjacent_archetype_missing",
+"placement_reason": &"required_present_archetype_missing",
 "reason": &"invalid_placement"
 }
 
@@ -233,7 +233,7 @@ script = ExtResource("1_scenario")
 scenario_id = &"plant_original_e_upgrade_placement_validation"
 display_name = "Original E Upgrade Placement Validation"
 description = "Validates E batch upgrade placement dependencies use the upgrade role and require specific base archetypes."
-goals = PackedStringArray("Verify available E upgrade plants can be placed over their specific base archetypes.", "Verify an incorrect base plant is rejected instead of satisfying upgrade placement by role alone.")
+goals = PackedStringArray("Verify available E upgrade plants can be placed over their specific base archetypes.", "Verify Cob Cannon rejects an incorrect base plant instead of satisfying upgrade placement by role alone.")
 validation_time_limit = 2.0
 initial_sun = 5000
 lane_count = 8
