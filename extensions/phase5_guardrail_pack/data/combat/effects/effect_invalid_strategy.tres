@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_effect")
-effect_id = &"invalid_strategy_ext"
+id = &"invalid_strategy_ext"
 param_defs = [{
 "name": "amount",
 "type": "int",

@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_effect")
-effect_id = &"damage"
+id = &"damage"
 param_defs = [{
 "name": "archetype_id",
 "type": "string_name"

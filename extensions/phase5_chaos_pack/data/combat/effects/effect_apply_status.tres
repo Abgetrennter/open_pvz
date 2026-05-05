@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_effect")
-effect_id = &"apply_status"
+id = &"apply_status"
 param_defs = [{
 "name": "status_id",
 "type": "string_name"

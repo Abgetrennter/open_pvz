@@ -12,7 +12,7 @@ allowed_effect_tags = PackedStringArray("hit_response")
 
 [resource]
 script = ExtResource("1_effect")
-effect_id = &"split_projectiles"
+id = &"split_projectiles"
 param_defs = [{
 "name": "impact_damage",
 "type": "int",
