@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_unknown_movement_shooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"interval": 0.4,
+"movement_mode": &"missing_pack.unknown_move",
+"scan_range": 900.0,
+"speed": 320.0
+}
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 620.0
+
+[sub_resource type="Resource" id="Rule_unknown_movement_issue"]
+script = ExtResource("3_rule")
+rule_id = &"unknown_movement_issue"
+description = "unknown projectile move_mode should emit a projectile_movement protocol issue"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"projectile_movement"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"projectile_movement_guardrail_validation"
+display_name = "Projectile Movement Guardrail Validation"
+description = "Validates that unknown projectile movement ids are reported through protocol issues and safely fall back."
+goals = PackedStringArray("Verify unknown projectile move_mode emits protocol.issue.", "Verify fallback is handled by ProjectileMovementRegistry rather than a hardcoded branch.")
+validation_time_limit = 2.0
+validation_rules = [SubResource("Rule_unknown_movement_issue")]
+spawns = [SubResource("Spawn_unknown_movement_shooter"), SubResource("Spawn_target")]
+

@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_invalid_return_shooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_slot_guardrail_invalid_return_shooter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Rule_bad_movement_script"]
+script = ExtResource("3_rule")
+rule_id = &"bad_movement_script"
+description = "movement script that does not extend ProjectileMovementBase should be rejected"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"projectile_movement"
+}
+
+[sub_resource type="Resource" id="Rule_bad_compiler_registration"]
+script = ExtResource("3_rule")
+rule_id = &"bad_compiler_registration"
+description = "invalid mechanic compiler registrations and return values should be rejected"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"mechanic_compiler"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"extension_slot_guardrail_validation"
+display_name = "Extension Slot Guardrail Validation"
+description = "Validates runtime slot guardrails for invalid movement scripts and invalid mechanic compiler contributions."
+goals = PackedStringArray("Verify projectile movement scripts must extend ProjectileMovementBase.", "Verify extension mechanic compilers cannot use core.* ids, unknown families, duplicate ids, or non-Dictionary returns.")
+validation_time_limit = 1.0
+validation_rules = [SubResource("Rule_bad_movement_script"), SubResource("Rule_bad_compiler_registration")]
+spawns = [SubResource("Spawn_invalid_return_shooter")]

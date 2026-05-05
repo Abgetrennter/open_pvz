@@ -137,12 +137,13 @@ func launch(
 		var configured_hit_strategy := StringName(full_movement_params.get("hit_strategy", StringName()))
 		_hit_strategy = configured_hit_strategy if configured_hit_strategy != StringName() else _default_hit_strategy_for_mode(_move_mode)
 		var configured_terminal_strategy := StringName(full_movement_params.get("terminal_hit_strategy", StringName()))
-		_terminal_hit_strategy = configured_terminal_strategy if configured_terminal_strategy != StringName() else _terminal_strategy_for_hit_strategy(_hit_strategy)
+		_terminal_hit_strategy = configured_terminal_strategy if configured_terminal_strategy != StringName() else _default_terminal_hit_strategy_for_mode(_move_mode, _hit_strategy)
 		_max_penetrations = maxi(1, int(full_movement_params.get("max_penetrations", _max_penetrations)))
 		_ignored_entity_ids = PackedInt32Array(full_movement_params.get("ignored_entity_ids", PackedInt32Array()))
 		full_movement_params["start_position"] = _ground_position
 		debug_target_position = full_movement_params.get("target_position", _ground_position)
 		debug_target_node = full_movement_params.get("target_node", null)
+		movement_component.set("projectile", self)
 		movement_component.configure_movement(full_movement_params)
 		queue_redraw()
 	set_state_value(&"damage", damage)
@@ -360,13 +361,17 @@ func _matches_terminal_hit_target(candidate_node: Node2D) -> bool:
 
 
 func _default_hit_strategy_for_mode(move_mode: StringName) -> StringName:
-	match move_mode:
-		&"parabola":
-			return &"terminal_hitbox"
-		&"track":
-			return &"swept_segment"
-		_:
-			return &"swept_segment"
+	if typeof(ProjectileMovementRegistry) != TYPE_NIL and ProjectileMovementRegistry.has_method("get_default_hit_strategy"):
+		return ProjectileMovementRegistry.get_default_hit_strategy(move_mode)
+	return &"swept_segment"
+
+
+func _default_terminal_hit_strategy_for_mode(move_mode: StringName, hit_strategy: StringName) -> StringName:
+	if typeof(ProjectileMovementRegistry) != TYPE_NIL and ProjectileMovementRegistry.has_method("get_default_terminal_hit_strategy"):
+		var registry_default := StringName(ProjectileMovementRegistry.get_default_terminal_hit_strategy(move_mode))
+		if registry_default != StringName():
+			return registry_default
+	return _terminal_strategy_for_hit_strategy(hit_strategy)
 
 
 func _terminal_strategy_for_hit_strategy(hit_strategy: StringName) -> StringName:
@@ -431,20 +436,21 @@ func _ensure_movement_component(move_mode: StringName) -> void:
 		remove_child(movement_component)
 		movement_component.queue_free()
 
-	movement_component = desired_script.new()
+	if typeof(ProjectileMovementRegistry) != TYPE_NIL and ProjectileMovementRegistry.has_method("create_component"):
+		movement_component = ProjectileMovementRegistry.create_component(move_mode)
+	else:
+		movement_component = desired_script.new()
 	movement_component.name = "MovementComponent"
 	add_child(movement_component)
 	_enforce_single_movement_component(movement_component)
 
 
 func _movement_script_for_mode(move_mode: StringName):
-	match move_mode:
-		&"parabola":
-			return ProjectileMovementParabolaRef
-		&"track":
-			return ProjectileMovementTrackRef
-		_:
-			return ProjectileMovementLinearRef
+	if typeof(ProjectileMovementRegistry) != TYPE_NIL and ProjectileMovementRegistry.has_method("get_def"):
+		var movement_def = ProjectileMovementRegistry.get_def(move_mode)
+		if movement_def != null and movement_def.get("movement_script") is Script:
+			return movement_def.get("movement_script")
+	return ProjectileMovementLinearRef
 
 
 func get_ground_position() -> Vector2:

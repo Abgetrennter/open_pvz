@@ -26,7 +26,7 @@ func _ready() -> void:
 	_register_extension_defs_and_strategies()
 
 
-func register_def(effect_def) -> bool:
+func register_def(effect_def, source: Dictionary = {}) -> bool:
 	if effect_def == null:
 		return false
 	var errors: Array[String] = ProtocolValidatorRef.validate_effect_def(effect_def)
@@ -56,8 +56,20 @@ func get_def(effect_id: StringName):
 	return _effect_defs.get(effect_id)
 
 
+func has(effect_id: StringName) -> bool:
+	return _effect_defs.has(effect_id)
+
+
 func get_strategy(effect_id: StringName) -> Callable:
 	return _effect_strategies.get(effect_id, Callable())
+
+
+func list_ids() -> PackedStringArray:
+	var keys := PackedStringArray()
+	for key in _effect_defs.keys():
+		keys.append(String(key))
+	keys.sort()
+	return keys
 
 
 func rebuild_registry() -> void:
@@ -128,7 +140,6 @@ func _register_builtin_defs() -> void:
 		"name": "movement_mode",
 		"type": "string_name",
 		"default": &"linear",
-		"options": PackedStringArray(["linear", "track", "parabola"]),
 	}, {
 		"name": "distance",
 		"type": "float",
@@ -984,7 +995,7 @@ func _register_extension_effect_defs(directory_path: String) -> void:
 			continue
 		if PROMOTED_EXTENSION_EFFECT_IDS.has(StringName(effect_def.effect_id)):
 			continue
-		var accepted := register_def(effect_def)
+		var accepted := register_def(effect_def, {"extension": true, "path": full_path})
 		if accepted:
 			_register_effect_strategy_from_def(effect_def, full_path)
 	directory.list_dir_end()

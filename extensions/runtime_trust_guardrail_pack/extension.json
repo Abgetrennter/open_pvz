@@ -1,0 +1,14 @@
+{
+  "pack_id": "runtime_trust_guardrail_pack",
+  "enabled_by_default": false,
+  "register": [
+    "projectile_movement"
+  ],
+  "trust_level": "data_only",
+  "capabilities": [
+    "projectile_movement"
+  ],
+  "activation_scenario_ids": [
+    "extension_runtime_trust_guardrail_validation"
+  ]
+}

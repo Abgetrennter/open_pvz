@@ -7,6 +7,13 @@ const MANIFEST_FILE_NAME := "extension.json"
 const ALLOWED_REGISTER_KINDS := {
 	&"resources": true,
 	&"effects": true,
+	&"projectile_movement": true,
+	&"mechanic_compilers": true,
+}
+const ALLOWED_TRUST_LEVELS := {
+	&"data_only": true,
+	&"rule_extended": true,
+	&"trusted_runtime": true,
 }
 const MANIFEST_GUARDRAIL_SCENARIO_IDS := {
 	&"extension_manifest_guardrail_validation": true,
@@ -105,6 +112,15 @@ static func _load_manifest(root_path: String, fallback_pack_id: String) -> Dicti
 		var enabled_message := "Extension pack %s manifest enabled_by_default must be a bool." % String(pack_id)
 		_record_manifest_issue(enabled_message)
 		return {}
+	if manifest.has("trust_level"):
+		var trust_level := StringName(manifest.get("trust_level", StringName()))
+		if trust_level == StringName() or not ALLOWED_TRUST_LEVELS.has(trust_level):
+			var trust_message := "Extension pack %s manifest trust_level must be one of data_only, rule_extended, trusted_runtime." % String(pack_id)
+			_record_manifest_issue(trust_message)
+			return {}
+		manifest["trust_level"] = trust_level
+	else:
+		manifest["trust_level"] = _infer_legacy_trust_level(Array(manifest.get("register", [])))
 	var activation_cli_error := _validate_string_array_field(manifest, "activation_cli_flags", pack_id)
 	if not activation_cli_error.is_empty():
 		_record_manifest_issue(activation_cli_error)
@@ -112,6 +128,10 @@ static func _load_manifest(root_path: String, fallback_pack_id: String) -> Dicti
 	var activation_scenario_error := _validate_string_array_field(manifest, "activation_scenario_ids", pack_id)
 	if not activation_scenario_error.is_empty():
 		_record_manifest_issue(activation_scenario_error)
+		return {}
+	var capabilities_error := _validate_string_array_field(manifest, "capabilities", pack_id)
+	if not capabilities_error.is_empty():
+		_record_manifest_issue(capabilities_error)
 		return {}
 	return manifest
 
@@ -124,6 +144,17 @@ static func _pack_supports_register_kind(manifest: Dictionary, register_kind: St
 		if StringName(entry) == register_kind:
 			return true
 	return false
+
+
+static func _infer_legacy_trust_level(register_list: Array) -> StringName:
+	for entry in register_list:
+		var register_kind := StringName(entry)
+		if register_kind == &"projectile_movement" or register_kind == &"mechanic_compilers":
+			return &"data_only"
+	for entry in register_list:
+		if StringName(entry) == &"effects":
+			return &"rule_extended"
+	return &"data_only"
 
 
 static func _pack_enabled(manifest: Dictionary, root_path: String) -> bool:

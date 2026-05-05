@@ -118,6 +118,10 @@ func reset_battle() -> void:
 	_validation_tracker.reset_validation()
 	if EffectRegistry.has_method("rebuild_registry"):
 		EffectRegistry.rebuild_registry()
+	if typeof(ProjectileMovementRegistry) != TYPE_NIL and ProjectileMovementRegistry.has_method("rebuild_registry"):
+		ProjectileMovementRegistry.rebuild_registry()
+	if MechanicCompilerRegistry.has_method("rebuild_registry"):
+		MechanicCompilerRegistry.rebuild_registry()
 	_rebuild_lane_config()
 	_subsystem_host.reset_runtime_services()
 	_spawner.spawn_scenario()

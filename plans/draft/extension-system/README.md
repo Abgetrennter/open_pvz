@@ -16,7 +16,7 @@
 | 39-素材包系统设计草案 | 素材包独立于内容包的切分思路 | 长期规划 |
 | 40-扩展包边界与依赖规则-v1 | 包类型、信任分级、依赖图 | 长期规划 |
 | 41-扩展包-manifest-规范-v1 | manifest 字段、兼容策略 | 长期规划 |
-| 42-通用扩展插槽规范草案-v1 | 统一 slot / contributor / registry / runtime 分发 / guardrail 模型 | 概念草案 |
+| 42-通用扩展插槽规范草案-v1 | 统一 slot / contributor / registry / runtime 分发 / guardrail 模型 | 已提升到 wiki |
 
 ## 当前已落地的扩展能力（真实现）
 
@@ -30,6 +30,7 @@
 ## 与 wiki 的关系
 
 - wiki 正式入口：[扩展系统总体规划](../../../wiki/04-roadmap-reference/38-扩展系统总体规划.md)
+- 通用扩展插槽正式入口：[通用扩展插槽机制](../../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md)
 - 该总纲页面只保留"已落地 + 下一步应做什么"的最小共识，不承诺具体包类型体系、manifest 规范或素材包协议。
 
 ## 何时从 draft 提升

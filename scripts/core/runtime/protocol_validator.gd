@@ -217,9 +217,8 @@ static func validate_projectile_flight_profile(profile: Resource) -> Array[Strin
 	if StringName(profile.profile_id) == StringName():
 		errors.append("ProjectileFlightProfile.profile_id must not be empty.")
 
-	var move_mode := String(profile.move_mode)
-	if not _allowed_move_modes().has(move_mode):
-		errors.append("ProjectileFlightProfile.move_mode must be one of %s." % _join_strings(_allowed_move_modes()))
+	if StringName(profile.move_mode) == StringName():
+		errors.append("ProjectileFlightProfile.move_mode must not be empty.")
 
 	var height_strategy := String(profile.height_strategy)
 	if not _allowed_height_strategies().has(height_strategy):
@@ -858,9 +857,15 @@ static func normalize_effect_node(node) -> Dictionary:
 		elif param_def.has("default"):
 			normalized_params[param_name] = param_def["default"]
 
+	if StringName(node.effect_id) == &"spawn_projectile":
+		_normalize_projectile_movement_params(node, normalized_params, errors)
+
 	if not bool(effect_def.allow_extra_params):
+		var normalized_param_names: Dictionary = {}
+		for normalized_key: Variant in normalized_params.keys():
+			normalized_param_names[String(normalized_key)] = true
 		for key: Variant in node.params.keys():
-			if not normalized_params.has(key):
+			if not normalized_param_names.has(String(key)):
 				errors.append("EffectNode %s has unsupported param %s." % [String(node.effect_id), str(key)])
 
 	var slot_defs: Dictionary = {}
@@ -896,6 +901,39 @@ static func normalize_effect_node(node) -> Dictionary:
 		"errors": errors,
 		"params": normalized_params,
 	}
+
+
+static func _normalize_projectile_movement_params(node, normalized_params: Dictionary, errors: PackedStringArray) -> void:
+	var move_mode := StringName(normalized_params.get("movement_mode", &"linear"))
+	if move_mode == StringName():
+		move_mode = &"linear"
+	if not ProjectileMovementRegistry.has(move_mode):
+		return
+	var movement_def = ProjectileMovementRegistry.get_def(move_mode)
+	if movement_def == null:
+		return
+	for param_def in movement_def.param_defs:
+		if not (param_def is Dictionary):
+			continue
+		var param_name := String(param_def.get("name", ""))
+		if param_name.is_empty() or normalized_params.has(param_name):
+			continue
+		var param_value: Variant = null
+		var has_param := false
+		for key: Variant in node.params.keys():
+			if String(key) == param_name:
+				param_value = node.params[key]
+				has_param = true
+				break
+		if has_param:
+			normalized_params[param_name] = _normalize_param_value(
+				param_value,
+				param_def,
+				errors,
+				"EffectNode %s movement %s" % [String(node.effect_id), String(move_mode)]
+			)
+		elif param_def.has("default"):
+			normalized_params[param_name] = param_def["default"]
 
 
 static func _effect_allowed_in_slot(child, slot_def) -> bool:
@@ -1230,10 +1268,6 @@ static func _normalize_param_value(value: Variant, param_def: Dictionary, errors
 	return normalized_value
 
 
-static func _allowed_move_modes() -> Array[String]:
-	return ["linear", "track", "parabola"]
-
-
 static func _allowed_height_strategies() -> Array[String]:
 	return ["flat", "arc"]
 
@@ -1378,12 +1412,6 @@ static func _validate_projectile_config_consistency(params: Dictionary, projecti
 	if profile != null:
 		for error in validate_projectile_flight_profile(profile):
 			errors.append("%s flight_profile: %s" % [scope, error])
-		if params.has("movement_mode") and profile.get_script() == ProjectileFlightProfileRef:
-			var profile_move_mode := StringName(profile.get("move_mode"))
-			var override_move_mode := StringName(params.get("movement_mode", StringName()))
-			if override_move_mode != StringName() and override_move_mode != profile_move_mode:
-				errors.append("%s movement_mode must match flight_profile.move_mode when both are provided." % scope)
-
 	var resolved_move_mode := StringName(params.get("movement_mode", StringName()))
 	if resolved_move_mode == StringName() and profile != null and profile.get_script() == ProjectileFlightProfileRef:
 		resolved_move_mode = StringName(profile.get("move_mode"))

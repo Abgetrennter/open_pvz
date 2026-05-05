@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_no_targeting.tres" id="2_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_targeting_lane_forward.tres" id="3_targeting"]
+[ext_resource type="Resource" path="res://extensions/slot_guardrail_pack/data/combat/mechanics/mechanic_invalid_return_trajectory.tres" id="4_trajectory"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_projectile_payload_pea.tres" id="5_payload"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="6_height"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="7_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_templates/pea_linear.tres" id="8_projectile"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_slot_guardrail_invalid_return_shooter"
+display_name = "Slot Guardrail Invalid Return Shooter"
+projectile_template = ExtResource("8_projectile")
+projectile_flight_profile = ExtResource("7_profile")
+hit_height_band = ExtResource("6_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "guardrail")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray()
+max_health = 90
+hitbox_size = Vector2(42, 54)
+default_params = {
+"damage": 20,
+"interval": 0.4,
+"scan_range": 900.0,
+"speed": 320.0
+}
+mechanics = [ExtResource("2_trigger"), ExtResource("3_targeting"), ExtResource("4_trajectory"), ExtResource("5_payload")]

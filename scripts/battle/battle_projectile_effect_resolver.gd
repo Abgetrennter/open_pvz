@@ -99,6 +99,12 @@ func build_projectile_movement_params(
 		_:
 			pass
 
+	for key: Variant in params.keys():
+		if key in ["projectile_template", "flight_profile"]:
+			continue
+		if not movement_params.has(key):
+			movement_params[key] = params[key]
+
 	return movement_params
 
 

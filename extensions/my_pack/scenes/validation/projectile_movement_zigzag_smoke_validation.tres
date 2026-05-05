@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_zigzag_shooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_my_pack_zigzag_shooter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 760.0
+spawn_overrides = {
+"max_health": 80
+}
+
+[sub_resource type="Resource" id="Rule_zigzag_spawn"]
+script = ExtResource("3_rule")
+rule_id = &"zigzag_projectile_spawn"
+description = "extension projectile movement should spawn with the registered move_mode"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"move_mode": &"my_pack.zigzag",
+"source_archetype_id": &"archetype_my_pack_zigzag_shooter"
+}
+
+[sub_resource type="Resource" id="Rule_zigzag_hit"]
+script = ExtResource("3_rule")
+rule_id = &"zigzag_projectile_hit"
+description = "extension projectile movement should still hit through shared projectile runtime"
+event_name = &"projectile.hit"
+required_core_values = {
+"move_mode": &"my_pack.zigzag",
+"source_archetype_id": &"archetype_my_pack_zigzag_shooter",
+"target_archetype_id": &"archetype_lane_dummy"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"projectile_movement_zigzag_smoke_validation"
+display_name = "Projectile Movement Zigzag Smoke Validation"
+description = "Validates that an extension pack can register a projectile movement and mechanic compiler without core movement hardcoding."
+goals = PackedStringArray("Verify my_pack.zigzag movement registers through ProjectileMovementRegistry.", "Verify my_pack.zigzag trajectory compiles through MechanicCompilerRegistry.", "Verify the spawned projectile hits through the shared projectile runtime.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_zigzag_spawn"), SubResource("Rule_zigzag_hit")]
+spawns = [SubResource("Spawn_zigzag_shooter"), SubResource("Spawn_target")]
+

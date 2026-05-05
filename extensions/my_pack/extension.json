@@ -1,0 +1,17 @@
+{
+  "pack_id": "my_pack",
+  "enabled_by_default": false,
+  "register": [
+    "resources",
+    "projectile_movement",
+    "mechanic_compilers"
+  ],
+  "trust_level": "trusted_runtime",
+  "capabilities": [
+    "projectile_movement",
+    "mechanic_compiler"
+  ],
+  "activation_scenario_ids": [
+    "projectile_movement_zigzag_smoke_validation"
+  ]
+}

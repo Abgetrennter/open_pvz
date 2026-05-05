@@ -27,6 +27,7 @@ DetectionRegistry="*res://autoload/DetectionRegistry.gd"
 TriggerRegistry="*res://autoload/TriggerRegistry.gd"
 EffectRegistry="*res://autoload/EffectRegistry.gd"
 ControllerRegistry="*res://autoload/ControllerRegistry.gd"
+ProjectileMovementRegistry="*res://autoload/ProjectileMovementRegistry.gd"
 GameState="*res://autoload/GameState.gd"
 
 [display]

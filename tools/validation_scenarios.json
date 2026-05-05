@@ -78,6 +78,12 @@
     "layers": ["guardrail"]
   },
   {
+    "id": "projectile_movement_guardrail_validation",
+    "scenario": "res://scenes/validation/projectile_movement_guardrail_validation.tres",
+    "description": "Validates that unknown projectile movement ids are reported through protocol issues and safely fall back.",
+    "layers": ["guardrail"]
+  },
+  {
     "id": "archetype_zombie_runtime_validation",
     "scenario": "res://scenes/validation/archetype_zombie_runtime_validation.tres",
     "description": "Validates that a zombie archetype can enter through archetype_id and still reuse the existing continuous bite runtime.",
@@ -336,6 +342,12 @@
     "layers": ["smoke", "extension"]
   },
   {
+    "id": "projectile_movement_zigzag_smoke_validation",
+    "scenario": "res://extensions/my_pack/scenes/validation/projectile_movement_zigzag_smoke_validation.tres",
+    "description": "Validates extension-registered projectile movement and mechanic compiler dispatch through my_pack.zigzag.",
+    "layers": ["extension"]
+  },
+  {
     "id": "hit_split_chaos_validation",
     "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/hit_split_chaos_validation.tres",
     "description": "Validates that an extension-defined on_hit split effect can apply primary hit damage and spawn follow-up projectiles from the impact point.",
@@ -394,6 +406,18 @@
     "scenario": "res://scenes/validation/extension_manifest_guardrail_validation.tres",
     "description": "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids.",
     "layers": ["smoke", "guardrail"]
+  },
+  {
+    "id": "extension_runtime_trust_guardrail_validation",
+    "scenario": "res://scenes/validation/extension_runtime_trust_guardrail_validation.tres",
+    "description": "Validates that data_only extension packs cannot register trusted runtime slots.",
+    "layers": ["guardrail"]
+  },
+  {
+    "id": "extension_slot_guardrail_validation",
+    "scenario": "res://scenes/validation/extension_slot_guardrail_validation.tres",
+    "description": "Validates runtime slot guardrails for invalid projectile movement scripts and mechanic compiler contributions.",
+    "layers": ["guardrail", "extension"]
   },
   {
     "id": "target_acquisition_validation",

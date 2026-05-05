@@ -19,6 +19,23 @@ func get_strategy(controller_id: StringName) -> Callable:
 	return _controller_strategies.get(controller_id, Callable())
 
 
+func has(controller_id: StringName) -> bool:
+	return _controller_strategies.has(controller_id)
+
+
+func list_ids() -> PackedStringArray:
+	var keys := PackedStringArray()
+	for key in _controller_strategies.keys():
+		keys.append(String(key))
+	keys.sort()
+	return keys
+
+
+func rebuild_registry() -> void:
+	_controller_strategies.clear()
+	_register_builtin_strategies()
+
+
 func process_controller(controller_id: StringName, owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary = {}) -> void:
 	var strategy: Callable = get_strategy(controller_id)
 	if not strategy.is_valid():

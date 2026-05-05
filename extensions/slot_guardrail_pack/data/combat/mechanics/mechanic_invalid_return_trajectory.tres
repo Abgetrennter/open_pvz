@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"slot_guardrail.invalid_return_trajectory"
+display_name = "Slot Guardrail Invalid Return Trajectory"
+family = &"Trajectory"
+type_id = &"slot_guardrail.invalid_return"
+priority = 30
+tags = PackedStringArray("guardrail", "trajectory")
+params = {
+"movement_mode": &"linear"
+}

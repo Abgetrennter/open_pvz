@@ -166,10 +166,24 @@ EntityFactory.instantiate_runtime_spec()
 - `MechanicFamilyRegistry`
 - `MechanicTypeRegistry`
 - `MechanicCompilerRegistry`
+- `ProjectileMovementRegistry`
 - `ControllerRegistry`
 - `DetectionRegistry`
 - `TriggerRegistry`
 - `EffectRegistry`
+
+扩展包的 per-type compiler 通过 `MechanicCompilerDef` 资源接入：
+
+```text
+extensions/<pack>/data/combat/mechanic_compilers/*.tres
+-> MechanicCompilerRegistry.register_def()
+-> MechanicTypeRegistry.register_type()
+-> MechanicCompiler.compile_type()
+```
+
+该路径拒绝空 `type_id`、未知 family、扩展包 `core.*`、重复 type、缺少 `compile()` 的脚本，以及非 `Dictionary` 编译返回值。运行时代码 compiler 需要 manifest 声明 `trust_level = trusted_runtime`。
+
+`Trajectory` 扩展 type 可以输出 `movement_mode`，再交给 `ProjectileMovementRegistry` 创建 movement component。例如 `my_pack.zigzag` compiler 输出 `movement_mode = my_pack.zigzag` 后，`ProjectileRoot` 不需要新增分支。
 
 ---
 

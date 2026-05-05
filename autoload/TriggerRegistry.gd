@@ -35,6 +35,25 @@ func get_def(trigger_id: StringName):
 	return _trigger_defs.get(trigger_id)
 
 
+func has(trigger_id: StringName) -> bool:
+	return _trigger_defs.has(trigger_id)
+
+
+func list_ids() -> PackedStringArray:
+	var keys := PackedStringArray()
+	for key in _trigger_defs.keys():
+		keys.append(String(key))
+	keys.sort()
+	return keys
+
+
+func rebuild_registry() -> void:
+	_trigger_defs.clear()
+	_trigger_strategies.clear()
+	_register_builtin_defs()
+	_register_builtin_strategies()
+
+
 func evaluate_trigger(
 	trigger_id: StringName,
 	event_data,

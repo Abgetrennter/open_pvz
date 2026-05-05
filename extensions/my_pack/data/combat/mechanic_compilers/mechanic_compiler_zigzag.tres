@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="MechanicCompilerDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/mechanic_compiler_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://extensions/my_pack/scripts/mechanics/mechanic_compiler_zigzag.gd" id="2_compiler"]
+
+[resource]
+script = ExtResource("1_def")
+type_id = &"my_pack.zigzag"
+family = &"Trajectory"
+compiler_script = ExtResource("2_compiler")
+tags = PackedStringArray("extension", "trajectory", "zigzag")
+param_defs = [{
+"name": "amplitude",
+"type": "float",
+"min": 0.0,
+"max": 200.0,
+"default": 24.0
+}, {
+"name": "frequency",
+"type": "float",
+"min": 0.1,
+"max": 20.0,
+"default": 4.0
+}]
+

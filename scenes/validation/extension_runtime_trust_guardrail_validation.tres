@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_runtime_trust_issue"]
+script = ExtResource("2_rule")
+rule_id = &"runtime_trust_issue"
+description = "data_only extension pack should not register runtime projectile movement"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"projectile_movement"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"extension_runtime_trust_guardrail_validation"
+display_name = "Extension Runtime Trust Guardrail Validation"
+description = "Validates that data_only extension packs cannot register trusted runtime slots."
+goals = PackedStringArray("Verify runtime slot registration requires trusted_runtime.", "Verify trust violations are surfaced as protocol issues.")
+validation_time_limit = 0.5
+validation_rules = [SubResource("Rule_runtime_trust_issue")]
+

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MechanicCompilerDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/mechanic_compiler_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://extensions/slot_guardrail_pack/scripts/mechanics/mechanic_compiler_passthrough.gd" id="2_compiler"]
+
+[resource]
+script = ExtResource("1_def")
+type_id = &"core.slot_guardrail_override"
+family = &"Trajectory"
+compiler_script = ExtResource("2_compiler")
+tags = PackedStringArray("guardrail")

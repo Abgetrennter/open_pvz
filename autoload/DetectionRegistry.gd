@@ -17,6 +17,23 @@ func get_strategy(detection_id: StringName) -> Callable:
 	return _strategies.get(detection_id, Callable())
 
 
+func has(detection_id: StringName) -> bool:
+	return _strategies.has(detection_id)
+
+
+func list_ids() -> PackedStringArray:
+	var keys := PackedStringArray()
+	for key in _strategies.keys():
+		keys.append(String(key))
+	keys.sort()
+	return keys
+
+
+func rebuild_registry() -> void:
+	_strategies.clear()
+	_register_builtin_strategies()
+
+
 func evaluate(detection_id: StringName, owner: Node, params: Dictionary = {}) -> Dictionary:
 	var resolved_id := detection_id if detection_id != StringName() else &"always"
 	var strategy: Callable = get_strategy(resolved_id)

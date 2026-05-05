@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ProjectileMovementDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/projectile_movement_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://extensions/my_pack/scripts/projectile/projectile_movement_zigzag.gd" id="2_strategy"]
+
+[resource]
+script = ExtResource("1_def")
+move_mode = &"my_pack.zigzag"
+movement_script = ExtResource("2_strategy")
+default_hit_strategy = &"swept_segment"
+default_terminal_hit_strategy = &"none"
+tags = PackedStringArray("extension", "projectile_movement", "zigzag")
+param_defs = [{
+"name": "amplitude",
+"type": "float",
+"min": 0.0,
+"max": 200.0,
+"default": 24.0
+}, {
+"name": "frequency",
+"type": "float",
+"min": 0.1,
+"max": 20.0,
+"default": 4.0
+}]
+
