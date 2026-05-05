@@ -60,7 +60,7 @@ func _validate_def_specific(effect_def: Resource, source: Dictionary) -> Array[S
 func _on_def_registered(entry: Dictionary) -> void:
 	var source: Dictionary = Dictionary(entry.get("source", {}))
 	if bool(source.get("extension", false)):
-		_register_effect_strategy_from_def(entry.get("def", null))
+		_register_effect_strategy_from_def(entry.get("def", null), String(source.get("path", "")))
 
 
 func _should_register_extension_resource(effect_def: Resource, _path: String, _pack_manifest: Dictionary) -> bool:
@@ -950,45 +950,7 @@ func _resolve_effect_source_node(context) -> Node:
 	return context.owner_entity
 
 
-func _register_extension_defs_and_strategies() -> void:
-	for pack_manifest in ExtensionPackCatalogRef.list_enabled_packs(&"effects"):
-		var root_path := String(pack_manifest.get("root_path", ""))
-		if root_path.is_empty():
-			continue
-		_register_extension_effect_defs(root_path.path_join(EXTENSION_EFFECT_DEF_DIR))
-
-
-func _register_extension_effect_defs(directory_path: String) -> void:
-	var absolute_path := ProjectSettings.globalize_path(directory_path)
-	var directory := DirAccess.open(absolute_path)
-	if directory == null:
-		return
-
-	directory.list_dir_begin()
-	while true:
-		var entry_name := directory.get_next()
-		if entry_name.is_empty():
-			break
-		if entry_name.begins_with("."):
-			continue
-		var full_path := directory_path.path_join(entry_name)
-		if directory.current_is_dir():
-			_register_extension_effect_defs(full_path)
-			continue
-		if not entry_name.ends_with(".tres"):
-			continue
-		var effect_def := load(full_path)
-		if effect_def == null or effect_def.get_script() != EffectDefRef:
-			continue
-		if PROMOTED_EXTENSION_EFFECT_IDS.has(StringName(effect_def.id)):
-			continue
-		var accepted := register_def(effect_def, {"extension": true, "path": full_path})
-		if accepted:
-			_register_effect_strategy_from_def(effect_def, full_path)
-	directory.list_dir_end()
-
-
-func _register_effect_strategy_from_def(effect_def, source_path: String) -> void:
+func _register_effect_strategy_from_def(effect_def, source_path: String = "") -> void:
 	if effect_def == null or effect_def.strategy_script == null:
 		return
 	if not (effect_def.strategy_script is Script):
