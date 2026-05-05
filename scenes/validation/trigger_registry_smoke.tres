@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_no_init_issues"]
+script = ExtResource("2_rule")
+rule_id = &"trigger_registry_no_init_issues"
+description = "TriggerRegistry should initialize without protocol issues after RegistryBase migration"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"triggers"
+}
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"trigger_registry_smoke"
+display_name = "Trigger Registry Smoke"
+description = "Validates that TriggerRegistry initializes correctly after migration to RegistryBase with all 6 builtin triggers."
+goals = PackedStringArray("Verify TriggerRegistry extends RegistryBase and loads without errors.", "Verify builtin triggers: periodically, when_damaged, on_death, on_spawned, on_place, proximity.")
+validation_time_limit = 0.5
+validation_rules = [SubResource("Rule_no_init_issues")]

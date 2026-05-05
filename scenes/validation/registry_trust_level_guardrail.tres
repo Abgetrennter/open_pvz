@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_trust_level_rejected"]
+script = ExtResource("2_rule")
+rule_id = &"trust_level_rejected"
+description = "data_only extension pack should not register trusted runtime slots via unified RegistryBase"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"projectile_movement"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"registry_trust_level_guardrail"
+display_name = "Registry Trust Level Guardrail"
+description = "Validates that data_only extension packs cannot register trusted runtime contributors through the unified RegistryBase."
+goals = PackedStringArray("Verify runtime_trust_guardrail_pack data_only trust is enforced.", "Verify protocol.issue is emitted when trust level is insufficient.")
+validation_time_limit = 0.5
+validation_rules = [SubResource("Rule_trust_level_rejected")]

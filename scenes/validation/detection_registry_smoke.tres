@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_no_init_issues"]
+script = ExtResource("2_rule")
+rule_id = &"detection_registry_no_init_issues"
+description = "DetectionRegistry should initialize without protocol issues after RegistryBase migration"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"detections"
+}
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"detection_registry_smoke"
+display_name = "Detection Registry Smoke"
+description = "Validates that DetectionRegistry initializes correctly after migration to RegistryBase with all 6 builtin detections."
+goals = PackedStringArray("Verify DetectionRegistry extends RegistryBase and loads without errors.", "Verify builtin detections: always, lane_forward, lane_backward, radius_around, global_track, proximity.")
+validation_time_limit = 0.5
+validation_rules = [SubResource("Rule_no_init_issues")]

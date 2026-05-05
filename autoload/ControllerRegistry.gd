@@ -23,19 +23,19 @@ func _on_registry_cleared() -> void:
 
 
 func _register_builtin_defs() -> void:
-	var bite_def: ControllerDef = ControllerDefRef.new()
+	var bite_def = ControllerDefRef.new()
 	bite_def.id = &"core.bite"
 	register_def(bite_def, {"kind": &"core", "source": &"core"})
 
-	var sweep_def: ControllerDef = ControllerDefRef.new()
+	var sweep_def = ControllerDefRef.new()
 	sweep_def.id = &"core.sweep"
 	register_def(sweep_def, {"kind": &"core", "source": &"core"})
 
-	var ground_damage_def: ControllerDef = ControllerDefRef.new()
+	var ground_damage_def = ControllerDefRef.new()
 	ground_damage_def.id = &"core.ground_damage"
 	register_def(ground_damage_def, {"kind": &"core", "source": &"core"})
 
-	var projectile_transform_def: ControllerDef = ControllerDefRef.new()
+	var projectile_transform_def = ControllerDefRef.new()
 	projectile_transform_def.id = &"core.projectile_transform"
 	register_def(projectile_transform_def, {"kind": &"core", "source": &"core"})
 

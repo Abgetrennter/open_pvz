@@ -9,6 +9,7 @@
     "projectile_movement"
   ],
   "activation_scenario_ids": [
-    "extension_runtime_trust_guardrail_validation"
+    "extension_runtime_trust_guardrail_validation",
+    "registry_trust_level_guardrail"
   ]
 }

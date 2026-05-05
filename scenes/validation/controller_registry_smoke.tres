@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_no_init_issues"]
+script = ExtResource("2_rule")
+rule_id = &"controller_registry_no_init_issues"
+description = "ControllerRegistry should initialize without protocol issues after RegistryBase migration"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"controllers"
+}
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"controller_registry_smoke"
+display_name = "Controller Registry Smoke"
+description = "Validates that ControllerRegistry initializes correctly after migration to RegistryBase with all 4 builtin controllers."
+goals = PackedStringArray("Verify ControllerRegistry extends RegistryBase and loads without errors.", "Verify builtin controllers: core.bite, core.sweep, core.ground_damage, core.projectile_transform.")
+validation_time_limit = 0.5
+validation_rules = [SubResource("Rule_no_init_issues")]

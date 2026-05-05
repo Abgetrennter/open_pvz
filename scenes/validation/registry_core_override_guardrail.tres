@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_core_override_rejected"]
+script = ExtResource("2_rule")
+rule_id = &"core_override_rejected"
+description = "Extension contributor with core.* id should be rejected and emit protocol.issue"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"mechanic_compiler"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"registry_core_override_guardrail"
+display_name = "Registry Core Override Guardrail"
+description = "Validates that extension packs cannot register contributor ids under the core.* namespace."
+goals = PackedStringArray("Verify slot_guardrail_pack core.slot_guardrail_override is rejected.", "Verify core.* namespace protection works across all registries.")
+validation_time_limit = 0.5
+validation_rules = [SubResource("Rule_core_override_rejected")]

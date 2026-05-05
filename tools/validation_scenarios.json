@@ -676,5 +676,41 @@
     "scenario": "res://scenes/validation/plant_original_e_upgrade_placement_validation.tres",
     "description": "Validates E batch upgrade placement role and specific base archetype dependencies.",
     "layers": ["core"]
+  },
+  {
+    "id": "registry_duplicate_id_guardrail",
+    "scenario": "res://scenes/validation/registry_duplicate_id_guardrail.tres",
+    "description": "Validates that duplicate contributor ids are rejected by RegistryBase and surfaced as protocol issues.",
+    "layers": ["guardrail", "extension"]
+  },
+  {
+    "id": "registry_core_override_guardrail",
+    "scenario": "res://scenes/validation/registry_core_override_guardrail.tres",
+    "description": "Validates that extension packs cannot register contributor ids under the core.* namespace.",
+    "layers": ["guardrail", "extension"]
+  },
+  {
+    "id": "registry_trust_level_guardrail",
+    "scenario": "res://scenes/validation/registry_trust_level_guardrail.tres",
+    "description": "Validates that data_only extension packs cannot register trusted runtime contributors through the unified RegistryBase.",
+    "layers": ["guardrail"]
+  },
+  {
+    "id": "detection_registry_smoke",
+    "scenario": "res://scenes/validation/detection_registry_smoke.tres",
+    "description": "Validates that DetectionRegistry initializes correctly after migration to RegistryBase with all 6 builtin detections.",
+    "layers": ["smoke"]
+  },
+  {
+    "id": "controller_registry_smoke",
+    "scenario": "res://scenes/validation/controller_registry_smoke.tres",
+    "description": "Validates that ControllerRegistry initializes correctly after migration to RegistryBase with all 4 builtin controllers.",
+    "layers": ["smoke"]
+  },
+  {
+    "id": "trigger_registry_smoke",
+    "scenario": "res://scenes/validation/trigger_registry_smoke.tres",
+    "description": "Validates that TriggerRegistry initializes correctly after migration to RegistryBase with all 6 builtin triggers.",
+    "layers": ["smoke"]
   }
 ]

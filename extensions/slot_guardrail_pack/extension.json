@@ -12,6 +12,8 @@
     "mechanic_compiler"
   ],
   "activation_scenario_ids": [
-    "extension_slot_guardrail_validation"
+    "extension_slot_guardrail_validation",
+    "registry_duplicate_id_guardrail",
+    "registry_core_override_guardrail"
   ]
 }

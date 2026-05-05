@@ -22,27 +22,27 @@ func _on_registry_cleared() -> void:
 
 
 func _register_builtin_defs() -> void:
-	var always_def: DetectionDef = DetectionDefRef.new()
+	var always_def = DetectionDefRef.new()
 	always_def.id = &"always"
 	register_def(always_def, {"kind": &"core", "source": &"core"})
 
-	var lane_forward_def: DetectionDef = DetectionDefRef.new()
+	var lane_forward_def = DetectionDefRef.new()
 	lane_forward_def.id = &"lane_forward"
 	register_def(lane_forward_def, {"kind": &"core", "source": &"core"})
 
-	var lane_backward_def: DetectionDef = DetectionDefRef.new()
+	var lane_backward_def = DetectionDefRef.new()
 	lane_backward_def.id = &"lane_backward"
 	register_def(lane_backward_def, {"kind": &"core", "source": &"core"})
 
-	var radius_around_def: DetectionDef = DetectionDefRef.new()
+	var radius_around_def = DetectionDefRef.new()
 	radius_around_def.id = &"radius_around"
 	register_def(radius_around_def, {"kind": &"core", "source": &"core"})
 
-	var global_track_def: DetectionDef = DetectionDefRef.new()
+	var global_track_def = DetectionDefRef.new()
 	global_track_def.id = &"global_track"
 	register_def(global_track_def, {"kind": &"core", "source": &"core"})
 
-	var proximity_def: DetectionDef = DetectionDefRef.new()
+	var proximity_def = DetectionDefRef.new()
 	proximity_def.id = &"proximity"
 	register_def(proximity_def, {"kind": &"core", "source": &"core"})
 
