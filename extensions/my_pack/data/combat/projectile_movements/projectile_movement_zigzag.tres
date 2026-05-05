@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_def")
-move_mode = &"my_pack.zigzag"
+id = &"my_pack.zigzag"
 movement_script = ExtResource("2_strategy")
 default_hit_strategy = &"swept_segment"
 default_terminal_hit_strategy = &"none"
