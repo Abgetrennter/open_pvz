@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_effect")
-effect_id = &"chain_bounce"
+id = &"chain_bounce"
 param_defs = [{
 "name": "base_damage",
 "type": "int",

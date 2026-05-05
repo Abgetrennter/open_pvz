@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_def")
-type_id = &"core.slot_guardrail_override"
+id = &"core.slot_guardrail_override"
 family = &"Trajectory"
 compiler_script = ExtResource("2_compiler")
 tags = PackedStringArray("guardrail")

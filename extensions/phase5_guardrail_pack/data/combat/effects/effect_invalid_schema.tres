@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_effect")
-effect_id = &"invalid_schema_ext"
+id = &"invalid_schema_ext"
 param_defs = [{
 "name": "mystery_value",
 "type": "magic"

@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_def")
-type_id = &"my_pack.zigzag"
+id = &"my_pack.zigzag"
 family = &"Trajectory"
 compiler_script = ExtResource("2_compiler")
 tags = PackedStringArray("extension", "trajectory", "zigzag")

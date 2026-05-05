@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_def")
-move_mode = &"slot_guardrail.bad_script"
+id = &"slot_guardrail.bad_script"
 movement_script = ExtResource("2_bad_script")
 default_hit_strategy = &"swept_segment"
 default_terminal_hit_strategy = &"none"

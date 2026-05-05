@@ -42,7 +42,7 @@ func get_metadata(type_id: StringName) -> Dictionary:
 	return Dictionary(Dictionary(_type_specs.get(type_id, {})).get("metadata", {}))
 
 
-func list_type_ids() -> PackedStringArray:
+func list_ids() -> PackedStringArray:
 	var keys := PackedStringArray()
 	for key in _type_specs.keys():
 		keys.append(String(key))

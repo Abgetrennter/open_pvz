@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_effect")
-effect_id = &"delayed_explode"
+id = &"delayed_explode"
 param_defs = [{
 "name": "delay",
 "type": "float",

@@ -1,42 +1,57 @@
-extends Node
+extends "res://scripts/core/registry/registry_base.gd"
 
-var _strategies: Dictionary = {}
+const DetectionDefRef = preload("res://scripts/core/defs/detection_def.gd")
 
-
-func _ready() -> void:
-	_register_builtin_strategies()
+var _detection_strategies: Dictionary = {}
 
 
-func register_strategy(detection_id: StringName, strategy: Callable) -> void:
-	if detection_id == StringName() or not strategy.is_valid():
-		return
-	_strategies[detection_id] = strategy
+func _make_registry_config():
+	return RegistryConfigRef.create(
+		&"detections",
+		DetectionDefRef,
+		&"detections",
+		"data/combat/detections",
+		&"trusted_runtime",
+		StringName(),
+		false
+	)
 
 
-func get_strategy(detection_id: StringName) -> Callable:
-	return _strategies.get(detection_id, Callable())
+func _on_registry_cleared() -> void:
+	_detection_strategies.clear()
 
 
-func has(detection_id: StringName) -> bool:
-	return _strategies.has(detection_id)
+func _register_builtin_defs() -> void:
+	var always_def: DetectionDef = DetectionDefRef.new()
+	always_def.id = &"always"
+	register_def(always_def, {"kind": &"core", "source": &"core"})
 
+	var lane_forward_def: DetectionDef = DetectionDefRef.new()
+	lane_forward_def.id = &"lane_forward"
+	register_def(lane_forward_def, {"kind": &"core", "source": &"core"})
 
-func list_ids() -> PackedStringArray:
-	var keys := PackedStringArray()
-	for key in _strategies.keys():
-		keys.append(String(key))
-	keys.sort()
-	return keys
+	var lane_backward_def: DetectionDef = DetectionDefRef.new()
+	lane_backward_def.id = &"lane_backward"
+	register_def(lane_backward_def, {"kind": &"core", "source": &"core"})
 
+	var radius_around_def: DetectionDef = DetectionDefRef.new()
+	radius_around_def.id = &"radius_around"
+	register_def(radius_around_def, {"kind": &"core", "source": &"core"})
 
-func rebuild_registry() -> void:
-	_strategies.clear()
+	var global_track_def: DetectionDef = DetectionDefRef.new()
+	global_track_def.id = &"global_track"
+	register_def(global_track_def, {"kind": &"core", "source": &"core"})
+
+	var proximity_def: DetectionDef = DetectionDefRef.new()
+	proximity_def.id = &"proximity"
+	register_def(proximity_def, {"kind": &"core", "source": &"core"})
+
 	_register_builtin_strategies()
 
 
 func evaluate(detection_id: StringName, owner: Node, params: Dictionary = {}) -> Dictionary:
 	var resolved_id := detection_id if detection_id != StringName() else &"always"
-	var strategy: Callable = get_strategy(resolved_id)
+	var strategy: Callable = _detection_strategies.get(resolved_id, Callable())
 	if not strategy.is_valid():
 		return _empty_result()
 	var raw_result: Variant = strategy.call(owner, params)
@@ -70,15 +85,14 @@ func evaluate(detection_id: StringName, owner: Node, params: Dictionary = {}) ->
 
 
 func _register_builtin_strategies() -> void:
-	register_strategy(&"always", func(_owner: Node, _params: Dictionary) -> Dictionary:
+	_detection_strategies[&"always"] = func(_owner: Node, _params: Dictionary) -> Dictionary:
 		return {
 			"has_target": true,
 			"targets": [],
 			"primary_target": null,
 		}
-	)
 
-	register_strategy(&"lane_forward", func(owner: Node, params: Dictionary) -> Dictionary:
+	_detection_strategies[&"lane_forward"] = func(owner: Node, params: Dictionary) -> Dictionary:
 		if owner == null or not (owner is Node2D):
 			return _empty_result()
 		var lane_id := int(owner.get("lane_id"))
@@ -92,9 +106,8 @@ func _register_builtin_strategies() -> void:
 			"targets": targets,
 			"primary_target": null if targets.is_empty() else targets[0],
 		}
-	)
 
-	register_strategy(&"lane_backward", func(owner: Node, params: Dictionary) -> Dictionary:
+	_detection_strategies[&"lane_backward"] = func(owner: Node, params: Dictionary) -> Dictionary:
 		if owner == null or not (owner is Node2D):
 			return _empty_result()
 		var lane_id := int(owner.get("lane_id"))
@@ -108,9 +121,8 @@ func _register_builtin_strategies() -> void:
 			"targets": targets,
 			"primary_target": null if targets.is_empty() else targets[0],
 		}
-	)
 
-	register_strategy(&"radius_around", func(owner: Node, params: Dictionary) -> Dictionary:
+	_detection_strategies[&"radius_around"] = func(owner: Node, params: Dictionary) -> Dictionary:
 		if owner == null or not (owner is Node2D):
 			return _empty_result()
 		var scan_range := float(params.get("scan_range", 180.0))
@@ -121,9 +133,8 @@ func _register_builtin_strategies() -> void:
 			"targets": targets,
 			"primary_target": null if targets.is_empty() else targets[0],
 		}
-	)
 
-	register_strategy(&"global_track", func(owner: Node, params: Dictionary) -> Dictionary:
+	_detection_strategies[&"global_track"] = func(owner: Node, params: Dictionary) -> Dictionary:
 		if owner == null or not (owner is Node2D):
 			return _empty_result()
 		var scan_range := float(params.get("scan_range", 4000.0))
@@ -134,9 +145,8 @@ func _register_builtin_strategies() -> void:
 			"targets": targets.slice(0, 1),
 			"primary_target": null if targets.is_empty() else targets[0],
 		}
-	)
 
-	register_strategy(&"proximity", func(owner: Node, params: Dictionary) -> Dictionary:
+	_detection_strategies[&"proximity"] = func(owner: Node, params: Dictionary) -> Dictionary:
 		if owner == null or not (owner is Node2D):
 			return _empty_result()
 		var scan_range := float(params.get("scan_range", 64.0))
@@ -147,7 +157,6 @@ func _register_builtin_strategies() -> void:
 			"targets": targets,
 			"primary_target": null if targets.is_empty() else targets[0],
 		}
-	)
 
 
 func _scan_enemies(
