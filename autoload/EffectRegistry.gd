@@ -1,9 +1,8 @@
-extends Node
+extends "res://scripts/core/registry/registry_base.gd"
 
 const EffectDefRef = preload("res://scripts/core/defs/effect_def.gd")
 const EffectSlotDefRef = preload("res://scripts/core/defs/effect_slot_def.gd")
 const EffectResultRef = preload("res://scripts/core/runtime/effect_result.gd")
-const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
@@ -15,35 +14,20 @@ const PROMOTED_EXTENSION_EFFECT_IDS := {
 	&"spawn_entity": true,
 }
 
-var _effect_defs: Dictionary = {}
 var _effect_strategies: Dictionary = {}
 var _effect_strategy_owners: Dictionary = {}
 
 
-func _ready() -> void:
-	_register_builtin_defs()
-	_register_builtin_strategies()
-	_register_extension_defs_and_strategies()
-
-
-func register_def(effect_def, source: Dictionary = {}) -> bool:
-	if effect_def == null:
-		return false
-	var errors: Array[String] = ProtocolValidatorRef.validate_effect_def(effect_def)
-	if not errors.is_empty():
-		for error in errors:
-			push_warning(error)
-			if DebugService.has_method("record_protocol_issue"):
-				DebugService.record_protocol_issue(&"effect_def", error, &"error")
-		return false
-	if _effect_defs.has(effect_def.effect_id):
-		var message := "Duplicate EffectDef %s registration was ignored." % String(effect_def.effect_id)
-		push_warning(message)
-		if DebugService.has_method("record_protocol_issue"):
-			DebugService.record_protocol_issue(&"effect_def", message, &"error")
-		return false
-	_effect_defs[effect_def.effect_id] = effect_def
-	return true
+func _make_registry_config():
+	return RegistryConfigRef.create(
+		&"effects",
+		EffectDefRef,
+		&"effects",
+		EXTENSION_EFFECT_DEF_DIR,
+		&"trusted_runtime",
+		StringName(),
+		false
+	)
 
 
 func register_strategy(effect_id: StringName, strategy: Callable) -> void:
@@ -52,38 +36,40 @@ func register_strategy(effect_id: StringName, strategy: Callable) -> void:
 	_effect_strategies[effect_id] = strategy
 
 
-func get_def(effect_id: StringName):
-	return _effect_defs.get(effect_id)
-
-
-func has(effect_id: StringName) -> bool:
-	return _effect_defs.has(effect_id)
-
-
 func get_strategy(effect_id: StringName) -> Callable:
 	return _effect_strategies.get(effect_id, Callable())
 
 
-func list_ids() -> PackedStringArray:
-	var keys := PackedStringArray()
-	for key in _effect_defs.keys():
-		keys.append(String(key))
-	keys.sort()
-	return keys
-
-
-func rebuild_registry() -> void:
-	_effect_defs.clear()
+func _on_registry_cleared() -> void:
 	_effect_strategies.clear()
 	_effect_strategy_owners.clear()
-	_register_builtin_defs()
-	_register_builtin_strategies()
-	_register_extension_defs_and_strategies()
+
+
+func _validate_def_specific(effect_def: Resource, source: Dictionary) -> Array[String]:
+	var errors: Array[String] = ProtocolValidatorRef.validate_effect_def(effect_def)
+	if bool(source.get("extension", false)):
+		if effect_def.strategy_script == null or not (effect_def.strategy_script is Script):
+			errors.append("EffectDef %s strategy_script must be a Script." % String(effect_def.id))
+		else:
+			var strategy_owner = effect_def.strategy_script.new()
+			if strategy_owner == null or not strategy_owner.has_method("execute"):
+				errors.append("EffectDef %s strategy_script must expose execute(context, params, node)." % String(effect_def.id))
+	return errors
+
+
+func _on_def_registered(entry: Dictionary) -> void:
+	var source: Dictionary = Dictionary(entry.get("source", {}))
+	if bool(source.get("extension", false)):
+		_register_effect_strategy_from_def(entry.get("def", null))
+
+
+func _should_register_extension_resource(effect_def: Resource, _path: String, _pack_manifest: Dictionary) -> bool:
+	return not PROMOTED_EXTENSION_EFFECT_IDS.has(StringName(effect_def.id))
 
 
 func _register_builtin_defs() -> void:
 	var damage = EffectDefRef.new()
-	damage.effect_id = &"damage"
+	damage.id = &"damage"
 	damage.tags = PackedStringArray(["hit_response", "direct_damage"])
 	var damage_param_defs: Array[Dictionary] = [{
 		"name": "amount",
@@ -118,7 +104,7 @@ func _register_builtin_defs() -> void:
 	register_def(damage)
 
 	var spawn_projectile = EffectDefRef.new()
-	spawn_projectile.effect_id = &"spawn_projectile"
+	spawn_projectile.id = &"spawn_projectile"
 	spawn_projectile.tags = PackedStringArray(["projectile_spawn"])
 	var spawn_projectile_param_defs: Array[Dictionary] = [{
 		"name": "speed",
@@ -299,7 +285,7 @@ func _register_builtin_defs() -> void:
 	register_def(spawn_projectile)
 
 	var explode = EffectDefRef.new()
-	explode.effect_id = &"explode"
+	explode.id = &"explode"
 	explode.tags = PackedStringArray(["hit_response", "area_damage"])
 	var explode_param_defs: Array[Dictionary] = [{
 		"name": "amount",
@@ -333,7 +319,7 @@ func _register_builtin_defs() -> void:
 	register_def(explode)
 
 	var apply_status = EffectDefRef.new()
-	apply_status.effect_id = &"apply_status"
+	apply_status.id = &"apply_status"
 	apply_status.tags = PackedStringArray(["hit_response", "status_apply"])
 	var apply_status_param_defs: Array[Dictionary] = [{
 		"name": "status_id",
@@ -372,7 +358,7 @@ func _register_builtin_defs() -> void:
 	register_def(apply_status)
 
 	var spawn_entity = EffectDefRef.new()
-	spawn_entity.effect_id = &"spawn_entity"
+	spawn_entity.id = &"spawn_entity"
 	spawn_entity.tags = PackedStringArray(["summon", "spawn"])
 	var spawn_entity_param_defs: Array[Dictionary] = [{
 		"name": "archetype_id",
@@ -402,7 +388,7 @@ func _register_builtin_defs() -> void:
 	register_def(spawn_entity)
 
 	var produce_sun = EffectDefRef.new()
-	produce_sun.effect_id = &"produce_sun"
+	produce_sun.id = &"produce_sun"
 	produce_sun.tags = PackedStringArray(["resource", "sun", "production"])
 	var produce_sun_param_defs: Array[Dictionary] = [{
 		"name": "value",
@@ -427,7 +413,7 @@ func _register_builtin_defs() -> void:
 	register_def(produce_sun)
 
 	var dispel_flying = EffectDefRef.new()
-	dispel_flying.effect_id = &"dispel_flying"
+	dispel_flying.id = &"dispel_flying"
 	dispel_flying.tags = PackedStringArray(["hit_response", "area_control", "flying"])
 	var dispel_flying_param_defs: Array[Dictionary] = [{
 		"name": "amount",
@@ -448,14 +434,14 @@ func _register_builtin_defs() -> void:
 	register_def(dispel_flying)
 
 	var wake = EffectDefRef.new()
-	wake.effect_id = &"wake"
+	wake.id = &"wake"
 	wake.tags = PackedStringArray(["hit_response", "control", "wake"])
 	wake.allow_extra_params = false
 	wake.allow_extra_children = false
 	register_def(wake)
 
 	var team_switch = EffectDefRef.new()
-	team_switch.effect_id = &"team_switch"
+	team_switch.id = &"team_switch"
 	team_switch.tags = PackedStringArray(["hit_response", "control", "hypnosis"])
 	var team_switch_param_defs: Array[Dictionary] = [{
 		"name": "target_mode",
@@ -469,7 +455,7 @@ func _register_builtin_defs() -> void:
 	register_def(team_switch)
 
 	var consume_self = EffectDefRef.new()
-	consume_self.effect_id = &"consume_self"
+	consume_self.id = &"consume_self"
 	consume_self.tags = PackedStringArray(["hit_response", "control", "lifecycle"])
 	var consume_self_param_defs: Array[Dictionary] = [{
 		"name": "reason",
@@ -482,7 +468,7 @@ func _register_builtin_defs() -> void:
 	register_def(consume_self)
 
 	var reveal = EffectDefRef.new()
-	reveal.effect_id = &"reveal"
+	reveal.id = &"reveal"
 	reveal.tags = PackedStringArray(["hit_response", "control", "reveal"])
 	var reveal_param_defs: Array[Dictionary] = [{
 		"name": "target_mode",
@@ -506,6 +492,7 @@ func _register_builtin_defs() -> void:
 	reveal.allow_extra_params = false
 	reveal.allow_extra_children = false
 	register_def(reveal)
+	_register_builtin_strategies()
 
 
 func _register_builtin_strategies() -> void:
@@ -993,7 +980,7 @@ func _register_extension_effect_defs(directory_path: String) -> void:
 		var effect_def := load(full_path)
 		if effect_def == null or effect_def.get_script() != EffectDefRef:
 			continue
-		if PROMOTED_EXTENSION_EFFECT_IDS.has(StringName(effect_def.effect_id)):
+		if PROMOTED_EXTENSION_EFFECT_IDS.has(StringName(effect_def.id)):
 			continue
 		var accepted := register_def(effect_def, {"extension": true, "path": full_path})
 		if accepted:
@@ -1005,17 +992,17 @@ func _register_effect_strategy_from_def(effect_def, source_path: String) -> void
 	if effect_def == null or effect_def.strategy_script == null:
 		return
 	if not (effect_def.strategy_script is Script):
-		var invalid_message := "EffectDef %s strategy_script must be a Script (%s)." % [String(effect_def.effect_id), source_path]
+		var invalid_message := "EffectDef %s strategy_script must be a Script (%s)." % [String(effect_def.id), source_path]
 		push_warning(invalid_message)
 		if DebugService.has_method("record_protocol_issue"):
 			DebugService.record_protocol_issue(&"effect_strategy", invalid_message, &"error")
 		return
 	var strategy_owner = effect_def.strategy_script.new()
 	if strategy_owner == null or not strategy_owner.has_method("execute"):
-		var missing_message := "EffectDef %s strategy_script must expose execute(context, params, node) (%s)." % [String(effect_def.effect_id), source_path]
+		var missing_message := "EffectDef %s strategy_script must expose execute(context, params, node) (%s)." % [String(effect_def.id), source_path]
 		push_warning(missing_message)
 		if DebugService.has_method("record_protocol_issue"):
 			DebugService.record_protocol_issue(&"effect_strategy", missing_message, &"error")
 		return
-	_effect_strategy_owners[effect_def.effect_id] = strategy_owner
-	register_strategy(effect_def.effect_id, Callable(strategy_owner, "execute"))
+	_effect_strategy_owners[effect_def.id] = strategy_owner
+	register_strategy(effect_def.id, Callable(strategy_owner, "execute"))
