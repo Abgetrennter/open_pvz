@@ -1,70 +1,27 @@
-extends Node
+extends "res://scripts/core/registry/registry_base.gd"
 
 const TriggerDefRef = preload("res://scripts/core/defs/trigger_def.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 
-var _trigger_defs: Dictionary = {}
 var _trigger_strategies: Dictionary = {}
 
-
-func _ready() -> void:
-	_register_builtin_defs()
-	_register_builtin_strategies()
+const EXTENSION_TRIGGER_DEF_DIR := "data/combat/triggers"
 
 
-func register_def(trigger_def) -> void:
-	if trigger_def == null or trigger_def.trigger_id == StringName():
-		return
-	var errors: Array[String] = ProtocolValidatorRef.validate_trigger_def(trigger_def)
-	if not errors.is_empty():
-		for error in errors:
-			push_warning(error)
-			if DebugService.has_method("record_protocol_issue"):
-				DebugService.record_protocol_issue(&"trigger_def", error, &"error")
-		return
-	_trigger_defs[trigger_def.trigger_id] = trigger_def
+func _make_registry_config():
+	return RegistryConfigRef.create(
+		&"triggers",
+		TriggerDefRef,
+		&"triggers",
+		EXTENSION_TRIGGER_DEF_DIR,
+		&"trusted_runtime",
+		StringName(),
+		false
+	)
 
 
-func register_strategy(trigger_id: StringName, strategy: Callable) -> void:
-	if trigger_id == StringName() or not strategy.is_valid():
-		return
-	_trigger_strategies[trigger_id] = strategy
-
-
-func get_def(trigger_id: StringName):
-	return _trigger_defs.get(trigger_id)
-
-
-func has(trigger_id: StringName) -> bool:
-	return _trigger_defs.has(trigger_id)
-
-
-func list_ids() -> PackedStringArray:
-	var keys := PackedStringArray()
-	for key in _trigger_defs.keys():
-		keys.append(String(key))
-	keys.sort()
-	return keys
-
-
-func rebuild_registry() -> void:
-	_trigger_defs.clear()
+func _on_registry_cleared() -> void:
 	_trigger_strategies.clear()
-	_register_builtin_defs()
-	_register_builtin_strategies()
-
-
-func evaluate_trigger(
-	trigger_id: StringName,
-	event_data,
-	condition_values: Dictionary,
-	entity_state: Dictionary,
-	instance
-) -> bool:
-	var strategy: Callable = _trigger_strategies.get(trigger_id, Callable())
-	if not strategy.is_valid():
-		return false
-	return bool(strategy.call(event_data, condition_values, entity_state, instance))
 
 
 func _register_builtin_defs() -> void:
@@ -98,13 +55,13 @@ func _register_builtin_defs() -> void:
 		"name": "target_tags",
 		"type": "packed_string_array",
 	}]
-	periodically.trigger_id = &"periodically"
+	periodically.id = &"periodically"
 	periodically.event_name = &"game.tick"
 	periodically.weight = 100
 	periodically.max_bound_effects = 1
-	periodically.condition_params = periodically_params
+	periodically.param_defs = periodically_params
 	periodically.allow_extra_conditions = false
-	register_def(periodically)
+	register_def(periodically, {"kind": &"core", "source": &"core"})
 
 	var when_damaged = TriggerDefRef.new()
 	var when_damaged_params: Array[Dictionary] = [{
@@ -113,37 +70,37 @@ func _register_builtin_defs() -> void:
 		"min": 0,
 		"max": 999,
 	}]
-	when_damaged.trigger_id = &"when_damaged"
+	when_damaged.id = &"when_damaged"
 	when_damaged.event_name = &"entity.damaged"
 	when_damaged.weight = 60
 	when_damaged.max_bound_effects = 1
-	when_damaged.condition_params = when_damaged_params
+	when_damaged.param_defs = when_damaged_params
 	when_damaged.allow_extra_conditions = false
-	register_def(when_damaged)
+	register_def(when_damaged, {"kind": &"core", "source": &"core"})
 
 	var on_death = TriggerDefRef.new()
-	on_death.trigger_id = &"on_death"
+	on_death.id = &"on_death"
 	on_death.event_name = &"entity.died"
 	on_death.weight = 30
 	on_death.max_bound_effects = 1
 	on_death.allow_extra_conditions = false
-	register_def(on_death)
+	register_def(on_death, {"kind": &"core", "source": &"core"})
 
 	var on_spawned = TriggerDefRef.new()
-	on_spawned.trigger_id = &"on_spawned"
+	on_spawned.id = &"on_spawned"
 	on_spawned.event_name = &"entity.spawned"
 	on_spawned.weight = 20
 	on_spawned.max_bound_effects = 1
 	on_spawned.allow_extra_conditions = false
-	register_def(on_spawned)
+	register_def(on_spawned, {"kind": &"core", "source": &"core"})
 
 	var on_place = TriggerDefRef.new()
-	on_place.trigger_id = &"on_place"
+	on_place.id = &"on_place"
 	on_place.event_name = &"placement.accepted"
 	on_place.weight = 25
 	on_place.max_bound_effects = 1
 	on_place.allow_extra_conditions = false
-	register_def(on_place)
+	register_def(on_place, {"kind": &"core", "source": &"core"})
 
 	var proximity = TriggerDefRef.new()
 	var proximity_params: Array[Dictionary] = [{
@@ -168,13 +125,15 @@ func _register_builtin_defs() -> void:
 		"max": 30.0,
 		"default": 0.0,
 	}]
-	proximity.trigger_id = &"proximity"
+	proximity.id = &"proximity"
 	proximity.event_name = &"game.tick"
 	proximity.weight = 80
 	proximity.max_bound_effects = 1
-	proximity.condition_params = proximity_params
+	proximity.param_defs = proximity_params
 	proximity.allow_extra_conditions = false
-	register_def(proximity)
+	register_def(proximity, {"kind": &"core", "source": &"core"})
+
+	_register_builtin_strategies()
 
 
 func _register_builtin_strategies() -> void:
@@ -273,3 +232,32 @@ func _register_builtin_strategies() -> void:
 		})
 		return true
 	)
+
+
+func evaluate_trigger(
+	trigger_id: StringName,
+	event_data,
+	condition_values: Dictionary,
+	entity_state: Dictionary,
+	instance
+) -> bool:
+	var strategy: Callable = _trigger_strategies.get(trigger_id, Callable())
+	if not strategy.is_valid():
+		return false
+	return bool(strategy.call(event_data, condition_values, entity_state, instance))
+
+
+func register_strategy(trigger_id: StringName, strategy: Callable) -> void:
+	if trigger_id == StringName() or not strategy.is_valid():
+		return
+	_trigger_strategies[trigger_id] = strategy
+
+
+func _on_def_registered(entry: Dictionary) -> void:
+	var source: Dictionary = Dictionary(entry.get("source", {}))
+	if bool(source.get("extension", false)):
+		var def = entry.get("def", null)
+		if def != null and def.strategy_script != null:
+			var strategy_owner = def.strategy_script.new()
+			if strategy_owner != null and strategy_owner.has_method("evaluate"):
+				_trigger_strategies[def.id] = Callable(strategy_owner, "evaluate")
