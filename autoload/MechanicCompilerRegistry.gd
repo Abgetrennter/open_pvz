@@ -6,6 +6,8 @@ const EXTENSION_MECHANIC_COMPILER_DIR := "data/combat/mechanic_compilers"
 
 var _compiler_callables: Dictionary = {}
 var _compiler_owners: Dictionary = {}
+var _builtin_compiler_defs: Dictionary = {}
+var _builtin_compiler_callables: Dictionary = {}
 
 
 func _make_registry_config():
@@ -23,21 +25,32 @@ func _make_registry_config():
 func register_compiler(type_id: StringName, metadata: Dictionary = {}) -> void:
 	if type_id == StringName():
 		return
+	_builtin_compiler_defs[type_id] = metadata.duplicate(true)
 	if has(type_id):
 		return
+	_register_compiler_def(type_id, metadata)
+
+
+func _register_compiler_def(type_id: StringName, metadata: Dictionary = {}) -> void:
 	var compiler_def = MechanicCompilerDefRef.new()
 	compiler_def.id = type_id
 	compiler_def.family = StringName(metadata.get("family", StringName()))
-	register_def(compiler_def, {
+	var source := {
 		"kind": &"core",
 		"source": &"core",
-		"compiler_version": metadata.get("compiler_version", StringName()),
-	})
+	}
+	for key in metadata.keys():
+		source[key] = metadata[key]
+	register_def(compiler_def, source)
 
 
 func register_compiler_callable(type_id: StringName, callable: Callable, metadata: Dictionary = {}) -> void:
 	if type_id == StringName() or not callable.is_valid():
 		return
+	_builtin_compiler_callables[type_id] = {
+		"callable": callable,
+		"metadata": metadata.duplicate(true),
+	}
 	if not has(type_id):
 		register_compiler(type_id, metadata)
 	_compiler_callables[type_id] = callable
@@ -69,20 +82,39 @@ func compile_type(type_id: StringName, mechanic, archetype, merged_params: Dicti
 	return result
 
 
-func rebuild_registry() -> void:
-	_ensure_config()
-	var extension_ids: Array = []
+func _before_registry_clear() -> void:
 	for id in _entries.keys():
 		var source: Dictionary = Dictionary(Dictionary(_entries[id]).get("source", {}))
-		if bool(source.get("extension", false)):
-			extension_ids.append(id)
-	for id in extension_ids:
-		_entries.erase(id)
-		_compiler_callables.erase(id)
-		_compiler_owners.erase(id)
-		if typeof(MechanicTypeRegistry) != TYPE_NIL and MechanicTypeRegistry.has_method("unregister_extension_type"):
+		if bool(source.get("extension", false)) and typeof(MechanicTypeRegistry) != TYPE_NIL and MechanicTypeRegistry.has_method("unregister_extension_type"):
 			MechanicTypeRegistry.unregister_extension_type(id)
-	_register_extension_defs()
+
+
+func _on_registry_cleared() -> void:
+	_compiler_callables.clear()
+	_compiler_owners.clear()
+
+
+func _register_builtin_defs() -> void:
+	for type_id in _sorted_builtin_ids(_builtin_compiler_defs):
+		var id := StringName(type_id)
+		_register_compiler_def(id, Dictionary(_builtin_compiler_defs[id]))
+	for type_id in _sorted_builtin_ids(_builtin_compiler_callables):
+		var id := StringName(type_id)
+		var record := Dictionary(_builtin_compiler_callables[id])
+		var callable: Callable = record.get("callable", Callable())
+		if not callable.is_valid():
+			continue
+		var metadata := Dictionary(record.get("metadata", {}))
+		if not has(id):
+			_register_compiler_def(id, metadata)
+		_compiler_callables[id] = callable
+		var entry := Dictionary(_entries.get(id, {}))
+		if not entry.is_empty():
+			var source := Dictionary(entry.get("source", {}))
+			for key in metadata.keys():
+				source[key] = metadata[key]
+			entry["source"] = source
+			_entries[id] = entry
 
 
 func _validate_def_specific(compiler_def: Resource, source: Dictionary) -> Array[String]:
@@ -119,3 +151,11 @@ func _on_def_registered(entry: Dictionary) -> void:
 			"source": source.duplicate(true),
 			"extension": bool(source.get("extension", false)),
 		})
+
+
+func _sorted_builtin_ids(source: Dictionary) -> PackedStringArray:
+	var ids := PackedStringArray()
+	for id in source.keys():
+		ids.append(String(id))
+	ids.sort()
+	return ids

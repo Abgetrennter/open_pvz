@@ -1,0 +1,65 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/effect_execution_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="EffectRequest_registry_probe"]
+script = ExtResource("2_request")
+at_time = 0.05
+effect_id = &"registry_probe.effect"
+
+[sub_resource type="Resource" id="Rule_probe_completed"]
+script = ExtResource("3_rule")
+rule_id = &"registry_probe_completed"
+description = "registry probe should complete with source info and stable ids"
+event_name = &"registry.probe_completed"
+required_tags = PackedStringArray("registry", "probe", "extension")
+required_core_values = {
+"probe_ok": true,
+"source_pack_id": &"registry_probe_pack",
+"after_source_pack_id": &"registry_probe_pack",
+"id_count_stable": true
+}
+
+[sub_resource type="Resource" id="Rule_detection_evaluated"]
+script = ExtResource("3_rule")
+rule_id = &"registry_probe_detection_evaluated"
+description = "extension detection strategy should be called through DetectionRegistry"
+event_name = &"registry.probe_detection_evaluated"
+required_tags = PackedStringArray("registry", "probe", "detection")
+required_core_values = {
+"probe_id": &"registry_probe.detection"
+}
+
+[sub_resource type="Resource" id="Rule_controller_processed"]
+script = ExtResource("3_rule")
+rule_id = &"registry_probe_controller_processed"
+description = "extension controller strategy should be called through ControllerRegistry"
+event_name = &"registry.probe_controller_processed"
+required_tags = PackedStringArray("registry", "probe", "controller")
+required_core_values = {
+"controller_id": &"registry_probe.controller",
+"delta_positive": true
+}
+
+[sub_resource type="Resource" id="Rule_trigger_evaluated"]
+script = ExtResource("3_rule")
+rule_id = &"registry_probe_trigger_evaluated"
+description = "extension trigger strategy should be called through TriggerRegistry"
+event_name = &"registry.probe_trigger_evaluated"
+required_tags = PackedStringArray("registry", "probe", "trigger")
+required_core_values = {
+"trigger_id": &"registry_probe.trigger",
+"probe_id": &"registry_probe.trigger"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"registry_slot_extension_probe"
+display_name = "Registry Slot Extension Probe"
+description = "Validates extension detection, controller, trigger and effect contributors through RegistryBase dispatch plus source metadata and rebuild idempotency."
+goals = PackedStringArray("Verify extension DetectionDef strategy is called.", "Verify extension ControllerDef strategy is called.", "Verify extension TriggerDef strategy is called.", "Verify get_entry source metadata survives rebuild.", "Verify list_ids remains stable across rebuild.")
+validation_time_limit = 0.6
+effect_execution_requests = [SubResource("EffectRequest_registry_probe")]
+validation_rules = [SubResource("Rule_probe_completed"), SubResource("Rule_detection_evaluated"), SubResource("Rule_controller_processed"), SubResource("Rule_trigger_evaluated")]

@@ -3,6 +3,7 @@ extends "res://scripts/core/registry/registry_base.gd"
 const DetectionDefRef = preload("res://scripts/core/defs/detection_def.gd")
 
 var _detection_strategies: Dictionary = {}
+var _detection_strategy_owners: Dictionary = {}
 
 
 func _make_registry_config():
@@ -19,6 +20,7 @@ func _make_registry_config():
 
 func _on_registry_cleared() -> void:
 	_detection_strategies.clear()
+	_detection_strategy_owners.clear()
 
 
 func _register_builtin_defs() -> void:
@@ -82,6 +84,32 @@ func evaluate(detection_id: StringName, owner: Node, params: Dictionary = {}) ->
 		"targets": normalized_targets,
 		"primary_target": primary_target,
 	}
+
+
+func _validate_def_specific(detection_def: Resource, source: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	if bool(source.get("extension", false)):
+		if detection_def.strategy_script == null or not (detection_def.strategy_script is Script):
+			errors.append("DetectionDef %s strategy_script must be a Script." % String(detection_def.id))
+		else:
+			var strategy_owner = detection_def.strategy_script.new()
+			if strategy_owner == null or not strategy_owner.has_method("evaluate"):
+				errors.append("DetectionDef %s strategy_script must expose evaluate(owner, params)." % String(detection_def.id))
+	return errors
+
+
+func _on_def_registered(entry: Dictionary) -> void:
+	var source: Dictionary = Dictionary(entry.get("source", {}))
+	if not bool(source.get("extension", false)):
+		return
+	var detection_def = entry.get("def", null)
+	if detection_def == null or detection_def.strategy_script == null:
+		return
+	var strategy_owner = detection_def.strategy_script.new()
+	if strategy_owner == null or not strategy_owner.has_method("evaluate"):
+		return
+	_detection_strategy_owners[detection_def.id] = strategy_owner
+	_detection_strategies[detection_def.id] = Callable(strategy_owner, "evaluate")
 
 
 func _register_builtin_strategies() -> void:

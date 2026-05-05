@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="DetectionDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/detection_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://extensions/registry_probe_pack/scripts/detections/detection_probe.gd" id="2_strategy"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"registry_probe.detection"
+tags = PackedStringArray("registry", "probe")
+strategy_script = ExtResource("2_strategy")

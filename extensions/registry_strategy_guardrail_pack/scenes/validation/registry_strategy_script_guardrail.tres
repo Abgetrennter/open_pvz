@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_detection_strategy_rejected"]
+script = ExtResource("2_rule")
+rule_id = &"detection_strategy_rejected"
+description = "invalid extension DetectionDef strategy should be rejected"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"detections"
+}
+
+[sub_resource type="Resource" id="Rule_controller_strategy_rejected"]
+script = ExtResource("2_rule")
+rule_id = &"controller_strategy_rejected"
+description = "invalid extension ControllerDef strategy should be rejected"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"controllers"
+}
+
+[sub_resource type="Resource" id="Rule_trigger_strategy_rejected"]
+script = ExtResource("2_rule")
+rule_id = &"trigger_strategy_rejected"
+description = "invalid extension TriggerDef strategy should be rejected"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"triggers"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"registry_strategy_script_guardrail"
+display_name = "Registry Strategy Script Guardrail"
+description = "Validates that invalid extension trigger, detection and controller strategy scripts are rejected before registry entry activation."
+goals = PackedStringArray("Reject DetectionDef without evaluate().", "Reject ControllerDef without process().", "Reject TriggerDef without evaluate().")
+validation_time_limit = 0.5
+validation_rules = [SubResource("Rule_detection_strategy_rejected"), SubResource("Rule_controller_strategy_rejected"), SubResource("Rule_trigger_strategy_rejected")]

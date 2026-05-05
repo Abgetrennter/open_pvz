@@ -1,0 +1,21 @@
+{
+  "pack_id": "registry_probe_pack",
+  "enabled_by_default": false,
+  "register": [
+    "resources",
+    "effects",
+    "triggers",
+    "detections",
+    "controllers"
+  ],
+  "trust_level": "trusted_runtime",
+  "capabilities": [
+    "effects",
+    "triggers",
+    "detections",
+    "controllers"
+  ],
+  "activation_scenario_ids": [
+    "registry_slot_extension_probe"
+  ]
+}

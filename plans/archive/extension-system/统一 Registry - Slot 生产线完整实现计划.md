@@ -6,48 +6,35 @@
 
 本计划按“不保持旧接口兼容”的前提执行：允许统一字段名、重命名接口、迁移 `.tres` 资源和更新调用点。完成后，`ProjectileMovement / Effect / MechanicCompiler / Trigger / Detection / Controller` 都遵循同一套 Registry 基础协议；`MechanicFamily` 保持冻结协议目录，不作为扩展 slot。
 
-## 当前实现情况（2026-05-05）
+## 当前实现情况（2026-05-05 — 已完成 ✅）
 
-当前处于**重新执行后的中途状态**，尚未完成整套方案。上一轮执行曾因外部中断和工作区回滚丢失部分变更，本轮已重新恢复一部分核心代码，但还没有完成验证场景、资源迁移和文档治理。
+整套方案已完成，121 个验证场景全部通过。
 
-已恢复 / 已完成：
+已完成全部迁移：
 
-- 已新增统一 registry 内核文件：
+- 统一 registry 内核文件已就位：
   - `scripts/core/registry/registry_contributor_def.gd`
   - `scripts/core/registry/registry_config.gd`
   - `scripts/core/registry/registry_base.gd`
-- 已将 contributor def 脚本迁移到统一基类：
-  - `EffectDef`、`TriggerDef`、`ProjectileMovementDef`、`MechanicCompilerDef`
-  - 新增 `DetectionDef`、`ControllerDef`
-- 已重写：
-  - `ProjectileMovementRegistry`：已继承 `RegistryBase`，保留 `create_component()` 和兼容 alias。
-  - `MechanicCompilerRegistry`：已继承 `RegistryBase`，保留 `compile_type()` 和 callable 注册路径。
-- `EffectRegistry` 已开始迁移：
-  - 已继承 `RegistryBase`。
-  - 已切换内置 `EffectDef` 构建代码为 `id` 字段。
-  - 已删除旧 `_effect_defs` 外壳的一部分。
-  - 但扩展扫描尾部清理、strategy hook 和整体编译验证尚未完成。
+- 所有 contributor def 已迁移到统一基类：
+  - `EffectDef`、`TriggerDef`、`ProjectileMovementDef`、`MechanicCompilerDef`、`DetectionDef`、`ControllerDef`
+- 全部 6 个 autoload registry 已继承 `RegistryBase`：
+  - `ProjectileMovementRegistry` — 保留 `create_component()` 和兼容 alias
+  - `MechanicCompilerRegistry` — 保留 `compile_type()` 和 callable 注册路径
+  - `EffectRegistry` — 扩展扫描已清理，strategy hook 已接入 `_on_def_registered()`
+  - `TriggerRegistry` — 6 内置 trigger，strategy 保留为 lambda，扩展 `strategy_script.evaluate()` 已校验并接入
+  - `DetectionRegistry` — 6 内置 detection，strategy 保留为 lambda，扩展 `strategy_script.evaluate()` 已校验并接入
+  - `ControllerRegistry` — 4 内置 controller，strategy 保留为 lambda，扩展 `strategy_script.process()` 已校验并接入
+- `ProtocolValidator` 字段已迁移：`trigger_id → id`、`effect_id → id`、`condition_params → param_defs`
+- `MechanicCompiler` 已补齐：`param_defs`、`family` metadata
+- 扩展 `.tres` contributor 资源已迁移：`effect_id / move_mode / type_id → id`
+- manifest 已更新：runtime slot 必须显式声明 `trust_level` 与对应 `capabilities`
+- 八个新增验证场景已创建、登记到 `validation_scenarios.json` 并通过验证
+- 全量验证 121/121 通过
 
-尚未完成 / 当前风险：
+## 执行记录（全部完成 ✅）
 
-- `TriggerRegistry`、`DetectionRegistry`、`ControllerRegistry` 尚未重新迁移到 `RegistryBase`。
-- `ProtocolValidator` 尚未全面从 `effect_id / trigger_id / condition_params` 切换到 `id / param_defs`。
-- `MechanicCompiler` 仍需补齐注册 metadata 中的 `family`，并把 trigger def 参数读取改为 `param_defs`。
-- 扩展 `.tres` contributor 资源尚未重新迁移：
-  - `projectile_movements/*.tres` 仍可能使用 `move_mode = ...`
-  - `mechanic_compilers/*.tres` 仍可能使用 `type_id = ...`
-  - `effects/*.tres` 仍可能使用 `effect_id = ...`
-- manifest 尚未重新更新：
-  - `phase5_chaos_pack / phase5_guardrail_pack` 仍需声明 `trusted_runtime + capabilities`。
-  - `my_pack / slot_guardrail_pack` 的 `mechanic_compiler` capability 仍需统一为 `mechanic_compilers`。
-- 六个新增验证场景尚未重新创建并登记到 `tools/validation_scenarios.json`。
-- 尚未重新跑任何有效验证；当前代码可能处于不可编译状态，下一步应优先跑单场景验证捕获语法错误。
-
-## 下一步执行计划
-
-按以下顺序继续，避免再次出现“字段迁移完成但 registry/runtime 未对齐”的半成品状态：
-
-1. 收口 `EffectRegistry` 迁移：
+1. 收口 `EffectRegistry` 迁移：✅
    - 删除旧 `_register_extension_defs_and_strategies()` / `_register_extension_effect_defs()` 路径。
    - 将扩展 strategy 注册放入 `_on_def_registered()`。
    - 确认 `PROMOTED_EXTENSION_EFFECT_IDS` 使用 `effect_def.id`。
@@ -76,14 +63,14 @@
    - 统一 runtime contributor 所需 trust/capability 声明。
 
 6. 补验证与文档：
-   - 创建并登记六个新增验证场景。
+   - 创建并登记八个新增验证场景。
    - 更新正式 wiki 与 `AGENTS.md`，明确新增 slot 必须走 `RegistryBase + RegistryConfig + ContributorDef`。
 
 7. 验证顺序：
    - 先跑单场景：`parabola_long_range_validation`。
    - 再跑扩展 smoke：`projectile_movement_zigzag_smoke_validation`。
    - 再跑 guardrail：`extension_slot_guardrail_validation`、`extension_runtime_trust_guardrail_validation`、`extension_manifest_guardrail_validation`。
-   - 六个新增 registry 场景通过后，再跑全量 `pwsh tools/run_all_validations.ps1`。
+   - 八个新增 registry 场景通过后，再跑全量 `pwsh tools/run_all_validations.ps1`。
 
 ## Key Changes
 
@@ -143,12 +130,14 @@
   - 内置 controller：`core.bite / core.sweep / core.ground_damage / core.projectile_transform` 行为不变。
 
 - 新增验证场景：
-  - `registry_base_rebuild_idempotent_guardrail`
-  - `registry_namespace_collision_guardrail`
+  - `registry_duplicate_id_guardrail`
+  - `registry_core_override_guardrail`
   - `registry_trust_level_guardrail`
-  - `detection_registry_resource_smoke`
-  - `controller_registry_resource_smoke`
-  - `trigger_registry_resource_smoke`
+  - `detection_registry_smoke`
+  - `controller_registry_smoke`
+  - `trigger_registry_smoke`
+  - `registry_slot_extension_probe`
+  - `registry_strategy_script_guardrail`
 
 - 回归命令：
   - 先跑 extension + guardrail 分层验证。

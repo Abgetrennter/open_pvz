@@ -4,6 +4,10 @@
   "register": [
     "effects"
   ],
+  "trust_level": "trusted_runtime",
+  "capabilities": [
+    "effects"
+  ],
   "activation_scenario_ids": [
     "extension_effect_guardrail_validation"
   ],

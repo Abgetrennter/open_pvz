@@ -696,6 +696,18 @@
     "layers": ["guardrail"]
   },
   {
+    "id": "registry_slot_extension_probe",
+    "scenario": "res://extensions/registry_probe_pack/scenes/validation/registry_slot_extension_probe.tres",
+    "description": "Validates extension detection, controller, trigger and effect contributors through RegistryBase dispatch plus source metadata and rebuild idempotency.",
+    "layers": ["smoke", "extension"]
+  },
+  {
+    "id": "registry_strategy_script_guardrail",
+    "scenario": "res://extensions/registry_strategy_guardrail_pack/scenes/validation/registry_strategy_script_guardrail.tres",
+    "description": "Validates that invalid extension trigger, detection and controller strategy scripts are rejected before registry entry activation.",
+    "layers": ["guardrail", "extension"]
+  },
+  {
     "id": "detection_registry_smoke",
     "scenario": "res://scenes/validation/detection_registry_smoke.tres",
     "description": "Validates that DetectionRegistry initializes correctly after migration to RegistryBase with all 6 builtin detections.",

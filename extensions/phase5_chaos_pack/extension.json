@@ -5,5 +5,8 @@
   "register": [
     "resources",
     "effects"
+  ],
+  "capabilities": [
+    "effects"
   ]
 }

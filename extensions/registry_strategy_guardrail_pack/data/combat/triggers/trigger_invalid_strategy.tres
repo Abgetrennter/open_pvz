@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TriggerDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/trigger_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://extensions/registry_strategy_guardrail_pack/scripts/invalid_strategy_stub.gd" id="2_strategy"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"registry_guardrail.invalid_trigger"
+event_name = &"registry.guardrail"
+strategy_script = ExtResource("2_strategy")

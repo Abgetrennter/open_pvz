@@ -4,6 +4,7 @@ const TriggerDefRef = preload("res://scripts/core/defs/trigger_def.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 
 var _trigger_strategies: Dictionary = {}
+var _trigger_strategy_owners: Dictionary = {}
 
 const EXTENSION_TRIGGER_DEF_DIR := "data/combat/triggers"
 
@@ -22,6 +23,7 @@ func _make_registry_config():
 
 func _on_registry_cleared() -> void:
 	_trigger_strategies.clear()
+	_trigger_strategy_owners.clear()
 
 
 func _register_builtin_defs() -> void:
@@ -253,6 +255,18 @@ func register_strategy(trigger_id: StringName, strategy: Callable) -> void:
 	_trigger_strategies[trigger_id] = strategy
 
 
+func _validate_def_specific(trigger_def: Resource, source: Dictionary) -> Array[String]:
+	var errors: Array[String] = ProtocolValidatorRef.validate_trigger_def(trigger_def)
+	if bool(source.get("extension", false)):
+		if trigger_def.strategy_script == null or not (trigger_def.strategy_script is Script):
+			errors.append("TriggerDef %s strategy_script must be a Script." % String(trigger_def.id))
+		else:
+			var strategy_owner = trigger_def.strategy_script.new()
+			if strategy_owner == null or not strategy_owner.has_method("evaluate"):
+				errors.append("TriggerDef %s strategy_script must expose evaluate(event_data, condition_values, entity_state, instance)." % String(trigger_def.id))
+	return errors
+
+
 func _on_def_registered(entry: Dictionary) -> void:
 	var source: Dictionary = Dictionary(entry.get("source", {}))
 	if bool(source.get("extension", false)):
@@ -260,4 +274,5 @@ func _on_def_registered(entry: Dictionary) -> void:
 		if def != null and def.strategy_script != null:
 			var strategy_owner = def.strategy_script.new()
 			if strategy_owner != null and strategy_owner.has_method("evaluate"):
+				_trigger_strategy_owners[def.id] = strategy_owner
 				_trigger_strategies[def.id] = Callable(strategy_owner, "evaluate")

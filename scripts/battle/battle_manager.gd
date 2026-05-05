@@ -116,8 +116,14 @@ func reset_battle() -> void:
 	if DebugService.has_method("clear_logs"):
 		DebugService.clear_logs()
 	_validation_tracker.reset_validation()
+	if typeof(DetectionRegistry) != TYPE_NIL and DetectionRegistry.has_method("rebuild_registry"):
+		DetectionRegistry.rebuild_registry()
+	if typeof(TriggerRegistry) != TYPE_NIL and TriggerRegistry.has_method("rebuild_registry"):
+		TriggerRegistry.rebuild_registry()
 	if EffectRegistry.has_method("rebuild_registry"):
 		EffectRegistry.rebuild_registry()
+	if typeof(ControllerRegistry) != TYPE_NIL and ControllerRegistry.has_method("rebuild_registry"):
+		ControllerRegistry.rebuild_registry()
 	if typeof(ProjectileMovementRegistry) != TYPE_NIL and ProjectileMovementRegistry.has_method("rebuild_registry"):
 		ProjectileMovementRegistry.rebuild_registry()
 	if MechanicCompilerRegistry.has_method("rebuild_registry"):

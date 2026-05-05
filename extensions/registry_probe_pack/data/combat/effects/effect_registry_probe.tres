@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="EffectDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/effect_def.gd" id="1_def"]
+[ext_resource type="Script" path="res://extensions/registry_probe_pack/scripts/effects/effect_registry_probe.gd" id="2_strategy"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"registry_probe.effect"
+tags = PackedStringArray("registry", "probe")
+allow_extra_params = false
+allow_extra_children = false
+strategy_script = ExtResource("2_strategy")

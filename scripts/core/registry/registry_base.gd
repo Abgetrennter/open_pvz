@@ -81,6 +81,7 @@ func list_entries() -> Array[Dictionary]:
 
 func rebuild_registry() -> void:
 	_ensure_config()
+	_before_registry_clear()
 	_entries.clear()
 	_on_registry_cleared()
 	_register_builtin_defs()
@@ -92,6 +93,10 @@ func _make_registry_config():
 
 
 func _register_builtin_defs() -> void:
+	pass
+
+
+func _before_registry_clear() -> void:
 	pass
 
 
@@ -207,7 +212,11 @@ func _pack_allows_slot(pack_manifest: Dictionary) -> bool:
 		return false
 	var capabilities := Array(pack_manifest.get("capabilities", []))
 	if capabilities.is_empty():
-		return true
+		_record_issue("Extension pack %s manifest capabilities must include %s." % [
+			String(pack_manifest.get("pack_id", StringName())),
+			String(_registry_config.register_kind),
+		])
+		return false
 	for capability in capabilities:
 		var capability_id := StringName(capability)
 		if capability_id == _registry_config.register_kind or capability_id == _registry_config.slot_id:

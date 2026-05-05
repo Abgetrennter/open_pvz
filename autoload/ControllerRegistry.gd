@@ -4,6 +4,7 @@ const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const ControllerDefRef = preload("res://scripts/core/defs/controller_def.gd")
 
 var _controller_strategies: Dictionary = {}
+var _controller_strategy_owners: Dictionary = {}
 
 
 func _make_registry_config():
@@ -20,6 +21,7 @@ func _make_registry_config():
 
 func _on_registry_cleared() -> void:
 	_controller_strategies.clear()
+	_controller_strategy_owners.clear()
 
 
 func _register_builtin_defs() -> void:
@@ -47,6 +49,32 @@ func process_controller(controller_id: StringName, owner: Node, spec: Dictionary
 	if not strategy.is_valid():
 		return
 	strategy.call(owner, spec, delta, blackboard)
+
+
+func _validate_def_specific(controller_def: Resource, source: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	if bool(source.get("extension", false)):
+		if controller_def.strategy_script == null or not (controller_def.strategy_script is Script):
+			errors.append("ControllerDef %s strategy_script must be a Script." % String(controller_def.id))
+		else:
+			var strategy_owner = controller_def.strategy_script.new()
+			if strategy_owner == null or not strategy_owner.has_method("process"):
+				errors.append("ControllerDef %s strategy_script must expose process(owner, spec, delta, blackboard)." % String(controller_def.id))
+	return errors
+
+
+func _on_def_registered(entry: Dictionary) -> void:
+	var source: Dictionary = Dictionary(entry.get("source", {}))
+	if not bool(source.get("extension", false)):
+		return
+	var controller_def = entry.get("def", null)
+	if controller_def == null or controller_def.strategy_script == null:
+		return
+	var strategy_owner = controller_def.strategy_script.new()
+	if strategy_owner == null or not strategy_owner.has_method("process"):
+		return
+	_controller_strategy_owners[controller_def.id] = strategy_owner
+	_controller_strategies[controller_def.id] = Callable(strategy_owner, "process")
 
 
 func _register_builtin_strategies() -> void:
