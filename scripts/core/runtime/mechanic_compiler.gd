@@ -71,6 +71,7 @@ static func register_builtin_mechanic_types() -> void:
 		})
 		if typeof(MechanicCompilerRegistry) != TYPE_NIL:
 			MechanicCompilerRegistry.register_compiler(StringName(type_id), {
+				"family": StringName(type_specs[type_id]),
 				"compiler_version": COMPILER_VERSION,
 			})
 	if typeof(MechanicCompilerRegistry) != TYPE_NIL:
@@ -382,7 +383,7 @@ static func _merge_trigger_condition_values(trigger_id: StringName, base_conditi
 	if trigger_def == null:
 		return merged
 	var condition_param_names: Dictionary = {}
-	for param_def in trigger_def.condition_params:
+	for param_def in trigger_def.param_defs:
 		if not (param_def is Dictionary):
 			continue
 		var param_name := String(param_def.get("name", "")).strip_edges()
@@ -429,7 +430,7 @@ static func _inject_targeting(trigger_spec, targeting_params: Dictionary, merged
 	var trigger_def = TriggerRegistry.get_def(trigger_id)
 	var condition_param_names: Dictionary = {}
 	if trigger_def != null:
-		for param_def in trigger_def.condition_params:
+		for param_def in trigger_def.param_defs:
 			if not (param_def is Dictionary):
 				continue
 			var param_name := String(param_def.get("name", "")).strip_edges()
