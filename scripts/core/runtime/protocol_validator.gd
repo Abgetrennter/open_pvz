@@ -126,27 +126,27 @@ static func validate_trigger_def(trigger_def) -> Array[String]:
 	if trigger_def == null:
 		errors.append("TriggerDef is null.")
 		return errors
-	if StringName(trigger_def.trigger_id) == StringName():
-		errors.append("TriggerDef.trigger_id must not be empty.")
+	if StringName(trigger_def.id) == StringName():
+		errors.append("TriggerDef.id must not be empty.")
 	if StringName(trigger_def.event_name) == StringName():
 		errors.append("TriggerDef.event_name must not be empty.")
 	if int(trigger_def.max_bound_effects) <= 0:
 		errors.append("TriggerDef.max_bound_effects must be greater than zero.")
 
 	var seen_params: Dictionary = {}
-	for param_def in trigger_def.condition_params:
+	for param_def in trigger_def.param_defs:
 		if not (param_def is Dictionary):
-			errors.append("TriggerDef %s has a non-dictionary condition param." % String(trigger_def.trigger_id))
+			errors.append("TriggerDef %s has a non-dictionary condition param." % String(trigger_def.id))
 			continue
 		var param_name := String(param_def.get("name", ""))
 		if param_name.is_empty():
-			errors.append("TriggerDef %s has a condition param without a name." % String(trigger_def.trigger_id))
+			errors.append("TriggerDef %s has a condition param without a name." % String(trigger_def.id))
 			continue
 		if seen_params.has(param_name):
-			errors.append("TriggerDef %s has duplicate condition param %s." % [String(trigger_def.trigger_id), param_name])
+			errors.append("TriggerDef %s has duplicate condition param %s." % [String(trigger_def.id), param_name])
 			continue
 		seen_params[param_name] = true
-		errors.append_array(_validate_param_definition(param_def, "TriggerDef %s" % String(trigger_def.trigger_id)))
+		errors.append_array(_validate_param_definition(param_def, "TriggerDef %s" % String(trigger_def.id)))
 	return errors
 
 
@@ -155,35 +155,35 @@ static func validate_effect_def(effect_def) -> Array[String]:
 	if effect_def == null:
 		errors.append("EffectDef is null.")
 		return errors
-	if StringName(effect_def.effect_id) == StringName():
-		errors.append("EffectDef.effect_id must not be empty.")
+	if StringName(effect_def.id) == StringName():
+		errors.append("EffectDef.id must not be empty.")
 
 	var seen_params: Dictionary = {}
 	for param_def in effect_def.param_defs:
 		if not (param_def is Dictionary):
-			errors.append("EffectDef %s has a non-dictionary param definition." % String(effect_def.effect_id))
+			errors.append("EffectDef %s has a non-dictionary param definition." % String(effect_def.id))
 			continue
 		var param_name := String(param_def.get("name", ""))
 		if param_name.is_empty():
-			errors.append("EffectDef %s has a param without a name." % String(effect_def.effect_id))
+			errors.append("EffectDef %s has a param without a name." % String(effect_def.id))
 			continue
 		if seen_params.has(param_name):
-			errors.append("EffectDef %s has duplicate param %s." % [String(effect_def.effect_id), param_name])
+			errors.append("EffectDef %s has duplicate param %s." % [String(effect_def.id), param_name])
 			continue
 		seen_params[param_name] = true
-		errors.append_array(_validate_param_definition(param_def, "EffectDef %s" % String(effect_def.effect_id)))
+		errors.append_array(_validate_param_definition(param_def, "EffectDef %s" % String(effect_def.id)))
 
 	var seen_slots: Dictionary = {}
 	for slot_def in effect_def.slots:
 		if slot_def == null:
-			errors.append("EffectDef %s has a null slot definition." % String(effect_def.effect_id))
+			errors.append("EffectDef %s has a null slot definition." % String(effect_def.id))
 			continue
 		var slot_name := String(slot_def.slot_name)
 		if slot_name.is_empty():
-			errors.append("EffectDef %s has a slot without a name." % String(effect_def.effect_id))
+			errors.append("EffectDef %s has a slot without a name." % String(effect_def.id))
 			continue
 		if seen_slots.has(slot_name):
-			errors.append("EffectDef %s has duplicate slot %s." % [String(effect_def.effect_id), slot_name])
+			errors.append("EffectDef %s has duplicate slot %s." % [String(effect_def.id), slot_name])
 			continue
 		seen_slots[slot_name] = true
 	return errors
@@ -1338,7 +1338,7 @@ static func _normalize_trigger_event_and_conditions(
 		errors.append("%s event_name must match TriggerDef event_name." % scope)
 
 	var normalized_conditions: Dictionary = {}
-	for param_def in trigger_def.condition_params:
+	for param_def in trigger_def.param_defs:
 		if not (param_def is Dictionary):
 			continue
 		var param_name := String(param_def.get("name", ""))
