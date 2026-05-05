@@ -1,59 +1,64 @@
-extends Node
+extends "res://scripts/core/registry/registry_base.gd"
 
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
+const ControllerDefRef = preload("res://scripts/core/defs/controller_def.gd")
 
 var _controller_strategies: Dictionary = {}
 
 
-func _ready() -> void:
-	_register_builtin_strategies()
+func _make_registry_config():
+	return RegistryConfigRef.create(
+		&"controllers",
+		ControllerDefRef,
+		&"controllers",
+		"data/combat/controllers",
+		&"trusted_runtime",
+		StringName(),
+		false
+	)
 
 
-func register_strategy(controller_id: StringName, strategy: Callable) -> void:
-	if controller_id == StringName() or not strategy.is_valid():
-		return
-	_controller_strategies[controller_id] = strategy
-
-
-func get_strategy(controller_id: StringName) -> Callable:
-	return _controller_strategies.get(controller_id, Callable())
-
-
-func has(controller_id: StringName) -> bool:
-	return _controller_strategies.has(controller_id)
-
-
-func list_ids() -> PackedStringArray:
-	var keys := PackedStringArray()
-	for key in _controller_strategies.keys():
-		keys.append(String(key))
-	keys.sort()
-	return keys
-
-
-func rebuild_registry() -> void:
+func _on_registry_cleared() -> void:
 	_controller_strategies.clear()
+
+
+func _register_builtin_defs() -> void:
+	var bite_def: ControllerDef = ControllerDefRef.new()
+	bite_def.id = &"core.bite"
+	register_def(bite_def, {"kind": &"core", "source": &"core"})
+
+	var sweep_def: ControllerDef = ControllerDefRef.new()
+	sweep_def.id = &"core.sweep"
+	register_def(sweep_def, {"kind": &"core", "source": &"core"})
+
+	var ground_damage_def: ControllerDef = ControllerDefRef.new()
+	ground_damage_def.id = &"core.ground_damage"
+	register_def(ground_damage_def, {"kind": &"core", "source": &"core"})
+
+	var projectile_transform_def: ControllerDef = ControllerDefRef.new()
+	projectile_transform_def.id = &"core.projectile_transform"
+	register_def(projectile_transform_def, {"kind": &"core", "source": &"core"})
+
 	_register_builtin_strategies()
 
 
 func process_controller(controller_id: StringName, owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary = {}) -> void:
-	var strategy: Callable = get_strategy(controller_id)
+	var strategy: Callable = _controller_strategies.get(controller_id, Callable())
 	if not strategy.is_valid():
 		return
 	strategy.call(owner, spec, delta, blackboard)
 
 
 func _register_builtin_strategies() -> void:
-	register_strategy(&"core.bite", func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+	_controller_strategies[&"core.bite"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
 		if owner == null or not is_instance_valid(owner):
 			return
 		if owner.get("_is_dying") == true:
 			return
 		if owner.has_method("perform_attack_cycle_for_controller"):
 			owner.call("perform_attack_cycle_for_controller", spec, delta)
-	)
 
-	register_strategy(&"core.sweep", func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+	_controller_strategies[&"core.sweep"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
 		if owner == null or not is_instance_valid(owner):
 			return
 		if not owner is Node2D:
@@ -89,9 +94,8 @@ func _register_builtin_strategies() -> void:
 				expired_event.core["object_type"] = &"mower"
 				EventBus.push_event(&"field_object.expired", expired_event)
 				owner.queue_free()
-	)
 
-	register_strategy(&"core.ground_damage", func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+	_controller_strategies[&"core.ground_damage"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
 		if owner == null or not is_instance_valid(owner):
 			return
 		if not owner is Node2D:
@@ -113,9 +117,8 @@ func _register_builtin_strategies() -> void:
 			if not target.has_method("take_damage"):
 				continue
 			target.call("take_damage", damage, owner, ["ground_damage", "spike"])
-	)
 
-	register_strategy(&"core.projectile_transform", func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+	_controller_strategies[&"core.projectile_transform"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
 		if owner == null or not is_instance_valid(owner):
 			return
 		if GameState.current_battle == null:
@@ -140,7 +143,6 @@ func _register_builtin_strategies() -> void:
 			if not _check_projectile_nearby(owner, child, detection_range):
 				continue
 			child.call("modify", {"damage_multiplier": multipler})
-	)
 
 
 func _check_projectile_nearby(owner: Node, projectile: Node, detection_range: float) -> bool:
