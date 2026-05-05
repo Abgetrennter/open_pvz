@@ -9,6 +9,9 @@ const ALLOWED_REGISTER_KINDS := {
 	&"effects": true,
 	&"projectile_movement": true,
 	&"mechanic_compilers": true,
+	&"triggers": true,
+	&"detections": true,
+	&"controllers": true,
 }
 const ALLOWED_TRUST_LEVELS := {
 	&"data_only": true,
