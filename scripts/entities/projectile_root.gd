@@ -5,8 +5,6 @@ const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const RuleContextRef = preload("res://scripts/core/runtime/rule_context.gd")
 const EffectExecutorRef = preload("res://scripts/core/runtime/effect_executor.gd")
 const ProjectileMovementLinearRef = preload("res://scripts/projectile/movement/projectile_movement_linear.gd")
-const ProjectileMovementParabolaRef = preload("res://scripts/projectile/movement/projectile_movement_parabola.gd")
-const ProjectileMovementTrackRef = preload("res://scripts/projectile/movement/projectile_movement_track.gd")
 const ProjectileMoveResultRef = preload("res://scripts/projectile/projectile_move_result.gd")
 
 @onready var movement_component: Variant = get_node_or_null("MovementComponent")

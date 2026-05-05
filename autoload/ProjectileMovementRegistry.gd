@@ -198,7 +198,7 @@ func _script_extends_base(script: Script) -> bool:
 
 
 func _pack_allows_runtime(pack_manifest: Dictionary) -> bool:
-	var trust_level := StringName(pack_manifest.get("trust_level", &"trusted_runtime"))
+	var trust_level := StringName(pack_manifest.get("trust_level", &"data_only"))
 	return int(TRUST_LEVELS.get(trust_level, -1)) >= int(TRUST_LEVELS[&"trusted_runtime"])
 
 
@@ -210,4 +210,3 @@ func _record_issue(message: String) -> void:
 	push_warning(message)
 	if typeof(DebugService) != TYPE_NIL and DebugService.has_method("record_protocol_issue"):
 		DebugService.record_protocol_issue(&"projectile_movement", message, &"error")
-

@@ -21,6 +21,15 @@ func register_type(type_id: StringName, family_id: StringName, metadata: Diction
 	}
 
 
+func unregister_extension_type(type_id: StringName) -> void:
+	if type_id == StringName():
+		return
+	var metadata := get_metadata(type_id)
+	if not bool(metadata.get("extension", false)):
+		return
+	_type_specs.erase(type_id)
+
+
 func has_type(type_id: StringName) -> bool:
 	return _type_specs.has(type_id)
 

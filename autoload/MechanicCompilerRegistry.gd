@@ -122,6 +122,8 @@ func rebuild_registry() -> void:
 		_compiler_specs.erase(type_id)
 		_compiler_callables.erase(type_id)
 		_compiler_owners.erase(type_id)
+		if typeof(MechanicTypeRegistry) != TYPE_NIL and MechanicTypeRegistry.has_method("unregister_extension_type"):
+			MechanicTypeRegistry.unregister_extension_type(type_id)
 	_register_extension_defs()
 
 
