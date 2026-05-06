@@ -135,8 +135,8 @@ const GROUPS := [
 				"scene": "res://scenes/showcase/original_shooter_garden_showcase.tscn",
 			},
 			{
-				"title": "寒冰与控制园",
-				"summary": "寒冰射手、冰西瓜、寒冰菇、仙人掌和猫尾草展示减速、冻结、穿刺和多目标追踪等控制能力。",
+				"title": "减速控制园",
+				"summary": "寒冰射手与霜冻豌豆展示减速效果。仙人掌/寒冰菇/猫尾草/冰西瓜因 air 追踪、唤醒状态或升级依赖等机制限制暂未纳入。",
 				"scene": "res://scenes/showcase/original_frost_control_garden_showcase.tscn",
 			},
 			{
