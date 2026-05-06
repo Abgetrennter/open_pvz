@@ -4,7 +4,8 @@ param(
 	[string]$OutputRoot = "",
 	[switch]$EnableRuntimeSnapshots,
 	[int]$RuntimeSnapshotInterval = 30,
-	[string[]]$Layers = @()
+	[string[]]$Layers = @(),
+	[int]$MaxParallel = 0
 )
 
 function Get-EntryLayers {
@@ -59,25 +60,146 @@ if ($ScenarioManifest.Count -eq 0) {
 	exit 1
 }
 
-$Results = @()
+$ResolvedMaxParallel = $MaxParallel
+if ($ResolvedMaxParallel -le 0) {
+	$ResolvedMaxParallel = [Math]::Min([Environment]::ProcessorCount, 4)
+}
+$ResolvedMaxParallel = [Math]::Max(1, $ResolvedMaxParallel)
 
+$WorkItems = @()
+$WorkIndex = 0
 foreach ($Entry in $ScenarioManifest) {
 	$RunLabel = if ($Entry.id) { [string]$Entry.id } else { [System.IO.Path]::GetFileNameWithoutExtension([string]$Entry.scenario) }
-	$EntryLayers = Get-EntryLayers $Entry
-	$Result = & (Join-Path $PSScriptRoot "run_validation.ps1") `
-		-Scenario ([string]$Entry.scenario) `
-		-GodotExe $GodotExe `
-		-OutputRoot $BatchDir `
-		-RunLabel $RunLabel `
-		-PassThru `
-		-EnableRuntimeSnapshots:$EnableRuntimeSnapshots `
-		-RuntimeSnapshotInterval $RuntimeSnapshotInterval
-	$Result | Add-Member -NotePropertyName "Layers" -NotePropertyValue $EntryLayers -Force
-	$Results += $Result
+	$WorkItems += [pscustomobject]@{
+		Index = $WorkIndex
+		Scenario = [string]$Entry.scenario
+		RunLabel = $RunLabel
+		Layers = @(Get-EntryLayers $Entry)
+	}
+	$WorkIndex += 1
+}
+
+$RunnerScriptPath = Join-Path $PSScriptRoot "run_validation.ps1"
+$PendingQueue = [System.Collections.Generic.Queue[object]]::new()
+foreach ($WorkItem in $WorkItems) {
+	$PendingQueue.Enqueue($WorkItem)
+}
+
+function Start-ValidationJob {
+	param(
+		$WorkItem,
+		[string]$RunnerScriptPath,
+		[string]$GodotExe,
+		[string]$BatchDir,
+		[bool]$EnableRuntimeSnapshots,
+		[int]$RuntimeSnapshotInterval
+	)
+
+	Write-Host ("[ValidationBatch] Dispatching {0} ({1}/{2})" -f $WorkItem.RunLabel, ($WorkItem.Index + 1), $WorkItems.Count)
+
+	return Start-Job -Name $WorkItem.RunLabel -ScriptBlock {
+		param(
+			[string]$RunnerScriptPath,
+			[string]$Scenario,
+			[string]$GodotExe,
+			[string]$BatchDir,
+			[string]$RunLabel,
+			[bool]$EnableRuntimeSnapshots,
+			[int]$RuntimeSnapshotInterval,
+			[string[]]$Layers,
+			[int]$Index
+		)
+
+		$Result = & $RunnerScriptPath `
+			-Scenario $Scenario `
+			-GodotExe $GodotExe `
+			-OutputRoot $BatchDir `
+			-RunLabel $RunLabel `
+			-PassThru `
+			-EnableRuntimeSnapshots:$EnableRuntimeSnapshots `
+			-RuntimeSnapshotInterval $RuntimeSnapshotInterval
+
+		if ($null -eq $Result) {
+			$Result = [pscustomobject]@{
+				Scenario = $Scenario
+				RunLabel = $RunLabel
+				RunDir = ""
+				ConsoleLog = ""
+				ReportPath = ""
+				DebugLogPath = ""
+				Status = "failed"
+				ExitCode = 1
+			}
+		}
+
+		$Result | Add-Member -NotePropertyName "Layers" -NotePropertyValue $Layers -Force
+		$Result | Add-Member -NotePropertyName "Index" -NotePropertyValue $Index -Force
+		$Result
+	} -ArgumentList @(
+		$RunnerScriptPath,
+		$WorkItem.Scenario,
+		$GodotExe,
+		$BatchDir,
+		$WorkItem.RunLabel,
+		$EnableRuntimeSnapshots,
+		$RuntimeSnapshotInterval,
+		$WorkItem.Layers,
+		$WorkItem.Index
+	)
+}
+
+Write-Host ("[ValidationBatch] Running {0} scenario(s) with max parallel = {1}" -f $WorkItems.Count, $ResolvedMaxParallel)
+
+$Results = @()
+$ActiveJobs = @()
+
+while ($PendingQueue.Count -gt 0 -or $ActiveJobs.Count -gt 0) {
+	while ($PendingQueue.Count -gt 0 -and $ActiveJobs.Count -lt $ResolvedMaxParallel) {
+		$NextWorkItem = $PendingQueue.Dequeue()
+		$ActiveJobs += Start-ValidationJob `
+			-WorkItem $NextWorkItem `
+			-RunnerScriptPath $RunnerScriptPath `
+			-GodotExe $GodotExe `
+			-BatchDir $BatchDir `
+			-EnableRuntimeSnapshots $EnableRuntimeSnapshots.IsPresent `
+			-RuntimeSnapshotInterval $RuntimeSnapshotInterval
+	}
+
+	if ($ActiveJobs.Count -eq 0) {
+		continue
+	}
+
+	$CompletedJob = Wait-Job -Job $ActiveJobs -Any
+	if ($null -eq $CompletedJob) {
+		continue
+	}
+
+	$JobOutput = @(Receive-Job -Job $CompletedJob)
+	if ($JobOutput.Count -gt 0) {
+		$Results += $JobOutput
+	} else {
+		$Results += [pscustomobject]@{
+			Scenario = ""
+			RunLabel = $CompletedJob.Name
+			RunDir = ""
+			ConsoleLog = ""
+			ReportPath = ""
+			DebugLogPath = ""
+			Status = "failed"
+			ExitCode = 1
+			Layers = @()
+			Index = [int]::MaxValue
+		}
+	}
+
+	Remove-Job -Job $CompletedJob -Force
+	$ActiveJobs = @($ActiveJobs | Where-Object { $_.Id -ne $CompletedJob.Id })
 }
 
 $Results = @(
-	$Results | Where-Object {
+	$Results |
+		Sort-Object Index, RunLabel |
+		Where-Object {
 		$_ -is [pscustomobject] -and
 		$_.PSObject.Properties.Name -contains "RunLabel" -and
 		$_.PSObject.Properties.Name -contains "Status"

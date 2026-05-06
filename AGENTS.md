@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-05-06** — 验证批处理支持受控并行：`tools/run_all_validations.ps1` 新增 `-MaxParallel`，默认自动取 `min(CPU核心数, 4)`，批量验证改为并发调度并保持汇总输出顺序稳定
 - **2026-05-05** — 统一 Registry/Slot 生产线完成：`TriggerRegistry`、`DetectionRegistry`、`ControllerRegistry` 全部继承 `RegistryBase`，contributor 字段统一为 `id`/`param_defs`，`ExtensionPackCatalog.ALLOWED_REGISTER_KINDS` 扩展至 7 种，验证基线扩展到 121 场景
 - **2026-04-24** — wiki 同步 Mechanic-first 决策：11 份文档更新，旧"模板与装配边界"重写为"编译链与 Mechanic 系统"；AGENTS.md 同步代码现状
 - **2026-04-22** — Mechanic-first 重构第三阶段完成：multi-payload 编译、per-type compiler dispatch、Controller/State/Lifecycle 扩展、确定性随机协议、Archetype 独立实例化、迁移对照验证
@@ -143,11 +144,16 @@ graph TD
 # 运行所有验证场景
 pwsh tools/run_all_validations.ps1
 
+# 控制并行度（默认自动取 min(CPU核心数, 4)）
+pwsh tools/run_all_validations.ps1 -MaxParallel 4
+
 # 运行单个场景
-pwsh tools/run_validation.ps1 -ScenarioId <id>
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"
 ```
 
-场景定义：`tools/validation_scenarios.json`（113 个场景，分层 smoke / core / extension / guardrail）
+批量验证说明：`run_all_validations.ps1` 在批处理层做受控并行调度，单场景执行仍复用 `run_validation.ps1`；每个场景输出目录独立，最终 `summary.json` / `summary.txt` 按 manifest 原始顺序汇总。
+
+场景定义：`tools/validation_scenarios.json`（121 个场景，分层 smoke / core / extension / guardrail）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 
@@ -213,6 +219,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 
 - **无单元测试框架**，验证场景是唯一的自动化测试机制
 - 每个验证场景包含：`.tres` 配置（BattleScenario）+ `.tscn` 场景文件
+- 批量入口 `tools/run_all_validations.ps1` 支持 `-MaxParallel` 受控并行；建议按机器负载选择 2~4 起步，避免同时拉起过多 Godot headless 进程导致资源争用
 - 验证规则通过事件匹配：事件名 + 标签 + 核心值 + 次数范围
 - BattleManager 内置验证状态机：pending -> passed/failed
 - 命令行支持：`--validation-auto-quit`、`--validation-print-report`、`--validation-output-dir=`
