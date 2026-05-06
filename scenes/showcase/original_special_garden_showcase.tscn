@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://scenes/validation/original_special_garden_validation.tres" id="2_scenario"]
+
+[node name="OriginalSpecialGardenShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = false
+showcase_title = "特殊植物园"
+showcase_summary = "大嘴花、倭瓜、缠人海带、玉米加农炮、三叶草和魅惑菇展示吞噬、跳跃、水战、炮击和催眠等独特机制。"

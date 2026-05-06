@@ -1,0 +1,124 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_peashooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_peashooter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane0"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_repeater"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_repeater"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_runner_lane1"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 1
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_gatlingpea"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_gatlingpea"
+lane_id = 2
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_tank_lane2"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 2
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_threepeater"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_threepeater"
+lane_id = 3
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane2"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_walker_lane3"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 3
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_walker_lane4"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 4
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_splitpea"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_splitpea"
+lane_id = 4
+x_position = 200.0
+
+[sub_resource type="Resource" id="Spawn_walker_behind"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 4
+x_position = 100.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_runner_lane4"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 4
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"tick"
+description = "at least one game tick"
+event_name = &"game.tick"
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"original_shooter_garden_validation"
+display_name = "Original Shooter Garden Validation"
+description = "Showcase: peashooter, repeater, gatlingpea, threepeater and splitpea each facing a row of zombies."
+goals = PackedStringArray("Visual showcase of all original shooter plants in action.")
+validation_time_limit = 10.0
+lane_count = 5
+validation_rules = [SubResource("Rule_tick")]
+spawns = [SubResource("Spawn_peashooter"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_repeater"), SubResource("Spawn_runner_lane1"), SubResource("Spawn_gatlingpea"), SubResource("Spawn_tank_lane2"), SubResource("Spawn_threepeater"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_walker_lane3"), SubResource("Spawn_walker_lane4"), SubResource("Spawn_splitpea"), SubResource("Spawn_walker_behind"), SubResource("Spawn_runner_lane4")]

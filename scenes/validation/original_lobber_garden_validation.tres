@@ -1,0 +1,91 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_cabbagepult"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_cabbagepult"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane0"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_kernelpult"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_kernelpult"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane1"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 1
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_melonpult"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_melonpult"
+lane_id = 2
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane2"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_runner_lane2"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 2
+x_position = 560.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_starfruit"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_starfruit"
+lane_id = 3
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane3"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 3
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"tick"
+description = "at least one game tick"
+event_name = &"game.tick"
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"original_lobber_garden_validation"
+display_name = "Original Lobber Garden Validation"
+description = "Showcase: cabbagepult, kernelpult, melonpult and starfruit demonstrating lob and multi-direction projectile attacks."
+goals = PackedStringArray("Visual showcase of all original lobber plants in action.")
+validation_time_limit = 10.0
+lane_count = 4
+validation_rules = [SubResource("Rule_tick")]
+spawns = [SubResource("Spawn_cabbagepult"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_kernelpult"), SubResource("Spawn_walker_lane1"), SubResource("Spawn_melonpult"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_runner_lane2"), SubResource("Spawn_starfruit"), SubResource("Spawn_walker_lane3")]

@@ -1,0 +1,103 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_chomper"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_chomper"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane0"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 220.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_squash"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_squash"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane1"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 1
+x_position = 300.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_tanglekelp"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_tanglekelp"
+lane_id = 2
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane2"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 300.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_cobcannon"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_cobcannon"
+lane_id = 3
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane3"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 3
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_blover"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_blover"
+lane_id = 4
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_hypnoshroom"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_hypnoshroom"
+lane_id = 4
+x_position = 260.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane4"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 4
+x_position = 340.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"tick"
+description = "at least one game tick"
+event_name = &"game.tick"
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"original_special_garden_validation"
+display_name = "Original Special Garden Validation"
+description = "Showcase: chomper, squash, tanglekelp, cobcannon, blover and hypnoshroom demonstrating unique special abilities."
+goals = PackedStringArray("Visual showcase of all original special plants in action.")
+validation_time_limit = 8.0
+lane_count = 5
+validation_rules = [SubResource("Rule_tick")]
+spawns = [SubResource("Spawn_chomper"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_squash"), SubResource("Spawn_walker_lane1"), SubResource("Spawn_tanglekelp"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_cobcannon"), SubResource("Spawn_walker_lane3"), SubResource("Spawn_blover"), SubResource("Spawn_hypnoshroom"), SubResource("Spawn_walker_lane4")]

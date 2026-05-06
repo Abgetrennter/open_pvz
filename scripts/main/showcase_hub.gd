@@ -125,6 +125,53 @@ const GROUPS := [
 		],
 	},
 	{
+		"group_title": "原版植物移植总览",
+		"group_summary": "已移植的 42 种原版 PVZ 植物按战斗类型分为 8 个展示场景，直观呈现射手、寒冰、投手、生产、蘑菇、爆炸、防御和特殊植物的战斗行为。",
+		"color": Color("66bb6a"),
+		"items": [
+			{
+				"title": "射手植物园",
+				"summary": "豌豆射手、双发射手、加特林豌豆、三线射手和分裂射手各对一行僵尸，展示从基础单发到连射、多方向射击的射手家族。",
+				"scene": "res://scenes/showcase/original_shooter_garden_showcase.tscn",
+			},
+			{
+				"title": "寒冰与控制园",
+				"summary": "寒冰射手、冰西瓜、寒冰菇、仙人掌和猫尾草展示减速、冻结、穿刺和多目标追踪等控制能力。",
+				"scene": "res://scenes/showcase/original_frost_control_garden_showcase.tscn",
+			},
+			{
+				"title": "投手园",
+				"summary": "卷心菜投手、玉米投手、西瓜投手和杨桃展示抛物线投射、直接命中和终点爆炸溅射。",
+				"scene": "res://scenes/showcase/original_lobber_garden_showcase.tscn",
+			},
+			{
+				"title": "生产园",
+				"summary": "向日葵、双子向日葵、阳光菇和金盏花并行产出阳光与金币，演示资源生产链的多样节奏。",
+				"scene": "res://scenes/showcase/original_production_garden_showcase.tscn",
+			},
+			{
+				"title": "蘑菇园",
+				"summary": "小喷菇、大喷菇、忧郁菇、海蘑菇和胆小菇展示近距离、穿透、范围和条件触发的蘑菇家族。",
+				"scene": "res://scenes/showcase/original_mushroom_garden_showcase.tscn",
+			},
+			{
+				"title": "爆炸园",
+				"summary": "樱桃炸弹、火爆辣椒、毁灭菇和土豆地雷展示各类爆炸效果。",
+				"scene": "res://scenes/showcase/original_explosion_garden_showcase.tscn",
+			},
+			{
+				"title": "防御与辅助园",
+				"summary": "坚果墙、高坚果、南瓜罩、地刺、钢地刺和火炬树桩展示防御承伤、地面控制和火球强化。",
+				"scene": "res://scenes/showcase/original_defense_support_garden_showcase.tscn",
+			},
+			{
+				"title": "特殊植物园",
+				"summary": "大嘴花、倭瓜、缠人海带、玉米加农炮、三叶草和魅惑菇展示吞噬、跳跃、水战、炮击和催眠等独特机制。",
+				"scene": "res://scenes/showcase/original_special_garden_showcase.tscn",
+			},
+		],
+	},
+	{
 		"group_title": "第五阶段错误技",
 		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 9 个场景用于展示扩展包新增的分裂、召唤、状态控制、击退、跳链、光环、延迟触发、延迟爆炸和标记能力。",
 		"color": Color("ef6c57"),

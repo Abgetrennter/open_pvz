@@ -1,0 +1,91 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_cherrybomb"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_cherrybomb"
+lane_id = 0
+x_position = 300.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane0a"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 320.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_walker_lane0b"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 380.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_jalapeno"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_jalapeno"
+lane_id = 1
+x_position = 300.0
+
+[sub_resource type="Resource" id="Spawn_runner_lane1"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 1
+x_position = 500.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_doomshroom"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_doomshroom"
+lane_id = 2
+x_position = 300.0
+
+[sub_resource type="Resource" id="Spawn_tank_lane2"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 2
+x_position = 360.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_potatomine"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_potatomine"
+lane_id = 3
+x_position = 300.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane3"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 3
+x_position = 320.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"tick"
+description = "at least one game tick"
+event_name = &"game.tick"
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"original_explosion_garden_validation"
+display_name = "Original Explosion Garden Validation"
+description = "Showcase: cherrybomb, jalapeno, doomshroom and potatomine demonstrating various explosion effects."
+goals = PackedStringArray("Visual showcase of all original explosion plants in action.")
+validation_time_limit = 6.0
+lane_count = 4
+validation_rules = [SubResource("Rule_tick")]
+spawns = [SubResource("Spawn_cherrybomb"), SubResource("Spawn_walker_lane0a"), SubResource("Spawn_walker_lane0b"), SubResource("Spawn_jalapeno"), SubResource("Spawn_runner_lane1"), SubResource("Spawn_doomshroom"), SubResource("Spawn_tank_lane2"), SubResource("Spawn_potatomine"), SubResource("Spawn_walker_lane3")]

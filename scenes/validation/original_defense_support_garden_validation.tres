@@ -1,0 +1,97 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_wallnut"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_wallnut"
+lane_id = 0
+x_position = 200.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane0"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 210.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_tallnut"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_tallnut"
+lane_id = 1
+x_position = 200.0
+
+[sub_resource type="Resource" id="Spawn_tank_lane1"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 1
+x_position = 210.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_pumpkin"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_pumpkin"
+lane_id = 2
+x_position = 200.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane2"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 210.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_spikeweed"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_spikeweed"
+lane_id = 3
+x_position = 320.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane3"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 3
+x_position = 340.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_spikerock"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_spikerock"
+lane_id = 4
+x_position = 320.0
+
+[sub_resource type="Resource" id="Spawn_tank_lane4"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 4
+x_position = 340.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"tick"
+description = "at least one game tick"
+event_name = &"game.tick"
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"original_defense_support_garden_validation"
+display_name = "Original Defense Support Garden Validation"
+description = "Showcase: wallnut, tallnut, pumpkin, spikeweed, spikerock and torchwood demonstrating defense and support abilities."
+goals = PackedStringArray("Visual showcase of all original defense and support plants in action.")
+validation_time_limit = 10.0
+lane_count = 5
+validation_rules = [SubResource("Rule_tick")]
+spawns = [SubResource("Spawn_wallnut"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_tallnut"), SubResource("Spawn_tank_lane1"), SubResource("Spawn_pumpkin"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_spikeweed"), SubResource("Spawn_walker_lane3"), SubResource("Spawn_spikerock"), SubResource("Spawn_tank_lane4")]
