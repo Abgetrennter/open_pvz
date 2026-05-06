@@ -125,8 +125,8 @@ const GROUPS := [
 		],
 	},
 	{
-		"group_title": "原版植物移植总览",
-		"group_summary": "已移植的 42 种原版 PVZ 植物按战斗类型分为 8 个展示场景，直观呈现射手、寒冰、投手、生产、蘑菇、爆炸、防御和特殊植物的战斗行为。",
+		"group_title": "原版植物移植展示",
+		"group_summary": "39 种原版 PVZ 植物按战斗类型分为 8 个展示场景，直观呈现射手、寒冰、投手、生产、蘑菇、爆炸、防御和特殊植物的战斗行为。",
 		"color": Color("66bb6a"),
 		"items": [
 			{
@@ -135,8 +135,8 @@ const GROUPS := [
 				"scene": "res://scenes/showcase/original_shooter_garden_showcase.tscn",
 			},
 			{
-				"title": "减速控制园",
-				"summary": "寒冰射手与霜冻豌豆展示减速效果。仙人掌/寒冰菇/猫尾草/冰西瓜因 air 追踪、唤醒状态或升级依赖等机制限制暂未纳入。",
+				"title": "寒冰与控制园",
+				"summary": "寒冰射手、寒冰菇、仙人掌、冰西瓜和猫尾草通过地面、空中、水面与升级上下文展示控制能力。",
 				"scene": "res://scenes/showcase/original_frost_control_garden_showcase.tscn",
 			},
 			{

@@ -9,5 +9,5 @@ scenario = ExtResource("2_scenario")
 allow_restart_input = true
 enable_runtime_snapshot_logging = false
 show_debug_overlay = false
-showcase_title = "减速控制园"
-showcase_summary = "寒冰射手与霜冻豌豆展示减速控制效果。注：仙人掌（air 追踪高度不匹配）、寒冰菇（需唤醒）、猫尾草（需睡莲+air 追踪）、冰西瓜（需西瓜投手升级）因机制限制未纳入直接生成展示。"
+showcase_title = "寒冰与控制园"
+showcase_summary = "寒冰射手、寒冰菇、仙人掌、冰西瓜和猫尾草通过地面、空中、水面与升级上下文展示控制能力。"

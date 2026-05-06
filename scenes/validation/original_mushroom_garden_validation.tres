@@ -1,106 +1,352 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=48 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
-[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="6_card_def"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_puffshroom.tres" id="7_puff_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_fumeshroom.tres" id="8_fume_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_gloomshroom.tres" id="9_gloom_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_seashroom.tres" id="10_sea_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_scaredyshroom.tres" id="11_scaredy_card"]
 
-[sub_resource type="Resource" id="Spawn_puffshroom"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_puffshroom"
-lane_id = 0
-x_position = 160.0
+[sub_resource type="Resource" id="Card_fume_gloom_base"]
+script = ExtResource("6_card_def")
+card_id = &"showcase_fumeshroom_gloom_base"
+display_name = "Fume-shroom Base"
+archetype_id = &"archetype_original_fumeshroom"
+sun_cost = 75
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
 
-[sub_resource type="Resource" id="Spawn_walker_lane0"]
+[sub_resource type="Resource" id="Card_coffee_puff"]
+script = ExtResource("6_card_def")
+card_id = &"showcase_coffee_puff"
+display_name = "Coffee Bean"
+archetype_id = &"archetype_original_coffeebean"
+sun_cost = 75
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="Card_coffee_fume"]
+script = ExtResource("6_card_def")
+card_id = &"showcase_coffee_fume"
+display_name = "Coffee Bean"
+archetype_id = &"archetype_original_coffeebean"
+sun_cost = 75
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="Card_coffee_sea"]
+script = ExtResource("6_card_def")
+card_id = &"showcase_coffee_sea"
+display_name = "Coffee Bean"
+archetype_id = &"archetype_original_coffeebean"
+sun_cost = 75
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="Card_coffee_scaredy"]
+script = ExtResource("6_card_def")
+card_id = &"showcase_coffee_scaredy"
+display_name = "Coffee Bean"
+archetype_id = &"archetype_original_coffeebean"
+sun_cost = 75
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("4_slot_config")
+lane_id = 3
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water", "supports_primary")
+
+[sub_resource type="Resource" id="Spawn_puff_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 0
-x_position = 300.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+x_position = 260.0
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_fumeshroom"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_fumeshroom"
-lane_id = 1
-x_position = 160.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane1"]
+[sub_resource type="Resource" id="Spawn_fume_target_a"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 1
 x_position = 280.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_runner_lane1"]
+[sub_resource type="Resource" id="Spawn_fume_target_b"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
 lane_id = 1
 x_position = 380.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_gloomshroom"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_gloomshroom"
-lane_id = 2
-x_position = 160.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane2"]
+[sub_resource type="Resource" id="Spawn_gloom_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 2
 x_position = 300.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_seashroom"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_seashroom"
-lane_id = 3
-x_position = 160.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane3"]
+[sub_resource type="Resource" id="Spawn_sea_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 3
-x_position = 500.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+x_position = 260.0
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_scaredyshroom"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_scaredyshroom"
-lane_id = 4
-x_position = 160.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane4"]
+[sub_resource type="Resource" id="Spawn_scaredy_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 4
 x_position = 500.0
-spawn_overrides = {
-"move_speed": 0.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Req_puff"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_puffshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee_puff"]
+script = ExtResource("3_request")
+at_time = 0.25
+card_id = &"showcase_coffee_puff"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_fume"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_fumeshroom"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee_fume"]
+script = ExtResource("3_request")
+at_time = 0.25
+card_id = &"showcase_coffee_fume"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_fume_gloom_base"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"showcase_fumeshroom_gloom_base"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_gloom"]
+script = ExtResource("3_request")
+at_time = 0.3
+card_id = &"card_original_gloomshroom"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_sea"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_seashroom"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee_sea"]
+script = ExtResource("3_request")
+at_time = 0.25
+card_id = &"showcase_coffee_sea"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_scaredy"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_scaredyshroom"
+lane_id = 4
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee_scaredy"]
+script = ExtResource("3_request")
+at_time = 0.25
+card_id = &"showcase_coffee_scaredy"
+lane_id = 4
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_puff_awake"]
+script = ExtResource("5_rule")
+rule_id = &"puff_awake"
+description = "Coffee Bean should wake Puff-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_archetype_id": &"archetype_original_puffshroom",
+"state_id": &"awake"
 }
 
-[sub_resource type="Resource" id="Rule_tick"]
-script = ExtResource("3_rule")
-rule_id = &"tick"
-description = "at least one game tick"
-event_name = &"game.tick"
+[sub_resource type="Resource" id="Rule_puff_damage"]
+script = ExtResource("5_rule")
+rule_id = &"puff_damage"
+description = "Awakened Puff-shroom should damage a close target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_puffshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_fume_awake"]
+script = ExtResource("5_rule")
+rule_id = &"fume_awake"
+description = "Coffee Bean should wake Fume-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_archetype_id": &"archetype_original_fumeshroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_fume_pierce"]
+script = ExtResource("5_rule")
+rule_id = &"fume_pierce"
+description = "Awakened Fume-shroom should pierce through two targets."
+event_name = &"entity.damaged"
+min_count = 2
+required_core_values = {
+"source_archetype_id": &"archetype_original_fumeshroom",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_gloom_accept"]
+script = ExtResource("5_rule")
+rule_id = &"gloom_fume_upgrade_accept"
+description = "Gloom-shroom should be accepted as an upgrade over Fume-shroom."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_gloomshroom",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_fumeshroom"
+}
+
+[sub_resource type="Resource" id="Rule_gloom_damage"]
+script = ExtResource("5_rule")
+rule_id = &"gloom_damage"
+description = "Gloom-shroom should damage a nearby target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_gloomshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_sea_awake"]
+script = ExtResource("5_rule")
+rule_id = &"seashroom_awake"
+description = "Coffee Bean should wake Sea-shroom on a water slot."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_archetype_id": &"archetype_original_seashroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_sea_damage"]
+script = ExtResource("5_rule")
+rule_id = &"seashroom_damage"
+description = "Awakened Sea-shroom should damage a close water-lane target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_seashroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_scaredy_awake"]
+script = ExtResource("5_rule")
+rule_id = &"scaredy_awake"
+description = "Coffee Bean should wake Scaredy-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_archetype_id": &"archetype_original_scaredyshroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_scaredy_damage"]
+script = ExtResource("5_rule")
+rule_id = &"scaredy_damage"
+description = "Awakened Scaredy-shroom should damage a forward target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_scaredyshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 4
+}
+
+[sub_resource type="Resource" id="Rule_puff_kill"]
+script = ExtResource("5_rule")
+rule_id = &"puff_kill"
+description = "Awakened Puff-shroom should eventually kill its close target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_puffshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_fume_kill"]
+script = ExtResource("5_rule")
+rule_id = &"fume_kill"
+description = "Awakened Fume-shroom should eventually kill at least one pierced target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_fumeshroom",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_gloom_kill"]
+script = ExtResource("5_rule")
+rule_id = &"gloom_kill"
+description = "Gloom-shroom should eventually kill its nearby target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_gloomshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_sea_kill"]
+script = ExtResource("5_rule")
+rule_id = &"seashroom_kill"
+description = "Awakened Sea-shroom should eventually kill its water-lane target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_seashroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_scaredy_kill"]
+script = ExtResource("5_rule")
+rule_id = &"scaredy_kill"
+description = "Awakened Scaredy-shroom should eventually kill its forward target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_scaredyshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 4
+}
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"original_mushroom_garden_validation"
 display_name = "Original Mushroom Garden Validation"
-description = "Showcase: puffshroom, fumeshroom, gloomshroom, seashroom and scaredyshroom demonstrating the mushroom family."
-goals = PackedStringArray("Visual showcase of all original mushroom plants in action.")
-validation_time_limit = 10.0
+description = "Showcase: puffshroom, fumeshroom, gloomshroom, seashroom and scaredyshroom demonstrating wake, pierce, area, water and long-range mushroom behavior."
+goals = PackedStringArray("Visual showcase of original mushroom plants in action through wake, water and upgrade contexts.")
+validation_time_limit = 45.0
+initial_sun = 3000
 lane_count = 5
-validation_rules = [SubResource("Rule_tick")]
-spawns = [SubResource("Spawn_puffshroom"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_fumeshroom"), SubResource("Spawn_walker_lane1"), SubResource("Spawn_runner_lane1"), SubResource("Spawn_gloomshroom"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_seashroom"), SubResource("Spawn_walker_lane3"), SubResource("Spawn_scaredyshroom"), SubResource("Spawn_walker_lane4")]
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("7_puff_card"), ExtResource("8_fume_card"), SubResource("Card_fume_gloom_base"), ExtResource("9_gloom_card"), ExtResource("10_sea_card"), ExtResource("11_scaredy_card"), SubResource("Card_coffee_puff"), SubResource("Card_coffee_fume"), SubResource("Card_coffee_sea"), SubResource("Card_coffee_scaredy")]
+card_play_requests = [SubResource("Req_puff"), SubResource("Req_coffee_puff"), SubResource("Req_fume"), SubResource("Req_coffee_fume"), SubResource("Req_fume_gloom_base"), SubResource("Req_gloom"), SubResource("Req_sea"), SubResource("Req_coffee_sea"), SubResource("Req_scaredy"), SubResource("Req_coffee_scaredy")]
+validation_rules = [SubResource("Rule_puff_awake"), SubResource("Rule_puff_damage"), SubResource("Rule_fume_awake"), SubResource("Rule_fume_pierce"), SubResource("Rule_gloom_accept"), SubResource("Rule_gloom_damage"), SubResource("Rule_sea_awake"), SubResource("Rule_sea_damage"), SubResource("Rule_scaredy_awake"), SubResource("Rule_scaredy_damage"), SubResource("Rule_puff_kill"), SubResource("Rule_fume_kill"), SubResource("Rule_gloom_kill"), SubResource("Rule_sea_kill"), SubResource("Rule_scaredy_kill")]
+spawns = [SubResource("Spawn_puff_target"), SubResource("Spawn_fume_target_a"), SubResource("Spawn_fume_target_b"), SubResource("Spawn_gloom_target"), SubResource("Spawn_sea_target"), SubResource("Spawn_scaredy_target")]

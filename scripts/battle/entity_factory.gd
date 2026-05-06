@@ -71,9 +71,9 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	var merged_spawn_params := CombatContentResolverRef.merge_spawn_params(spawn_entry, resolved_archetype)
 	for key: Variant in merged_spawn_params.keys():
 		params[key] = merged_spawn_params[key]
-	if runtime_spec.get("max_health") is int and int(runtime_spec.max_health) > 0:
+	if not params.has("max_health") and runtime_spec.get("max_health") is int and int(runtime_spec.max_health) > 0:
 		params["max_health"] = int(runtime_spec.max_health)
-	if runtime_spec.get("hitbox_size") is Vector2 and runtime_spec.hitbox_size != Vector2.ZERO:
+	if not params.has("hitbox_size") and runtime_spec.get("hitbox_size") is Vector2 and runtime_spec.hitbox_size != Vector2.ZERO:
 		params["hitbox_size"] = runtime_spec.hitbox_size
 	if runtime_spec.get("hit_height_band") != null:
 		params["hit_height_band"] = runtime_spec.hit_height_band
@@ -455,10 +455,10 @@ func _merge_projectile_spec_params(
 			merged[key] = params[key]
 	if resolved_projectile_template is ProjectileTemplateRef:
 		merged["projectile_template"] = resolved_projectile_template
-		if not merged.has("flight_profile") and resolved_projectile_template.flight_profile != null:
-			merged["flight_profile"] = resolved_projectile_template.flight_profile
 	if not merged.has("flight_profile") and projectile_flight_profile != null:
 		merged["flight_profile"] = projectile_flight_profile
+	if not merged.has("flight_profile") and resolved_projectile_template is ProjectileTemplateRef and resolved_projectile_template.flight_profile != null:
+		merged["flight_profile"] = resolved_projectile_template.flight_profile
 	if not merged.has("movement_mode") and merged.get("flight_profile", null) is ProjectileFlightProfileRef:
 		merged["movement_mode"] = StringName(merged["flight_profile"].get("move_mode"))
 	return merged

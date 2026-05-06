@@ -106,11 +106,143 @@ spawn_overrides = {
 "move_speed": 0.0
 }
 
-[sub_resource type="Resource" id="Rule_tick"]
+[sub_resource type="Resource" id="Rule_peashooter_damage"]
 script = ExtResource("3_rule")
-rule_id = &"tick"
-description = "at least one game tick"
-event_name = &"game.tick"
+rule_id = &"peashooter_damage"
+description = "Peashooter should damage its lane target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_peashooter",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_repeater_damage"]
+script = ExtResource("3_rule")
+rule_id = &"repeater_damage"
+description = "Repeater should damage its brisk runner target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_repeater",
+"target_archetype_id": &"archetype_brisk_runner",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_gatling_damage"]
+script = ExtResource("3_rule")
+rule_id = &"gatling_damage"
+description = "Gatling Pea should damage the bucket tank target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_gatlingpea",
+"target_archetype_id": &"archetype_bucket_tank",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_threepeater_lane2"]
+script = ExtResource("3_rule")
+rule_id = &"threepeater_lane2"
+description = "Threepeater should damage an adjacent lane 2 target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_threepeater",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_threepeater_lane3"]
+script = ExtResource("3_rule")
+rule_id = &"threepeater_lane3"
+description = "Threepeater should damage its own lane 3 target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_threepeater",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_threepeater_lane4"]
+script = ExtResource("3_rule")
+rule_id = &"threepeater_lane4"
+description = "Threepeater should damage an adjacent lane 4 target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_threepeater",
+"target_lane": 4
+}
+
+[sub_resource type="Resource" id="Rule_splitpea_front"]
+script = ExtResource("3_rule")
+rule_id = &"splitpea_front"
+description = "Split Pea should emit dual projectiles for its forward/backward attack."
+event_name = &"projectile.spawned"
+min_count = 2
+required_core_values = {
+"source_archetype_id": &"archetype_original_splitpea"
+}
+
+[sub_resource type="Resource" id="Rule_splitpea_back"]
+script = ExtResource("3_rule")
+rule_id = &"splitpea_back"
+description = "Split Pea should damage a behind target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_splitpea",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 4
+}
+
+[sub_resource type="Resource" id="Rule_peashooter_kill"]
+script = ExtResource("3_rule")
+rule_id = &"peashooter_kill"
+description = "Peashooter should eventually kill its lane target during an extended run."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_peashooter",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_repeater_kill"]
+script = ExtResource("3_rule")
+rule_id = &"repeater_kill"
+description = "Repeater should eventually kill its lane target during an extended run."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_repeater",
+"target_archetype_id": &"archetype_brisk_runner",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_gatling_kill"]
+script = ExtResource("3_rule")
+rule_id = &"gatling_kill"
+description = "Gatling Pea should eventually kill the bucket tank target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_gatlingpea",
+"target_archetype_id": &"archetype_bucket_tank",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_threepeater_kill"]
+script = ExtResource("3_rule")
+rule_id = &"threepeater_kill"
+description = "Threepeater should eventually kill at least one showcased target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_threepeater",
+"target_archetype_id": &"archetype_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_splitpea_kill"]
+script = ExtResource("3_rule")
+rule_id = &"splitpea_kill"
+description = "Split Pea should eventually kill a behind target during an extended run."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_splitpea",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 4
+}
 
 [resource]
 script = ExtResource("1_scenario")
@@ -118,7 +250,7 @@ scenario_id = &"original_shooter_garden_validation"
 display_name = "Original Shooter Garden Validation"
 description = "Showcase: peashooter, repeater, gatlingpea, threepeater and splitpea each facing a row of zombies."
 goals = PackedStringArray("Visual showcase of all original shooter plants in action.")
-validation_time_limit = 10.0
+validation_time_limit = 45.0
 lane_count = 5
-validation_rules = [SubResource("Rule_tick")]
+validation_rules = [SubResource("Rule_peashooter_damage"), SubResource("Rule_repeater_damage"), SubResource("Rule_gatling_damage"), SubResource("Rule_threepeater_lane2"), SubResource("Rule_threepeater_lane3"), SubResource("Rule_threepeater_lane4"), SubResource("Rule_splitpea_front"), SubResource("Rule_splitpea_back"), SubResource("Rule_peashooter_kill"), SubResource("Rule_repeater_kill"), SubResource("Rule_gatling_kill"), SubResource("Rule_threepeater_kill"), SubResource("Rule_splitpea_kill")]
 spawns = [SubResource("Spawn_peashooter"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_repeater"), SubResource("Spawn_runner_lane1"), SubResource("Spawn_gatlingpea"), SubResource("Spawn_tank_lane2"), SubResource("Spawn_threepeater"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_walker_lane3"), SubResource("Spawn_walker_lane4"), SubResource("Spawn_splitpea"), SubResource("Spawn_walker_behind"), SubResource("Spawn_runner_lane4")]

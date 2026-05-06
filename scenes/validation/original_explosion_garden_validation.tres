@@ -1,91 +1,180 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
 [ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="4_request"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_cherrybomb.tres" id="5_cherry_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_jalapeno.tres" id="6_jalapeno_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_doomshroom.tres" id="7_doom_card"]
 
-[sub_resource type="Resource" id="Spawn_cherrybomb"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_cherrybomb"
-lane_id = 0
-x_position = 300.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane0a"]
+[sub_resource type="Resource" id="Spawn_cherry_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 0
-x_position = 320.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+x_position = 330.0
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_walker_lane0b"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_basic_walker"
-lane_id = 0
-x_position = 380.0
-spawn_overrides = {
-"move_speed": 0.0
-}
-
-[sub_resource type="Resource" id="Spawn_jalapeno"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_jalapeno"
-lane_id = 1
-x_position = 300.0
-
-[sub_resource type="Resource" id="Spawn_runner_lane1"]
+[sub_resource type="Resource" id="Spawn_jalapeno_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
 lane_id = 1
-x_position = 500.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+x_position = 560.0
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_doomshroom"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_doomshroom"
-lane_id = 2
-x_position = 300.0
-
-[sub_resource type="Resource" id="Spawn_tank_lane2"]
+[sub_resource type="Resource" id="Spawn_doom_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_bucket_tank"
 lane_id = 2
-x_position = 360.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+x_position = 580.0
+spawn_overrides = {"move_speed": 0.0}
 
 [sub_resource type="Resource" id="Spawn_potatomine"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_original_potatomine"
 lane_id = 3
-x_position = 300.0
+x_position = 680.0
 
-[sub_resource type="Resource" id="Spawn_walker_lane3"]
+[sub_resource type="Resource" id="Spawn_potato_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 3
-x_position = 320.0
-spawn_overrides = {
-"move_speed": 0.0
+x_position = 700.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Req_cherrybomb"]
+script = ExtResource("4_request")
+at_time = 0.1
+card_id = &"card_original_cherrybomb"
+lane_id = 0
+slot_index = 2
+
+[sub_resource type="Resource" id="Req_jalapeno"]
+script = ExtResource("4_request")
+at_time = 0.2
+card_id = &"card_original_jalapeno"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_doomshroom"]
+script = ExtResource("4_request")
+at_time = 0.3
+card_id = &"card_original_doomshroom"
+lane_id = 2
+slot_index = 2
+
+[sub_resource type="Resource" id="Rule_cherry_damage"]
+script = ExtResource("3_rule")
+rule_id = &"cherrybomb_area_damage"
+description = "Cherry Bomb should damage a nearby target after card placement."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_cherrybomb",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
 }
 
-[sub_resource type="Resource" id="Rule_tick"]
+[sub_resource type="Resource" id="Rule_jalapeno_damage"]
 script = ExtResource("3_rule")
-rule_id = &"tick"
-description = "at least one game tick"
-event_name = &"game.tick"
+rule_id = &"jalapeno_lane_damage"
+description = "Jalapeno should damage a distant target in its lane after card placement."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_jalapeno",
+"target_archetype_id": &"archetype_brisk_runner",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_doom_damage"]
+script = ExtResource("3_rule")
+rule_id = &"doomshroom_area_damage"
+description = "Doom-shroom should damage a nearby tank target after card placement."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_doomshroom",
+"target_archetype_id": &"archetype_bucket_tank",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_potato_armed"]
+script = ExtResource("3_rule")
+rule_id = &"potatomine_armed"
+description = "Potato Mine should enter active state before exploding."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_archetype_id": &"archetype_original_potatomine",
+"state_id": &"active"
+}
+
+[sub_resource type="Resource" id="Rule_potato_damage"]
+script = ExtResource("3_rule")
+rule_id = &"potatomine_damage"
+description = "Potato Mine should damage a close zombie after arming."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_potatomine",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_cherry_kill"]
+script = ExtResource("3_rule")
+rule_id = &"cherrybomb_kill"
+description = "Cherry Bomb should kill its nearby target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cherrybomb",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_jalapeno_kill"]
+script = ExtResource("3_rule")
+rule_id = &"jalapeno_kill"
+description = "Jalapeno should kill the distant target in its lane."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_jalapeno",
+"target_archetype_id": &"archetype_brisk_runner",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_doom_kill"]
+script = ExtResource("3_rule")
+rule_id = &"doomshroom_kill"
+description = "Doom-shroom should kill its nearby tank target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_doomshroom",
+"target_archetype_id": &"archetype_bucket_tank",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_potato_kill"]
+script = ExtResource("3_rule")
+rule_id = &"potatomine_kill"
+description = "Potato Mine should kill the close zombie after arming."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_potatomine",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 3
+}
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"original_explosion_garden_validation"
 display_name = "Original Explosion Garden Validation"
-description = "Showcase: cherrybomb, jalapeno, doomshroom and potatomine demonstrating various explosion effects."
-goals = PackedStringArray("Visual showcase of all original explosion plants in action.")
-validation_time_limit = 6.0
+description = "Showcase: cherrybomb, jalapeno, doomshroom and potatomine demonstrating placement-triggered and armed explosion effects."
+goals = PackedStringArray("Visual showcase of original explosion plants using their real trigger paths.")
+validation_time_limit = 20.0
+initial_sun = 2000
 lane_count = 4
-validation_rules = [SubResource("Rule_tick")]
-spawns = [SubResource("Spawn_cherrybomb"), SubResource("Spawn_walker_lane0a"), SubResource("Spawn_walker_lane0b"), SubResource("Spawn_jalapeno"), SubResource("Spawn_runner_lane1"), SubResource("Spawn_doomshroom"), SubResource("Spawn_tank_lane2"), SubResource("Spawn_potatomine"), SubResource("Spawn_walker_lane3")]
+card_defs = [ExtResource("5_cherry_card"), ExtResource("6_jalapeno_card"), ExtResource("7_doom_card")]
+card_play_requests = [SubResource("Req_cherrybomb"), SubResource("Req_jalapeno"), SubResource("Req_doomshroom")]
+validation_rules = [SubResource("Rule_cherry_damage"), SubResource("Rule_jalapeno_damage"), SubResource("Rule_doom_damage"), SubResource("Rule_potato_armed"), SubResource("Rule_potato_damage"), SubResource("Rule_cherry_kill"), SubResource("Rule_jalapeno_kill"), SubResource("Rule_doom_kill"), SubResource("Rule_potato_kill")]
+spawns = [SubResource("Spawn_cherry_target"), SubResource("Spawn_jalapeno_target"), SubResource("Spawn_doom_target"), SubResource("Spawn_potatomine"), SubResource("Spawn_potato_target")]

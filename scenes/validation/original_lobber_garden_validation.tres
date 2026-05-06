@@ -29,7 +29,7 @@ x_position = 160.0
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 1
-x_position = 500.0
+x_position = 320.0
 spawn_overrides = {
 "move_speed": 0.0
 }
@@ -73,11 +73,93 @@ spawn_overrides = {
 "move_speed": 0.0
 }
 
-[sub_resource type="Resource" id="Rule_tick"]
+[sub_resource type="Resource" id="Rule_cabbage_damage"]
 script = ExtResource("3_rule")
-rule_id = &"tick"
-description = "at least one game tick"
-event_name = &"game.tick"
+rule_id = &"cabbage_damage"
+description = "Cabbage-pult should damage its walker target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cabbagepult",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_kernel_damage"]
+script = ExtResource("3_rule")
+rule_id = &"kernel_damage"
+description = "Kernel-pult should damage its walker target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_kernelpult",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_melon_splash"]
+script = ExtResource("3_rule")
+rule_id = &"melon_splash"
+description = "Melon-pult should splash damage clustered targets."
+event_name = &"entity.damaged"
+min_count = 2
+required_tags = PackedStringArray("explode", "projectile.hit")
+required_core_values = {
+"source_archetype_id": &"archetype_original_melonpult",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_starfruit_damage"]
+script = ExtResource("3_rule")
+rule_id = &"starfruit_damage"
+description = "Starfruit should damage its lane target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_starfruit",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_cabbage_kill"]
+script = ExtResource("3_rule")
+rule_id = &"cabbage_kill"
+description = "Cabbage-pult should eventually kill its walker target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cabbagepult",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_kernel_kill"]
+script = ExtResource("3_rule")
+rule_id = &"kernel_kill"
+description = "Kernel-pult should eventually kill its walker target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_kernelpult",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_melon_kill"]
+script = ExtResource("3_rule")
+rule_id = &"melon_kill"
+description = "Melon-pult should eventually kill at least one clustered target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_melonpult",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_starfruit_kill"]
+script = ExtResource("3_rule")
+rule_id = &"starfruit_kill"
+description = "Starfruit should eventually kill its lane target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_starfruit",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 3
+}
 
 [resource]
 script = ExtResource("1_scenario")
@@ -85,7 +167,7 @@ scenario_id = &"original_lobber_garden_validation"
 display_name = "Original Lobber Garden Validation"
 description = "Showcase: cabbagepult, kernelpult, melonpult and starfruit demonstrating lob and multi-direction projectile attacks."
 goals = PackedStringArray("Visual showcase of all original lobber plants in action.")
-validation_time_limit = 10.0
+validation_time_limit = 90.0
 lane_count = 4
-validation_rules = [SubResource("Rule_tick")]
+validation_rules = [SubResource("Rule_cabbage_damage"), SubResource("Rule_kernel_damage"), SubResource("Rule_melon_splash"), SubResource("Rule_starfruit_damage"), SubResource("Rule_cabbage_kill"), SubResource("Rule_kernel_kill"), SubResource("Rule_melon_kill"), SubResource("Rule_starfruit_kill")]
 spawns = [SubResource("Spawn_cabbagepult"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_kernelpult"), SubResource("Spawn_walker_lane1"), SubResource("Spawn_melonpult"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_runner_lane2"), SubResource("Spawn_starfruit"), SubResource("Spawn_walker_lane3")]

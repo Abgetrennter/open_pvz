@@ -1,8 +1,22 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
-[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_iceshroom.tres" id="6_ice_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_melonpult.tres" id="7_melon_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_wintermelon.tres" id="8_winter_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_lilypad.tres" id="9_lily_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_cattail.tres" id="10_cattail_card"]
+
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("4_slot_config")
+lane_id = 4
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water")
 
 [sub_resource type="Resource" id="Spawn_snowpea"]
 script = ExtResource("2_spawn")
@@ -10,62 +24,230 @@ archetype_id = &"archetype_original_snowpea"
 lane_id = 0
 x_position = 160.0
 
-[sub_resource type="Resource" id="Spawn_walker_lane0"]
+[sub_resource type="Resource" id="Spawn_snowpea_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 500.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_frost_pea"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_frost_pea"
-lane_id = 1
-x_position = 160.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane1"]
+[sub_resource type="Resource" id="Spawn_ice_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 1
-x_position = 500.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+x_position = 420.0
+spawn_overrides = {"max_health": 20, "move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_snowpea_fast"]
+[sub_resource type="Resource" id="Spawn_cactus"]
 script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_snowpea"
+archetype_id = &"archetype_original_cactus"
 lane_id = 2
 x_position = 160.0
-spawn_overrides = {
-"interval": 0.8,
-"speed": 300.0
-}
 
-[sub_resource type="Resource" id="Spawn_runner_lane2"]
+[sub_resource type="Resource" id="Spawn_cactus_air_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 2
+x_position = 760.0
+spawn_overrides = {"max_health": 100, "move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_winter_target_a"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 3
+x_position = 500.0
+spawn_overrides = {"max_health": 100, "move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_winter_target_b"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
-lane_id = 2
-x_position = 500.0
-spawn_overrides = {
-"move_speed": 0.0
+lane_id = 3
+x_position = 560.0
+spawn_overrides = {"max_health": 120, "move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_cattail_air_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 4
+x_position = 480.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Req_iceshroom"]
+script = ExtResource("3_request")
+at_time = 0.1
+card_id = &"card_original_iceshroom"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_melon"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_melonpult"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_winter"]
+script = ExtResource("3_request")
+at_time = 0.3
+card_id = &"card_original_wintermelon"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_lily"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_lilypad"
+lane_id = 4
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_cattail"]
+script = ExtResource("3_request")
+at_time = 0.3
+card_id = &"card_original_cattail"
+lane_id = 4
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_snowpea_slow"]
+script = ExtResource("5_rule")
+rule_id = &"snowpea_slow"
+description = "Snow Pea should apply slowed status to a ground target."
+event_name = &"entity.status_applied"
+required_core_values = {
+"source_archetype_id": &"archetype_original_snowpea",
+"status_id": &"slowed",
+"target_archetype_id": &"archetype_basic_walker"
 }
 
-[sub_resource type="Resource" id="Rule_tick"]
-script = ExtResource("3_rule")
-rule_id = &"tick"
-description = "at least one game tick"
-event_name = &"game.tick"
+[sub_resource type="Resource" id="Rule_iceshroom_damage"]
+script = ExtResource("5_rule")
+rule_id = &"iceshroom_damage"
+description = "Ice-shroom should damage a nearby target through placement."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_iceshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_cactus_air_damage"]
+script = ExtResource("5_rule")
+rule_id = &"cactus_air_damage"
+description = "Cactus should damage an air target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cactus",
+"target_archetype_id": &"archetype_air_scout",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_winter_accept"]
+script = ExtResource("5_rule")
+rule_id = &"wintermelon_upgrade_accept"
+description = "Winter Melon should be accepted as an upgrade over Melon-pult."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_wintermelon",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_melonpult"
+}
+
+[sub_resource type="Resource" id="Rule_winter_splash"]
+script = ExtResource("5_rule")
+rule_id = &"wintermelon_splash"
+description = "Winter Melon should deal splash damage to clustered targets."
+event_name = &"entity.damaged"
+min_count = 2
+required_tags = PackedStringArray("explode", "projectile.hit")
+required_core_values = {
+"source_archetype_id": &"archetype_original_wintermelon",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_cattail_accept"]
+script = ExtResource("5_rule")
+rule_id = &"cattail_lilypad_upgrade_accept"
+description = "Cattail should be accepted as an upgrade over Lily Pad."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_cattail",
+"placement_role": &"upgrade",
+"support_archetype_id": &"archetype_original_lilypad"
+}
+
+[sub_resource type="Resource" id="Rule_cattail_air_damage"]
+script = ExtResource("5_rule")
+rule_id = &"cattail_air_damage"
+description = "Cattail should damage a tracked target after Lily Pad upgrade placement."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("projectile.hit")
+required_core_values = {
+"source_archetype_id": &"archetype_original_cattail"
+}
+
+[sub_resource type="Resource" id="Rule_snowpea_kill"]
+script = ExtResource("5_rule")
+rule_id = &"snowpea_kill"
+description = "Snow Pea should eventually kill its slowed ground target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_snowpea",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_iceshroom_kill"]
+script = ExtResource("5_rule")
+rule_id = &"iceshroom_kill"
+description = "Ice-shroom should kill its nearby placement target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_iceshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_cactus_air_kill"]
+script = ExtResource("5_rule")
+rule_id = &"cactus_air_kill"
+description = "Cactus should eventually kill the air target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cactus",
+"target_archetype_id": &"archetype_air_scout",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_wintermelon_kill"]
+script = ExtResource("5_rule")
+rule_id = &"wintermelon_kill"
+description = "Winter Melon should eventually kill at least one clustered target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_wintermelon",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_cattail_kill"]
+script = ExtResource("5_rule")
+rule_id = &"cattail_kill"
+description = "Cattail should eventually kill a tracked target during an extended run."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cattail"
+}
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"original_frost_control_garden_validation"
 display_name = "Original Frost Control Garden Validation"
-description = "Showcase: snowpea and frost_pea demonstrating slow and freeze control against ground targets. Note: cactus/iceshroom/cattail/wintermelon excluded due to air-tracking mismatch, sleep-state prerequisite, upgrade dependency or air-height band issues."
-goals = PackedStringArray("Visual showcase of frost and control plants that work with direct spawn.")
-validation_time_limit = 10.0
-lane_count = 3
-validation_rules = [SubResource("Rule_tick")]
-spawns = [SubResource("Spawn_snowpea"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_frost_pea"), SubResource("Spawn_walker_lane1"), SubResource("Spawn_snowpea_fast"), SubResource("Spawn_runner_lane2")]
+description = "Showcase: snowpea, iceshroom, cactus, wintermelon and cattail demonstrating slow, freeze, air targeting, splash slow and tracking through their required contexts."
+goals = PackedStringArray("Visual showcase of original frost and control plants using ground, air, water and upgrade prerequisites.")
+validation_time_limit = 90.0
+initial_sun = 3000
+lane_count = 5
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("6_ice_card"), ExtResource("7_melon_card"), ExtResource("8_winter_card"), ExtResource("9_lily_card"), ExtResource("10_cattail_card")]
+card_play_requests = [SubResource("Req_iceshroom"), SubResource("Req_melon"), SubResource("Req_winter"), SubResource("Req_lily"), SubResource("Req_cattail")]
+validation_rules = [SubResource("Rule_snowpea_slow"), SubResource("Rule_iceshroom_damage"), SubResource("Rule_cactus_air_damage"), SubResource("Rule_winter_accept"), SubResource("Rule_winter_splash"), SubResource("Rule_cattail_accept"), SubResource("Rule_cattail_air_damage"), SubResource("Rule_snowpea_kill"), SubResource("Rule_iceshroom_kill"), SubResource("Rule_cactus_air_kill"), SubResource("Rule_wintermelon_kill"), SubResource("Rule_cattail_kill")]
+spawns = [SubResource("Spawn_snowpea"), SubResource("Spawn_snowpea_target"), SubResource("Spawn_ice_target"), SubResource("Spawn_cactus"), SubResource("Spawn_cactus_air_target"), SubResource("Spawn_winter_target_a"), SubResource("Spawn_winter_target_b"), SubResource("Spawn_cattail_air_target")]

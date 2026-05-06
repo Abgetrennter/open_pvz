@@ -678,6 +678,54 @@
     "layers": ["core"]
   },
   {
+    "id": "original_shooter_garden_validation",
+    "scenario": "res://scenes/validation/original_shooter_garden_validation.tres",
+    "description": "Showcase validation for original shooter plants with per-plant damage checks.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_frost_control_garden_validation",
+    "scenario": "res://scenes/validation/original_frost_control_garden_validation.tres",
+    "description": "Showcase validation for original frost/control plants across slow, air, water and upgrade contexts.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_lobber_garden_validation",
+    "scenario": "res://scenes/validation/original_lobber_garden_validation.tres",
+    "description": "Showcase validation for original lobber plants with hit and splash checks.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_production_garden_validation",
+    "scenario": "res://scenes/validation/original_production_garden_validation.tres",
+    "description": "Showcase validation for original production plants with sun, coin, wake and upgrade checks.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_mushroom_garden_validation",
+    "scenario": "res://scenes/validation/original_mushroom_garden_validation.tres",
+    "description": "Showcase validation for original mushroom plants through wake, water and upgrade contexts.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_explosion_garden_validation",
+    "scenario": "res://scenes/validation/original_explosion_garden_validation.tres",
+    "description": "Showcase validation for original explosion plants with placement-triggered and armed effects.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_defense_support_garden_validation",
+    "scenario": "res://scenes/validation/original_defense_support_garden_validation.tres",
+    "description": "Showcase validation for original defense/support plants with damage, cover, upgrade and support checks.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_special_garden_validation",
+    "scenario": "res://scenes/validation/original_special_garden_validation.tres",
+    "description": "Showcase validation for original special plants across placement, water, upgrade, air and wake contexts.",
+    "layers": ["showcase", "core"]
+  },
+  {
     "id": "registry_duplicate_id_guardrail",
     "scenario": "res://scenes/validation/registry_duplicate_id_guardrail.tres",
     "description": "Validates that duplicate contributor ids are rejected by RegistryBase and surfaced as protocol issues.",

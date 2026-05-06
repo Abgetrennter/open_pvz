@@ -1,8 +1,13 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
-[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_peashooter.tres" id="5_peashooter_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_pumpkin.tres" id="6_pumpkin_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_spikeweed.tres" id="7_spikeweed_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_spikerock.tres" id="8_spikerock_card"]
 
 [sub_resource type="Resource" id="Spawn_wallnut"]
 script = ExtResource("2_spawn")
@@ -10,14 +15,12 @@ archetype_id = &"archetype_original_wallnut"
 lane_id = 0
 x_position = 200.0
 
-[sub_resource type="Resource" id="Spawn_walker_lane0"]
+[sub_resource type="Resource" id="Spawn_wallnut_biter"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 210.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+spawn_overrides = {"move_speed": 0.0}
 
 [sub_resource type="Resource" id="Spawn_tallnut"]
 script = ExtResource("2_spawn")
@@ -25,73 +28,163 @@ archetype_id = &"archetype_original_tallnut"
 lane_id = 1
 x_position = 200.0
 
-[sub_resource type="Resource" id="Spawn_tank_lane1"]
+[sub_resource type="Resource" id="Spawn_tallnut_biter"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_bucket_tank"
 lane_id = 1
 x_position = 210.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_pumpkin"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_pumpkin"
-lane_id = 2
-x_position = 200.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane2"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_basic_walker"
-lane_id = 2
-x_position = 210.0
-spawn_overrides = {
-"move_speed": 0.0
-}
-
-[sub_resource type="Resource" id="Spawn_spikeweed"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_spikeweed"
-lane_id = 3
-x_position = 320.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane3"]
+[sub_resource type="Resource" id="Spawn_spike_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 3
-x_position = 340.0
-spawn_overrides = {
-"move_speed": 0.0
+x_position = 180.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_torchwood"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_torchwood"
+lane_id = 4
+x_position = 300.0
+
+[sub_resource type="Resource" id="Spawn_peashooter_torch"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_peashooter"
+lane_id = 4
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_torch_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 4
+x_position = 580.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Req_pumpkin_primary"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_peashooter"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_pumpkin"]
+script = ExtResource("3_request")
+at_time = 0.3
+card_id = &"card_original_pumpkin"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_spikeweed"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_spikeweed"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_spikerock"]
+script = ExtResource("3_request")
+at_time = 0.3
+card_id = &"card_original_spikerock"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_wallnut_damaged"]
+script = ExtResource("4_rule")
+rule_id = &"wallnut_damaged"
+description = "Wall-nut should receive damage from a zombie bite."
+event_name = &"entity.damaged"
+required_core_values = {
+"target_archetype_id": &"archetype_original_wallnut",
+"target_lane": 0
 }
 
-[sub_resource type="Resource" id="Spawn_spikerock"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_spikerock"
-lane_id = 4
-x_position = 320.0
-
-[sub_resource type="Resource" id="Spawn_tank_lane4"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_bucket_tank"
-lane_id = 4
-x_position = 340.0
-spawn_overrides = {
-"move_speed": 0.0
+[sub_resource type="Resource" id="Rule_tallnut_damaged"]
+script = ExtResource("4_rule")
+rule_id = &"tallnut_damaged"
+description = "Tall-nut should receive damage from a tank bite."
+event_name = &"entity.damaged"
+required_core_values = {
+"target_archetype_id": &"archetype_original_tallnut",
+"target_lane": 1
 }
 
-[sub_resource type="Resource" id="Rule_tick"]
-script = ExtResource("3_rule")
-rule_id = &"tick"
-description = "at least one game tick"
-event_name = &"game.tick"
+[sub_resource type="Resource" id="Rule_pumpkin_accept"]
+script = ExtResource("4_rule")
+rule_id = &"pumpkin_cover_accept"
+description = "Pumpkin should be accepted as cover over a primary plant."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_pumpkin",
+"placement_role": &"cover",
+"primary_archetype_id": &"archetype_original_peashooter"
+}
+
+[sub_resource type="Resource" id="Rule_spikeweed_damage"]
+script = ExtResource("4_rule")
+rule_id = &"spikeweed_ground_damage"
+description = "Spikeweed should deal ground damage to a nearby zombie."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("ground_damage")
+required_core_values = {
+"source_archetype_id": &"archetype_original_spikeweed",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_spikerock_accept"]
+script = ExtResource("4_rule")
+rule_id = &"spikerock_upgrade_accept"
+description = "Spikerock should be accepted as an upgrade over Spikeweed."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_spikerock",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_spikeweed"
+}
+
+[sub_resource type="Resource" id="Rule_torchwood_combo"]
+script = ExtResource("4_rule")
+rule_id = &"torchwood_combo_damage"
+description = "Peashooter behind Torchwood should damage a target through the support lane."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_peashooter",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 4
+}
+
+[sub_resource type="Resource" id="Rule_spikeweed_kill"]
+script = ExtResource("4_rule")
+rule_id = &"spikeweed_ground_kill"
+description = "Spikeweed should eventually kill its nearby ground target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_spikeweed",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 3
+}
+
+[sub_resource type="Resource" id="Rule_torchwood_combo_kill"]
+script = ExtResource("4_rule")
+rule_id = &"torchwood_combo_kill"
+description = "Peashooter behind Torchwood should eventually kill the support-lane target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_peashooter",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 4
+}
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"original_defense_support_garden_validation"
 display_name = "Original Defense Support Garden Validation"
-description = "Showcase: wallnut, tallnut, pumpkin, spikeweed, spikerock and torchwood demonstrating defense and support abilities."
-goals = PackedStringArray("Visual showcase of all original defense and support plants in action.")
-validation_time_limit = 10.0
+description = "Showcase: wallnut, tallnut, pumpkin, spikeweed, spikerock and torchwood demonstrating defense, cover, ground damage, upgrade and projectile support behavior."
+goals = PackedStringArray("Visual showcase of original defense and support plants in action.")
+validation_time_limit = 45.0
+initial_sun = 2000
 lane_count = 5
-validation_rules = [SubResource("Rule_tick")]
-spawns = [SubResource("Spawn_wallnut"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_tallnut"), SubResource("Spawn_tank_lane1"), SubResource("Spawn_pumpkin"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_spikeweed"), SubResource("Spawn_walker_lane3"), SubResource("Spawn_spikerock"), SubResource("Spawn_tank_lane4")]
+card_defs = [ExtResource("5_peashooter_card"), ExtResource("6_pumpkin_card"), ExtResource("7_spikeweed_card"), ExtResource("8_spikerock_card")]
+card_play_requests = [SubResource("Req_pumpkin_primary"), SubResource("Req_pumpkin"), SubResource("Req_spikeweed"), SubResource("Req_spikerock")]
+validation_rules = [SubResource("Rule_wallnut_damaged"), SubResource("Rule_tallnut_damaged"), SubResource("Rule_pumpkin_accept"), SubResource("Rule_spikeweed_damage"), SubResource("Rule_spikerock_accept"), SubResource("Rule_torchwood_combo"), SubResource("Rule_spikeweed_kill"), SubResource("Rule_torchwood_combo_kill")]
+spawns = [SubResource("Spawn_wallnut"), SubResource("Spawn_wallnut_biter"), SubResource("Spawn_tallnut"), SubResource("Spawn_tallnut_biter"), SubResource("Spawn_spike_target"), SubResource("Spawn_torchwood"), SubResource("Spawn_peashooter_torch"), SubResource("Spawn_torch_target")]

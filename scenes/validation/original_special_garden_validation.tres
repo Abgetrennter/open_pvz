@@ -1,103 +1,285 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=37 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
-[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_squash.tres" id="6_squash_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_tanglekelp.tres" id="7_tangle_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_kernelpult.tres" id="8_kernel_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_cobcannon.tres" id="9_cob_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_blover.tres" id="10_blover_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_hypnoshroom.tres" id="11_hypno_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_coffeebean.tres" id="12_coffee_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_chomper.tres" id="13_chomper_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="14_card_def"]
 
-[sub_resource type="Resource" id="Spawn_chomper"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_chomper"
-lane_id = 0
-x_position = 160.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane0"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_basic_walker"
-lane_id = 0
-x_position = 220.0
-spawn_overrides = {
-"move_speed": 0.0
-}
-
-[sub_resource type="Resource" id="Spawn_squash"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_squash"
-lane_id = 1
-x_position = 160.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane1"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_basic_walker"
-lane_id = 1
-x_position = 300.0
-spawn_overrides = {
-"move_speed": 0.0
-}
-
-[sub_resource type="Resource" id="Spawn_tanglekelp"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_tanglekelp"
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("4_slot_config")
 lane_id = 2
-x_position = 160.0
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water", "supports_primary")
 
-[sub_resource type="Resource" id="Spawn_walker_lane2"]
+[sub_resource type="Resource" id="Spawn_chomper_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 300.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_squash_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 1
+x_position = 560.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_tangle_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 2
-x_position = 300.0
-spawn_overrides = {
-"move_speed": 0.0
-}
+x_position = 205.0
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_cobcannon"]
+[sub_resource type="Resource" id="Spawn_cob_target"]
 script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_cobcannon"
+archetype_id = &"archetype_bucket_tank"
 lane_id = 3
-x_position = 160.0
+x_position = 240.0
+spawn_overrides = {"move_speed": 0.0}
 
-[sub_resource type="Resource" id="Spawn_walker_lane3"]
+[sub_resource type="Resource" id="Spawn_air_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 4
+x_position = 360.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_hypno_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
+lane_id = 5
+x_position = 205.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Req_squash"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_squash"
+lane_id = 1
+slot_index = 4
+
+[sub_resource type="Resource" id="Req_chomper"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_chomper"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Req_tangle"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_tanglekelp"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_kernel"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_kernelpult"
 lane_id = 3
-x_position = 500.0
-spawn_overrides = {
-"move_speed": 0.0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_kernel_neighbor"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_kernelpult_neighbor"
+lane_id = 3
+slot_index = 1
+
+[sub_resource type="Resource" id="Req_cob"]
+script = ExtResource("3_request")
+at_time = 0.3
+card_id = &"card_original_cobcannon"
+lane_id = 3
+slot_index = 0
+
+[sub_resource type="Resource" id="Card_kernel_neighbor"]
+script = ExtResource("14_card_def")
+card_id = &"card_original_kernelpult_neighbor"
+display_name = "Kernel-pult Neighbor"
+archetype_id = &"archetype_original_kernelpult"
+sun_cost = 100
+cooldown_seconds = 7.5
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="Req_blover"]
+script = ExtResource("3_request")
+at_time = 0.1
+card_id = &"card_original_blover"
+lane_id = 4
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_hypno"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_hypnoshroom"
+lane_id = 5
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee"]
+script = ExtResource("3_request")
+at_time = 0.25
+card_id = &"card_original_coffeebean"
+lane_id = 5
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_chomper_damage"]
+script = ExtResource("5_rule")
+rule_id = &"chomper_devour_damage"
+description = "Chomper should damage a close zombie target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_chomper",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
 }
 
-[sub_resource type="Resource" id="Spawn_blover"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_blover"
-lane_id = 4
-x_position = 160.0
-
-[sub_resource type="Resource" id="Spawn_hypnoshroom"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_original_hypnoshroom"
-lane_id = 4
-x_position = 260.0
-
-[sub_resource type="Resource" id="Spawn_walker_lane4"]
-script = ExtResource("2_spawn")
-archetype_id = &"archetype_basic_walker"
-lane_id = 4
-x_position = 340.0
-spawn_overrides = {
-"move_speed": 0.0
+[sub_resource type="Resource" id="Rule_squash_damage"]
+script = ExtResource("5_rule")
+rule_id = &"squash_place_damage"
+description = "Squash should damage its target through the placement path."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 1
 }
 
-[sub_resource type="Resource" id="Rule_tick"]
-script = ExtResource("3_rule")
-rule_id = &"tick"
-description = "at least one game tick"
-event_name = &"game.tick"
+[sub_resource type="Resource" id="Rule_tangle_accept"]
+script = ExtResource("5_rule")
+rule_id = &"tangle_water_accept"
+description = "Tangle Kelp should be accepted on a water slot."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_tanglekelp",
+"placement_role": &"primary",
+"slot_type": &"water"
+}
+
+[sub_resource type="Resource" id="Rule_tangle_damage"]
+script = ExtResource("5_rule")
+rule_id = &"tangle_damage"
+description = "Tangle Kelp should damage a close water-lane target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_tanglekelp",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_cob_accept"]
+script = ExtResource("5_rule")
+rule_id = &"cob_kernel_upgrade_accept"
+description = "Cob Cannon should be accepted as an upgrade over Kernel-pult."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_cobcannon",
+"placement_role": &"upgrade",
+"primary_archetype_id": &"archetype_original_kernelpult"
+}
+
+[sub_resource type="Resource" id="Rule_blover_damage"]
+script = ExtResource("5_rule")
+rule_id = &"blover_air_damage"
+description = "Blover should affect an air target."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_blover",
+"target_archetype_id": &"archetype_air_scout",
+"target_lane": 4
+}
+
+[sub_resource type="Resource" id="Rule_hypno_awake"]
+script = ExtResource("5_rule")
+rule_id = &"hypnoshroom_awake"
+description = "Coffee Bean should wake Hypno-shroom."
+event_name = &"entity.state_entered"
+required_core_values = {
+"source_archetype_id": &"archetype_original_hypnoshroom",
+"state_id": &"awake"
+}
+
+[sub_resource type="Resource" id="Rule_hypno_team_switch"]
+script = ExtResource("5_rule")
+rule_id = &"hypnoshroom_team_switch"
+description = "Awakened Hypno-shroom should convert a close zombie."
+event_name = &"entity.team_switched"
+required_tags = PackedStringArray("team_switch", "hypnosis")
+required_core_values = {
+"source_archetype_id": &"archetype_original_hypnoshroom",
+"target_archetype_id": &"archetype_basic_walker",
+"new_team": &"plant"
+}
+
+[sub_resource type="Resource" id="Rule_chomper_kill"]
+script = ExtResource("5_rule")
+rule_id = &"chomper_devour_kill"
+description = "Chomper should kill its close zombie target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_chomper",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_squash_kill"]
+script = ExtResource("5_rule")
+rule_id = &"squash_place_kill"
+description = "Squash should kill its target through the placement path."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_tangle_kill"]
+script = ExtResource("5_rule")
+rule_id = &"tangle_kill"
+description = "Tangle Kelp should kill its close water-lane target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_tanglekelp",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 2
+}
+
+[sub_resource type="Resource" id="Rule_blover_kill"]
+script = ExtResource("5_rule")
+rule_id = &"blover_air_kill"
+description = "Blover should kill its air target."
+event_name = &"entity.died"
+required_core_values = {
+"source_archetype_id": &"archetype_original_blover",
+"target_archetype_id": &"archetype_air_scout",
+"target_lane": 4
+}
 
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"original_special_garden_validation"
 display_name = "Original Special Garden Validation"
-description = "Showcase: chomper, squash, tanglekelp, cobcannon, blover and hypnoshroom demonstrating unique special abilities."
-goals = PackedStringArray("Visual showcase of all original special plants in action.")
-validation_time_limit = 8.0
-lane_count = 5
-validation_rules = [SubResource("Rule_tick")]
-spawns = [SubResource("Spawn_chomper"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_squash"), SubResource("Spawn_walker_lane1"), SubResource("Spawn_tanglekelp"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_cobcannon"), SubResource("Spawn_walker_lane3"), SubResource("Spawn_blover"), SubResource("Spawn_hypnoshroom"), SubResource("Spawn_walker_lane4")]
+description = "Showcase: chomper, squash, tanglekelp, cobcannon, blover and hypnoshroom demonstrating special abilities and manual-upgrade readiness through their required contexts."
+goals = PackedStringArray("Visual showcase of original special plants with placement, water, upgrade, air-target and wake prerequisites.", "Verify Cob Cannon reaches its real upgrade placement context; manual firing is not auto-triggered by this scene.")
+validation_time_limit = 20.0
+initial_sun = 3000
+lane_count = 6
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("6_squash_card"), ExtResource("7_tangle_card"), ExtResource("8_kernel_card"), ExtResource("9_cob_card"), ExtResource("10_blover_card"), ExtResource("11_hypno_card"), ExtResource("12_coffee_card"), ExtResource("13_chomper_card"), SubResource("Card_kernel_neighbor")]
+card_play_requests = [SubResource("Req_chomper"), SubResource("Req_squash"), SubResource("Req_tangle"), SubResource("Req_kernel"), SubResource("Req_kernel_neighbor"), SubResource("Req_cob"), SubResource("Req_blover"), SubResource("Req_hypno"), SubResource("Req_coffee")]
+validation_rules = [SubResource("Rule_chomper_damage"), SubResource("Rule_squash_damage"), SubResource("Rule_tangle_accept"), SubResource("Rule_tangle_damage"), SubResource("Rule_cob_accept"), SubResource("Rule_blover_damage"), SubResource("Rule_hypno_awake"), SubResource("Rule_hypno_team_switch"), SubResource("Rule_chomper_kill"), SubResource("Rule_squash_kill"), SubResource("Rule_tangle_kill"), SubResource("Rule_blover_kill")]
+spawns = [SubResource("Spawn_chomper_target"), SubResource("Spawn_squash_target"), SubResource("Spawn_tangle_target"), SubResource("Spawn_cob_target"), SubResource("Spawn_air_target"), SubResource("Spawn_hypno_target")]
