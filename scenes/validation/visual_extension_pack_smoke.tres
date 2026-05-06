@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally with new visual register kinds added to ExtensionPackCatalog"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_registry_probe"]
+script = ExtResource("2_rule")
+rule_id = &"visual_register_kinds_ready"
+description = "visual registries should initialize"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"registry",
+"result": &"passed"
+}
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_register_kind_probe"]
+script = ExtResource("2_rule")
+rule_id = &"visual_extension_register_kinds_allowed"
+description = "visual register kinds should be accepted by ExtensionPackCatalog"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"extension_register_kinds",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_extension_pack_smoke"
+display_name = "Visual Extension Pack Smoke"
+description = "Verify that the new visual register kinds (visual_cues, visual_fx, audio_cues, visual_profiles) are accepted by ExtensionPackCatalog and battle runs normally."
+goals = PackedStringArray("Verify visual_cues register kind is accepted by ExtensionPackCatalog.", "Verify visual_fx register kind is accepted by ExtensionPackCatalog.", "Verify audio_cues register kind is accepted by ExtensionPackCatalog.", "Verify visual_profiles register kind is accepted by ExtensionPackCatalog.", "Verify battle runs without errors even with new register kinds.")
+validation_time_limit = 2.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_registry_probe"), SubResource("Rule_register_kind_probe")]

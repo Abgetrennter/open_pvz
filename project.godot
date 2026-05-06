@@ -29,6 +29,10 @@ EffectRegistry="*res://autoload/EffectRegistry.gd"
 ControllerRegistry="*res://autoload/ControllerRegistry.gd"
 ProjectileMovementRegistry="*res://autoload/ProjectileMovementRegistry.gd"
 GameState="*res://autoload/GameState.gd"
+VisualCueRegistry="*res://autoload/VisualCueRegistry.gd"
+VisualFxRegistry="*res://autoload/VisualFxRegistry.gd"
+AudioCueRegistry="*res://autoload/AudioCueRegistry.gd"
+VisualProfileRegistry="*res://autoload/VisualProfileRegistry.gd"
 
 [display]
 

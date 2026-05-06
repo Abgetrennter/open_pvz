@@ -7,6 +7,7 @@ class_name CombatArchetype
 @export var tags: PackedStringArray = PackedStringArray()
 @export var root_scene: PackedScene
 @export var visual_scene: PackedScene
+@export var visual_profile_id: StringName = StringName()
 @export var required_components: PackedStringArray = PackedStringArray()
 @export var optional_components: PackedStringArray = PackedStringArray()
 @export var placement_role: StringName = &"primary"

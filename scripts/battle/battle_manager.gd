@@ -12,6 +12,9 @@ const BattleScenarioProviderRef = preload("res://scripts/battle/battle_scenario_
 const BattleSubsystemHostRef = preload("res://scripts/battle/battle_subsystem_host.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const DebugOverlayRef = preload("res://scripts/debug/debug_overlay.gd")
+const VisualFeedbackHostRef = preload("res://scripts/visual/visual_feedback_host.gd")
+const VisualStageLayerServiceRef = preload("res://scripts/visual/visual_stage_layer_service.gd")
+const VisualValidationProbeRef = preload("res://scripts/validation/visual_validation_probe.gd")
 
 var lane_y_map := {
 	0: 220.0,
@@ -44,6 +47,9 @@ var _entity_root: Node2D = null
 var _collectible_root: Node2D = null
 var _runtime_frame_counter := 0
 var _scenario_override_failed := false
+var _visual_feedback_host: Node = null
+var _visual_stage_layer_service: Node = null
+var _visual_validation_probe: Node = null
 
 
 func _ready() -> void:
@@ -69,6 +75,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	_cleanup_visual_runtime()
 	GameState.end_battle(self)
 
 
@@ -128,6 +135,18 @@ func reset_battle() -> void:
 		ProjectileMovementRegistry.rebuild_registry()
 	if MechanicCompilerRegistry.has_method("rebuild_registry"):
 		MechanicCompilerRegistry.rebuild_registry()
+
+	_cleanup_visual_runtime()
+	_visual_feedback_host = VisualFeedbackHostRef.new()
+	_visual_feedback_host.name = "VisualFeedbackHost"
+	add_child(_visual_feedback_host)
+
+	_visual_stage_layer_service = VisualStageLayerServiceRef.new()
+	_visual_stage_layer_service.name = "VisualStageLayerService"
+	add_child(_visual_stage_layer_service)
+	_visual_stage_layer_service.initialize(self)
+	_try_spawn_visual_validation_probe()
+
 	_rebuild_lane_config()
 	_subsystem_host.reset_runtime_services()
 	_spawner.spawn_scenario()
@@ -370,6 +389,34 @@ func get_entity_root() -> Node2D:
 
 func _get_entity_root() -> Node2D:
 	return get_entity_root()
+
+
+func _try_spawn_visual_validation_probe() -> void:
+	var active_scenario = resolve_scenario()
+	if active_scenario == null:
+		return
+	if not String(active_scenario.scenario_id).begins_with("visual_"):
+		return
+	_visual_validation_probe = VisualValidationProbeRef.new()
+	_visual_validation_probe.name = "VisualValidationProbe"
+	add_child(_visual_validation_probe)
+	_visual_validation_probe.setup(self)
+
+
+func _cleanup_visual_runtime() -> void:
+	if _visual_validation_probe != null:
+		_visual_validation_probe.queue_free()
+		_visual_validation_probe = null
+	if _visual_feedback_host != null:
+		if _visual_feedback_host.has_method("shutdown"):
+			_visual_feedback_host.shutdown()
+		_visual_feedback_host.queue_free()
+		_visual_feedback_host = null
+	if _visual_stage_layer_service != null:
+		if _visual_stage_layer_service.has_method("cleanup"):
+			_visual_stage_layer_service.cleanup()
+		_visual_stage_layer_service.queue_free()
+		_visual_stage_layer_service = null
 
 
 func get_collectible_root() -> Node2D:

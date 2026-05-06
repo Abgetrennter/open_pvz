@@ -19,6 +19,7 @@ const DebugViewComponentRef = preload("res://scripts/components/debug_view_compo
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
 const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
+const VisualActorComponentRef = preload("res://scripts/components/visual_actor_component.gd")
 
 const DEFAULT_TEMPLATE_CONFIG := {
 	&"plant": {
@@ -109,6 +110,7 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 			projectile_flight_profile,
 			projectile_template
 		)
+	_try_mount_visual_actor(entity, resolved_archetype)
 	return {
 		"entity": entity,
 		"entity_kind": entity_kind,
@@ -631,3 +633,21 @@ func _instantiate_builtin_entity(entity_kind: StringName, position: Vector2, par
 		_ensure_named_child(entity, "DebugViewComponent", func(): return _make_debug_component())
 	_apply_entity_property_overrides(entity, params)
 	return entity
+
+
+func _try_mount_visual_actor(entity: Node, archetype) -> void:
+	if entity == null:
+		return
+	var profile_id: StringName = StringName()
+	if archetype is CombatArchetypeRef:
+		profile_id = StringName(archetype.visual_profile_id)
+	if profile_id == StringName():
+		return
+	var profile_def = VisualProfileRegistry.get_def(profile_id)
+	if profile_def == null:
+		push_warning("EntityFactory: visual profile '%s' not found, skipping visual actor mount." % String(profile_id))
+		return
+	var visual_actor = VisualActorComponentRef.new()
+	visual_actor.name = "VisualActorComponent"
+	entity.add_child(visual_actor)
+	visual_actor.bind_profile(profile_def, entity)

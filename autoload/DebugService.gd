@@ -7,17 +7,20 @@ const MAX_EFFECTS := 128
 const MAX_TRIGGERS := 128
 const MAX_RUNTIME_SNAPSHOTS := 128
 const MAX_PROTOCOL_ISSUES := 64
+const MAX_VISUAL := 128
 
 var enable_event_logging := true
 var enable_effect_logging := true
 var enable_trigger_logging := true
 var enable_runtime_snapshot_logging := true
 var enable_protocol_logging := true
+var enable_visual_logging := true
 var event_log: Array[Dictionary] = []
 var effect_log: Array[Dictionary] = []
 var trigger_log: Array[Dictionary] = []
 var runtime_snapshot_log: Array[Dictionary] = []
 var protocol_log: Array[Dictionary] = []
+var visual_log: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -49,6 +52,15 @@ func clear_logs() -> void:
 	trigger_log.clear()
 	runtime_snapshot_log.clear()
 	protocol_log.clear()
+	visual_log.clear()
+
+
+func record_visual_event(entry: Dictionary) -> void:
+	if not enable_visual_logging:
+		return
+	visual_log.push_front(entry)
+	if visual_log.size() > MAX_VISUAL:
+		visual_log.pop_back()
 
 
 func build_export_payload() -> Dictionary:
@@ -59,12 +71,14 @@ func build_export_payload() -> Dictionary:
 			"enable_trigger_logging": enable_trigger_logging,
 			"enable_runtime_snapshot_logging": enable_runtime_snapshot_logging,
 			"enable_protocol_logging": enable_protocol_logging,
+			"enable_visual_logging": enable_visual_logging,
 		},
 		"event_log": _json_safe(event_log),
 		"effect_log": _json_safe(effect_log),
 		"trigger_log": _json_safe(trigger_log),
 		"runtime_snapshot_log": _json_safe(runtime_snapshot_log),
 		"protocol_log": _json_safe(protocol_log),
+		"visual_log": _json_safe(visual_log),
 	}
 
 

@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_shooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 1.0,
+"speed": 220.0
+}
+
+[sub_resource type="Resource" id="Spawn_dummy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 400.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"game_tick"
+description = "battle should produce at least one game tick event"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_projectile_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"projectile_spawned"
+description = "projectile should be spawned into the visual stage layer"
+event_name = &"projectile.spawned"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_stage_layers"]
+script = ExtResource("3_rule")
+rule_id = &"visual_stage_layers"
+description = "visual stage layer hosts should be present"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"stage_layers",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_projectile_projection_smoke"
+display_name = "Visual Projectile Projection Smoke"
+description = "Verify that VisualStageLayerService creates layer hosts and VisualLayerPolicy provides z_index values for projectile projection."
+goals = PackedStringArray("Verify VisualStageLayerService initializes layer hierarchy on battle reset.", "Verify VisualLayerPolicy resolves correct z_index for projectile entities.", "Verify projectile.spawned event fires on the projectile layer.")
+validation_time_limit = 5.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_projectile_spawned"), SubResource("Rule_stage_layers")]
+spawns = [SubResource("Spawn_shooter"), SubResource("Spawn_dummy")]

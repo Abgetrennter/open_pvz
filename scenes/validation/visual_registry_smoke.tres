@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_shooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 1.0,
+"speed": 300.0
+}
+
+[sub_resource type="Resource" id="Spawn_dummy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 650.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"game_tick"
+description = "battle should produce at least one game tick event"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_no_cue_issues"]
+script = ExtResource("3_rule")
+rule_id = &"no_visual_cue_protocol_issues"
+description = "VisualCueRegistry should initialize without protocol issues"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"visual_cues"
+}
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_no_fx_issues"]
+script = ExtResource("3_rule")
+rule_id = &"no_visual_fx_protocol_issues"
+description = "VisualFxRegistry should initialize without protocol issues"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"visual_fx"
+}
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_registry_probe"]
+script = ExtResource("3_rule")
+rule_id = &"visual_registry_probe"
+description = "visual registries should expose core builtin entries"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"registry",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_registry_smoke"
+display_name = "Visual Registry Smoke"
+description = "Verify all 4 visual registries (VisualCue, VisualFx, AudioCue, VisualProfile) initialize without protocol issues and contain core.* builtin entries."
+goals = PackedStringArray("Verify VisualCueRegistry initializes with core.* builtins without errors.", "Verify VisualFxRegistry initializes with core.* builtins without errors.", "Verify AudioCueRegistry and VisualProfileRegistry initialize as placeholders.", "Verify a basic projectile hit chain works with visual layer active.")
+validation_time_limit = 4.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_no_cue_issues"), SubResource("Rule_no_fx_issues"), SubResource("Rule_registry_probe")]
+spawns = [SubResource("Spawn_shooter"), SubResource("Spawn_dummy")]

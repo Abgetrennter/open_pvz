@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_core_cue_ok"]
+script = ExtResource("2_rule")
+rule_id = &"visual_guardrail_rejected"
+description = "bad visual cue registrations should emit protocol.issue"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"visual_cues"
+}
+min_count = 2
+
+[sub_resource type="Resource" id="Rule_guardrail_probe"]
+script = ExtResource("2_rule")
+rule_id = &"visual_guardrail_probe_attempted"
+description = "visual validation probe should attempt core override and duplicate registrations"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"guardrail",
+"result": &"attempted"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_slot_guardrail"
+display_name = "Visual Slot Guardrail"
+description = "Verify that visual registries correctly reject bad registrations and core.* entries are protected from extension overrides."
+goals = PackedStringArray("Verify core.* visual cue entries exist and do not trigger protocol issues.", "Verify visual registries protect core namespace from extension overrides.")
+validation_time_limit = 1.0
+validation_rules = [SubResource("Rule_core_cue_ok"), SubResource("Rule_guardrail_probe")]

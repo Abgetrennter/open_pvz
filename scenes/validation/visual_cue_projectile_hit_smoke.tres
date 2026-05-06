@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_shooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 1.0,
+"speed": 300.0
+}
+
+[sub_resource type="Resource" id="Spawn_dummy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 400.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_projectile_hit"]
+script = ExtResource("3_rule")
+rule_id = &"projectile_hit"
+description = "projectile should hit the target"
+event_name = &"projectile.hit"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_entity_damaged"]
+script = ExtResource("3_rule")
+rule_id = &"entity_damaged"
+description = "target should receive damage"
+event_name = &"entity.damaged"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_visual_log"]
+script = ExtResource("3_rule")
+rule_id = &"visual_log_projectile_hit"
+description = "visual cue should write projectile hit spawn_fx request into visual log"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"action_type": &"spawn_fx",
+"cue_id": &"core.projectile_hit_splat",
+"probe": &"visual_log",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_cue_projectile_hit_smoke"
+display_name = "Visual Cue Projectile Hit Smoke"
+description = "Verify that when a projectile hits a target, the visual feedback system processes projectile.hit and entity.damaged events."
+goals = PackedStringArray("Verify projectile.hit event is emitted when projectile reaches target.", "Verify entity.damaged event is emitted with correct damage.", "Verify VisualFeedbackHost processes both events through the visual cue pipeline.")
+validation_time_limit = 5.0
+validation_rules = [SubResource("Rule_projectile_hit"), SubResource("Rule_entity_damaged"), SubResource("Rule_visual_log")]
+spawns = [SubResource("Spawn_shooter"), SubResource("Spawn_dummy")]

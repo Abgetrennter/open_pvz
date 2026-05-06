@@ -12,6 +12,10 @@ const ALLOWED_REGISTER_KINDS := {
 	&"triggers": true,
 	&"detections": true,
 	&"controllers": true,
+	&"visual_cues": true,
+	&"visual_fx": true,
+	&"audio_cues": true,
+	&"visual_profiles": true,
 }
 const ALLOWED_TRUST_LEVELS := {
 	&"data_only": true,

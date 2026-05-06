@@ -724,5 +724,41 @@
     "scenario": "res://scenes/validation/trigger_registry_smoke.tres",
     "description": "Validates that TriggerRegistry initializes correctly after migration to RegistryBase with all 6 builtin triggers.",
     "layers": ["smoke"]
+  },
+  {
+    "id": "visual_registry_smoke",
+    "scenario": "res://scenes/validation/visual_registry_smoke.tres",
+    "description": "Validates that all 4 visual registries (VisualCue, VisualFx, AudioCue, VisualProfile) initialize without protocol issues and contain core.* builtin entries.",
+    "layers": ["smoke"]
+  },
+  {
+    "id": "visual_cue_projectile_hit_smoke",
+    "scenario": "res://scenes/validation/visual_cue_projectile_hit_smoke.tres",
+    "description": "Validates that the visual feedback system processes projectile.hit and entity.damaged events through the visual cue pipeline.",
+    "layers": ["smoke"]
+  },
+  {
+    "id": "visual_projectile_projection_smoke",
+    "scenario": "res://scenes/validation/visual_projectile_projection_smoke.tres",
+    "description": "Validates that VisualStageLayerService creates layer hosts and VisualLayerPolicy provides z_index values for projectile projection.",
+    "layers": ["smoke"]
+  },
+  {
+    "id": "visual_actor_profile_smoke",
+    "scenario": "res://scenes/validation/visual_actor_profile_smoke.tres",
+    "description": "Validates that entities can exist with optional visual profiles, no protocol.issue with scope visual_profiles is emitted, and placeholder core profiles are registered.",
+    "layers": ["smoke"]
+  },
+  {
+    "id": "visual_slot_guardrail",
+    "scenario": "res://scenes/validation/visual_slot_guardrail.tres",
+    "description": "Validates that visual registries protect core.* namespace and reject bad registrations through guardrail checks.",
+    "layers": ["smoke", "guardrail"]
+  },
+  {
+    "id": "visual_extension_pack_smoke",
+    "scenario": "res://scenes/validation/visual_extension_pack_smoke.tres",
+    "description": "Validates that new visual register kinds (visual_cues, visual_fx, audio_cues, visual_profiles) are accepted by ExtensionPackCatalog and battle runs normally.",
+    "layers": ["smoke"]
   }
 ]
