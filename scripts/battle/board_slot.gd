@@ -58,6 +58,26 @@ func add_role_occupant(role: StringName, entity: Node, granted_tags: PackedStrin
 	role_granted_tags[role] = PackedStringArray(granted_tags)
 
 
+func get_role_occupant(role: StringName) -> Node:
+	_prune_invalid_occupants()
+	return role_occupants.get(role, null)
+
+
+func get_role_granted_tags(role: StringName) -> PackedStringArray:
+	_prune_invalid_occupants()
+	return PackedStringArray(role_granted_tags.get(role, PackedStringArray()))
+
+
+func merge_role_granted_tags(role: StringName, granted_tags: PackedStringArray) -> void:
+	if role == StringName() or granted_tags.is_empty():
+		return
+	var merged_tags := get_role_granted_tags(role)
+	for tag in granted_tags:
+		if not merged_tags.has(tag):
+			merged_tags.append(tag)
+	role_granted_tags[role] = merged_tags
+
+
 func remove_role_occupant(role: StringName) -> void:
 	role_occupants.erase(role)
 	role_granted_tags.erase(role)

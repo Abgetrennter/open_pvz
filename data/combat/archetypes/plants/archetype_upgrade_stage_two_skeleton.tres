@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_upgrade_stage_two_skeleton"
+display_name = "Upgrade Stage Two Skeleton"
+hit_height_band = ExtResource("2_height")
+hitbox_size = Vector2(44, 56)
+max_health = 120
+required_empty_roles = PackedStringArray("blocker")
+required_placement_tags = PackedStringArray("supports_primary")
+placement_role = &"upgrade"
+required_present_archetypes = PackedStringArray("archetype_original_gatlingpea")
+optional_components = PackedStringArray("DebugViewComponent")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "replacement", "multi_stage_upgrade", "skeleton")
+compiler_hints = {
+"skeleton_only": true
+}
+mechanics = []

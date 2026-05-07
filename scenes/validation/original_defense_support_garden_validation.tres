@@ -122,24 +122,26 @@ required_core_values = {
 
 [sub_resource type="Resource" id="Rule_spikeweed_damage"]
 script = ExtResource("4_rule")
-rule_id = &"spikeweed_ground_damage"
-description = "Spikeweed should deal ground damage to a nearby zombie."
+rule_id = &"spikerock_ground_damage"
+description = "Spikerock should deal ground damage after replacing Spikeweed."
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("ground_damage")
 required_core_values = {
-"source_archetype_id": &"archetype_original_spikeweed",
+"source_archetype_id": &"archetype_original_spikerock",
 "target_lane": 3
 }
 
 [sub_resource type="Resource" id="Rule_spikerock_accept"]
 script = ExtResource("4_rule")
 rule_id = &"spikerock_upgrade_accept"
-description = "Spikerock should be accepted as an upgrade over Spikeweed."
-event_name = &"placement.accepted"
+description = "Spikerock should replace Spikeweed through entity.replaced."
+event_name = &"entity.replaced"
 required_core_values = {
-"card_id": &"card_original_spikerock",
-"placement_role": &"upgrade",
-"primary_archetype_id": &"archetype_original_spikeweed"
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_spikeweed",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_original_spikerock",
+"replacement_role": &"upgrade"
 }
 
 [sub_resource type="Resource" id="Rule_torchwood_combo"]
@@ -155,11 +157,11 @@ required_core_values = {
 
 [sub_resource type="Resource" id="Rule_spikeweed_kill"]
 script = ExtResource("4_rule")
-rule_id = &"spikeweed_ground_kill"
-description = "Spikeweed should eventually kill its nearby ground target."
+rule_id = &"spikerock_ground_kill"
+description = "Spikerock should eventually kill its nearby ground target."
 event_name = &"entity.died"
 required_core_values = {
-"source_archetype_id": &"archetype_original_spikeweed",
+"source_archetype_id": &"archetype_original_spikerock",
 "target_archetype_id": &"archetype_basic_walker",
 "target_lane": 3
 }

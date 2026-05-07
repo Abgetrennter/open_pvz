@@ -678,6 +678,12 @@
     "layers": ["core"]
   },
   {
+    "id": "entity_replacement_validation",
+    "scenario": "res://scenes/validation/entity_replacement_validation.tres",
+    "description": "Validates generic entity.replaced semantics for card upgrades, multi-stage upgrades, and lifecycle-triggered automatic replacement.",
+    "layers": ["core"]
+  },
+  {
     "id": "original_shooter_garden_validation",
     "scenario": "res://scenes/validation/original_shooter_garden_validation.tres",
     "description": "Showcase validation for original shooter plants with per-plant damage checks.",

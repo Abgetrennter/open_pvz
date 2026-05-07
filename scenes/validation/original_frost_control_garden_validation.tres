@@ -144,12 +144,14 @@ required_core_values = {
 [sub_resource type="Resource" id="Rule_winter_accept"]
 script = ExtResource("5_rule")
 rule_id = &"wintermelon_upgrade_accept"
-description = "Winter Melon should be accepted as an upgrade over Melon-pult."
-event_name = &"placement.accepted"
+description = "Winter Melon should replace Melon-pult through entity.replaced."
+event_name = &"entity.replaced"
 required_core_values = {
-"card_id": &"card_original_wintermelon",
-"placement_role": &"upgrade",
-"primary_archetype_id": &"archetype_original_melonpult"
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_melonpult",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_original_wintermelon",
+"replacement_role": &"upgrade"
 }
 
 [sub_resource type="Resource" id="Rule_winter_splash"]
@@ -167,12 +169,14 @@ required_core_values = {
 [sub_resource type="Resource" id="Rule_cattail_accept"]
 script = ExtResource("5_rule")
 rule_id = &"cattail_lilypad_upgrade_accept"
-description = "Cattail should be accepted as an upgrade over Lily Pad."
-event_name = &"placement.accepted"
+description = "Cattail should replace Lily Pad through entity.replaced."
+event_name = &"entity.replaced"
 required_core_values = {
-"card_id": &"card_original_cattail",
-"placement_role": &"upgrade",
-"support_archetype_id": &"archetype_original_lilypad"
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_lilypad",
+"replaced_role": &"support",
+"replacement_archetype_id": &"archetype_original_cattail",
+"replacement_role": &"upgrade"
 }
 
 [sub_resource type="Resource" id="Rule_cattail_air_damage"]

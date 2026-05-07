@@ -27,6 +27,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.explode": &"Payload",
 		&"core.apply_status": &"Payload",
 		&"core.spawn_entity": &"Payload",
+		&"core.replace_entity": &"Payload",
 		&"core.invoke_effect": &"Payload",
 		&"core.wake": &"Payload",
 		&"core.team_switch": &"Payload",
@@ -526,6 +527,8 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"apply_status"}
 		&"core.spawn_entity":
 			return {"effect_id": &"spawn_entity"}
+		&"core.replace_entity":
+			return {"effect_id": &"replace_entity"}
 		&"core.invoke_effect":
 			return {"effect_id_param": &"effect_id"}
 		&"core.wake":

@@ -1,0 +1,135 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_repeater.tres" id="4_repeater_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_gatlingpea.tres" id="5_gatling_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_upgrade_stage_two_skeleton.tres" id="6_stage_two_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/demo/card_auto_upgrade_seed_skeleton.tres" id="7_seed_card"]
+
+[sub_resource type="Resource" id="Req_repeater"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_repeater"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_gatling"]
+script = ExtResource("2_request")
+at_time = 0.25
+card_id = &"card_original_gatlingpea"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_stage_two"]
+script = ExtResource("2_request")
+at_time = 0.45
+card_id = &"card_upgrade_stage_two_skeleton"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_auto_seed"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_auto_upgrade_seed_skeleton"
+lane_id = 1
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_gatling_replaces_repeater"]
+script = ExtResource("3_rule")
+rule_id = &"gatling_replaces_repeater"
+description = "Card upgrade should replace Repeater with Gatling Pea through entity.replaced."
+event_name = &"entity.replaced"
+required_core_values = {
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_repeater",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_original_gatlingpea",
+"replacement_role": &"upgrade"
+}
+
+[sub_resource type="Resource" id="Rule_stage_two_replaces_gatling"]
+script = ExtResource("3_rule")
+rule_id = &"stage_two_replaces_gatling"
+description = "A second upgrade stage should be able to replace the existing upgrade occupant."
+event_name = &"entity.replaced"
+required_core_values = {
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_gatlingpea",
+"replaced_role": &"upgrade",
+"replacement_archetype_id": &"archetype_upgrade_stage_two_skeleton",
+"replacement_role": &"upgrade"
+}
+
+[sub_resource type="Resource" id="Rule_auto_replaces_seed"]
+script = ExtResource("3_rule")
+rule_id = &"auto_upgrade_replaces_seed"
+description = "A lifecycle-triggered replacement should transform the owner without a second card placement."
+event_name = &"entity.replaced"
+required_core_values = {
+"reason": &"auto_upgrade",
+"replaced_archetype_id": &"archetype_auto_upgrade_seed_skeleton",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_auto_upgrade_bloom_skeleton",
+"replacement_role": &"primary"
+}
+
+[sub_resource type="Resource" id="Rule_no_bloom_placement"]
+script = ExtResource("3_rule")
+rule_id = &"auto_upgrade_does_not_emit_placement"
+description = "Automatic replacement must not fake a placement.accepted event for the replacement archetype."
+event_name = &"placement.accepted"
+min_count = 0
+max_count = 0
+required_core_values = {
+"archetype_id": &"archetype_auto_upgrade_bloom_skeleton"
+}
+
+[sub_resource type="Resource" id="Rule_no_repeater_death"]
+script = ExtResource("3_rule")
+rule_id = &"replaced_repeater_is_not_killed"
+description = "Upgrade replacement should not emit entity.died for the consumed Repeater."
+event_name = &"entity.died"
+min_count = 0
+max_count = 0
+required_core_values = {
+"target_archetype_id": &"archetype_original_repeater"
+}
+
+[sub_resource type="Resource" id="Rule_no_gatling_death"]
+script = ExtResource("3_rule")
+rule_id = &"replaced_gatling_is_not_killed"
+description = "Second-stage upgrade replacement should not emit entity.died for the consumed Gatling Pea."
+event_name = &"entity.died"
+min_count = 0
+max_count = 0
+required_core_values = {
+"target_archetype_id": &"archetype_original_gatlingpea"
+}
+
+[sub_resource type="Resource" id="Rule_no_seed_death"]
+script = ExtResource("3_rule")
+rule_id = &"auto_replaced_seed_is_not_killed"
+description = "Automatic replacement should not emit entity.died for the transformed seed."
+event_name = &"entity.died"
+min_count = 0
+max_count = 0
+required_core_values = {
+"target_archetype_id": &"archetype_auto_upgrade_seed_skeleton"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"entity_replacement_validation"
+display_name = "Entity Replacement Validation"
+description = "Validates generic entity.replaced semantics for card upgrades, multi-stage upgrades, and lifecycle-triggered automatic replacement."
+goals = PackedStringArray("Verify card upgrade replacement emits entity.replaced and removes the old base without death.", "Verify a second upgrade can replace an existing upgrade occupant.", "Verify automatic replacement does not emit placement.accepted for the replacement entity.")
+validation_time_limit = 1.2
+initial_sun = 5000
+lane_count = 2
+board_slot_count = 1
+card_defs = [ExtResource("4_repeater_card"), ExtResource("5_gatling_card"), ExtResource("6_stage_two_card"), ExtResource("7_seed_card")]
+card_play_requests = [SubResource("Req_repeater"), SubResource("Req_gatling"), SubResource("Req_stage_two"), SubResource("Req_auto_seed")]
+validation_rules = [SubResource("Rule_gatling_replaces_repeater"), SubResource("Rule_stage_two_replaces_gatling"), SubResource("Rule_auto_replaces_seed"), SubResource("Rule_no_bloom_placement"), SubResource("Rule_no_repeater_death"), SubResource("Rule_no_gatling_death"), SubResource("Rule_no_seed_death")]
+spawns = []

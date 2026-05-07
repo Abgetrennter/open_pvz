@@ -221,12 +221,14 @@ required_core_values = {
 [sub_resource type="Resource" id="Rule_gloom_accept"]
 script = ExtResource("5_rule")
 rule_id = &"gloom_fume_upgrade_accept"
-description = "Gloom-shroom should be accepted as an upgrade over Fume-shroom."
-event_name = &"placement.accepted"
+description = "Gloom-shroom should replace Fume-shroom through entity.replaced."
+event_name = &"entity.replaced"
 required_core_values = {
-"card_id": &"card_original_gloomshroom",
-"placement_role": &"upgrade",
-"primary_archetype_id": &"archetype_original_fumeshroom"
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_fumeshroom",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_original_gloomshroom",
+"replacement_role": &"upgrade"
 }
 
 [sub_resource type="Resource" id="Rule_gloom_damage"]

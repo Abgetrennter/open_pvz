@@ -6,6 +6,7 @@ const EffectResultRef = preload("res://scripts/core/runtime/effect_result.gd")
 const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_validator.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
+const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 const ProjectileFlightProfilePath := "res://scripts/projectile/projectile_flight_profile.gd"
 const ProjectileTemplatePath := "res://scripts/core/defs/projectile_template.gd"
 const EXTENSION_EFFECT_DEF_DIR := "data/combat/effects"
@@ -387,6 +388,28 @@ func _register_builtin_defs() -> void:
 	spawn_entity.allow_extra_children = false
 	register_def(spawn_entity)
 
+	var replace_entity = EffectDefRef.new()
+	replace_entity.id = &"replace_entity"
+	replace_entity.tags = PackedStringArray(["transform", "replacement", "lifecycle"])
+	var replace_entity_param_defs: Array[Dictionary] = [{
+		"name": "archetype_id",
+		"type": "string_name",
+	}, {
+		"name": "replacement_role",
+		"type": "string_name",
+	}, {
+		"name": "replaced_role",
+		"type": "string_name",
+	}, {
+		"name": "reason",
+		"type": "string_name",
+		"default": &"entity_replacement",
+	}]
+	replace_entity.param_defs = replace_entity_param_defs
+	replace_entity.allow_extra_params = false
+	replace_entity.allow_extra_children = false
+	register_def(replace_entity)
+
 	var produce_sun = EffectDefRef.new()
 	produce_sun.id = &"produce_sun"
 	produce_sun.tags = PackedStringArray(["resource", "sun", "production"])
@@ -646,6 +669,93 @@ func _register_builtin_strategies() -> void:
 		if spawned_entity == null:
 			result.success = false
 			result.notes.append("Entity spawn failed.")
+		return result
+	)
+
+	register_strategy(&"replace_entity", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		if GameState.current_battle == null:
+			result.success = false
+			result.notes.append("No active battle manager available.")
+			return result
+
+		var owner: Node = context.owner_entity
+		if owner == null or not is_instance_valid(owner):
+			result.success = false
+			result.notes.append("replace_entity requires a valid owner.")
+			return result
+
+		var archetype_id := StringName(params.get("archetype_id", StringName()))
+		if archetype_id == StringName():
+			result.success = false
+			result.notes.append("replace_entity requires archetype_id.")
+			return result
+
+		var lane_id := int(owner.get("lane_id")) if owner.get("lane_id") is int else -1
+		var slot_index := _resolve_entity_slot_index(owner)
+		if lane_id < 0 or slot_index < 0:
+			result.success = false
+			result.notes.append("replace_entity requires owner lane_id and slot_index.")
+			return result
+
+		var replaced_role := StringName(params.get("replaced_role", StringName()))
+		if replaced_role == StringName():
+			replaced_role = _resolve_entity_placement_role(owner)
+		var replacement_role := StringName(params.get("replacement_role", StringName()))
+		if replacement_role == StringName():
+			replacement_role = replaced_role
+		if replaced_role == StringName() or replacement_role == StringName():
+			result.success = false
+			result.notes.append("replace_entity requires replaced_role and replacement_role.")
+			return result
+
+		var reason := StringName(params.get("reason", &"entity_replacement"))
+		var replacement_entity: Node = GameState.current_battle.spawn_card_entity(archetype_id, lane_id, slot_index, {
+			"spawn_reason": &"entity_replacement",
+			"replacement_reason": reason,
+			"replaced_entity_id": int(owner.call("get_entity_id")) if owner.has_method("get_entity_id") else -1,
+			"replaced_archetype_id": StringName(owner.get("archetype_id")) if owner.has_method("get") else StringName(),
+		})
+		if replacement_entity == null:
+			result.success = false
+			result.notes.append("Replacement entity spawn failed.")
+			return result
+
+		var board_state: Node = GameState.current_battle.get_board_state()
+		if board_state == null or not board_state.has_method("replace_occupant"):
+			replacement_entity.queue_free()
+			result.success = false
+			result.notes.append("No board replacement service available.")
+			return result
+
+		var source_id := StringName()
+		if owner.has_method("get_entity_id"):
+			source_id = StringName(str(int(owner.call("get_entity_id"))))
+		var replaced := bool(board_state.call(
+			"replace_occupant",
+			lane_id,
+			slot_index,
+			replaced_role,
+			replacement_entity,
+			replacement_role,
+			reason,
+			source_id,
+			_resolve_replacement_granted_tags(archetype_id)
+		))
+		if not replaced:
+			replacement_entity.queue_free()
+			result.success = false
+			result.notes.append("Board replacement failed.")
+			return result
+
+		GameState.current_battle.emit_entity_spawned(replacement_entity, lane_id, owner, {
+			"archetype_id": archetype_id,
+			"placement_role": replacement_role,
+			"spawn_reason": &"entity_replacement",
+			"slot_index": slot_index,
+			"replacement_reason": reason,
+		})
+		result.terminated = true
 		return result
 	)
 
@@ -948,6 +1058,36 @@ func _resolve_effect_source_node(context) -> Node:
 	if context.source_node != null:
 		return context.source_node
 	return context.owner_entity
+
+
+func _resolve_entity_slot_index(entity: Node) -> int:
+	if entity == null or not entity.has_method("get_entity_state_ref"):
+		return -1
+	var entity_state = entity.call("get_entity_state_ref")
+	if entity_state == null or not entity_state.has_method("get_value"):
+		return -1
+	return int(entity_state.call("get_value", &"slot_index", -1))
+
+
+func _resolve_entity_placement_role(entity: Node) -> StringName:
+	if entity == null or not entity.has_method("get_entity_state_ref"):
+		return StringName()
+	var entity_state = entity.call("get_entity_state_ref")
+	if entity_state == null or not entity_state.has_method("get_value"):
+		return StringName()
+	return StringName(entity_state.call("get_value", &"placement_role", StringName()))
+
+
+func _resolve_replacement_granted_tags(archetype_id: StringName) -> PackedStringArray:
+	if archetype_id == StringName() or not SceneRegistry.has_archetype(archetype_id):
+		return PackedStringArray()
+	var archetype: Resource = SceneRegistry.get_archetype(archetype_id)
+	var placement_spec := CombatContentResolverRef.resolve_archetype_placement_spec(archetype)
+	if not placement_spec.is_empty():
+		return PackedStringArray(placement_spec.get("granted_placement_tags", PackedStringArray()))
+	if archetype != null and archetype.get("granted_placement_tags") != null:
+		return PackedStringArray(archetype.get("granted_placement_tags"))
+	return PackedStringArray()
 
 
 func _register_effect_strategy_from_def(effect_def, source_path: String = "") -> void:

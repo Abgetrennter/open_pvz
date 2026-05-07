@@ -75,12 +75,14 @@ required_core_values = {
 [sub_resource type="Resource" id="Rule_twin_accept"]
 script = ExtResource("3_rule")
 rule_id = &"twin_upgrade_accept"
-description = "Twin Sunflower should be accepted as an upgrade over Sunflower."
-event_name = &"placement.accepted"
+description = "Twin Sunflower should replace Sunflower through entity.replaced."
+event_name = &"entity.replaced"
 required_core_values = {
-"card_id": &"card_original_twinsunflower",
-"placement_role": &"upgrade",
-"primary_archetype_id": &"archetype_original_sunflower"
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_sunflower",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_original_twinsunflower",
+"replacement_role": &"upgrade"
 }
 
 [sub_resource type="Resource" id="Rule_twin_sun"]

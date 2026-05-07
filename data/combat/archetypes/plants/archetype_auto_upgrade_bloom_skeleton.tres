@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_auto_upgrade_bloom_skeleton"
+display_name = "Auto Upgrade Bloom Skeleton"
+hit_height_band = ExtResource("2_height")
+hitbox_size = Vector2(42, 54)
+max_health = 80
+required_empty_roles = PackedStringArray("blocker")
+required_placement_tags = PackedStringArray("supports_primary")
+placement_role = &"primary"
+optional_components = PackedStringArray("DebugViewComponent")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "replacement", "auto_upgrade", "skeleton")
+compiler_hints = {
+"skeleton_only": true
+}
+mechanics = []

@@ -18,6 +18,10 @@ var _slots: Dictionary = {}
 var _slot_configs: Array[Resource] = []
 
 
+func _upgrade_replacement_candidate_roles() -> Array[StringName]:
+	return [&"upgrade", &"primary", &"support"]
+
+
 func setup(battle_node: Node, scenario: Resource) -> void:
 	battle = battle_node
 	var battlefield_preset = _resolve_battlefield_preset(scenario)
@@ -109,10 +113,22 @@ func commit_request(request: Resource, entity: Node) -> bool:
 	var placement_role := _resolve_placement_role(request)
 	if placement_role == StringName():
 		return false
-	slot.add_role_occupant(placement_role, entity, _resolve_granted_placement_tags(request))
-	if entity != null and is_instance_valid(entity) and entity.has_method("set_state_value"):
-		entity.call("set_state_value", &"slot_index", int(request.get("slot_index")))
-		entity.call("set_state_value", &"placement_role", placement_role)
+	var granted_tags := _resolve_granted_placement_tags(request)
+	var replacement_targets := _resolve_upgrade_replacement_targets(slot, request, placement_role)
+	if not replacement_targets.is_empty():
+		if not _replace_occupants(
+			slot,
+			replacement_targets,
+			entity,
+			placement_role,
+			granted_tags,
+			&"upgrade_replacement",
+			StringName(request.get("source_id"))
+		):
+			return false
+	else:
+		slot.add_role_occupant(placement_role, entity, granted_tags)
+		_bind_replacement_entity_state(slot, entity, placement_role)
 	var accepted_event: Variant = EventDataRef.create(null, entity, null, PackedStringArray(["placement", "accept"]))
 	accepted_event.core["request_id"] = StringName(request.get("request_id"))
 	accepted_event.core["card_id"] = StringName(request.get("card_id"))
@@ -130,6 +146,37 @@ func commit_request(request: Resource, entity: Node) -> bool:
 		accepted_event.core["entity_id"] = int(entity.call("get_entity_id"))
 	EventBus.push_event(&"placement.accepted", accepted_event)
 	return true
+
+
+func replace_occupant(
+	lane_id: int,
+	slot_index: int,
+	replaced_role: StringName,
+	replacement_entity: Node,
+	replacement_role: StringName,
+	reason: StringName = &"entity_replacement",
+	source_id: StringName = StringName(),
+	replacement_granted_tags: PackedStringArray = PackedStringArray()
+) -> bool:
+	var slot = _resolve_slot(lane_id, slot_index)
+	if slot == null or replaced_role == StringName() or replacement_role == StringName():
+		return false
+	var replaced_entity: Node = slot.get_role_occupant(replaced_role)
+	if replaced_entity == null or not is_instance_valid(replaced_entity):
+		return false
+	return _replace_occupants(
+		slot,
+		[{
+			"role": replaced_role,
+			"entity": replaced_entity,
+			"granted_tags": slot.get_role_granted_tags(replaced_role),
+		}],
+		replacement_entity,
+		replacement_role,
+		replacement_granted_tags,
+		reason,
+		source_id
+	)
 
 
 func get_slot_world_position(lane_id: int, slot_index: int) -> Vector2:
@@ -216,7 +263,12 @@ func _placement_reason(request: Resource) -> StringName:
 			if not _has_adjacent_archetype(slot, StringName(required_adjacent_arch)):
 				return &"required_adjacent_archetype_missing"
 		if slot.is_role_occupied(placement_role):
-			return &"placement_role_occupied"
+			var can_replace_occupied_role := placement_role == &"upgrade" and _replacement_targets_include_role(
+				_resolve_upgrade_replacement_targets(slot, request, placement_role),
+				placement_role
+			)
+			if not can_replace_occupied_role:
+				return &"placement_role_occupied"
 		var required_empty_roles: PackedStringArray = placement_constraints.get("required_empty_roles", PackedStringArray())
 		for required_empty_role in required_empty_roles:
 			if slot.is_role_occupied(required_empty_role):
@@ -388,6 +440,133 @@ func _resolve_required_adjacent_archetypes(archetype: Resource) -> PackedStringA
 	return PackedStringArray()
 
 
+func _resolve_upgrade_replacement_targets(slot, request: Resource, placement_role: StringName) -> Array:
+	if slot == null or request == null or placement_role != &"upgrade":
+		return []
+	var archetype: Resource = _resolve_archetype(request)
+	var constraints := _resolve_placement_constraints(archetype)
+	var required_archetypes := PackedStringArray(constraints.get("required_present_archetypes", PackedStringArray()))
+	if required_archetypes.is_empty():
+		return []
+
+	var targets: Array = []
+	var used_roles: Dictionary = {}
+	for required_arch in required_archetypes:
+		var target := _find_upgrade_replacement_target(slot, StringName(required_arch), used_roles)
+		if target.is_empty():
+			return []
+		used_roles[StringName(target.get("role", StringName()))] = true
+		targets.append(target)
+	return targets
+
+
+func _find_upgrade_replacement_target(slot, archetype_id: StringName, used_roles: Dictionary) -> Dictionary:
+	if slot == null or archetype_id == StringName():
+		return {}
+	for role in _upgrade_replacement_candidate_roles():
+		if bool(used_roles.get(role, false)):
+			continue
+		var occupant: Node = slot.get_role_occupant(role)
+		if occupant == null or not is_instance_valid(occupant):
+			continue
+		if not occupant.has_method("get"):
+			continue
+		if StringName(occupant.get("archetype_id")) != archetype_id:
+			continue
+		return {
+			"role": role,
+			"entity": occupant,
+			"granted_tags": slot.get_role_granted_tags(role),
+		}
+	return {}
+
+
+func _replacement_targets_include_role(targets: Array, role: StringName) -> bool:
+	for target in targets:
+		if target is Dictionary and StringName(Dictionary(target).get("role", StringName())) == role:
+			return true
+	return false
+
+
+func _replace_occupants(
+	slot,
+	replacement_targets: Array,
+	replacement_entity: Node,
+	replacement_role: StringName,
+	replacement_granted_tags: PackedStringArray,
+	reason: StringName,
+	source_id: StringName
+) -> bool:
+	if slot == null or replacement_entity == null or not is_instance_valid(replacement_entity):
+		return false
+	if replacement_role == StringName() or replacement_targets.is_empty():
+		return false
+
+	var inherited_tags := PackedStringArray()
+	for target in replacement_targets:
+		if not (target is Dictionary):
+			return false
+		var target_role := StringName(Dictionary(target).get("role", StringName()))
+		var target_entity: Node = Dictionary(target).get("entity", null)
+		if target_role == StringName() or target_entity == null or not is_instance_valid(target_entity):
+			return false
+		for tag in PackedStringArray(Dictionary(target).get("granted_tags", PackedStringArray())):
+			if not inherited_tags.has(tag):
+				inherited_tags.append(tag)
+
+	for target in replacement_targets:
+		slot.remove_role_occupant(StringName(Dictionary(target).get("role", StringName())))
+
+	var merged_granted_tags := PackedStringArray(replacement_granted_tags)
+	for tag in inherited_tags:
+		if not merged_granted_tags.has(tag):
+			merged_granted_tags.append(tag)
+	slot.add_role_occupant(replacement_role, replacement_entity, merged_granted_tags)
+	_bind_replacement_entity_state(slot, replacement_entity, replacement_role)
+
+	for target in replacement_targets:
+		var replaced_entity: Node = Dictionary(target).get("entity", null)
+		var replaced_role := StringName(Dictionary(target).get("role", StringName()))
+		if replaced_entity == null or not is_instance_valid(replaced_entity):
+			continue
+		_emit_entity_replaced(slot, replaced_entity, replaced_role, replacement_entity, replacement_role, reason, source_id)
+		if replaced_entity.has_method("set_status"):
+			replaced_entity.call("set_status", reason)
+		replaced_entity.queue_free()
+	return true
+
+
+func _bind_replacement_entity_state(slot, entity: Node, placement_role: StringName) -> void:
+	if slot == null or entity == null or not is_instance_valid(entity):
+		return
+	if entity.has_method("set_state_value"):
+		entity.call("set_state_value", &"slot_index", int(slot.slot_index))
+		entity.call("set_state_value", &"placement_role", placement_role)
+
+
+func _emit_entity_replaced(
+	slot,
+	replaced_entity: Node,
+	replaced_role: StringName,
+	replacement_entity: Node,
+	replacement_role: StringName,
+	reason: StringName,
+	source_id: StringName
+) -> void:
+	var replaced_event: Variant = EventDataRef.create(replaced_entity, replacement_entity, null, PackedStringArray(["entity", "replace", String(reason)]))
+	replaced_event.core["lane_id"] = int(slot.lane_id)
+	replaced_event.core["slot_index"] = int(slot.slot_index)
+	replaced_event.core["replaced_entity_id"] = int(replaced_entity.call("get_entity_id")) if replaced_entity.has_method("get_entity_id") else -1
+	replaced_event.core["replaced_archetype_id"] = StringName(replaced_entity.get("archetype_id")) if replaced_entity.has_method("get") else StringName()
+	replaced_event.core["replaced_role"] = replaced_role
+	replaced_event.core["replacement_entity_id"] = int(replacement_entity.call("get_entity_id")) if replacement_entity.has_method("get_entity_id") else -1
+	replaced_event.core["replacement_archetype_id"] = StringName(replacement_entity.get("archetype_id")) if replacement_entity.has_method("get") else StringName()
+	replaced_event.core["replacement_role"] = replacement_role
+	replaced_event.core["reason"] = reason
+	replaced_event.core["source_id"] = source_id
+	EventBus.push_event(&"entity.replaced", replaced_event)
+
+
 func _append_role_occupant_fields(core: Dictionary, slot) -> void:
 	if slot == null:
 		return
@@ -402,7 +581,6 @@ func _append_role_occupant_fields(core: Dictionary, slot) -> void:
 		if occupant.has_method("get_entity_id"):
 			core["%s_id" % prefix] = int(occupant.call("get_entity_id"))
 		if occupant.has_method("get"):
-			core["%s_archetype_id" % prefix] = StringName(occupant.get("archetype_id"))
 			core["%s_archetype_id" % prefix] = StringName(occupant.get("archetype_id"))
 
 

@@ -184,12 +184,14 @@ required_core_values = {
 [sub_resource type="Resource" id="Rule_cob_accept"]
 script = ExtResource("5_rule")
 rule_id = &"cob_kernel_upgrade_accept"
-description = "Cob Cannon should be accepted as an upgrade over Kernel-pult."
-event_name = &"placement.accepted"
+description = "Cob Cannon should replace the same-slot Kernel-pult through entity.replaced."
+event_name = &"entity.replaced"
 required_core_values = {
-"card_id": &"card_original_cobcannon",
-"placement_role": &"upgrade",
-"primary_archetype_id": &"archetype_original_kernelpult"
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_kernelpult",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_original_cobcannon",
+"replacement_role": &"upgrade"
 }
 
 [sub_resource type="Resource" id="Rule_blover_damage"]
