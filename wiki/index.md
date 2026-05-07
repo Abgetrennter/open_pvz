@@ -77,6 +77,8 @@
 - [执行机制](02-runtime-protocol/06-执行机制.md)
 - [事件模型](02-runtime-protocol/07-事件模型.md)
 - [连续行为模型](02-runtime-protocol/08-连续行为模型.md)
+- [战斗距离与棋盘度量](02-runtime-protocol/15-战斗距离与棋盘度量.md)
+- [帧率与仿真时间](02-runtime-protocol/16-帧率与仿真时间.md)
 - [编译链与 Mechanic 系统](02-runtime-protocol/11-编译链与Mechanic系统.md)
 - [战斗模式组织层](02-runtime-protocol/14-战斗模式组织层.md)
 - [调试与日志观察](02-runtime-protocol/12-调试与日志观察.md)
@@ -123,4 +125,5 @@
 
 - [项目 README](../README.md)
 - [历史归档与退役文档索引](05-governance/37-历史归档与退役文档索引.md)
+- [战斗距离与仿真时间统一重构执行计划](../plans/战斗距离与仿真时间统一重构执行计划.md)
 - [扩展系统草案目录](../plans/draft/extension-system/README.md)
