@@ -92,8 +92,8 @@ func _register_builtin_strategies() -> void:
 		if not owner is Node2D:
 			return
 		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
-		var move_speed: float = float(params.get("move_speed", 300.0))
-		var detection_radius: float = float(params.get("detection_radius", 50.0))
+		var move_speed: float = _resolve_slots_speed(params, "move_speed_slots_per_sec", "move_speed", 300.0)
+		var detection_radius: float = _resolve_slots_distance(params, "detection_radius_slots", "detection_radius", 50.0)
 		var sweep_state: String = String(blackboard.get("mower_state", "idle"))
 		if sweep_state == "idle":
 			var detection_result: Dictionary = DetectionRegistry.evaluate(&"lane_forward", owner, {"scan_range": detection_radius})
@@ -131,7 +131,7 @@ func _register_builtin_strategies() -> void:
 		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
 		var damage: int = int(params.get("damage", 20))
 		var interval: float = float(params.get("interval", 0.5))
-		var detection_range: float = float(params.get("detection_range", 48.0))
+		var detection_range: float = _resolve_slots_distance(params, "detection_range_slots", "detection_range", 48.0)
 		var acc_time: float = float(blackboard.get("acc_time", 0.0))
 		acc_time += delta
 		if acc_time < interval:
@@ -153,9 +153,9 @@ func _register_builtin_strategies() -> void:
 			return
 		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
 		var multipler: float = float(params.get("damage_multiplier", 2.0))
-		var detection_range: float = float(params.get("detection_range", 64.0))
-		var last_tick: float = float(blackboard.get("last_transform_tick", 0.0))
-		var current_time: float = Time.get_ticks_msec() / 1000.0
+		var detection_range: float = _resolve_slots_distance(params, "detection_range_slots", "detection_range", 64.0)
+		var last_tick: float = float(blackboard.get("last_transform_tick", -999999.0))
+		var current_time: float = GameState.current_time
 		if current_time - last_tick < 0.1:
 			return
 		blackboard["last_transform_tick"] = current_time
@@ -181,3 +181,30 @@ func _check_projectile_nearby(owner: Node, projectile: Node, detection_range: fl
 	var owner_pos: Vector2 = (owner as Node2D).global_position
 	var proj_pos: Vector2 = (projectile as Node2D).global_position
 	return owner_pos.distance_to(proj_pos) <= detection_range
+
+
+func _resolve_slots_distance(params: Dictionary, slots_key: String, legacy_key: String, default_world: float) -> float:
+	var metrics := _get_battlefield_metrics()
+	if metrics != null and metrics.has_method("resolve_slots_distance"):
+		return float(metrics.call("resolve_slots_distance", params, slots_key, legacy_key, default_world))
+	if params.has(slots_key):
+		return float(params.get(slots_key)) * 96.0
+	return float(params.get(legacy_key, default_world))
+
+
+func _resolve_slots_speed(params: Dictionary, slots_key: String, legacy_key: String, default_world_per_sec: float) -> float:
+	var metrics := _get_battlefield_metrics()
+	if metrics != null and metrics.has_method("resolve_slots_speed"):
+		return float(metrics.call("resolve_slots_speed", params, slots_key, legacy_key, default_world_per_sec))
+	if params.has(slots_key):
+		return float(params.get(slots_key)) * 96.0
+	return float(params.get(legacy_key, default_world_per_sec))
+
+
+func _get_battlefield_metrics() -> RefCounted:
+	if GameState.current_battle == null:
+		return null
+	if not GameState.current_battle.has_method("get_battlefield_metrics"):
+		return null
+	var metrics: Variant = GameState.current_battle.call("get_battlefield_metrics")
+	return metrics if metrics is RefCounted else null

@@ -361,6 +361,9 @@ func _resolve_effect_spawn_x_position(context, params: Dictionary) -> float:
 
 
 func _build_board_slot_position(lane_id: int, slot_index: int) -> Vector2:
+	var board_state: Node = _battle.get_board_state()
+	if board_state != null and is_instance_valid(board_state):
+		return Vector2(board_state.get_slot_world_position(lane_id, slot_index))
 	var active_scenario = _battle.resolve_scenario()
 	var origin_x := 160.0
 	var spacing := 96.0

@@ -59,6 +59,12 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if GameState.should_skip_node_process_for_central_step():
+		return
+	simulation_step(delta)
+
+
+func simulation_step(delta: float) -> void:
 	_age += delta
 	var move_result = null
 	if movement_component != null:

@@ -6,6 +6,7 @@ const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd"
 const BoardSlotRef = preload("res://scripts/battle/board_slot.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
 const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
+const BattlefieldMetricsRef = preload("res://scripts/battle/battlefield_metrics.gd")
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
 const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 
@@ -13,6 +14,7 @@ var battle: Node = null
 var board_slot_count := 5
 var board_slot_origin_x := 160.0
 var board_slot_spacing := 96.0
+var metrics: RefCounted = null
 
 var _slots: Dictionary = {}
 var _slot_configs: Array[Resource] = []
@@ -28,6 +30,8 @@ func setup(battle_node: Node, scenario: Resource) -> void:
 	board_slot_count = maxi(1, _resolve_board_slot_count(scenario, battlefield_preset))
 	board_slot_origin_x = _resolve_board_slot_origin_x(scenario, battlefield_preset)
 	board_slot_spacing = maxf(_resolve_board_slot_spacing(scenario, battlefield_preset), 1.0)
+	metrics = BattlefieldMetricsRef.new()
+	metrics.configure_from_battle_context(battle, board_slot_origin_x, board_slot_spacing)
 	_slot_configs.clear()
 	if battlefield_preset != null:
 		for slot_config in battlefield_preset.board_slot_configs:
@@ -72,6 +76,7 @@ func get_debug_snapshot() -> Dictionary:
 		"max_health": 0,
 		"values": {
 			"board_slot_count": board_slot_count,
+			"metrics": {} if metrics == null else metrics.snapshot(),
 			"occupied_slot_count": occupied_slots,
 			"occupant_count": total_occupants,
 			"slot_type_counts": slot_type_counts,
@@ -295,7 +300,7 @@ func _rebuild_slots() -> void:
 			slot.configure(
 				lane_id,
 				slot_index,
-				Vector2(board_slot_origin_x + float(slot_index) * board_slot_spacing, float(battle.get_lane_y(lane_id))),
+				metrics.slot_position(lane_id, slot_index) if metrics != null else Vector2(board_slot_origin_x + float(slot_index) * board_slot_spacing, float(battle.get_lane_y(lane_id))),
 				&"ground",
 				BoardSlotCatalogRef.default_tags_for(&"ground")
 			)

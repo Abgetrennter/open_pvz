@@ -48,6 +48,7 @@ const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"interval": true,
 	"damage": true,
 	"speed": true,
+	"speed_slots_per_sec": true,
 	"effect_overrides": true,
 	"on_hit_effect_id": true,
 	"on_hit_effect_params": true,
@@ -428,7 +429,7 @@ func _build_effect_node_from_spec(
 func _is_direct_effect_override_key(effect_id: StringName, key: Variant) -> bool:
 	if effect_id != &"damage" and effect_id != &"explode":
 		return false
-	return ["amount", "target_mode", "radius", "lane_id", "target_tags"].has(str(key))
+	return ["amount", "target_mode", "radius", "radius_slots", "lane_id", "target_tags"].has(str(key))
 
 
 func _merge_projectile_spec_params(
@@ -471,8 +472,12 @@ func _is_spawn_projectile_override_key(key: Variant) -> bool:
 		"movement_mode",
 		"travel_duration",
 		"arc_height",
+		"speed",
+		"speed_slots_per_sec",
 		"impact_radius",
+		"impact_radius_slots",
 		"collision_padding",
+		"collision_padding_slots",
 		"lead_time_scale",
 		"dynamic_target_adjustment",
 		"dynamic_target_axis",
@@ -480,6 +485,7 @@ func _is_spawn_projectile_override_key(key: Variant) -> bool:
 		"lead_iterations",
 		"target_position",
 		"distance",
+		"distance_slots",
 		"lifetime",
 		"hitbox_radius",
 		"burst_count",

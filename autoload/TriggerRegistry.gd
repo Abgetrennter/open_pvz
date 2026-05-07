@@ -45,6 +45,15 @@ func _register_builtin_defs() -> void:
 		"max": 4000.0,
 		"default": 900.0,
 	}, {
+		"name": "scan_range_slots",
+		"type": "float",
+		"min": 0.0,
+		"max": 64.0,
+	}, {
+		"name": "range_mode",
+		"type": "string_name",
+		"options": PackedStringArray(["full_lane"]),
+	}, {
 		"name": "start_delay",
 		"type": "float",
 		"min": 0.0,
@@ -118,6 +127,11 @@ func _register_builtin_defs() -> void:
 		"max": 4000.0,
 		"default": 64.0,
 	}, {
+		"name": "scan_range_slots",
+		"type": "float",
+		"min": 0.0,
+		"max": 64.0,
+	}, {
 		"name": "required_state",
 		"type": "string_name",
 	}, {
@@ -160,10 +174,14 @@ func _register_builtin_strategies() -> void:
 		if detection_id == StringName() or detection_id == &"always":
 			return true
 
-		var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, instance.owner_entity, {
+		var detection_params := {
 			"scan_range": float(condition_values.get("scan_range", 900.0)),
+			"range_mode": StringName(condition_values.get("range_mode", StringName())),
 			"target_tags": PackedStringArray(condition_values.get("target_tags", PackedStringArray())),
-		})
+		}
+		if condition_values.has("scan_range_slots"):
+			detection_params["scan_range_slots"] = float(condition_values.get("scan_range_slots"))
+		var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, instance.owner_entity, detection_params)
 		if not bool(detection_result.get("has_target", false)):
 			return false
 
@@ -216,10 +234,13 @@ func _register_builtin_strategies() -> void:
 			return false
 
 		var scan_range := float(condition_values.get("scan_range", 64.0))
-		var detection_result: Dictionary = DetectionRegistry.evaluate(&"proximity", instance.owner_entity, {
+		var detection_params := {
 			"scan_range": scan_range,
 			"target_tags": PackedStringArray(condition_values.get("target_tags", PackedStringArray())),
-		})
+		}
+		if condition_values.has("scan_range_slots"):
+			detection_params["scan_range_slots"] = float(condition_values.get("scan_range_slots"))
+		var detection_result: Dictionary = DetectionRegistry.evaluate(&"proximity", instance.owner_entity, detection_params)
 		if not bool(detection_result.get("has_target", false)):
 			return false
 

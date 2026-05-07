@@ -175,7 +175,13 @@ func _notification(what: int) -> void:
 		_sync_entity_state()
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	if GameState.should_skip_node_process_for_central_step():
+		return
+	simulation_step(delta)
+
+
+func simulation_step(_delta: float) -> void:
 	if state_component != null and state_component.has_method("has_active_states") and bool(state_component.call("has_active_states")):
 		state_component.call("physics_process_states")
 

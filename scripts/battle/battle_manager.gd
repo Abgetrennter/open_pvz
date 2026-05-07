@@ -37,6 +37,7 @@ var lane_y_map := {
 @export var runtime_snapshot_interval_frames := 10
 
 var _tick_accumulator := 0.0
+var _max_steps_per_physics_frame := 5
 var _projectile_effect_resolver: Variant = BattleProjectileEffectResolverRef.new()
 var _validation_reporter: Variant = BattleValidationReporterRef.new()
 var _validation_tracker: Variant = BattleValidationTrackerRef.new()
@@ -79,21 +80,8 @@ func _exit_tree() -> void:
 	GameState.end_battle(self)
 
 
-func _process(delta: float) -> void:
-	GameState.advance_time(delta)
-	_validation_tracker.update_validation_state()
-	_validation_tracker.process_auto_quit(delta)
-	_tick_accumulator += delta
-
-	while _tick_accumulator >= tick_interval:
-		_tick_accumulator -= tick_interval
-		var tick_event: Variant = EventDataRef.create()
-		tick_event.core["game_time"] = GameState.current_time
-		EventBus.push_event(&"game.tick", tick_event)
-		_dispatch_mode_tick(GameState.current_time)
-
-
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	_process_simulation_steps(delta)
 	if not enable_runtime_snapshot_logging:
 		return
 	_runtime_frame_counter += 1
@@ -151,6 +139,68 @@ func reset_battle() -> void:
 	_subsystem_host.reset_runtime_services()
 	_spawner.spawn_scenario()
 	_notify_mode_battle_start()
+
+
+func step_simulation_tick() -> void:
+	GameState.is_central_step_dispatching = true
+	GameState.advance_simulation_tick()
+	var fixed_dt: float = GameState.fixed_dt
+	var tick_event: Variant = EventDataRef.create()
+	tick_event.core["tick_index"] = GameState.current_tick
+	tick_event.core["fixed_dt"] = fixed_dt
+	tick_event.core["game_time"] = GameState.current_time
+	EventBus.push_event(&"game.tick", tick_event)
+	_dispatch_mode_tick(GameState.current_time)
+	_step_runtime_nodes(fixed_dt)
+	_validation_tracker.update_validation_state()
+	_validation_tracker.process_auto_quit(fixed_dt)
+	GameState.is_central_step_dispatching = false
+
+
+func step_simulation_ticks(count: int) -> void:
+	for _i in range(maxi(count, 0)):
+		step_simulation_tick()
+
+
+func _process_simulation_steps(delta: float) -> void:
+	if GameState.is_simulation_paused:
+		return
+	if not GameState.use_central_gameplay_step:
+		GameState.advance_time(delta)
+		_validation_tracker.update_validation_state()
+		_validation_tracker.process_auto_quit(delta)
+		return
+	_tick_accumulator += maxf(delta, 0.0) * maxf(GameState.simulation_speed, 0.0)
+	var step_count := 0
+	while _tick_accumulator + 0.000001 >= GameState.fixed_dt and step_count < _max_steps_per_physics_frame:
+		_tick_accumulator -= GameState.fixed_dt
+		step_simulation_tick()
+		step_count += 1
+	if step_count >= _max_steps_per_physics_frame:
+		_tick_accumulator = minf(_tick_accumulator, GameState.fixed_dt)
+
+
+func _step_runtime_nodes(delta: float) -> void:
+	_step_node_tree(_entity_root, delta)
+	_step_node_tree(_collectible_root, delta)
+	for child in get_children():
+		if child == _entity_root or child == _collectible_root:
+			continue
+		if child != null and child.has_method("simulation_step"):
+			child.call("simulation_step", delta)
+
+
+func _step_node_tree(root: Node, delta: float) -> void:
+	if root == null or not is_instance_valid(root):
+		return
+	var children := root.get_children()
+	for child in children:
+		if child == null or not is_instance_valid(child):
+			continue
+		if child.has_method("simulation_step"):
+			child.call("simulation_step", delta)
+		else:
+			_step_node_tree(child, delta)
 
 
 # -- Spawn facade delegates --
@@ -258,6 +308,14 @@ func commit_placement_request(request: Resource, entity: Node) -> bool:
 
 func get_entity_factory() -> RefCounted:
 	return _spawner._entity_factory
+
+
+func get_battlefield_metrics() -> RefCounted:
+	var board: Node = _subsystem_host.get_board_state()
+	if board == null:
+		return null
+	var metrics_value: Variant = board.get("metrics")
+	return metrics_value if metrics_value is RefCounted else null
 
 
 # -- Lane geometry --

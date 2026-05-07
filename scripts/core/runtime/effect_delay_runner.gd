@@ -13,6 +13,12 @@ func setup(delay: float, callback: Callable) -> void:
 
 
 func _process(delta: float) -> void:
+	if GameState.use_central_gameplay_step:
+		return
+	simulation_step(delta)
+
+
+func simulation_step(delta: float) -> void:
 	_remaining_time -= delta
 	if _remaining_time > 0.0:
 		return

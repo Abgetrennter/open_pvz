@@ -12,6 +12,8 @@ class_name ProjectileFlightProfile
 @export var terminal_hit_strategy: StringName = StringName()
 @export var impact_radius := 20.0
 @export var collision_padding := 10.0
+@export var impact_radius_slots := -1.0
+@export var collision_padding_slots := -1.0
 @export var travel_duration := -1.0
 @export var lead_time_scale := 1.0
 @export var dynamic_target_adjustment := -1.0

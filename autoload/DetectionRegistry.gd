@@ -126,7 +126,7 @@ func _register_builtin_strategies() -> void:
 		var lane_id := int(owner.get("lane_id"))
 		if lane_id < 0:
 			return _empty_result()
-		var scan_range := float(params.get("scan_range", 900.0))
+		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
 		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", true, target_tags)
 		return {
@@ -141,7 +141,7 @@ func _register_builtin_strategies() -> void:
 		var lane_id := int(owner.get("lane_id"))
 		if lane_id < 0:
 			return _empty_result()
-		var scan_range := float(params.get("scan_range", 900.0))
+		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
 		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", true, target_tags)
 		return {
@@ -153,7 +153,7 @@ func _register_builtin_strategies() -> void:
 	_detection_strategies[&"radius_around"] = func(owner: Node, params: Dictionary) -> Dictionary:
 		if owner == null or not (owner is Node2D):
 			return _empty_result()
-		var scan_range := float(params.get("scan_range", 180.0))
+		var scan_range := _resolve_scan_range(owner, params, 180.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
 		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
 		return {
@@ -165,7 +165,7 @@ func _register_builtin_strategies() -> void:
 	_detection_strategies[&"global_track"] = func(owner: Node, params: Dictionary) -> Dictionary:
 		if owner == null or not (owner is Node2D):
 			return _empty_result()
-		var scan_range := float(params.get("scan_range", 4000.0))
+		var scan_range := _resolve_scan_range(owner, params, 4000.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
 		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
 		return {
@@ -177,7 +177,7 @@ func _register_builtin_strategies() -> void:
 	_detection_strategies[&"proximity"] = func(owner: Node, params: Dictionary) -> Dictionary:
 		if owner == null or not (owner is Node2D):
 			return _empty_result()
-		var scan_range := float(params.get("scan_range", 64.0))
+		var scan_range := _resolve_scan_range(owner, params, 64.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
 		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
 		return {
@@ -291,3 +291,24 @@ func _resolve_target_tags(params: Dictionary) -> PackedStringArray:
 	if raw is Array:
 		return PackedStringArray(raw)
 	return PackedStringArray()
+
+
+func _resolve_scan_range(owner: Node, params: Dictionary, default_world: float) -> float:
+	var metrics := _get_battlefield_metrics()
+	if metrics != null and metrics.has_method("resolve_range"):
+		var origin_x := 0.0
+		if owner is Node2D:
+			origin_x = _node_ground_position(owner).x
+		return float(metrics.call("resolve_range", params, "scan_range_slots", "scan_range", default_world, origin_x))
+	if params.has("scan_range_slots"):
+		return float(params.get("scan_range_slots")) * 96.0
+	return float(params.get("scan_range", default_world))
+
+
+func _get_battlefield_metrics() -> RefCounted:
+	if GameState.current_battle == null:
+		return null
+	if not GameState.current_battle.has_method("get_battlefield_metrics"):
+		return null
+	var metrics: Variant = GameState.current_battle.call("get_battlefield_metrics")
+	return metrics if metrics is RefCounted else null

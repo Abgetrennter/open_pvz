@@ -58,6 +58,7 @@ const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"amount": true,
 	"damage": true,
 	"speed": true,
+	"speed_slots_per_sec": true,
 	"effect_overrides": true,
 	"on_hit_effect_id": true,
 	"on_hit_effect_params": true,
@@ -67,6 +68,7 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"amount": true,
 	"damage": true,
 	"speed": true,
+	"speed_slots_per_sec": true,
 	"effect_overrides": true,
 	"on_hit_effect_id": true,
 	"on_hit_effect_params": true,
@@ -76,7 +78,9 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"travel_duration": true,
 	"arc_height": true,
 	"impact_radius": true,
+	"impact_radius_slots": true,
 	"collision_padding": true,
+	"collision_padding_slots": true,
 	"lead_time_scale": true,
 	"dynamic_target_adjustment": true,
 	"dynamic_target_axis": true,
@@ -84,7 +88,9 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"lead_iterations": true,
 	"target_position": true,
 	"distance": true,
+	"distance_slots": true,
 	"radius": true,
+	"radius_slots": true,
 	"target_mode": true,
 	"lifetime": true,
 	"hitbox_radius": true,
@@ -100,12 +106,18 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"angle_spread": true,
 	"turn_rate": true,
 	"move_speed": true,
+	"move_speed_slots_per_sec": true,
 	"attack_damage": true,
 	"attack_interval": true,
 	"max_health": true,
 	"hitbox_size": true,
 	"detection_radius": true,
+	"detection_radius_slots": true,
+	"detection_range": true,
+	"detection_range_slots": true,
 	"scan_range": true,
+	"scan_range_slots": true,
+	"range_mode": true,
 	"detection_id": true,
 	"target_tags": true,
 	"required_state": true,
@@ -248,6 +260,10 @@ static func validate_projectile_flight_profile(profile: Resource) -> Array[Strin
 		errors.append("ProjectileFlightProfile.impact_radius must be >= 0.")
 	if float(profile.collision_padding) < 0.0:
 		errors.append("ProjectileFlightProfile.collision_padding must be >= 0.")
+	if float(profile.impact_radius_slots) < -1.0:
+		errors.append("ProjectileFlightProfile.impact_radius_slots must be -1 or >= 0.")
+	if float(profile.collision_padding_slots) < -1.0:
+		errors.append("ProjectileFlightProfile.collision_padding_slots must be -1 or >= 0.")
 	if float(profile.travel_duration) < -1.0:
 		errors.append("ProjectileFlightProfile.travel_duration must be >= -1.")
 	if float(profile.lead_time_scale) < 0.0:
@@ -1372,6 +1388,7 @@ static func _validate_entity_runtime_params(entity_kind: String, params: Diction
 		errors.append("%s must be a Dictionary." % scope)
 		return errors
 	errors.append_array(_validate_projectile_config_consistency(params, params.get("projectile_template", null), scope))
+	errors.append_array(_validate_semantic_distance_params(params, scope))
 
 	var effect_overrides: Dictionary = {}
 	if params.has("effect_overrides"):
@@ -1421,6 +1438,27 @@ static func _validate_projectile_config_consistency(params: Dictionary, projecti
 		errors.append("%s turn_rate is only valid for track movement." % scope)
 	if resolved_move_mode == &"parabola" and params.has("turn_rate"):
 		errors.append("%s turn_rate is only valid for track movement." % scope)
+	return errors
+
+
+static func _validate_semantic_distance_params(params: Dictionary, scope: String) -> Array[String]:
+	var errors: Array[String] = []
+	for key in [
+		"scan_range_slots",
+		"impact_radius_slots",
+		"collision_padding_slots",
+		"distance_slots",
+		"detection_range_slots",
+		"detection_radius_slots",
+		"radius_slots",
+		"speed_slots_per_sec",
+		"move_speed_slots_per_sec",
+	]:
+		if params.has(key) and float(params.get(key)) < 0.0:
+			errors.append("%s.%s must be >= 0." % [scope, key])
+	var range_mode := StringName(params.get("range_mode", StringName()))
+	if range_mode != StringName() and range_mode != &"full_lane":
+		errors.append("%s.range_mode must be full_lane when provided." % scope)
 	return errors
 
 

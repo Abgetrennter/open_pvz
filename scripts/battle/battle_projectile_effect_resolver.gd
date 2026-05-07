@@ -16,7 +16,7 @@ func resolve_projectile_effect_params(params: Dictionary) -> Dictionary:
 	var resolved: Dictionary = params.duplicate(true)
 	var projectile_template = resolved.get("projectile_template", null)
 	if projectile_template == null or not (projectile_template is ProjectileTemplateRef):
-		return resolved
+		return _resolve_semantic_projectile_params(resolved)
 
 	var template_errors: Array[String] = ProtocolValidatorRef.validate_projectile_template(projectile_template)
 	if not template_errors.is_empty():
@@ -34,7 +34,7 @@ func resolve_projectile_effect_params(params: Dictionary) -> Dictionary:
 		resolved["lifetime"] = projectile_template.lifetime
 	if not resolved.has("hitbox_radius") and float(projectile_template.hitbox_radius) > 0.0:
 		resolved["hitbox_radius"] = projectile_template.hitbox_radius
-	return resolved
+	return _resolve_semantic_projectile_params(resolved)
 
 
 func build_projectile_movement_params(
@@ -73,6 +73,10 @@ func build_projectile_movement_params(
 		movement_params["impact_radius"] = float(params.get("impact_radius"))
 	if params.has("collision_padding"):
 		movement_params["collision_padding"] = float(params.get("collision_padding"))
+	if params.has("impact_radius_slots"):
+		movement_params["impact_radius"] = _slots_to_world(float(params.get("impact_radius_slots")))
+	if params.has("collision_padding_slots"):
+		movement_params["collision_padding"] = _slots_to_world(float(params.get("collision_padding_slots")))
 
 	match move_mode:
 		&"parabola":
@@ -109,6 +113,12 @@ func build_projectile_movement_params(
 
 
 func _movement_params_from_flight_profile(flight_profile: Resource) -> Dictionary:
+	var impact_radius := float(flight_profile.get("impact_radius"))
+	var collision_padding := float(flight_profile.get("collision_padding"))
+	if float(flight_profile.get("impact_radius_slots")) >= 0.0:
+		impact_radius = _slots_to_world(float(flight_profile.get("impact_radius_slots")))
+	if float(flight_profile.get("collision_padding_slots")) >= 0.0:
+		collision_padding = _slots_to_world(float(flight_profile.get("collision_padding_slots")))
 	return {
 		"profile_id": StringName(flight_profile.get("profile_id")),
 		"move_mode": StringName(flight_profile.get("move_mode")),
@@ -119,8 +129,8 @@ func _movement_params_from_flight_profile(flight_profile: Resource) -> Dictionar
 		"max_hit_height": float(flight_profile.get("max_hit_height")),
 		"hit_strategy": StringName(flight_profile.get("hit_strategy")),
 		"terminal_hit_strategy": StringName(flight_profile.get("terminal_hit_strategy")),
-		"impact_radius": float(flight_profile.get("impact_radius")),
-		"collision_padding": float(flight_profile.get("collision_padding")),
+		"impact_radius": impact_radius,
+		"collision_padding": collision_padding,
 		"travel_duration": float(flight_profile.get("travel_duration")),
 		"lead_time_scale": float(flight_profile.get("lead_time_scale")),
 		"dynamic_target_adjustment": float(flight_profile.get("dynamic_target_adjustment")),
@@ -144,8 +154,43 @@ func _resolve_projectile_target_position(
 	if target_node != null:
 		return _predict_target_position(spawn_position, target_node, travel_duration, speed, params)
 
-	var distance := float(params.get("distance", 280.0))
+	var distance := _resolve_distance_param(params, "distance_slots", "distance", 280.0)
 	return spawn_position + direction.normalized() * distance
+
+
+func _resolve_semantic_projectile_params(params: Dictionary) -> Dictionary:
+	var resolved := params.duplicate(true)
+	if resolved.has("speed_slots_per_sec"):
+		resolved["speed"] = _slots_to_world(float(resolved.get("speed_slots_per_sec")))
+	if resolved.has("impact_radius_slots"):
+		resolved["impact_radius"] = _slots_to_world(float(resolved.get("impact_radius_slots")))
+	if resolved.has("collision_padding_slots"):
+		resolved["collision_padding"] = _slots_to_world(float(resolved.get("collision_padding_slots")))
+	if resolved.has("distance_slots"):
+		resolved["distance"] = _slots_to_world(float(resolved.get("distance_slots")))
+	return resolved
+
+
+func _resolve_distance_param(params: Dictionary, slots_key: String, legacy_key: String, default_world: float) -> float:
+	if params.has(slots_key):
+		return _slots_to_world(float(params.get(slots_key)))
+	return float(params.get(legacy_key, default_world))
+
+
+func _slots_to_world(slot_count: float) -> float:
+	var metrics := _get_battlefield_metrics()
+	if metrics != null and metrics.has_method("slots_to_world"):
+		return float(metrics.call("slots_to_world", slot_count))
+	return slot_count * 96.0
+
+
+func _get_battlefield_metrics() -> RefCounted:
+	if _battle == null or not is_instance_valid(_battle):
+		return null
+	if not _battle.has_method("get_battlefield_metrics"):
+		return null
+	var metrics: Variant = _battle.call("get_battlefield_metrics")
+	return metrics if metrics is RefCounted else null
 
 
 func _resolve_projectile_target_node(context) -> Node2D:

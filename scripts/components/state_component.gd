@@ -53,6 +53,8 @@ func get_current_state() -> StringName:
 
 
 func _physics_process(_delta: float) -> void:
+	if GameState.should_skip_node_process_for_central_step():
+		return
 	physics_process_states()
 
 

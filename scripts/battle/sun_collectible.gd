@@ -65,6 +65,12 @@ func _collect() -> void:
 
 
 func _process(delta: float) -> void:
+	if GameState.use_central_gameplay_step:
+		return
+	simulation_step(delta)
+
+
+func simulation_step(delta: float) -> void:
 	if collected:
 		return
 	_age += delta

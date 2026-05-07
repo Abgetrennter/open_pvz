@@ -35,6 +35,13 @@ func take_damage(
 
 
 func _physics_process(delta: float) -> void:
+	if GameState.should_skip_node_process_for_central_step():
+		return
+	simulation_step(delta)
+
+
+func simulation_step(delta: float) -> void:
+	super(delta)
 	if controller_component != null and controller_component.has_method("physics_process_controllers"):
 		controller_component.call("physics_process_controllers", delta)
 

@@ -151,6 +151,7 @@ func record_runtime_snapshot(frame_index: int, battle_time: float, scenario_name
 	var snapshot := {
 		"frame": frame_index,
 		"time": battle_time,
+		"simulation": GameState.get_simulation_snapshot(),
 		"scenario": scenario_name,
 		"lines": lines,
 	}

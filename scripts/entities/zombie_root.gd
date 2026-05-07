@@ -12,6 +12,7 @@ const HEALTH_GOOD := Color("72d66f")
 const HEALTH_BAD := Color("c44a3d")
 
 @export var move_speed := 55.0
+@export var move_speed_slots_per_sec := -1.0
 @export var attack_range := 56.0
 @export var attack_interval := 1.0
 @export var attack_damage := 10
@@ -31,7 +32,7 @@ func _ready() -> void:
 	super()
 	set_status(&"alive")
 	set_state_value(&"attack_damage", attack_damage)
-	set_state_value(&"move_speed", move_speed)
+	set_state_value(&"move_speed", _resolve_move_speed())
 	if health_component != null:
 		health_component.damaged.connect(_on_health_changed)
 		health_component.died.connect(_on_died)
@@ -39,6 +40,12 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if GameState.should_skip_node_process_for_central_step():
+		return
+	simulation_step(delta)
+
+
+func simulation_step(delta: float) -> void:
 	if _is_dying:
 		return
 	if controller_component != null and controller_component.has_method("has_active_controllers") and bool(controller_component.call("has_active_controllers")):
@@ -48,7 +55,7 @@ func _physics_process(delta: float) -> void:
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
 	_attack_target = _find_attack_target()
 	var movement_scale := get_effective_movement_scale() if has_method("get_effective_movement_scale") else 1.0
-	var effective_move_speed := move_speed * movement_scale
+	var effective_move_speed := _resolve_move_speed() * movement_scale
 
 	if movement_component != null:
 		movement_component.velocity = Vector2.ZERO
@@ -79,6 +86,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(delta: float) -> void:
+	_process_death_feedback(delta)
+
+
+func _process_death_feedback(delta: float) -> void:
 	if not _is_dying:
 		return
 
@@ -89,6 +100,8 @@ func _process(delta: float) -> void:
 	position.y += 18.0 * delta
 	if progress >= 1.0:
 		queue_free()
+
+
 
 
 func take_damage(
@@ -195,7 +208,7 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 	var params: Dictionary = Dictionary(spec.get("params", {}))
 	var resolved_attack_interval := float(params.get("attack_interval", attack_interval))
 	var resolved_attack_damage := int(params.get("attack_damage", attack_damage))
-	var resolved_move_speed := float(params.get("move_speed", move_speed))
+	var resolved_move_speed := _resolve_move_speed(params)
 	var resolved_attack_range := float(params.get("attack_range", attack_range))
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
 	var movement_scale := get_effective_movement_scale() if has_method("get_effective_movement_scale") else 1.0
@@ -265,6 +278,31 @@ func _find_attack_target_with_range(resolved_attack_range: float) -> Node:
 
 func is_combat_active() -> bool:
 	return not _is_dying
+
+
+func _resolve_move_speed(params: Dictionary = {}) -> float:
+	var source_params := {
+		"move_speed": move_speed,
+	}
+	if move_speed_slots_per_sec >= 0.0:
+		source_params["move_speed_slots_per_sec"] = move_speed_slots_per_sec
+	for key: Variant in params.keys():
+		source_params[key] = params[key]
+	var metrics := _get_battlefield_metrics()
+	if metrics != null and metrics.has_method("resolve_slots_speed"):
+		return float(metrics.call("resolve_slots_speed", source_params, "move_speed_slots_per_sec", "move_speed", move_speed))
+	if source_params.has("move_speed_slots_per_sec"):
+		return float(source_params.get("move_speed_slots_per_sec")) * 96.0
+	return float(source_params.get("move_speed", move_speed))
+
+
+func _get_battlefield_metrics() -> RefCounted:
+	if GameState.current_battle == null:
+		return null
+	if not GameState.current_battle.has_method("get_battlefield_metrics"):
+		return null
+	var metrics: Variant = GameState.current_battle.call("get_battlefield_metrics")
+	return metrics if metrics is RefCounted else null
 
 
 func _debug_target_id() -> int:
