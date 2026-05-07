@@ -2,14 +2,14 @@
 
 `Open PVZ` 的主目标不是复刻原版《植物大战僵尸》，而是实现一个**开放、可组合、可扩展的 PVZ-like 规则引擎**。
 
-这个引擎希望把“植物、僵尸、投射物、攻击、命中、死亡、轨迹、连锁”等机制拆解成更基础的语义与能力单元，从而支持：
+这个引擎希望把"植物、僵尸、投射物、攻击、命中、死亡、轨迹、连锁"等机制拆解成更基础的语义与能力单元，从而支持：
 
 - 自定义组合规则
 - 加载外部扩展内容
 - 重组原版或改版玩法
 - 生成强组合、强叠加、强涌现的结果
 
-其中，“错误技”不是与引擎并列的另一个方向，而是这个引擎当前最有辨识度、也最值得优先验证的一种能力表现。
+其中，"错误技"不是与引擎并列的另一个方向，而是这个引擎当前最有辨识度、也最值得优先验证的一种能力表现。
 
 ## 项目定位
 
@@ -22,62 +22,114 @@
    植物、僵尸、投射物、关卡模板、扩展包，都建立在引擎层之上。
 
 3. **验证场景层**  
-   “错误技系统”是当前优先实现的核心验证场景，用来证明这套引擎确实能支撑高自由度组合与涌现。
+   "错误技系统"是当前优先实现的核心验证场景，用来证明这套引擎确实能支撑高自由度组合与涌现。
+
+## 架构总览
+
+### 四层模型
+
+1. **语义事件层** — "发生了什么"。事件如 `game.tick`、`entity.damaged`、`entity.died`、`projectile.hit` 通过 `EventBus`（autoload）流转。
+2. **行为效果层** — "该做什么"。`EffectDef` -> `EffectNode`，由 `EffectExecutor` 执行。效果是原子化、可组合、可嵌套的。注册于 `EffectRegistry`。
+3. **编译装配层** — "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。10 个冻结 Mechanic family。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`。
+4. **连续行为层** — "持续对象如何更新"。抛射体使用 3D 逻辑 + 2D 投影；Controller 通过 `ControllerComponent` 每帧执行。
+
+### 执行链
+
+**离散事件链**：
+```
+EventBus -> TriggerComponent -> TriggerInstance -> RuleContext -> EffectExecutor -> Runtime Action -> EventBus
+```
+
+**编译链**（实例化时运行一次）：
+```
+Archetype + Mechanic[] -> NormalizedMechanicSet -> RuntimeSpec -> EntityFactory -> Runtime Nodes
+```
+
+**连续行为链**（每帧）：
+```
+_physics_process -> ControllerComponent -> ControllerRegistry -> Controller Strategy
+```
+
+### 全局单例 (Autoloads)
+
+| 单例名 | 职责 |
+|--------|------|
+| `EventBus` | 事件分发，优先级订阅，历史追踪 |
+| `DebugService` | 集中式日志：事件/触发器/效果/运行时快照/协议问题 |
+| `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/` |
+| `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
+| `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id） |
+| `MechanicCompilerRegistry` | Mechanic per-type 编译器 callable 注册与分发 |
+| `DetectionRegistry` | 目标发现策略注册（6 内置 detection） |
+| `TriggerRegistry` | 触发器定义与策略注册（6 内置 trigger） |
+| `EffectRegistry` | 效果定义与策略注册 |
+| `ControllerRegistry` | Controller 策略注册（4 内置 controller） |
+| `ProjectileMovementRegistry` | 抛射体 movement 定义注册与组件创建 |
+| `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
+| `VisualCueRegistry` | 视觉提示注册（命中闪光、状态变化等） |
+| `VisualFxRegistry` | 视觉特效注册（粒子、动画等） |
+| `AudioCueRegistry` | 音频提示注册 |
+| `VisualProfileRegistry` | 视觉外观档案注册（角色视觉配置） |
+
+所有 registry 统一继承 `RegistryBase`（位于 `scripts/core/registry/`），共享注册、去重、信任检查、来源追踪和协议错误记录逻辑。
 
 ## 当前阶段
 
-仓库当前已经完成**第一到第六阶段**，并且已经形成了第七阶段的正式输入准备。
+仓库已完成 **Mechanic-first 重构三阶段**，实体旧作者模型已归档，通用扩展插槽 v1 已落地，战斗模式组织层 v1 已进入可验证基线，视觉反馈层骨架已合入主干。
 
 更准确地说，当前状态是：
 
-- 第一到第四阶段的引擎主干、Mechanic-first 主链和战斗玩法层已经稳定落地
-- 第五阶段的错误技、扩展入口、扩展 effect 家族与守卫体系已经完成核心收口
-- 第六阶段的正式植物与僵尸 roster、正式交互矩阵、正式战场语义、正式波次与关卡模板已经形成第一轮正式输出
-- 当前主线应以 [第七阶段输入清单](plans/archive/第七阶段输入清单.md) 为上限参考，继续扩展正式关卡数量、内容组合深度和可供外循环组织的战斗内容基线
+- 引擎主干、Mechanic-first 主链和战斗玩法层已经稳定落地
+- Mechanic family 已冻结为 10 个：`Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller`
+- 通用扩展插槽 v1 已落地：6 个 registry 统一继承 `RegistryBase`，6 个开放 slot（`projectile_movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`）
+- 战斗模式组织层 v1 已落地：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef`
+- 视觉反馈层骨架已合入：`VisualCueRegistry / VisualFxRegistry / AudioCueRegistry / VisualProfileRegistry` + `scripts/visual/` 运行时
+- 实体替换/升级系统已落地：支持通用的升级植物替换（自动升级种子、阶段升级、地刺升级等）
+- 爆发间隔发射已支持：Emission mechanic 支持 burst interval 配置
+- 错误技、扩展入口、扩展 effect 家族与守卫体系已经完成核心收口
+- 正式植物与僵尸 roster、正式交互矩阵、正式战场语义、正式波次与关卡模板已经形成基线
+- 主线已进入"archetype-only 内容与回归同步"阶段
 
-这意味着当前项目已经不再是“只有文档和原型骨架”，而是已经同时具备：
+这意味着当前项目已经同时具备：
 
 - 引擎主干：
   - 结构化事件链
   - 触发器与效果执行链
   - 实体运行时状态
   - 投射体连续行为与高度命中模型
+  - 统一 Registry 注册体系（`RegistryBase` + `RegistryConfig` + `RegistryContributorDef`）
+  - 视觉反馈层骨架（cue / fx / audio / profile 四个注册表 + 运行时分发）
 - 内容与协议主链：
-  - `CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory`
+  - `CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory`（唯一正式入口）
   - 规则协议白名单与守卫
-  - Archetype 编译、运行时规格与覆盖优先级
+  - 10 个冻结 Mechanic family，49 个内置 type
+  - 扩展包可通过 `MechanicCompilerDef` 在冻结 family 下新增 type
 - 战斗玩法层：
   - 阳光与资源
-  - 棋盘、占位与放置
+  - 棋盘、占位与放置（含数据驱动放置验证与实体替换/升级）
   - 卡片、费用、冷却与手牌
   - 波次、战局阶段与胜负条件
   - 状态系统
   - 场上物件与机关
+  - 战斗模式组织层（mode 定义、输入能力、规则模块、胜负条件）
+- 内容与发射系统：
+  - 100 个 archetype（88 植物 + 10 僵尸 + 2 场上物件）
+  - 277 个战斗数据资源（.tres）
+  - 爆发间隔发射（burst interval）
+  - 8 组原版植物迁移展示（覆盖 42 种原版植物）
 - 验证与展示：
-  - 批量回归入口
-  - 回归状态账本
-  - Showcase Hub
+  - 136 个验证场景（smoke / core / extension / guardrail / showcase 分层）
+  - 批量回归入口（支持受控并行）
+  - 40 个 Showcase 场景（含 8 组原版植物花园展示）
   - 可运行的 Demo 关卡
-- 第五阶段能力：
-  - 错误技样例已进入统一回归
-  - 扩展包 smoke test 已接入
-  - 扩展 effect 家族与守卫专项已落地
-- 第六阶段能力：
-  - 正式植物 roster v1
-  - 正式僵尸 roster v1
-  - 正式交互矩阵 v1
-  - 正式战场语义说明 v1
-  - 正式波次 / 关卡模板集 v1
-
-当前最重要的工作已经不是“把最小事件链跑起来”，也不只是“继续冻结第五阶段边界”，而是：
-
-1. 继续扩展更完整的正式关卡组、内容组合与节奏结构
-2. 继续补强支援 / 光环 / 召唤谱系、复杂地图障碍和场上物件
-3. 为后续外循环组织提供更完整的正式关卡模板、平衡观察点与正式内容入口
+- 扩展体系：
+  - 8 个扩展包（样例、守卫、探测等）
+  - 扩展包 smoke / chaos / guardrail 已进入稳定回归
+  - `core.*` 由主仓独占，扩展包不得覆盖
 
 ## 当前项目现状
 
-结合仓库当前实现，项目现状可以概括成下面 5 点：
+结合仓库当前实现，项目现状可以概括如下：
 
 ### 1. 引擎主干已经稳定
 
@@ -89,104 +141,152 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 
 并且已经接入：
 
-- `EventData`
-- `RuleContext`
-- `ProtocolValidator`
-- `EntityFactory`
+- `EventData`、`RuleContext`、`ProtocolValidator`
+- `EntityFactory`（archetype-only 入口）
 - `BaseEntity / PlantRoot / ZombieRoot / ProjectileRoot`
 
-### 2. 战斗玩法闭环已经形成
+### 2. 编译链与 Mechanic 系统已经完成三阶段重构
 
-第四阶段的核心系统已经全部进入主干，而不是继续停留在草案层：
+- 第一阶段：完成 archetype 入口、编译链骨架和首批 archetype 闭环
+- 第二阶段：完成 `Controller / State / Lifecycle` 的最小正式路径
+- 第三阶段：完成多 payload、per-type dispatch、确定性随机、独立实例化与迁移对照验证
 
-- `BattleEconomyState`
-- `BattleBoardState`
-- `BattleCardState`
-- `BattleFlowState`
-- `BattleStatusState`
-- `BattleFieldObjectState`
+### 3. 战斗玩法闭环已经形成
 
-### 3. 仓库已经有可操作 Demo
+核心战斗子系统已经全部进入主干：
 
-当前项目默认启动场景是：
+- `BattleEconomyState` — 阳光资源管理、天降阳光、消费验证
+- `BattleBoardState` — 格子系统、放置验证、槽位类型/标签、实体替换/升级
+- `BattleCardState` — 卡片手牌、费用消耗、冷却管理、放置请求
+- `BattleFlowState` — 战斗阶段管理（preparing / running / victory / defeat）
+- `BattleFieldObjectState` — 场上物件生成、管理、事件发射
+- `BattleModeHost` — 模式运行时宿主：解析 mode_def、合并 override、驱动规则模块、评估目标
 
-- `res://scenes/main/main.tscn`
+### 4. 通用扩展插槽 v1 已经落地
 
-它会进入 Showcase Hub，并可继续进入：
+所有 registry 统一继承 `RegistryBase`，6 个已开放 slot：
 
-- `res://scenes/demo/demo_level.tscn`
+| Slot | Registry | 说明 |
+|------|----------|------|
+| `projectile_movement` | `ProjectileMovementRegistry` | linear / parabola / track |
+| `mechanic_compilers` | `MechanicCompilerRegistry` | 扩展包可在冻结 family 下新增 type |
+| `effects` | `EffectRegistry` | 保留现有成熟路径 |
+| `triggers` | `TriggerRegistry` | 6 内置 trigger，支持 strategy_script 注册 |
+| `detections` | `DetectionRegistry` | 6 内置 detection，支持 strategy_script 注册 |
+| `controllers` | `ControllerRegistry` | 4 内置 controller，支持 strategy_script 注册 |
 
-这意味着仓库已经不只是“自动验证集合”，而是有一个可实际操作的最小 PvZ-like Demo。
+### 5. 视觉反馈层骨架已合入
 
-### 4. 验证体系已经进入持续回归状态
+视觉反馈层采用与游戏 registry 一致的注册模式：
 
-当前仓库已经有：
+| Registry | 职责 |
+|----------|------|
+| `VisualCueRegistry` | 视觉提示注册（命中闪光、状态变化等） |
+| `VisualFxRegistry` | 视觉特效注册（粒子、动画等） |
+| `AudioCueRegistry` | 音频提示注册 |
+| `VisualProfileRegistry` | 角色视觉外观档案注册 |
 
-- `tools/run_validation.ps1`
-- `tools/run_all_validations.ps1`
-- `tools/validation_scenarios.json`
+运行时组件：`scripts/visual/` 下的 `VisualFeedbackHost`、`VisualActionRunner`、`VisualStageLayerService`、`VisualLayerPolicy`。
 
-当前批量回归清单已经覆盖 **52 个唯一验证场景 ID**，覆盖主干专项、第四阶段玩法层专项、第五阶段错误技专项、扩展包 smoke test、扩展 manifest 守卫专项、扩展 effect 守卫专项以及第六阶段正式内容专项，并持续维护：
+### 6. 内容基线已经形成
 
-- `latest`
-- `history`
-- `per-scenario`
+- **100 个 archetype**：88 植物 + 10 僵尸 + 2 场上物件
+- **277 个战斗数据资源**（.tres）：archetype、投射物模板、飞行配置、卡片、波次等
+- 第一轮正式交互矩阵、正式战场语义、正式波次 / 关卡模板集
+- 8 组原版植物迁移展示（覆盖 42 种原版植物：射手、冰控、投手、生产、蘑菇、爆炸、防御支援、特殊）
 
-三类回归状态记录。
+### 7. 验证体系已经进入持续回归状态
 
-### 5. 第五阶段核心起步已经完成收口
+- `tools/run_validation.ps1` — 单场景验证
+- `tools/run_all_validations.ps1` — 批量验证（支持 `-MaxParallel` 受控并行）
+- `tools/validation_scenarios.json` — **136 个验证场景**，分层如下：
 
-当前仓库已经不只是“准备做错误技和扩展”，而是已经落地：
+| 分层 | 场景数 |
+|------|--------|
+| smoke | 8 |
+| smoke + core | 5 |
+| core | 86 |
+| showcase + core | 8 |
+| extension | 10 |
+| smoke + extension | 2 |
+| guardrail | 10 |
+| smoke + guardrail | 3 |
+| guardrail + extension | 4 |
 
-- 第一批和第二批错误技验证场景
-- `extensions/minimal_chaos_pack` 最小扩展包 smoke test
-- `extensions/phase5_chaos_pack` 扩展 effect 样例包
-- `extensions/phase5_guardrail_pack` 扩展 effect 守卫包
-- Showcase Hub 中的第五阶段错误技分组
+### 8. 仓库已经有可操作 Demo
 
-### 6. 第六阶段正式战斗内容已经形成第一轮基线
+当前项目默认启动场景是 `res://scenes/main/main.tscn`，进入 Showcase Hub 后可浏览 40 个展示场景（含 8 组原版植物花园展示）和 Demo 关卡。
 
-当前仓库已经不只是“规则引擎 + 样例”，而是已经进一步落地：
+## 模块结构
 
-- 第一轮正式植物 roster
-- 第一轮正式僵尸 roster
-- 第一轮正式交互矩阵
-- 第一轮正式战场模板
-- 第一轮正式波次 / 关卡模板
-- 对应的 Phase 6 正式内容专项回归
-
-因此下一步重点应从“继续证明能跑”进一步转为“扩展正式内容深度，并为第七阶段组织这些内容做准备”。
+```text
+autoload/                 16 个全局单例（EventBus、各 Registry、GameState、视觉/音频 Registry 等）
+scripts/core/defs/        资源定义（Archetype, Mechanic, TriggerDef, EffectDef, VisualCueDef 等）
+scripts/core/registry/    统一注册体系基类（RegistryBase, RegistryConfig, RegistryContributorDef）
+scripts/core/runtime/     运行时（MechanicCompiler, RuntimeSpec, EffectExecutor 等）
+scripts/battle/           战斗协调（BattleManager, EntityFactory, 各子系统, 模式层, 升级替换）
+scripts/entities/         实体类型（BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot）
+scripts/components/       可复用组件（HealthComponent, TriggerComponent, ControllerComponent, VisualActorComponent 等）
+scripts/projectile/       抛射体运动系统（linear / parabola / track）
+scripts/visual/           视觉反馈运行时（VisualFeedbackHost, VisualActionRunner, StageLayerService, LayerPolicy）
+scripts/debug/            调试覆盖层
+data/combat/              战斗数据资源（277 个 .tres）
+  archetypes/             100 个 archetype（plants/88 + zombies/10 + field_objects/2）
+  projectile_templates/   投射物模板
+scenes/validation/        自动化验证场景资源（131 个）
+scenes/showcase/          展示场景（40 个）
+extensions/               扩展包（8 个：样例、守卫、探测等）
+tools/                    验证运行工具（PowerShell）
+wiki/                     中文设计文档（47 篇）
+vendor/                   参考实现（PVZ-Godot-Dream），不属于引擎核心
+```
 
 ## 文档结构
 
 ```text
-plans/          规划稿、阶段总结与执行清单
-plans/archive/  已完成阶段归档总览
-wiki/           收敛后的结构化设计文档
-├── index.md
-├── 01-overview/
-├── 02-runtime-protocol/
-├── 03-content-validation/
-├── 04-roadmap-reference/
-└── 05-governance/
-vendor/  外部参考实现子模块
+wiki/                    结构化设计文档
+├── 01-overview/         架构、设计哲学、当前阶段
+├── 02-runtime-protocol/ 编译链、触发器、效果、执行机制、战斗模式组织层
+├── 03-content-validation/ 验证矩阵和覆盖率
+├── 04-roadmap-reference/ 参考实现、扩展系统规划、通用扩展插槽机制
+├── 05-governance/        Archetype 编写约定、术语表、方法论
+├── decisions/            ADR 决策记录（ADR-001 ~ ADR-006+）
+plans/                   规划稿、阶段总结与执行清单
+plans/archive/           已完成阶段归档总览
+plans/draft/             未来方向草案
+vendor/                  外部参考实现子模块
 ```
 
 推荐优先阅读：
 
-1. [wiki/index.md](wiki/index.md)
-2. [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)
-3. [plans/archive/第五阶段/第五阶段阶段总结.md](plans/archive/第五阶段/第五阶段阶段总结.md)
-4. [plans/archive/第五阶段/第五阶段-v1现状盘点.md](plans/archive/第五阶段/第五阶段-v1现状盘点.md)
-5. [plans/archive/第五阶段/第五阶段-v1协议冻结清单.md](plans/archive/第五阶段/第五阶段-v1协议冻结清单.md)
-6. [plans/archive/第五阶段/第五阶段-v1回归分层方案.md](plans/archive/第五阶段/第五阶段-v1回归分层方案.md)
-7. [plans/archive/第六阶段/第六阶段-阶段总结.md](plans/archive/第六阶段/第六阶段-阶段总结.md)
-8. [plans/archive/第六阶段/第六阶段-正式植物与僵尸内容基线清单.md](plans/archive/第六阶段/第六阶段-正式植物与僵尸内容基线清单.md)
-9. [plans/archive/第六阶段/第六阶段-正式交互矩阵-v1.md](plans/archive/第六阶段/第六阶段-正式交互矩阵-v1.md)
-10. [plans/archive/第六阶段/第六阶段-正式战场语义说明-v1.md](plans/archive/第六阶段/第六阶段-正式战场语义说明-v1.md)
-11. [plans/archive/第六阶段/第六阶段-正式波次与关卡模板集-v1.md](plans/archive/第六阶段/第六阶段-正式波次与关卡模板集-v1.md)
-12. [plans/archive/第七阶段输入清单.md](plans/archive/第七阶段输入清单.md)
-13. [plans/archive/第一至第四阶段归档总览.md](plans/archive/第一至第四阶段归档总览.md)
+1. [wiki/index.md](wiki/index.md) — Wiki 导航入口
+2. [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md) — 唯一状态快照页
+3. [wiki/01-overview/00-架构总览.md](wiki/01-overview/00-架构总览.md) — 架构总览
+4. [wiki/02-runtime-protocol/11-编译链与Mechanic系统.md](wiki/02-runtime-protocol/11-编译链与Mechanic系统.md) — 编译链详解
+5. [wiki/02-runtime-protocol/14-战斗模式组织层.md](wiki/02-runtime-protocol/14-战斗模式组织层.md) — 战斗模式组织层
+6. [wiki/04-roadmap-reference/42-通用扩展插槽机制.md](wiki/04-roadmap-reference/42-通用扩展插槽机制.md) — 通用扩展插槽
+7. [wiki/decisions/README.md](wiki/decisions/README.md) — ADR 决策记录索引
+
+## 冻结协议
+
+第一轮协议冻结已生效。未经设计审批，不得修改以下语义：
+
+- **Mechanic family**（10 个冻结，新增需 ADR）：Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller
+- **触发器**：`periodically`、`when_damaged`、`on_death`
+- **效果**：`damage`、`spawn_projectile`、`explode`
+
+`ProtocolValidator` 在运行时强制执行参数类型、边界和资源脚本类型检查。
+
+## 编码规范
+
+- 所有游戏定义使用 Godot `Resource`（.tres），不使用 JSON 或外部格式
+- 一个类一个文件；数据定义继承 `Resource`
+- Archetype 编写顺序：Identity -> Chassis -> Combat Stats -> Mechanic[]
+- Archetype 命名：`plant_role_variant`、`zombie_role_variant`
+- Mechanic 命名：`family.type_id` 格式
+- 事件命名：点分隔语义名（`game.tick`、`entity.damaged`、`entity.died`）
+- PascalCase 用于类名，snake_case 用于变量/函数
+- StringName 用于驻留标识符，RefCounted 用于系统间传递数据
 
 ## 参考实现
 
@@ -203,7 +303,7 @@ vendor/  外部参考实现子模块
 - 参考 Godot 下 PVZ 类项目的工程拆分
 - 借鉴其事件总线、角色组件化、投射物移动组件等局部实现
 
-它**不是**当前项目的直接代码基础。当前项目不会直接沿着其“原版复刻”主干继续开发，而是只提取适合规则引擎方向的实现经验。
+它**不是**当前项目的直接代码基础。当前项目不会直接沿着其"原版复刻"主干继续开发，而是只提取适合规则引擎方向的实现经验。
 
 ## 获取项目
 
@@ -221,26 +321,30 @@ git submodule update --init --recursive
 
 ## 运行方式
 
-当前仓库已经可以直接进入 Showcase Hub 和 Demo 场景进行验证与演示。
-
-基础使用方式：
+### 在 Godot 编辑器中运行
 
 1. 安装 Godot 4.x
 2. 拉取仓库和子模块
 3. 用 Godot 打开项目目录
 4. 运行默认主场景 `res://scenes/main/main.tscn`
 
-如果你要跑自动化验证，可以直接使用：
+运行单个验证场景：打开 `scenes/validation/` 中的 `.tscn` 文件并按 F6。
+
+### 自动化验证
 
 ```powershell
-& ".\tools\run_validation.ps1"
+# 运行所有验证场景
+pwsh tools/run_all_validations.ps1
+
+# 控制并行度（默认自动取 min(CPU核心数, 4)）
+pwsh tools/run_all_validations.ps1 -MaxParallel 4
+
+# 运行单个场景
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"
 ```
 
-或：
-
-```powershell
-& ".\tools\run_all_validations.ps1"
-```
+验证场景定义：`tools/validation_scenarios.json`  
+验证结果输出：`artifacts/validation/`
 
 ## 许可证
 
