@@ -482,6 +482,10 @@ func _is_spawn_projectile_override_key(key: Variant) -> bool:
 		"distance",
 		"lifetime",
 		"hitbox_radius",
+		"burst_count",
+		"burst_interval",
+		"spread_count",
+		"spread_angle",
 	]
 
 

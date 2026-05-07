@@ -8,6 +8,7 @@ const ProtocolValidatorRef = preload("res://scripts/core/runtime/protocol_valida
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ShuffleBagRef = preload("res://scripts/core/runtime/shuffle_bag.gd")
+const EffectDelayRunnerRef = preload("res://scripts/core/runtime/effect_delay_runner.gd")
 
 var _battle: Node = null
 var _entity_factory: RefCounted = EntityFactoryRef.new()
@@ -37,39 +38,111 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 
 	var burst_count := int(resolved_params.get("burst_count", 1))
 	var spread_count := int(resolved_params.get("spread_count", 1))
-	var spread_angle_deg := float(resolved_params.get("spread_angle", 0.0))
-	var total_emissions := maxi(burst_count, 1) * maxi(spread_count, 1)
+	var burst_interval := maxf(float(resolved_params.get("burst_interval", 0.0)), 0.0)
 	var first_projectile: Node = null
-	var base_angle := direction.angle()
 	for burst_i in range(maxi(burst_count, 1)):
-		for spread_i in range(maxi(spread_count, 1)):
-			var spread_offset := 0.0
-			if spread_count > 1:
-				spread_offset = deg_to_rad(spread_angle_deg) * (float(spread_i) - float(spread_count - 1) / 2.0)
-			var emission_dir := Vector2.from_angle(base_angle + spread_offset)
-			var projectile_template = resolved_params.get("projectile_template", null)
-			var projectile: Variant = _entity_factory.create_projectile(spawn_position, projectile_template, resolved_params)
-			var speed := float(resolved_params.get("speed", 300.0))
-			var damage := int(resolved_params.get("damage", 10))
-			var movement_params: Dictionary = resolver.build_projectile_movement_params(
+		var delay := burst_interval * float(burst_i)
+		if delay <= 0.0:
+			var projectile := _spawn_projectile_burst(
 				context,
 				resolved_params,
 				spawn_position,
-				emission_dir,
-				speed
+				direction,
+				requested_lane,
+				spread_count,
+				on_hit_effect
 			)
-			projectile.launch(emission_dir, speed, context.source_node, on_hit_effect, damage, movement_params, {
-				"depth": int(context.runtime.get("depth", context.depth)),
-				"chain_id": context.chain_id,
-				"origin_event_name": context.event_name,
-			})
-			if requested_lane >= 0 and projectile.has_method("assign_lane"):
-				projectile.call("assign_lane", requested_lane)
-			var entity_root: Node2D = _battle.get_entity_root()
-			entity_root.add_child(projectile)
 			if first_projectile == null:
 				first_projectile = projectile
+			continue
+		_schedule_projectile_burst(
+			context,
+			resolved_params,
+			spawn_position,
+			direction,
+			requested_lane,
+			spread_count,
+			on_hit_effect,
+			delay
+		)
 	return first_projectile
+
+
+func _spawn_projectile_burst(
+	context,
+	resolved_params: Dictionary,
+	spawn_position: Vector2,
+	direction: Vector2,
+	requested_lane: int,
+	spread_count: int,
+	on_hit_effect = null
+) -> Node:
+	if _battle == null or not is_instance_valid(_battle):
+		return null
+	if context.source_node != null and not is_instance_valid(context.source_node):
+		return null
+	if context.target_node != null and not is_instance_valid(context.target_node):
+		context.target_node = null
+	var resolver: RefCounted = _battle.get_projectile_effect_resolver()
+	var spread_angle_deg := float(resolved_params.get("spread_angle", 0.0))
+	var first_projectile: Node = null
+	var base_angle := direction.angle()
+	for spread_i in range(maxi(spread_count, 1)):
+		var spread_offset := 0.0
+		if spread_count > 1:
+			spread_offset = deg_to_rad(spread_angle_deg) * (float(spread_i) - float(spread_count - 1) / 2.0)
+		var emission_dir := Vector2.from_angle(base_angle + spread_offset)
+		var projectile_template = resolved_params.get("projectile_template", null)
+		var projectile: Variant = _entity_factory.create_projectile(spawn_position, projectile_template, resolved_params)
+		var speed := float(resolved_params.get("speed", 300.0))
+		var damage := int(resolved_params.get("damage", 10))
+		var movement_params: Dictionary = resolver.build_projectile_movement_params(
+			context,
+			resolved_params,
+			spawn_position,
+			emission_dir,
+			speed
+		)
+		projectile.launch(emission_dir, speed, context.source_node, on_hit_effect, damage, movement_params, {
+			"depth": int(context.runtime.get("depth", context.depth)),
+			"chain_id": context.chain_id,
+			"origin_event_name": context.event_name,
+		})
+		if requested_lane >= 0 and projectile.has_method("assign_lane"):
+			projectile.call("assign_lane", requested_lane)
+		var entity_root: Node2D = _battle.get_entity_root()
+		entity_root.add_child(projectile)
+		if first_projectile == null:
+			first_projectile = projectile
+	return first_projectile
+
+
+func _schedule_projectile_burst(
+	context,
+	resolved_params: Dictionary,
+	spawn_position: Vector2,
+	direction: Vector2,
+	requested_lane: int,
+	spread_count: int,
+	on_hit_effect,
+	delay: float
+) -> void:
+	if _battle == null or not is_instance_valid(_battle):
+		return
+	var delayed_context = context.duplicate_deep() if context != null and context.has_method("duplicate_deep") else context
+	var delayed_params := resolved_params.duplicate(true)
+	var runner: Node = EffectDelayRunnerRef.new()
+	runner.name = "ProjectileBurstDelayRunner"
+	_battle.add_child(runner)
+	runner.setup(delay, Callable(self, "_spawn_projectile_burst").bind(
+		delayed_context,
+		delayed_params,
+		spawn_position,
+		direction,
+		requested_lane,
+		spread_count,
+		on_hit_effect
+	))
 
 
 func spawn_entity_from_effect(context, params: Dictionary, metadata: Dictionary = {}) -> Node:

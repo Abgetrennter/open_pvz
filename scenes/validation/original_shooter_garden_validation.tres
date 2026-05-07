@@ -46,6 +46,7 @@ archetype_id = &"archetype_bucket_tank"
 lane_id = 2
 x_position = 500.0
 spawn_overrides = {
+"max_health": 480,
 "move_speed": 0.0
 }
 
