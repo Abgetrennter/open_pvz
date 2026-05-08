@@ -82,7 +82,7 @@ func _register_builtin_defs() -> void:
 		"name": "target_mode",
 		"type": "string_name",
 		"default": &"context_target",
-		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "placement_blocker", "enemies_in_radius", "enemies_in_lane"]),
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "placement_blocker", "detected_targets", "enemies_in_radius", "enemies_in_lane"]),
 	}, {
 		"name": "radius",
 		"type": "float",
@@ -323,7 +323,7 @@ func _register_builtin_defs() -> void:
 		"name": "target_mode",
 		"type": "string_name",
 		"default": &"context_target",
-		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "placement_blocker", "enemies_in_radius", "enemies_in_lane"]),
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target", "placement_blocker", "detected_targets", "enemies_in_radius", "enemies_in_lane"]),
 	}, {
 		"name": "radius",
 		"type": "float",
@@ -962,6 +962,8 @@ func _resolve_target(context, params: Dictionary) -> Node:
 
 func _resolve_targets(context, params: Dictionary) -> Array:
 	var target_mode := StringName(params.get("target_mode", &"context_target"))
+	if target_mode == &"detected_targets":
+		return _resolve_detected_targets(context)
 	if target_mode != &"enemies_in_radius" and target_mode != &"enemies_in_lane":
 		var single_target := _resolve_target(context, params)
 		return [] if single_target == null else [single_target]
@@ -1014,6 +1016,26 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 		if _node_ground_position(candidate).distance_to(center) <= radius:
 			targets.append(child)
 
+	return targets
+
+
+func _resolve_detected_targets(context) -> Array:
+	if context == null or GameState.current_battle == null:
+		return []
+	if not GameState.current_battle.has_method("get_runtime_entities"):
+		return []
+	var detected_ids: Variant = context.runtime.get("detected_target_ids", PackedInt32Array())
+	if not (detected_ids is PackedInt32Array) and not (detected_ids is Array):
+		return []
+	var id_lookup: Dictionary = {}
+	for entity_id: Variant in detected_ids:
+		id_lookup[int(entity_id)] = true
+	var targets: Array = []
+	for child in GameState.current_battle.call("get_runtime_entities"):
+		if child == null or not child.has_method("get_entity_id"):
+			continue
+		if id_lookup.has(int(child.call("get_entity_id"))):
+			targets.append(child)
 	return targets
 
 

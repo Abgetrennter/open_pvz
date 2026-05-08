@@ -52,7 +52,7 @@ required_core_values = {
 [sub_resource type="Resource" id="Rule_first_target"]
 script = ExtResource("4_rule")
 rule_id = &"fume_pierce_first_target"
-description = "Fume-shroom pierce projectile should damage the first target"
+description = "Fume-shroom gas burst should damage the first detected target"
 event_name = &"entity.damaged"
 required_core_values = {
 "source_archetype_id": &"archetype_original_fumeshroom",
@@ -63,7 +63,7 @@ required_core_values = {
 [sub_resource type="Resource" id="Rule_second_target"]
 script = ExtResource("4_rule")
 rule_id = &"fume_pierce_second_target"
-description = "Fume-shroom pierce projectile should continue and damage a second target"
+description = "Fume-shroom gas burst should damage a second detected target"
 event_name = &"entity.damaged"
 required_core_values = {
 "source_archetype_id": &"archetype_original_fumeshroom",
@@ -75,8 +75,8 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"plant_original_fumeshroom_pierce_validation"
 display_name = "Original Fume-shroom Pierce Validation"
-description = "Validates Coffee Bean wake plus Fume-shroom pierce hit policy across multiple targets."
-goals = PackedStringArray("Verify Coffee Bean wakes Fume-shroom.", "Verify Fume-shroom damages at least two targets with one pierce-capable firing path.")
+description = "Validates Coffee Bean wake plus Fume-shroom short-range penetrating gas damage across multiple targets."
+goals = PackedStringArray("Verify Coffee Bean wakes Fume-shroom.", "Verify Fume-shroom damages at least two targets with one instant gas burst.")
 validation_time_limit = 4.0
 initial_sun = 1000
 lane_count = 1
