@@ -24,7 +24,7 @@ max_health = 300
 hitbox_size = Vector2(44, 56)
 default_params = {
 "damage": 20,
-"interval": 0.5,
+"interval": 1.5,
 "scan_range": 2000.0,
 "speed": 320.0,
 "turn_rate": 4.0,

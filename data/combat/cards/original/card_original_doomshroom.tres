@@ -8,5 +8,5 @@ card_id = &"card_original_doomshroom"
 display_name = "Doom-shroom"
 archetype_id = &"archetype_original_doomshroom"
 sun_cost = 125
-cooldown_seconds = 5.0
+cooldown_seconds = 50.0
 placement_tags = PackedStringArray("supports_primary")

@@ -8,5 +8,5 @@ card_id = &"card_original_cattail"
 display_name = "Cattail"
 archetype_id = &"archetype_original_cattail"
 sun_cost = 225
-cooldown_seconds = 5.0
+cooldown_seconds = 50.0
 placement_tags = PackedStringArray("supports_primary")

@@ -8,5 +8,5 @@ card_id = &"card_original_jalapeno"
 display_name = "Jalapeno"
 archetype_id = &"archetype_original_jalapeno"
 sun_cost = 125
-cooldown_seconds = 5.0
+cooldown_seconds = 50.0
 placement_tags = PackedStringArray("supports_primary")

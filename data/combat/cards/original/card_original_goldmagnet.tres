@@ -8,5 +8,5 @@ card_id = &"card_original_goldmagnet"
 display_name = "Gold Magnet"
 archetype_id = &"archetype_original_goldmagnet"
 sun_cost = 50
-cooldown_seconds = 5.0
+cooldown_seconds = 50.0
 placement_tags = PackedStringArray("supports_primary")
