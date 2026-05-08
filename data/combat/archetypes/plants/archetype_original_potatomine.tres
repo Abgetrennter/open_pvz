@@ -20,7 +20,7 @@ hitbox_size = Vector2(40, 36)
 default_params = {
 "arming_time": 15.0,
 "required_state": &"active",
-"scan_range": 64.0,
+"scan_range_slots": 0.6875,
 "amount": 1800,
 "radius": 150.0,
 "target_mode": &"enemies_in_radius"

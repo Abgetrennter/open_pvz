@@ -26,8 +26,8 @@ default_params = {
 "required_state": &"awake",
 "damage": 20,
 "interval": 1.5,
-"scan_range": 320.0,
-"speed": 180.0,
+"scan_range_slots": 5.0,
+"speed_slots_per_sec": 4.1625,
 "start_delay": 0.2,
 "hit_strategy": &"pierce",
 "max_penetrations": 5

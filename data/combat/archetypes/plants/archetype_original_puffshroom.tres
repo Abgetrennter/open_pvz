@@ -21,7 +21,7 @@ default_params = {
 "required_state": &"awake",
 "amount": 20,
 "interval": 1.5,
-"scan_range": 120.0,
+"scan_range_slots": 3.625,
 "start_delay": 0.2
 }
 mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("4_payload")]

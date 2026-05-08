@@ -22,7 +22,7 @@ hitbox_size = Vector2(44, 42)
 default_params = {
 "amount": 1800,
 "interval": 0.25,
-"scan_range": 72.0,
+"scan_range_slots": 1.0,
 "start_delay": 0.0,
 "target_mode": &"context_target"
 }

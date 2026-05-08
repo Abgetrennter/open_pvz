@@ -24,6 +24,9 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
 lane_id = 0
 x_position = 520.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
 
 [sub_resource type="Resource" id="Rule_near_status_applied"]
 script = ExtResource("3_rule")
@@ -67,4 +70,3 @@ goals = PackedStringArray("Verify aura applies slowed to nearby enemies in the s
 validation_time_limit = 1.8
 validation_rules = [SubResource("Rule_near_status_applied"), SubResource("Rule_far_status_blocked"), SubResource("Rule_near_movement_scaled")]
 spawns = [SubResource("Spawn_aura_keeper"), SubResource("Spawn_near_target"), SubResource("Spawn_far_target")]
-

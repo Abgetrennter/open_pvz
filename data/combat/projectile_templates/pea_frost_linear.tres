@@ -13,5 +13,5 @@ lifetime = 5.0
 hitbox_radius = 10.0
 default_params = {
 "damage": 0,
-"speed": 210.0
+"speed_slots_per_sec": 4.1625
 }

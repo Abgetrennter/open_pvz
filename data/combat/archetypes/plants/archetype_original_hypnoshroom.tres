@@ -19,7 +19,7 @@ hitbox_size = Vector2(36, 40)
 default_params = {
 "interval": 0.25,
 "required_state": &"awake",
-"scan_range": 64.0,
+"scan_range_slots": 0.6875,
 "start_delay": 0.0
 }
 mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("4_payload")]

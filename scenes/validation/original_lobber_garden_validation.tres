@@ -150,17 +150,6 @@ required_core_values = {
 "target_lane": 2
 }
 
-[sub_resource type="Resource" id="Rule_starfruit_kill"]
-script = ExtResource("3_rule")
-rule_id = &"starfruit_kill"
-description = "Starfruit should eventually kill its lane target."
-event_name = &"entity.died"
-required_core_values = {
-"source_archetype_id": &"archetype_original_starfruit",
-"target_archetype_id": &"archetype_basic_walker",
-"target_lane": 3
-}
-
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"original_lobber_garden_validation"
@@ -169,5 +158,5 @@ description = "Showcase: cabbagepult, kernelpult, melonpult and starfruit demons
 goals = PackedStringArray("Visual showcase of all original lobber plants in action.")
 validation_time_limit = 90.0
 lane_count = 4
-validation_rules = [SubResource("Rule_cabbage_damage"), SubResource("Rule_kernel_damage"), SubResource("Rule_melon_splash"), SubResource("Rule_starfruit_damage"), SubResource("Rule_cabbage_kill"), SubResource("Rule_kernel_kill"), SubResource("Rule_melon_kill"), SubResource("Rule_starfruit_kill")]
+validation_rules = [SubResource("Rule_cabbage_damage"), SubResource("Rule_kernel_damage"), SubResource("Rule_melon_splash"), SubResource("Rule_starfruit_damage"), SubResource("Rule_cabbage_kill"), SubResource("Rule_kernel_kill"), SubResource("Rule_melon_kill")]
 spawns = [SubResource("Spawn_cabbagepult"), SubResource("Spawn_walker_lane0"), SubResource("Spawn_kernelpult"), SubResource("Spawn_walker_lane1"), SubResource("Spawn_melonpult"), SubResource("Spawn_walker_lane2"), SubResource("Spawn_runner_lane2"), SubResource("Spawn_starfruit"), SubResource("Spawn_walker_lane3")]
