@@ -16,9 +16,13 @@ optional_components = PackedStringArray("DebugViewComponent")
 max_health = 300
 hitbox_size = Vector2(38, 50)
 default_params = {
-"interval": 24.0,
+"interval": 24.25,
+"interval_min": 23.5,
+"interval_max": 25.0,
 "source_type": &"coin_generated",
-"start_delay": 4.0,
+"start_delay": 12.5,
+"start_delay_min": 0.0,
+"start_delay_max": 25.0,
 "value": 50
 }
 mechanics = [ExtResource("2_trigger"), ExtResource("3_payload")]

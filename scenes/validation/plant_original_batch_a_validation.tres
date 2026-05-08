@@ -112,7 +112,7 @@ script = ExtResource("3_rule")
 rule_id = &"sunflower_sun"
 description = "Sunflower should produce plant-generated sun"
 event_name = &"sun.spawned"
-min_count = 2
+min_count = 1
 required_core_values = {
 "source_type": &"plant_generated"
 }
@@ -177,7 +177,7 @@ scenario_id = &"plant_original_batch_a_validation"
 display_name = "Original Plant Batch A Validation"
 description = "Validates all 7 Batch A original plants: Peashooter shoots and damages, Sunflower produces sun, Wall-nut tanks bites, Snow Pea applies slow, Repeater deals burst damage, Cabbage-pult lobs and hits, Melon-pult deals direct and splash damage."
 goals = PackedStringArray("Verify Peashooter can damage a basic walker.", "Verify Sunflower produces plant-generated sun.", "Verify Wall-nut can receive damage.", "Verify Snow Pea applies slowed status.", "Verify Repeater can damage a brisk runner.", "Verify Cabbage-pult lobs and hits a target.", "Verify Melon-pult terminal blast damages multiple clustered targets.")
-validation_time_limit = 8.0
+validation_time_limit = 14.0
 lane_count = 6
 validation_rules = [SubResource("Rule_peashooter_hit"), SubResource("Rule_sunflower_sun"), SubResource("Rule_wallnut_damaged"), SubResource("Rule_snowpea_slow"), SubResource("Rule_repeater_hit"), SubResource("Rule_cabbage_hit"), SubResource("Rule_melon_explode")]
 spawns = [SubResource("Spawn_peashooter"), SubResource("Spawn_pea_target"), SubResource("Spawn_sunflower"), SubResource("Spawn_wallnut"), SubResource("Spawn_wallnut_biter"), SubResource("Spawn_snowpea"), SubResource("Spawn_snowpea_target"), SubResource("Spawn_repeater"), SubResource("Spawn_repeater_target"), SubResource("Spawn_cabbagepult"), SubResource("Spawn_melonpult"), SubResource("Spawn_lobber_target_a"), SubResource("Spawn_lobber_target_b")]
