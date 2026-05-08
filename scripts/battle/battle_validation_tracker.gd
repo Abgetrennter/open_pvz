@@ -87,6 +87,15 @@ func update_validation_state() -> void:
 		_set_validation_status(&"failed")
 
 
+func finish_validation_at_current_state() -> void:
+	if _validation_status != &"pending":
+		return
+	if _all_validation_rules_satisfied():
+		_set_validation_status(&"passed")
+	else:
+		_set_validation_status(&"failed")
+
+
 func process_auto_quit(delta: float) -> void:
 	if _auto_quit_timer < 0.0:
 		return

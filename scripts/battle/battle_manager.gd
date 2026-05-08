@@ -73,6 +73,8 @@ func _ready() -> void:
 	if show_debug_overlay:
 		_spawn_debug_overlay()
 	reset_battle()
+	if _should_run_validation_fixed_steps():
+		call_deferred("_run_validation_fixed_step_scenario")
 
 
 func _exit_tree() -> void:
@@ -123,6 +125,7 @@ func reset_battle() -> void:
 		ProjectileMovementRegistry.rebuild_registry()
 	if MechanicCompilerRegistry.has_method("rebuild_registry"):
 		MechanicCompilerRegistry.rebuild_registry()
+	_apply_scenario_simulation_options()
 
 	_cleanup_visual_runtime()
 	_visual_feedback_host = VisualFeedbackHostRef.new()
@@ -158,7 +161,10 @@ func step_simulation_tick() -> void:
 
 
 func step_simulation_ticks(count: int) -> void:
-	for _i in range(maxi(count, 0)):
+	var step_count := maxi(count, 0)
+	if DebugService.has_method("record_simulation_event"):
+		DebugService.record_simulation_event(&"manual_step", GameState.get_simulation_snapshot(), {"count": step_count})
+	for _i in range(step_count):
 		step_simulation_tick()
 
 
@@ -178,6 +184,11 @@ func _process_simulation_steps(delta: float) -> void:
 		step_count += 1
 	if step_count >= _max_steps_per_physics_frame:
 		_tick_accumulator = minf(_tick_accumulator, GameState.fixed_dt)
+		if DebugService.has_method("record_simulation_event"):
+			DebugService.record_simulation_event(&"max_step_clamp", GameState.get_simulation_snapshot(), {
+				"max_steps_per_physics_frame": _max_steps_per_physics_frame,
+				"remaining_accumulator": _tick_accumulator,
+			})
 
 
 func _step_runtime_nodes(delta: float) -> void:
@@ -537,6 +548,32 @@ func _dispatch_mode_tick(game_time: float) -> void:
 	var mode_host: Node = _subsystem_host.get_mode_host()
 	if mode_host != null and mode_host.has_method("on_tick"):
 		mode_host.call("on_tick", game_time)
+
+
+func _apply_scenario_simulation_options() -> void:
+	var active_scenario = resolve_scenario()
+	if active_scenario == null:
+		return
+	if float(active_scenario.get("simulation_speed_override")) >= 0.0:
+		GameState.set_simulation_speed(float(active_scenario.get("simulation_speed_override")))
+	if bool(active_scenario.get("simulation_paused_on_start")):
+		GameState.set_simulation_paused(true)
+
+
+func _should_run_validation_fixed_steps() -> bool:
+	var active_scenario = resolve_scenario()
+	return active_scenario != null and int(active_scenario.get("validation_fixed_step_count")) >= 0
+
+
+func _run_validation_fixed_step_scenario() -> void:
+	var active_scenario = resolve_scenario()
+	if active_scenario == null:
+		return
+	step_simulation_ticks(int(active_scenario.get("validation_fixed_step_count")))
+	if bool(active_scenario.get("validation_finish_after_fixed_steps")):
+		_validation_tracker.finish_validation_at_current_state()
+	if auto_quit_on_validation and get_validation_status() in ["passed", "failed"]:
+		get_tree().quit(0 if get_validation_status() == "passed" else 1)
 
 
 func _notify_mode_battle_start() -> void:

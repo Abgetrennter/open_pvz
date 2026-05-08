@@ -125,5 +125,5 @@
 
 - [项目 README](../README.md)
 - [历史归档与退役文档索引](05-governance/37-历史归档与退役文档索引.md)
-- [战斗距离与仿真时间统一重构执行计划](../plans/战斗距离与仿真时间统一重构执行计划.md)
+- [战斗距离与仿真时间统一重构执行计划](../plans/archive/runtime-metrics-time/战斗距离与仿真时间统一重构执行计划.md)
 - [扩展系统草案目录](../plans/draft/extension-system/README.md)

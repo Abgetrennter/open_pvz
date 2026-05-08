@@ -593,6 +593,12 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 		errors.append("BattleScenario.display_name must not be empty.")
 	if float(scenario.validation_time_limit) <= 0.0:
 		errors.append("BattleScenario.validation_time_limit must be greater than zero.")
+	if float(scenario.get("simulation_speed_override")) < -1.0:
+		errors.append("BattleScenario.simulation_speed_override must be -1 or >= 0.")
+	if int(scenario.get("validation_fixed_step_count")) < -1:
+		errors.append("BattleScenario.validation_fixed_step_count must be -1 or >= 0.")
+	if bool(scenario.get("validation_finish_after_fixed_steps")) and int(scenario.get("validation_fixed_step_count")) < 0:
+		errors.append("BattleScenario.validation_finish_after_fixed_steps requires validation_fixed_step_count >= 0.")
 	if int(scenario.get("initial_sun")) < 0:
 		errors.append("BattleScenario.initial_sun must be >= 0.")
 	if float(scenario.get("sun_auto_collect_delay")) < -1.0:

@@ -168,6 +168,12 @@
     "layers": ["core"]
   },
   {
+    "id": "simulation_control_validation",
+    "scenario": "res://scenes/validation/simulation_control_validation.tres",
+    "description": "Validates simulation speed, pause-on-start, and headless fixed-step controls for the 100Hz gameplay clock.",
+    "layers": ["smoke", "guardrail"]
+  },
+  {
     "id": "air_interceptor_validation",
     "scenario": "res://scenes/validation/air_interceptor_validation.tres",
     "description": "Validates that the air interceptor sample can hit low and medium air targets through the shared projectile content chain.",

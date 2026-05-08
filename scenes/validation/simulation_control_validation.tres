@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_speed_changed"]
+script = ExtResource("2_rule")
+rule_id = &"speed_changed"
+description = "Scenario simulation speed override should emit an observable control event."
+event_name = &"simulation.control"
+required_tags = PackedStringArray("simulation", "speed_changed")
+required_core_values = {
+"action": &"speed_changed",
+"simulation_speed": 2.0,
+"speed": 2.0
+}
+
+[sub_resource type="Resource" id="Rule_paused_changed"]
+script = ExtResource("2_rule")
+rule_id = &"paused_changed"
+description = "Scenario pause-on-start should emit an observable control event."
+event_name = &"simulation.control"
+required_tags = PackedStringArray("simulation", "paused_changed")
+required_core_values = {
+"action": &"paused_changed",
+"is_simulation_paused": true,
+"paused": true
+}
+
+[sub_resource type="Resource" id="Rule_manual_step"]
+script = ExtResource("2_rule")
+rule_id = &"manual_step"
+description = "Headless fixed-step validation should request exactly three manual ticks."
+event_name = &"simulation.control"
+required_tags = PackedStringArray("simulation", "manual_step")
+required_core_values = {
+"action": &"manual_step",
+"count": 3
+}
+
+[sub_resource type="Resource" id="Rule_tick_count"]
+script = ExtResource("2_rule")
+rule_id = &"tick_count"
+description = "Exactly three simulation ticks should be emitted by fixed-step validation."
+event_name = &"game.tick"
+min_count = 3
+max_count = 3
+
+[sub_resource type="Resource" id="Rule_tick_index"]
+script = ExtResource("2_rule")
+rule_id = &"tick_index"
+description = "The third emitted tick should carry tick_index=3."
+event_name = &"game.tick"
+required_core_values = {
+"tick_index": 3
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"simulation_control_validation"
+display_name = "Simulation Control Validation"
+description = "Validates stage 8 simulation speed, pause, and headless fixed-step controls."
+goals = PackedStringArray("Verify simulation speed changes are observable.", "Verify pause-on-start does not block manual fixed stepping.", "Verify fixed-step validation emits exactly the requested number of game.tick events.")
+validation_time_limit = 1.0
+simulation_speed_override = 2.0
+simulation_paused_on_start = true
+validation_fixed_step_count = 3
+validation_finish_after_fixed_steps = true
+validation_rules = [SubResource("Rule_speed_changed"), SubResource("Rule_paused_changed"), SubResource("Rule_manual_step"), SubResource("Rule_tick_count"), SubResource("Rule_tick_index")]
+spawns = []
