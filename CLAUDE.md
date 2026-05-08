@@ -1,9 +1,12 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 > Open PVZ -- 基于 Godot 4.x (GDScript) 的可组合、可扩展 PVZ 类规则引擎。不是 Plants vs Zombies 的直接克隆；引擎优先考虑规则的开放组合和涌现式玩法，而非功能完整度。
 
 ## 变更记录 (Changelog)
 
+- **2026-05-06** — 更新 CLAUDE.md：同步 16 个 autoload、新增 visual/ui/demo/input/main/validation 模块、修正文件计数和验证场景数
 - **2026-04-24** — wiki 同步 Mechanic-first 决策：11 份文档更新，旧"模板与装配边界"重写为"编译链与 Mechanic 系统"；CLAUDE.md 同步代码现状
 - **2026-04-22** — Mechanic-first 重构第三阶段完成：multi-payload 编译、per-type compiler dispatch、Controller/State/Lifecycle 扩展、确定性随机协议、Archetype 独立实例化、迁移对照验证
 - **2026-04-15** — init-architect 全仓扫描：新增模块结构图、模块索引表、模块级 CLAUDE.md、覆盖率报告
@@ -40,7 +43,9 @@ Archetype + Mechanic[] -> NormalizedMechanicSet -> RuntimeSpec -> EntityFactory 
 _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Strategy
 ```
 
-### 全局单例 (Autoloads)
+### 全局单例 (Autoloads) — 16 个
+
+**核心规则引擎（11 个）**：
 
 | 单例名 | 职责 |
 |--------|------|
@@ -55,6 +60,16 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `EffectRegistry` | 效果定义与策略注册（damage / spawn_projectile / explode / apply_status / produce_sun / spawn_entity） |
 | `ControllerRegistry` | Controller 策略注册（core.bite / core.sweep） |
 | `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
+
+**运动与表现（5 个）**：
+
+| 单例名 | 职责 |
+|--------|------|
+| `ProjectileMovementRegistry` | 抛射体运动策略注册（linear / parabola / track） |
+| `VisualCueRegistry` | 视觉提示注册与分发 |
+| `VisualFxRegistry` | 视觉特效注册与分发 |
+| `VisualProfileRegistry` | 视觉配置档注册 |
+| `AudioCueRegistry` | 音频提示注册与分发 |
 
 ### 战斗运行时子系统
 
@@ -72,7 +87,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 
 ```mermaid
 graph TD
-    Root["Open PVZ (根)"] --> Autoload["autoload/ (11 个全局单例)"]
+    Root["Open PVZ (根)"] --> Autoload["autoload/ (16 个全局单例)"]
     Root --> Scripts["scripts"]
     Root --> Data["data/combat"]
     Root --> Scenes["scenes"]
@@ -85,10 +100,15 @@ graph TD
     Scripts --> Entities["scripts/entities"]
     Scripts --> Components["scripts/components"]
     Scripts --> Projectile["scripts/projectile"]
+    Scripts --> Visual["scripts/visual"]
+    Scripts --> UI["scripts/ui"]
     Scripts --> Debug["scripts/debug"]
 
     Core --> CoreDefs["core/defs (Archetype, Mechanic, TriggerDef, EffectDef...)"]
     Core --> CoreRuntime["core/runtime (MechanicCompiler, RuntimeSpec, EffectExecutor, ShuffleBag...)"]
+    Core --> CoreRegistry["core/registry"]
+
+    Battle --> BattleMode["battle/mode (BattleModeHost, 模式系统)"]
 
     Data --> Archetypes["data/combat/archetypes/ (97 个 .tres)"]
     Data --> Projectiles["data/combat/projectile_templates/"]
@@ -99,6 +119,7 @@ graph TD
     click Entities "./scripts/entities/CLAUDE.md" "查看 entities 模块文档"
     click Components "./scripts/components/CLAUDE.md" "查看 components 模块文档"
     click Projectile "./scripts/projectile/CLAUDE.md" "查看 projectile 模块文档"
+    click Visual "./scripts/visual/CLAUDE.md" "查看 visual 模块文档"
     click Data "./data/combat/CLAUDE.md" "查看 data/combat 模块文档"
 ```
 
@@ -106,19 +127,27 @@ graph TD
 
 | 模块路径 | 语言 | 文件数 | 职责概述 |
 |----------|------|--------|----------|
-| `autoload/` | GDScript | 11 | 全局单例：事件总线、注册表、编译器分发、游戏状态 |
-| `scripts/core/defs/` | GDScript | 11 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, ProjectileTemplate 等 |
+| `autoload/` | GDScript | 16 | 全局单例：事件总线、注册表、编译器分发、游戏状态、运动/视觉/音频注册表 |
+| `scripts/core/defs/` | GDScript | 19 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, ProjectileTemplate 等 |
 | `scripts/core/runtime/` | GDScript | 16 | 运行时：MechanicCompiler, RuntimeSpec, RuntimeTriggerSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
-| `scripts/battle/` | GDScript | 28 | 战斗协调：BattleManager, EntityFactory（archetype-only）, 经济/棋盘/卡片/波次子系统, 模式层 |
-| `scripts/entities/` | GDScript | 4 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot |
-| `scripts/components/` | GDScript | 7 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
-| `scripts/projectile/` | GDScript | 5 | 抛射体运动系统：linear / parabola / track 运动模式 |
+| `scripts/core/registry/` | GDScript | 3 | 注册表内部实现 |
+| `scripts/battle/` | GDScript | 34 | 战斗协调：BattleManager, EntityFactory（archetype-only）, 经济/棋盘/卡片/波次子系统 |
+| `scripts/battle/mode/` | GDScript | 7 | 模式系统：BattleModeHost, 模式解析与驱动 |
+| `scripts/entities/` | GDScript | 6 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot |
+| `scripts/components/` | GDScript | 8 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
+| `scripts/projectile/` | GDScript | 2 | 抛射体基础：ProjectileRoot |
+| `scripts/projectile/movement/` | GDScript | 4 | 抛射体运动策略：linear / parabola / track |
+| `scripts/visual/` | GDScript | 4 | 视觉反馈层：VisualFeedbackHost, VisualActionRunner, 层级策略 |
+| `scripts/ui/` | GDScript | 8 | UI 系统：面板、屏幕 |
+| `scripts/input/` | GDScript | 1 | 输入处理 |
+| `scripts/main/` | GDScript | 2 | 主场景入口 |
+| `scripts/demo/` | GDScript | 2 | Demo 场景脚本 |
+| `scripts/validation/` | GDScript | 3 | 验证场景专用脚本 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
 | `data/combat/archetypes/` | .tres | 97 | Archetype 资源（85 植物 + 10 僵尸 + 2 场上物件） |
-| `data/combat/` | .tres | 270 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
-| `scenes/validation/` | .tres/.tscn | 106 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 109 个场景为准 |
+| `scenes/validation/` | .tres/.tscn | 120 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 127 个场景为准 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
-| `tools/` | PS1/JSON | 3 | 验证运行工具 |
+| `tools/` | PS1/JSON | 3+ | 验证运行工具 |
 | `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
 | `vendor/` | -- | 大量 | 参考实现（PVZ-Godot-Dream），不属于引擎核心 |
 
@@ -143,7 +172,7 @@ pwsh tools/run_all_validations.ps1
 pwsh tools/run_validation.ps1 -ScenarioId <id>
 ```
 
-场景定义：`tools/validation_scenarios.json`（109 个场景，分层 smoke / core / extension / guardrail）
+场景定义：`tools/validation_scenarios.json`（127 个场景，分层 smoke / core / extension / guardrail）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 
