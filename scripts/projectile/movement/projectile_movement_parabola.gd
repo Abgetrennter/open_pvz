@@ -50,7 +50,7 @@ func physics_process_projectile_move(delta: float):
 func _update_target_position() -> void:
 	if target_node == null or not is_instance_valid(target_node):
 		return
-	if target_node.has_method("is_combat_active") and not target_node.call("is_combat_active"):
+	if target_node.has_method("is_targetable") and not target_node.call("is_targetable"):
 		return
 
 	var live_target_position: Vector2 = _node_ground_position(target_node)

@@ -3,6 +3,18 @@ class_name BaseEntity
 
 const EntityStateRef = preload("res://scripts/core/runtime/entity_state.gd")
 
+const LIVENESS_AXES = [
+	&"triggers",
+	&"state",
+	&"movement",
+	&"controllers",
+	&"targetable",
+	&"damageable",
+	&"collidable",
+]
+const LIVENESS_PRIORITY_BASE := 0
+const LIVENESS_PRIORITY_STATUS := 20
+
 @export var entity_kind: StringName = &"entity"
 @export var team: StringName = &"neutral"
 @export var lane_id := -1
@@ -13,6 +25,8 @@ var entity_state: Variant = EntityStateRef.new()
 var _hit_height_range := Vector2(0.0, 24.0)
 var _active_statuses: Dictionary = {}
 var _active_marks: Dictionary = {}
+var _liveness_overrides: Dictionary = {}
+var _liveness_cache: Dictionary = {}
 @onready var state_component: Variant = get_node_or_null("StateComponent")
 
 
@@ -20,6 +34,7 @@ func _ready() -> void:
 	if entity_id == -1:
 		entity_id = GameState.next_entity_id()
 	set_notify_transform(true)
+	_rebuild_liveness()
 	_sync_entity_state()
 
 
@@ -58,18 +73,17 @@ func sync_runtime_state() -> void:
 	_sync_entity_state()
 
 
-func is_combat_active() -> bool:
-	return true
-
-
 func apply_status(status_id: StringName, duration: float, properties: Dictionary = {}) -> void:
 	var expires_at := GameState.current_time + maxf(duration, 0.0)
+	var liveness_overrides := _normalize_liveness_profile(Dictionary(properties.get("liveness_overrides", {})))
 	_active_statuses[status_id] = {
 		"status_id": status_id,
 		"expires_at": expires_at,
 		"movement_scale": float(properties.get("movement_scale", 1.0)),
-		"blocks_attack": bool(properties.get("blocks_attack", false)),
+		"liveness_overrides": liveness_overrides.duplicate(true),
 	}
+	if not liveness_overrides.is_empty():
+		push_liveness_override(_status_liveness_source(status_id), liveness_overrides, LIVENESS_PRIORITY_STATUS)
 	_sync_status_state()
 
 
@@ -93,6 +107,7 @@ func update_statuses(current_time: float) -> void:
 	for status_id in expired_statuses:
 		var removed_status := StringName(status_id)
 		_active_statuses.erase(removed_status)
+		pop_liveness_override(_status_liveness_source(removed_status))
 		var removed_event = preload("res://scripts/core/runtime/event_data.gd").create(null, self, null, PackedStringArray(["status", "removed"]))
 		removed_event.core["status_id"] = removed_status
 		EventBus.push_event(&"entity.status_removed", removed_event)
@@ -128,11 +143,54 @@ func get_effective_movement_scale() -> float:
 	return scale
 
 
-func is_attack_blocked() -> bool:
-	for status_entry: Dictionary in _active_statuses.values():
-		if bool(status_entry.get("blocks_attack", false)):
-			return true
-	return false
+func is_liveness_enabled(axis: StringName) -> bool:
+	if _liveness_cache.is_empty():
+		_rebuild_liveness()
+	return bool(_liveness_cache.get(axis, true))
+
+
+func push_liveness_override(source_id: StringName, profile: Dictionary, priority: int = LIVENESS_PRIORITY_STATUS) -> void:
+	if source_id == StringName():
+		return
+	var normalized_profile := _normalize_liveness_profile(profile)
+	if normalized_profile.is_empty():
+		_liveness_overrides.erase(source_id)
+	else:
+		_liveness_overrides[source_id] = {
+			"profile": normalized_profile,
+			"priority": priority,
+		}
+	_rebuild_liveness()
+	_sync_entity_state()
+
+
+func pop_liveness_override(source_id: StringName) -> void:
+	if source_id == StringName():
+		return
+	if not _liveness_overrides.erase(source_id):
+		return
+	_rebuild_liveness()
+	_sync_entity_state()
+
+
+func is_targetable() -> bool:
+	return is_runtime_alive() and is_liveness_enabled(&"targetable")
+
+
+func is_damageable() -> bool:
+	return is_runtime_alive() and is_liveness_enabled(&"damageable")
+
+
+func is_collidable() -> bool:
+	return is_runtime_alive() and is_liveness_enabled(&"collidable")
+
+
+func is_runtime_alive() -> bool:
+	return not is_queued_for_deletion()
+
+
+func is_counted_for_objectives() -> bool:
+	return is_runtime_alive()
 
 
 func get_ground_position() -> Vector2:
@@ -182,6 +240,8 @@ func _physics_process(delta: float) -> void:
 
 
 func simulation_step(_delta: float) -> void:
+	if not is_liveness_enabled(&"state"):
+		return
 	if state_component != null and state_component.has_method("has_active_states") and bool(state_component.call("has_active_states")):
 		state_component.call("physics_process_states")
 
@@ -192,20 +252,72 @@ func _sync_entity_state() -> void:
 	entity_state.team = team
 	entity_state.lane_id = lane_id
 	entity_state.position = global_position
-	entity_state.combat_active = is_combat_active()
 	entity_state.status_effects = _active_statuses.duplicate(true)
 	entity_state.set_value(&"archetype_id", archetype_id)
 	entity_state.set_value(&"tags", tags)
 	entity_state.set_value(&"active_marks", PackedStringArray(_active_marks.keys()))
+	entity_state.set_value(&"liveness", _liveness_cache.duplicate(true))
+	entity_state.set_value(&"targetable", is_targetable())
+	entity_state.set_value(&"damageable", is_damageable())
+	entity_state.set_value(&"collidable", is_collidable())
+	entity_state.set_value(&"runtime_alive", is_runtime_alive())
+	entity_state.set_value(&"counted_for_objectives", is_counted_for_objectives())
 
 
 func _sync_status_state() -> void:
 	set_state_value(&"active_statuses", PackedStringArray(_active_statuses.keys()))
 	set_state_value(&"effective_movement_scale", get_effective_movement_scale())
-	set_state_value(&"attack_blocked", is_attack_blocked())
 	_sync_entity_state()
 
 
 func _sync_mark_state() -> void:
 	set_state_value(&"active_marks", PackedStringArray(_active_marks.keys()))
 	_sync_entity_state()
+
+
+func _get_base_liveness_profile() -> Dictionary:
+	var profile := {}
+	for axis in LIVENESS_AXES:
+		profile[axis] = true
+	if entity_kind == &"field_object":
+		profile[&"targetable"] = false
+		profile[&"damageable"] = false
+		profile[&"collidable"] = false
+	return profile
+
+
+func _rebuild_liveness() -> void:
+	var resolved := _get_base_liveness_profile()
+	var priorities := {}
+	for axis in LIVENESS_AXES:
+		priorities[axis] = LIVENESS_PRIORITY_BASE
+	for entry in _liveness_overrides.values():
+		if not (entry is Dictionary):
+			continue
+		var profile: Dictionary = Dictionary(entry.get("profile", {}))
+		var priority := int(entry.get("priority", LIVENESS_PRIORITY_STATUS))
+		for axis_variant in profile.keys():
+			var axis := StringName(axis_variant)
+			if not resolved.has(axis):
+				continue
+			var current_priority := int(priorities.get(axis, LIVENESS_PRIORITY_BASE))
+			var next_value := bool(profile[axis_variant])
+			var current_value := bool(resolved.get(axis, true))
+			if priority > current_priority or (priority == current_priority and current_value and not next_value):
+				resolved[axis] = next_value
+				priorities[axis] = priority
+	_liveness_cache = resolved
+
+
+func _normalize_liveness_profile(profile: Dictionary) -> Dictionary:
+	var normalized := {}
+	for key: Variant in profile.keys():
+		var axis := StringName(key)
+		if not LIVENESS_AXES.has(axis):
+			continue
+		normalized[axis] = bool(profile[key])
+	return normalized
+
+
+func _status_liveness_source(status_id: StringName) -> StringName:
+	return StringName("status:%s" % String(status_id))

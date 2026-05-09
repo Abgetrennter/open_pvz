@@ -54,7 +54,7 @@ func simulation_step(delta: float) -> void:
 
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
 	_attack_target = _find_attack_target()
-	var movement_scale := get_effective_movement_scale() if has_method("get_effective_movement_scale") else 1.0
+	var movement_scale := get_effective_movement_scale()
 	var effective_move_speed := _resolve_move_speed() * movement_scale
 
 	if movement_component != null:
@@ -67,14 +67,19 @@ func simulation_step(delta: float) -> void:
 		set_state_value(&"speed", 0.0)
 		sync_runtime_state()
 		set_state_value(&"attack_target_id", _debug_target_id())
-		if is_attack_blocked():
+		if not is_liveness_enabled(&"controllers"):
 			_attack_cooldown = attack_interval
-			_emit_status_effect_observed(&"attack_blocked", {
+			_emit_status_effect_observed(&"controllers_disabled", {
 				"movement_scale": movement_scale,
 			})
 			return
 		_try_attack()
 	elif movement_component != null:
+		if not is_liveness_enabled(&"movement"):
+			set_state_value(&"velocity", Vector2.ZERO)
+			set_state_value(&"speed", 0.0)
+			sync_runtime_state()
+			return
 		movement_component.velocity = Vector2.LEFT * effective_move_speed
 		movement_component.physics_process_movement(self, delta)
 		set_state_value(&"attack_target_id", -1)
@@ -153,40 +158,21 @@ func _on_died() -> void:
 
 
 func _find_attack_target() -> Node:
-	var battle := get_parent()
-	if battle == null:
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("spatial_query"):
 		return null
-
-	var best_target: Node = null
-	var best_distance := INF
-
-	for child in battle.get_children():
-		if child == null or child == self:
-			continue
-		if not child.has_method("take_damage"):
-			continue
-		if not child.has_method("get"):
-			continue
-		if child.get("team") == team:
-			continue
-		if child.get("lane_id") != lane_id:
-			continue
-		if child.has_method("is_combat_active") and not child.call("is_combat_active"):
-			continue
-		if not (child is Node2D):
-			continue
-
-		var target_node := child as Node2D
-		var x_distance := global_position.x - target_node.global_position.x
-		if x_distance < 0.0:
-			continue
-		if x_distance > attack_range:
-			continue
-		if x_distance < best_distance:
-			best_distance = x_distance
-			best_target = child
-
-	return best_target
+	var targets: Array = battle.call("spatial_query", {
+		"team_exclude": team,
+		"lane_ids": PackedInt32Array([lane_id]),
+		"center": global_position,
+		"radius": attack_range,
+		"x_min": global_position.x - attack_range,
+		"x_max": global_position.x,
+		"filter": func(candidate): return candidate != self and candidate.has_method("take_damage") and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
+		"sort_by_distance": true,
+		"max_results": 1,
+	})
+	return null if targets.is_empty() else targets[0]
 
 
 func find_attack_target_for_controller(_spec: Dictionary = {}) -> Node:
@@ -211,7 +197,7 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 	var resolved_move_speed := _resolve_move_speed(params)
 	var resolved_attack_range := float(params.get("attack_range", attack_range))
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
-	var movement_scale := get_effective_movement_scale() if has_method("get_effective_movement_scale") else 1.0
+	var movement_scale := get_effective_movement_scale()
 	var effective_move_speed := resolved_move_speed * movement_scale
 	if movement_component != null:
 		movement_component.velocity = Vector2.ZERO
@@ -223,9 +209,9 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 		set_state_value(&"speed", 0.0)
 		sync_runtime_state()
 		set_state_value(&"attack_target_id", _debug_target_id())
-		if is_attack_blocked():
+		if not is_liveness_enabled(&"controllers"):
 			_attack_cooldown = resolved_attack_interval
-			_emit_status_effect_observed(&"attack_blocked", {
+			_emit_status_effect_observed(&"controllers_disabled", {
 				"movement_scale": movement_scale,
 			})
 			return
@@ -233,6 +219,11 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 			_attack_cooldown = resolved_attack_interval
 			_attack_target.call("take_damage", resolved_attack_damage, self, PackedStringArray(["bite"]))
 	elif movement_component != null:
+		if not is_liveness_enabled(&"movement"):
+			set_state_value(&"velocity", Vector2.ZERO)
+			set_state_value(&"speed", 0.0)
+			sync_runtime_state()
+			return
 		movement_component.velocity = Vector2.LEFT * effective_move_speed
 		movement_component.physics_process_movement(self, delta)
 		set_state_value(&"attack_target_id", -1)
@@ -243,41 +234,39 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 			})
 
 
+func on_controllers_disabled(_delta: float) -> void:
+	_attack_cooldown = attack_interval
+	if movement_component != null:
+		movement_component.velocity = Vector2.ZERO
+	set_state_value(&"velocity", Vector2.ZERO)
+	set_state_value(&"speed", 0.0)
+	sync_runtime_state()
+
+
 func _find_attack_target_with_range(resolved_attack_range: float) -> Node:
-	var battle := get_parent()
-	if battle == null:
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("spatial_query"):
 		return null
-	var best_target: Node = null
-	var best_distance := INF
-	for child in battle.get_children():
-		if child == null or child == self:
-			continue
-		if not child.has_method("take_damage"):
-			continue
-		if not child.has_method("get"):
-			continue
-		if child.get("team") == team:
-			continue
-		if child.get("lane_id") != lane_id:
-			continue
-		if child.has_method("is_combat_active") and not child.call("is_combat_active"):
-			continue
-		if not (child is Node2D):
-			continue
-		var target_node := child as Node2D
-		var x_distance := global_position.x - target_node.global_position.x
-		if x_distance < 0.0:
-			continue
-		if x_distance > resolved_attack_range:
-			continue
-		if x_distance < best_distance:
-			best_distance = x_distance
-			best_target = child
-	return best_target
+	var targets: Array = battle.call("spatial_query", {
+		"team_exclude": team,
+		"lane_ids": PackedInt32Array([lane_id]),
+		"center": global_position,
+		"radius": resolved_attack_range,
+		"x_min": global_position.x - resolved_attack_range,
+		"x_max": global_position.x,
+		"filter": func(candidate): return candidate != self and candidate.has_method("take_damage") and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
+		"sort_by_distance": true,
+		"max_results": 1,
+	})
+	return null if targets.is_empty() else targets[0]
 
 
-func is_combat_active() -> bool:
+func is_runtime_alive() -> bool:
 	return not _is_dying
+
+
+func is_counted_for_objectives() -> bool:
+	return is_runtime_alive()
 
 
 func _resolve_move_speed(params: Dictionary = {}) -> float:

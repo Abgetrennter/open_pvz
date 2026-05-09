@@ -14,7 +14,7 @@
 | `plant_root.gd` | `PlantRoot` | BaseEntity | 植物根节点。team = "plant"，包含 take_damage 接口（委托给 HealthComponent） |
 | `zombie_root.gd` | `ZombieRoot` | BaseEntity | 僵尸根节点。team = "zombie"，包含 move_speed、自动移动逻辑、take_damage 接口 |
 | `projectile_root.gd` | `ProjectileRoot` | BaseEntity | 抛射体根节点。管理飞行状态、3D-2D 投影、命中检测（swept_segment / terminal / overlap）、on_hit 效果链 |
-| `field_object_root.gd` | `FieldObjectRoot` | BaseEntity | 场上物件根节点。team = "field_object"，is_combat_active() -> false，提供 activate/deactivate 生命周期 |
+| `field_object_root.gd` | `FieldObjectRoot` | BaseEntity | 场上物件根节点。team = "field_object"，默认不参与 targetable / damageable / collidable 外视维度 |
 | `lawn_mower.gd` | `LawnMower` | FieldObjectRoot | 割草机：idle → triggered → expired 状态机，检测同车道僵尸并扫掠击杀 |
 
 ## 核心接口
@@ -24,7 +24,8 @@
 - `set_state_value(key, value)` -- 设置状态值
 - `get_entity_state()` -> Dictionary -- 获取状态快照
 - `apply_height_band(height_band)` -- 应用高度段
-- `is_combat_active()` -> bool -- 是否处于战斗状态
+- `is_liveness_enabled(axis)` -> bool -- 查询指定活跃性维度
+- `is_targetable()` / `is_damageable()` / `is_collidable()` -- 查询外部交互语义
 
 ### ProjectileRoot
 - `launch(direction, speed, source_node, on_hit_effect, damage, movement_params, runtime_overrides)` -- 发射抛射体

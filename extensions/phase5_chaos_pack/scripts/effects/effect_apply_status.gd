@@ -22,16 +22,16 @@ func execute(context, params: Dictionary, _node) -> Variant:
 
 	var duration := float(params.get("duration", 1.0))
 	var movement_scale := float(params.get("movement_scale", 1.0))
-	var blocks_attack := bool(params.get("blocks_attack", false))
+	var liveness_overrides := Dictionary(params.get("liveness_overrides", {})).duplicate(true)
 	target.call("apply_status", status_id, duration, {
 		"movement_scale": movement_scale,
-		"blocks_attack": blocks_attack,
+		"liveness_overrides": liveness_overrides,
 	})
 
 	var applied_event: Variant = EventDataRef.create(context.source_node, target, null, PackedStringArray(["status", "applied", "extension"]))
 	applied_event.core["status_id"] = status_id
 	applied_event.core["duration"] = duration
 	applied_event.core["movement_scale"] = movement_scale
-	applied_event.core["blocks_attack"] = blocks_attack
+	applied_event.core["liveness_overrides"] = liveness_overrides.duplicate(true)
 	EventBus.push_event(&"entity.status_applied", applied_event)
 	return result

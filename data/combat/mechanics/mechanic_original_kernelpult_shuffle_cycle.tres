@@ -23,8 +23,11 @@ params = {
 "variant_on_hit_effect_id": &"apply_status",
 "variant_on_hit_effect_params": {
 "amount": 20,
-"blocks_attack": true,
 "duration": 3.0,
+"liveness_overrides": {
+"controllers": false,
+"movement": false
+},
 "movement_scale": 0.0,
 "status_id": &"butter_stun",
 "target_mode": &"context_target"

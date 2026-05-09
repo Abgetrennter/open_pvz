@@ -177,7 +177,7 @@ func _check_defeat() -> void:
 				continue
 			if entity.get("team") != &"zombie":
 				continue
-			if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+			if entity.has_method("is_runtime_alive") and not bool(entity.call("is_runtime_alive")):
 				continue
 			if not (entity is Node2D):
 				continue
@@ -195,7 +195,7 @@ func _wave_has_active_entities(wave_id: StringName) -> bool:
 	for entity in wave_entities:
 		if entity == null or not is_instance_valid(entity):
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_runtime_alive") and not bool(entity.call("is_runtime_alive")):
 			continue
 		alive_entities.append(entity)
 	_spawned_entities[wave_id] = alive_entities
@@ -208,7 +208,7 @@ func _has_active_enemies() -> bool:
 			continue
 		if entity.get("team") != &"zombie":
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_counted_for_objectives") and not bool(entity.call("is_counted_for_objectives")):
 			continue
 		return true
 	return false
@@ -222,7 +222,7 @@ func _is_protected_target_missing() -> bool:
 			continue
 		if StringName(entity.get("archetype_id")) != protected_archetype_id:
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_counted_for_objectives") and not bool(entity.call("is_counted_for_objectives")):
 			continue
 		return false
 	return true

@@ -16,7 +16,6 @@ params = {
 "speed": 210.0,
 "on_hit_effect_id": &"apply_status",
 "on_hit_effect_params": {
-"blocks_attack": false,
 "duration": 2.5,
 "movement_scale": 0.5,
 "status_id": &"slowed",

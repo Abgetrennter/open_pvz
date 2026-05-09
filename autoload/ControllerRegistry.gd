@@ -149,6 +149,8 @@ func _register_builtin_strategies() -> void:
 	_controller_strategies[&"core.projectile_transform"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
 		if owner == null or not is_instance_valid(owner):
 			return
+		if not owner is Node2D:
+			return
 		if GameState.current_battle == null:
 			return
 		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
@@ -159,29 +161,17 @@ func _register_builtin_strategies() -> void:
 		if current_time - last_tick < 0.1:
 			return
 		blackboard["last_transform_tick"] = current_time
-		for child in GameState.current_battle.call("get_runtime_entities"):
-			if child == null or child == owner:
-				continue
-			if not (child is Node2D):
-				continue
-			if child.get("entity_kind") != &"projectile":
-				continue
-			if not child.has_method("modify"):
-				continue
-			if not _check_projectile_nearby(owner, child, detection_range):
-				continue
+		if not GameState.current_battle.has_method("spatial_query"):
+			return
+		var projectiles: Array = GameState.current_battle.call("spatial_query", {
+			"kinds": PackedStringArray(["projectile"]),
+			"center": (owner as Node2D).global_position,
+			"radius": detection_range,
+			"filter": func(candidate):
+				return candidate != owner and candidate.has_method("modify"),
+		})
+		for child in projectiles:
 			child.call("modify", {"damage_multiplier": multipler})
-
-
-func _check_projectile_nearby(owner: Node, projectile: Node, detection_range: float) -> bool:
-	if owner == null or projectile == null:
-		return false
-	if not (owner is Node2D) or not (projectile is Node2D):
-		return false
-	var owner_pos: Vector2 = (owner as Node2D).global_position
-	var proj_pos: Vector2 = (projectile as Node2D).global_position
-	return owner_pos.distance_to(proj_pos) <= detection_range
-
 
 func _resolve_slots_distance(params: Dictionary, slots_key: String, legacy_key: String, default_world: float) -> float:
 	var metrics := _get_battlefield_metrics()

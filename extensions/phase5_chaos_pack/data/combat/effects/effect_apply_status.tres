@@ -22,9 +22,9 @@ param_defs = [{
 "max": 1.0,
 "default": 1.0
 }, {
-"name": "blocks_attack",
-"type": "bool",
-"default": false
+"name": "liveness_overrides",
+"type": "dictionary",
+"default": {}
 }, {
 "name": "target_mode",
 "type": "string_name",

@@ -15,7 +15,6 @@ params = {
 "direction": Vector2(1, 0),
 "on_hit_effect_id": &"apply_status",
 "on_hit_effect_params": {
-"blocks_attack": false,
 "duration": 1.0,
 "movement_scale": 0.2,
 "status_id": &"slowed",

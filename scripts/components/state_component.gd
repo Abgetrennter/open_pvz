@@ -4,9 +4,11 @@ class_name StateComponent
 var initial_state: StringName = StringName()
 var current_state: StringName = StringName()
 var transitions: Array[Dictionary] = []
+var state_liveness: Dictionary = {}
 var bind_time := 0.0
 var _processed_transition_ids: Dictionary = {}
 var _event_callables: Dictionary = {}
+var _active_liveness_source: StringName = StringName()
 
 
 func _exit_tree() -> void:
@@ -15,6 +17,8 @@ func _exit_tree() -> void:
 
 func bind_state_specs(specs: Array) -> void:
 	transitions.clear()
+	state_liveness.clear()
+	_clear_state_liveness_override()
 	_processed_transition_ids.clear()
 	_unsubscribe_all()
 	initial_state = StringName()
@@ -31,6 +35,10 @@ func bind_state_specs(specs: Array) -> void:
 			for transition in spec_transitions:
 				if transition is Dictionary:
 					transitions.append(transition.duplicate(true))
+		var spec_liveness: Variant = spec.get("state_liveness", {})
+		if spec_liveness is Dictionary:
+			for state_key: Variant in spec_liveness.keys():
+				state_liveness[StringName(state_key)] = Dictionary(spec_liveness[state_key]).duplicate(true)
 	transitions.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		var a_trigger: String = String(a.get("trigger", "time"))
 		var b_trigger: String = String(b.get("trigger", "time"))
@@ -41,6 +49,7 @@ func bind_state_specs(specs: Array) -> void:
 		return false
 	)
 	_subscribe_event_transitions()
+	_apply_state_liveness_override(current_state)
 	_sync_owner_state()
 
 
@@ -93,14 +102,10 @@ func _try_execute_transition(transition: Dictionary, elapsed: float = 0.0) -> bo
 			return false
 	elif trigger_type == "event":
 		return true
-	var owner := get_parent()
-	if owner == null or not is_instance_valid(owner):
-		return true
-	current_state = StringName(transition.get("to_state", current_state))
-	_processed_transition_ids[transition_id] = true
-	_sync_owner_state()
-	_emit_state_entered(owner, current_state)
-	return true
+	return _execute_transition(transition, {
+		"trigger": trigger_type,
+		"elapsed": elapsed,
+	})
 
 
 func _subscribe_event_transitions() -> void:
@@ -151,10 +156,10 @@ func _on_state_event(event_data, event_name: StringName) -> void:
 		])))
 		if _processed_transition_ids.has(transition_id):
 			continue
-		current_state = StringName(transition.get("to_state", current_state))
-		_processed_transition_ids[transition_id] = true
-		_sync_owner_state()
-		_emit_state_entered(owner, current_state)
+		_execute_transition(transition, {
+			"trigger": "event",
+			"event_name": event_name,
+		})
 		break
 
 
@@ -194,3 +199,74 @@ func _emit_state_entered(owner: Node, state_id: StringName) -> void:
 	var state_event: Variant = preload("res://scripts/core/runtime/event_data.gd").create(owner, owner, null, PackedStringArray(["state", "entered"]))
 	state_event.core["state_id"] = state_id
 	EventBus.push_event(&"entity.state_entered", state_event)
+
+
+func _execute_transition(transition: Dictionary, reason: Dictionary = {}) -> bool:
+	var owner := get_parent()
+	if owner == null or not is_instance_valid(owner):
+		return true
+	var transition_id := StringName(transition.get("transition_id", StringName("%s_%s" % [
+		String(transition.get("from_state", "")),
+		String(transition.get("to_state", "")),
+	])))
+	if _processed_transition_ids.has(transition_id):
+		return true
+	var from_state := StringName(transition.get("from_state", current_state))
+	if current_state != from_state:
+		_emit_state_transition_rejected(owner, from_state, StringName(transition.get("to_state", current_state)), transition_id, reason)
+		return false
+	var previous_state := current_state
+	var next_state := StringName(transition.get("to_state", current_state))
+	_emit_state_exited(owner, previous_state)
+	_clear_state_liveness_override()
+	current_state = next_state
+	_processed_transition_ids[transition_id] = true
+	_apply_state_liveness_override(current_state)
+	_sync_owner_state()
+	_emit_state_entered(owner, current_state)
+	return true
+
+
+func _state_liveness_source(state_id: StringName) -> StringName:
+	if state_id == StringName():
+		return StringName()
+	return StringName("state:%s" % String(state_id))
+
+
+func _apply_state_liveness_override(state_id: StringName) -> void:
+	var owner := get_parent()
+	if owner == null or not is_instance_valid(owner):
+		return
+	if not owner.has_method("push_liveness_override"):
+		return
+	var profile := Dictionary(state_liveness.get(state_id, {}))
+	if profile.is_empty():
+		_active_liveness_source = StringName()
+		return
+	var source_id := _state_liveness_source(state_id)
+	owner.call("push_liveness_override", source_id, profile, 10)
+	_active_liveness_source = source_id
+
+
+func _clear_state_liveness_override() -> void:
+	if _active_liveness_source == StringName():
+		return
+	var owner := get_parent()
+	if owner != null and is_instance_valid(owner) and owner.has_method("pop_liveness_override"):
+		owner.call("pop_liveness_override", _active_liveness_source)
+	_active_liveness_source = StringName()
+
+
+func _emit_state_exited(owner: Node, state_id: StringName) -> void:
+	var state_event: Variant = preload("res://scripts/core/runtime/event_data.gd").create(owner, owner, null, PackedStringArray(["state", "exited"]))
+	state_event.core["state_id"] = state_id
+	EventBus.push_event(&"entity.state_exited", state_event)
+
+
+func _emit_state_transition_rejected(owner: Node, from_state: StringName, to_state: StringName, transition_id: StringName, reason: Dictionary) -> void:
+	var state_event: Variant = preload("res://scripts/core/runtime/event_data.gd").create(owner, owner, null, PackedStringArray(["state", "rejected"]))
+	state_event.core["from_state"] = from_state
+	state_event.core["to_state"] = to_state
+	state_event.core["transition_id"] = transition_id
+	state_event.core["reason"] = reason.duplicate(true)
+	EventBus.push_event(&"entity.state_transition_rejected", state_event)

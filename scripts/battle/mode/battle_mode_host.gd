@@ -546,7 +546,7 @@ func _is_archetype_missing(archetype_id: StringName) -> bool:
 			continue
 		if StringName(entity.get("archetype_id")) != archetype_id:
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_counted_for_objectives") and not bool(entity.call("is_counted_for_objectives")):
 			continue
 		return false
 	return true
@@ -559,7 +559,7 @@ func _count_active_matching_entities(target_archetype_ids: PackedStringArray) ->
 	for entity in _battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_counted_for_objectives") and not bool(entity.call("is_counted_for_objectives")):
 			continue
 		if _matches_objective_target(entity, target_archetype_ids):
 			count += 1

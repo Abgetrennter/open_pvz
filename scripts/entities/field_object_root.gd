@@ -13,18 +13,6 @@ func _ready() -> void:
 	queue_redraw()
 
 
-func is_combat_active() -> bool:
-	return false
-
-
-func activate() -> void:
-	set_status(&"active")
-
-
-func deactivate() -> void:
-	set_status(&"idle")
-
-
 func take_damage(
 	_amount: int,
 	_source_node: Node = null,

@@ -23,11 +23,14 @@ func take_damage(
 ) -> void:
 	if current_health <= 0:
 		return
+	var owner := get_parent()
+	if owner != null and owner.has_method("is_damageable") and not bool(owner.call("is_damageable")):
+		return
 	current_health = max(current_health - amount, 0)
 	_sync_owner_state()
 	damaged.emit(amount)
 
-	var damaged_event = EventDataRef.create(source_node, get_parent(), amount, tags, runtime_overrides)
+	var damaged_event = EventDataRef.create(source_node, owner, amount, tags, runtime_overrides)
 	EventBus.push_event(&"entity.damaged", damaged_event)
 
 	if current_health == 0:
@@ -35,7 +38,7 @@ func take_damage(
 		death_runtime["depth"] = int(damaged_event.runtime.get("depth", 1)) + 1
 		var death_tags := PackedStringArray(tags)
 		death_tags.append("death")
-		var died_event = EventDataRef.create(source_node, get_parent(), 0, death_tags, death_runtime)
+		var died_event = EventDataRef.create(source_node, owner, 0, death_tags, death_runtime)
 		EventBus.push_event(&"entity.died", died_event)
 		died.emit()
 

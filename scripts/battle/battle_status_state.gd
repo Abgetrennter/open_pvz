@@ -62,7 +62,7 @@ func _on_game_tick(event_data: Variant) -> void:
 		if target_entity.has_method("apply_status"):
 			target_entity.call("apply_status", StringName(request.get("status_id")), float(request.get("duration")), {
 				"movement_scale": float(request.get("movement_scale")),
-				"blocks_attack": bool(request.get("blocks_attack")),
+				"liveness_overrides": Dictionary(request.get("liveness_overrides")).duplicate(true),
 			})
 		var applied_event: Variant = EventDataRef.create(null, target_entity, null, PackedStringArray(["status", "applied"]))
 		applied_event.core["status_id"] = StringName(request.get("status_id"))
@@ -70,7 +70,7 @@ func _on_game_tick(event_data: Variant) -> void:
 		applied_event.core["lane_id"] = int(request.get("lane_id"))
 		applied_event.core["duration"] = float(request.get("duration"))
 		applied_event.core["movement_scale"] = float(request.get("movement_scale"))
-		applied_event.core["blocks_attack"] = bool(request.get("blocks_attack"))
+		applied_event.core["liveness_overrides"] = Dictionary(request.get("liveness_overrides")).duplicate(true)
 		EventBus.push_event(&"entity.status_applied", applied_event)
 
 
@@ -92,7 +92,7 @@ func _resolve_target_entity(request: Resource):
 	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_runtime_alive") and not bool(entity.call("is_runtime_alive")):
 			continue
 		if target_archetype_id != StringName() and StringName(entity.get("archetype_id")) != target_archetype_id:
 			continue

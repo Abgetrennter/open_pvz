@@ -15,6 +15,7 @@ const DebugOverlayRef = preload("res://scripts/debug/debug_overlay.gd")
 const VisualFeedbackHostRef = preload("res://scripts/visual/visual_feedback_host.gd")
 const VisualStageLayerServiceRef = preload("res://scripts/visual/visual_stage_layer_service.gd")
 const VisualValidationProbeRef = preload("res://scripts/validation/visual_validation_probe.gd")
+const SpatialIndexRef = preload("res://scripts/battle/spatial_index.gd")
 
 var lane_y_map := {
 	0: 220.0,
@@ -35,6 +36,8 @@ var lane_y_map := {
 @export var validation_run_label := ""
 @export var enable_runtime_snapshot_logging := false
 @export var runtime_snapshot_interval_frames := 10
+@export var tick_budget_warning_ms := 8.0
+@export var tick_budget_critical_ms := 10.0
 
 var _tick_accumulator := 0.0
 var _max_steps_per_physics_frame := 5
@@ -51,6 +54,8 @@ var _scenario_override_failed := false
 var _visual_feedback_host: Node = null
 var _visual_stage_layer_service: Node = null
 var _visual_validation_probe: Node = null
+var _spatial_index: Variant = SpatialIndexRef.new()
+var _last_tick_budget_warning_time := -999999.0
 
 
 func _ready() -> void:
@@ -141,10 +146,12 @@ func reset_battle() -> void:
 	_rebuild_lane_config()
 	_subsystem_host.reset_runtime_services()
 	_spawner.spawn_scenario()
+	_rebuild_spatial_index()
 	_notify_mode_battle_start()
 
 
 func step_simulation_tick() -> void:
+	var tick_started_usec := Time.get_ticks_usec()
 	GameState.is_central_step_dispatching = true
 	GameState.advance_simulation_tick()
 	var fixed_dt: float = GameState.fixed_dt
@@ -155,9 +162,11 @@ func step_simulation_tick() -> void:
 	EventBus.push_event(&"game.tick", tick_event)
 	_dispatch_mode_tick(GameState.current_time)
 	_step_runtime_nodes(fixed_dt)
+	_rebuild_spatial_index()
 	_validation_tracker.update_validation_state()
 	_validation_tracker.process_auto_quit(fixed_dt)
 	GameState.is_central_step_dispatching = false
+	_record_tick_budget_if_needed(tick_started_usec)
 
 
 func step_simulation_ticks(count: int) -> void:
@@ -278,6 +287,35 @@ func get_runtime_combat_entities() -> Array:
 	if _entity_root == null:
 		return []
 	return _entity_root.get_children()
+
+
+func spatial_query(params: Dictionary) -> Array:
+	return _spatial_index.query(params)
+
+
+func get_spatial_snapshot_version() -> int:
+	return int(_spatial_index.get_snapshot_version())
+
+
+func _rebuild_spatial_index() -> void:
+	_spatial_index.rebuild(get_runtime_combat_entities())
+
+
+func _record_tick_budget_if_needed(tick_started_usec: int) -> void:
+	var elapsed_ms := float(Time.get_ticks_usec() - tick_started_usec) / 1000.0
+	if elapsed_ms < tick_budget_warning_ms:
+		return
+	var is_critical := elapsed_ms >= tick_budget_critical_ms
+	if not is_critical and GameState.current_time - _last_tick_budget_warning_time < 0.5:
+		return
+	_last_tick_budget_warning_time = GameState.current_time
+	if DebugService.has_method("record_simulation_event"):
+		DebugService.record_simulation_event(&"tick_budget_warning", GameState.get_simulation_snapshot(), {
+			"elapsed_ms": elapsed_ms,
+			"warning_threshold_ms": tick_budget_warning_ms,
+			"critical_threshold_ms": tick_budget_critical_ms,
+			"critical": is_critical,
+		})
 
 
 # -- Subsystem delegation --

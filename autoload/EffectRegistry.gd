@@ -374,9 +374,9 @@ func _register_builtin_defs() -> void:
 		"max": 1.0,
 		"default": 1.0,
 	}, {
-		"name": "blocks_attack",
-		"type": "bool",
-		"default": false,
+		"name": "liveness_overrides",
+		"type": "dictionary",
+		"default": {},
 	}, {
 		"name": "target_mode",
 		"type": "string_name",
@@ -674,7 +674,7 @@ func _register_builtin_strategies() -> void:
 
 		var duration := float(params.get("duration", 2.0))
 		var movement_scale := float(params.get("movement_scale", 1.0))
-		var blocks_attack := bool(params.get("blocks_attack", false))
+		var liveness_overrides := Dictionary(params.get("liveness_overrides", {})).duplicate(true)
 		var amount := int(params.get("amount", 0))
 		if amount > 0 and target.has_method("take_damage"):
 			target.call("take_damage", amount, effect_source, PackedStringArray(["status_damage", String(status_id)]), {
@@ -684,14 +684,14 @@ func _register_builtin_strategies() -> void:
 			})
 		target.call("apply_status", status_id, duration, {
 			"movement_scale": movement_scale,
-			"blocks_attack": blocks_attack,
+			"liveness_overrides": liveness_overrides,
 		})
 
 		var applied_event: Variant = EventDataRef.create(effect_source, target, null, PackedStringArray(["status", "applied", "effect"]))
 		applied_event.core["status_id"] = status_id
 		applied_event.core["duration"] = duration
 		applied_event.core["movement_scale"] = movement_scale
-		applied_event.core["blocks_attack"] = blocks_attack
+		applied_event.core["liveness_overrides"] = liveness_overrides.duplicate(true)
 		EventBus.push_event(&"entity.status_applied", applied_event)
 		return result
 	)
@@ -836,24 +836,24 @@ func _register_builtin_strategies() -> void:
 		var center: Vector2 = _node_ground_position(context.owner_entity)
 		var effect_source := _resolve_effect_source_node(context)
 
-		for child in GameState.current_battle.call("get_runtime_entities"):
-			if child == null or child == context.owner_entity:
-				continue
-			if not child.has_method("take_damage"):
-				continue
-			if not (child is Node2D):
-				continue
-			var tags: PackedStringArray = PackedStringArray()
-			if child.has_method("get"):
-				tags = child.get("tags")
-			if not tags.has("flying"):
-				continue
-			var candidate := child as Node2D
-			if center.distance_to(_node_ground_position(candidate)) <= radius:
-				candidate.call("take_damage", amount, effect_source, PackedStringArray(["dispel_flying", String(context.event_name)]), {
-					"depth": int(context.runtime.get("depth", context.depth)) + 1,
-					"chain_id": context.chain_id,
-				})
+		var targets: Array = GameState.current_battle.call("spatial_query", {
+			"center": center,
+			"radius": radius,
+			"tags_any": PackedStringArray(["flying"]),
+			"filter": func(candidate):
+				if candidate == context.owner_entity:
+					return false
+				if not candidate.has_method("take_damage"):
+					return false
+				if candidate.has_method("is_damageable") and not bool(candidate.call("is_damageable")):
+					return false
+				return candidate is Node2D,
+		}) if GameState.current_battle.has_method("spatial_query") else []
+		for candidate in targets:
+			candidate.call("take_damage", amount, effect_source, PackedStringArray(["dispel_flying", String(context.event_name)]), {
+				"depth": int(context.runtime.get("depth", context.depth)) + 1,
+				"chain_id": context.chain_id,
+			})
 		return result
 	)
 
@@ -992,37 +992,31 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 		radius = maxf(radius, 4000.0)
 	else:
 		lane_filter = params.get("lane_id", null)
-	var targets: Array = []
+	if not GameState.current_battle.has_method("spatial_query"):
+		return []
 
-	if not GameState.current_battle.has_method("get_runtime_entities"):
-		return targets
-
-	for child in GameState.current_battle.call("get_runtime_entities"):
-		if child == null:
-			continue
-		if not child.has_method("take_damage"):
-			continue
-		if not (child is Node2D):
-			continue
-		if child == context.owner_entity:
-			continue
-		if child.get("team") == source_team:
-			continue
-		if lane_filter is int and child.get("lane_id") != lane_filter:
-			continue
-		if not target_tags.is_empty() and not _node_has_any_tag_or_status(child, target_tags):
-			continue
-		var candidate := child as Node2D
-		if _node_ground_position(candidate).distance_to(center) <= radius:
-			targets.append(child)
-
-	return targets
+	var query := {
+		"team_exclude": source_team,
+		"center": center,
+		"radius": radius,
+		"filter": func(candidate):
+			if candidate == context.owner_entity:
+				return false
+			if not candidate.has_method("take_damage"):
+				return false
+			if candidate.has_method("is_targetable") and not bool(candidate.call("is_targetable")):
+				return false
+			if not target_tags.is_empty() and not _node_has_any_tag_or_status(candidate, target_tags):
+				return false
+			return candidate is Node2D,
+	}
+	if lane_filter is int:
+		query["lane_ids"] = PackedInt32Array([int(lane_filter)])
+	return GameState.current_battle.call("spatial_query", query)
 
 
 func _resolve_detected_targets(context) -> Array:
 	if context == null or GameState.current_battle == null:
-		return []
-	if not GameState.current_battle.has_method("get_runtime_entities"):
 		return []
 	var detected_ids: Variant = context.runtime.get("detected_target_ids", PackedInt32Array())
 	if not (detected_ids is PackedInt32Array) and not (detected_ids is Array):
@@ -1030,6 +1024,13 @@ func _resolve_detected_targets(context) -> Array:
 	var id_lookup: Dictionary = {}
 	for entity_id: Variant in detected_ids:
 		id_lookup[int(entity_id)] = true
+	if GameState.current_battle.has_method("spatial_query"):
+		return GameState.current_battle.call("spatial_query", {
+			"filter": func(candidate):
+				return candidate != null and candidate.has_method("get_entity_id") and id_lookup.has(int(candidate.call("get_entity_id"))),
+		})
+	if not GameState.current_battle.has_method("get_runtime_entities"):
+		return []
 	var targets: Array = []
 	for child in GameState.current_battle.call("get_runtime_entities"):
 		if child == null or not child.has_method("get_entity_id"):

@@ -38,7 +38,10 @@ lane_id = 0
 status_id = &"stunned"
 duration = 1.0
 movement_scale = 0.0
-blocks_attack = true
+liveness_overrides = {
+"controllers": false,
+"movement": false
+}
 
 [sub_resource type="Resource" id="StatusApplication_slowed"]
 script = ExtResource("3_status_request")
@@ -56,13 +59,13 @@ description = "status applications are emitted"
 event_name = &"entity.status_applied"
 min_count = 2
 
-[sub_resource type="Resource" id="BattleValidationRule_stunned_attack_blocked"]
+[sub_resource type="Resource" id="BattleValidationRule_stunned_controllers_disabled"]
 script = ExtResource("4_rule")
-rule_id = &"stunned_attack_blocked"
-description = "stunned zombie has its attack blocked"
+rule_id = &"stunned_controllers_disabled"
+description = "stunned zombie has its controllers disabled"
 event_name = &"status.effect_observed"
 required_core_values = {
-"effect": &"attack_blocked"
+"effect": &"controllers_disabled"
 }
 
 [sub_resource type="Resource" id="BattleValidationRule_slowed_movement_scaled"]
@@ -99,5 +102,4 @@ goals = PackedStringArray("Observe slowed and stunned statuses being applied.", 
 validation_time_limit = 2.0
 spawns = [SubResource("BattleSpawnEntry_wall"), SubResource("BattleSpawnEntry_stunned_zombie"), SubResource("BattleSpawnEntry_slowed_zombie")]
 status_application_requests = [SubResource("StatusApplication_stunned"), SubResource("StatusApplication_slowed")]
-validation_rules = [SubResource("BattleValidationRule_status_applied"), SubResource("BattleValidationRule_stunned_attack_blocked"), SubResource("BattleValidationRule_slowed_movement_scaled"), SubResource("BattleValidationRule_no_bite_damage"), SubResource("BattleValidationRule_status_removed")]
-
+validation_rules = [SubResource("BattleValidationRule_status_applied"), SubResource("BattleValidationRule_stunned_controllers_disabled"), SubResource("BattleValidationRule_slowed_movement_scaled"), SubResource("BattleValidationRule_no_bite_damage"), SubResource("BattleValidationRule_status_removed")]

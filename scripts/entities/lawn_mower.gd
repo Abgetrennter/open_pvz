@@ -41,21 +41,8 @@ func simulation_step(delta: float) -> void:
 
 
 func _check_zombie_proximity() -> void:
-	for entity in _get_combat_entities():
-		if entity == null or not is_instance_valid(entity):
-			continue
-		if not entity.has_method("is_combat_active"):
-			continue
-		if not bool(entity.call("is_combat_active")):
-			continue
-		if StringName(entity.get("team")) != &"zombie":
-			continue
-		if int(entity.get("lane_id")) != lane_id:
-			continue
-		var zombie_x: float = float(entity.get("global_position").x) if entity.get("global_position") != null else 0.0
-		if zombie_x <= global_position.x + _resolve_slots_distance(detection_radius_slots, detection_radius):
-			_trigger()
-			return
+	if not _query_zombies_ahead(_resolve_slots_distance(detection_radius_slots, detection_radius), false).is_empty():
+		_trigger()
 
 
 func _trigger() -> void:
@@ -71,20 +58,8 @@ func _trigger() -> void:
 
 func _sweep(delta: float) -> void:
 	global_position.x += _resolve_slots_speed(move_speed_slots_per_sec, move_speed) * delta
-	for entity in _get_combat_entities():
-		if entity == null or not is_instance_valid(entity):
-			continue
-		if not entity.has_method("is_combat_active"):
-			continue
-		if not bool(entity.call("is_combat_active")):
-			continue
-		if StringName(entity.get("team")) != &"zombie":
-			continue
-		if int(entity.get("lane_id")) != lane_id:
-			continue
-		var zombie_x: float = float(entity.get("global_position").x) if entity.get("global_position") != null else 0.0
-		if zombie_x <= global_position.x + 20.0:
-			entity.call("take_damage", 9999, self, PackedStringArray(["mower", "sweep"]))
+	for entity in _query_zombies_ahead(20.0, true):
+		entity.call("take_damage", 9999, self, PackedStringArray(["mower", "sweep"]))
 	if global_position.x > 1000.0:
 		_expire()
 
@@ -133,41 +108,62 @@ func perform_sweep_cycle_for_controller(spec: Dictionary, delta: float) -> void:
 
 
 func _check_zombie_proximity_with_radius(resolved_detection_radius: float) -> void:
-	for entity in _get_combat_entities():
-		if entity == null or not is_instance_valid(entity):
-			continue
-		if not entity.has_method("is_combat_active"):
-			continue
-		if not bool(entity.call("is_combat_active")):
-			continue
-		if StringName(entity.get("team")) != &"zombie":
-			continue
-		if int(entity.get("lane_id")) != lane_id:
-			continue
-		var zombie_x: float = float(entity.get("global_position").x) if entity.get("global_position") != null else 0.0
-		if zombie_x <= global_position.x + resolved_detection_radius:
-			_trigger()
-			return
+	if not _query_zombies_ahead(resolved_detection_radius, false).is_empty():
+		_trigger()
 
 
 func _sweep_with_speed(delta: float, resolved_move_speed: float) -> void:
 	global_position.x += resolved_move_speed * delta
+	for entity in _query_zombies_ahead(20.0, true):
+		entity.call("take_damage", 9999, self, PackedStringArray(["mower", "sweep"]))
+	if global_position.x > 1000.0:
+		_expire()
+
+
+func _query_zombies_ahead(max_forward_distance: float, require_collidable: bool) -> Array:
+	var battle := _resolve_battle_ref()
+	if battle == null or not battle.has_method("spatial_query"):
+		return _query_zombies_ahead_fallback(max_forward_distance, require_collidable)
+	return battle.call("spatial_query", {
+		"team_include": &"zombie",
+		"lane_ids": PackedInt32Array([lane_id]),
+		"x_max": global_position.x + max_forward_distance,
+		"filter": func(candidate):
+			if not candidate.has_method("take_damage"):
+				return false
+			if require_collidable:
+				return candidate.has_method("is_collidable") and bool(candidate.call("is_collidable"))
+			return candidate.has_method("is_targetable") and bool(candidate.call("is_targetable")),
+	})
+
+
+func _query_zombies_ahead_fallback(max_forward_distance: float, require_collidable: bool) -> Array:
+	var result: Array = []
 	for entity in _get_combat_entities():
 		if entity == null or not is_instance_valid(entity):
-			continue
-		if not entity.has_method("is_combat_active"):
-			continue
-		if not bool(entity.call("is_combat_active")):
 			continue
 		if StringName(entity.get("team")) != &"zombie":
 			continue
 		if int(entity.get("lane_id")) != lane_id:
 			continue
+		if require_collidable:
+			if not entity.has_method("is_collidable") or not bool(entity.call("is_collidable")):
+				continue
+		elif not entity.has_method("is_targetable") or not bool(entity.call("is_targetable")):
+			continue
 		var zombie_x: float = float(entity.get("global_position").x) if entity.get("global_position") != null else 0.0
-		if zombie_x <= global_position.x + 20.0:
-			entity.call("take_damage", 9999, self, PackedStringArray(["mower", "sweep"]))
-	if global_position.x > 1000.0:
-		_expire()
+		if zombie_x <= global_position.x + max_forward_distance:
+			result.append(entity)
+	return result
+
+
+func _resolve_battle_ref() -> Node:
+	if _battle_ref != null and is_instance_valid(_battle_ref):
+		return _battle_ref
+	if GameState.current_battle != null and is_instance_valid(GameState.current_battle):
+		_battle_ref = GameState.current_battle
+		return _battle_ref
+	return null
 
 
 func _resolve_slots_distance(slots_value: float, legacy_world: float) -> float:

@@ -208,6 +208,27 @@ func _find_nearest_enemy(source_node: Node) -> Node2D:
 	var source_team: Variant = source_node.get("team")
 	var source_lane: Variant = source_node.get("lane_id")
 	var source_position: Vector2 = _node_ground_position(source_node as Node2D)
+	if _battle.has_method("spatial_query"):
+		var source_team_name := StringName(source_team) if source_team != null else StringName()
+		var query := {
+			"team_exclude": source_team_name,
+			"center": source_position,
+			"sort_by_distance": true,
+			"max_results": 1,
+			"filter": func(candidate):
+				if candidate == source_node:
+					return false
+				if not candidate.has_method("take_damage"):
+					return false
+				if candidate.has_method("is_targetable") and not bool(candidate.call("is_targetable")):
+					return false
+				return candidate is Node2D,
+		}
+		if source_lane is int:
+			query["lane_ids"] = PackedInt32Array([int(source_lane)])
+		var spatial_targets: Array = _battle.call("spatial_query", query)
+		return spatial_targets[0] as Node2D if not spatial_targets.is_empty() else null
+
 	var best_candidate: Node2D = null
 	var best_distance := INF
 
@@ -270,7 +291,7 @@ func _estimate_entity_velocity(node: Node2D) -> Vector2:
 		var velocity_value: Variant = values.get("velocity", Vector2.ZERO)
 		if velocity_value is Vector2:
 			return velocity_value
-	if node.has_method("get") and node.get("team") == &"zombie" and node.has_method("is_combat_active") and node.call("is_combat_active"):
+	if node.has_method("get") and node.get("team") == &"zombie" and node.has_method("is_runtime_alive") and node.call("is_runtime_alive"):
 		var move_speed_value: Variant = node.get("move_speed")
 		if move_speed_value is float or move_speed_value is int:
 			return Vector2.LEFT * float(move_speed_value)

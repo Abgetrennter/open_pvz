@@ -128,7 +128,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", true, target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", target_tags)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -143,7 +143,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", true, target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", target_tags)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -155,7 +155,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 180.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -167,7 +167,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 4000.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets.slice(0, 1),
@@ -179,7 +179,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 64.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", true, target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -192,7 +192,6 @@ func _scan_enemies(
 	lane_ids: PackedInt32Array,
 	scan_range: float,
 	direction: StringName = &"both",
-	combat_active_only: bool = true,
 	target_tags: PackedStringArray = PackedStringArray(),
 ) -> Array:
 	if source == null or not (source is Node2D):
@@ -201,71 +200,27 @@ func _scan_enemies(
 		return []
 
 	var battle := GameState.current_battle
-	var runtime_entities: Array = []
-	if battle.has_method("get_runtime_combat_entities"):
-		runtime_entities = Array(battle.call("get_runtime_combat_entities"))
-	elif battle.has_method("get_runtime_entities"):
-		runtime_entities = Array(battle.call("get_runtime_entities"))
-	else:
+	if not battle.has_method("spatial_query"):
 		return []
 
 	var source_team := StringName(source.get("team"))
 	var source_position := _node_ground_position(source)
-	var candidate_entries: Array = []
-
-	for candidate in runtime_entities:
-		if candidate == null or candidate == source:
-			continue
-		if not (candidate is Node2D):
-			continue
-		if not candidate.has_method("take_damage"):
-			continue
-		if candidate.get("team") == source_team:
-			continue
-		if not lane_ids.is_empty() and not lane_ids.has(int(candidate.get("lane_id"))):
-			continue
-		if not target_tags.is_empty():
-			var entity_tags: PackedStringArray = PackedStringArray()
-			var raw_tags: Variant = candidate.get("tags")
-			if raw_tags is PackedStringArray:
-				entity_tags = PackedStringArray(raw_tags)
-			elif raw_tags is Array:
-				entity_tags = PackedStringArray(raw_tags)
-			var has_tag := false
-			for target_tag in target_tags:
-				if entity_tags.has(StringName(target_tag)):
-					has_tag = true
-					break
-			if not has_tag:
-				continue
-		if combat_active_only and candidate.has_method("is_combat_active") and not bool(candidate.call("is_combat_active")):
-			continue
-
-		var candidate_node := candidate as Node2D
-		var candidate_position := _node_ground_position(candidate_node)
-		var delta := candidate_position - source_position
-		if direction == &"forward" and delta.x < 0.0:
-			continue
-		if direction == &"backward" and delta.x > 0.0:
-			continue
-
-		var distance := source_position.distance_to(candidate_position)
-		if distance > scan_range:
-			continue
-
-		candidate_entries.append({
-			"node": candidate_node,
-			"distance": distance,
-		})
-
-	candidate_entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return float(a.get("distance", INF)) < float(b.get("distance", INF))
-	)
-
-	var targets: Array = []
-	for candidate_entry in candidate_entries:
-		targets.append(candidate_entry.get("node"))
-	return targets
+	var query := {
+		"team_exclude": source_team,
+		"center": source_position,
+		"radius": scan_range,
+		"tags_any": target_tags,
+		"filter": func(candidate): return candidate != source and candidate.has_method("take_damage") and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
+		"sort_by_distance": true,
+	}
+	if not lane_ids.is_empty():
+		query["lane_ids"] = lane_ids
+	match direction:
+		&"forward":
+			query["x_min"] = source_position.x
+		&"backward":
+			query["x_max"] = source_position.x
+	return battle.call("spatial_query", query)
 
 
 func _node_ground_position(node: Node) -> Vector2:

@@ -7,7 +7,6 @@ var team: StringName = &"neutral"
 var lane_id := -1
 var status: StringName = &"idle"
 var position := Vector2.ZERO
-var combat_active := true
 var health := 0
 var max_health := 0
 var status_effects: Dictionary = {}
@@ -37,7 +36,6 @@ func snapshot() -> Dictionary:
 		"team": team,
 		"lane_id": lane_id,
 		"status": status,
-		"combat_active": combat_active,
 		"position": position,
 		"health": health,
 		"max_health": max_health,

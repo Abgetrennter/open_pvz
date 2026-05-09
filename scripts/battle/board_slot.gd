@@ -124,7 +124,7 @@ func _prune_invalid_occupants() -> void:
 		if entity == null or not is_instance_valid(entity):
 			stale_roles.append(StringName(role))
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_runtime_alive") and not bool(entity.call("is_runtime_alive")):
 			stale_roles.append(StringName(role))
 	for role in stale_roles:
 		remove_role_occupant(role)

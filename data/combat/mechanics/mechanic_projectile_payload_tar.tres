@@ -16,8 +16,10 @@ params = {
 "speed": 170.0,
 "on_hit_effect_id": &"apply_status",
 "on_hit_effect_params": {
-"blocks_attack": true,
 "duration": 1.6,
+"liveness_overrides": {
+"controllers": false
+},
 "movement_scale": 0.75,
 "status_id": &"jammed",
 "target_mode": &"context_target"

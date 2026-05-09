@@ -47,7 +47,7 @@
 | `sun_collectible.gd` | `SunCollectible` | 阳光收集物（Node2D）：自动收集倒计时、collect 接口 |
 | `sun_drop_entry.gd` | `SunDropEntry` | 阳光掉落配置 |
 | `resource_spend_request.gd` | `ResourceSpendRequest` | 资源消耗请求 |
-| `status_application_request.gd` | `StatusApplicationRequest` | 状态应用请求：status_id + duration + movement_scale + blocks_attack |
+| `status_application_request.gd` | `StatusApplicationRequest` | 状态应用请求：status_id + duration + movement_scale + liveness_overrides |
 | `field_object_config.gd` | `FieldObjectConfig` | 场上物件配置：archetype_id + lane_id + x_position + spawn_overrides |
 
 ### 模式层 (mode/)

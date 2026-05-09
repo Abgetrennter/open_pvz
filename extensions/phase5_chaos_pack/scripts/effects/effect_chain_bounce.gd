@@ -54,7 +54,7 @@ func _find_next_bounce_target(context, current_target: Node, hit_targets: Array,
 			continue
 		if not entity.has_method("take_damage"):
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_targetable") and not bool(entity.call("is_targetable")):
 			continue
 		if EffectRuntimeUtilsRef.extract_team(entity) == source_team:
 			continue

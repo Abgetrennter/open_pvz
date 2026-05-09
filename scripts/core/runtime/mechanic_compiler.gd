@@ -706,6 +706,13 @@ static func _build_state_spec_inline(archetype, mechanic) -> Dictionary:
 				"mechanic_id": mechanic.mechanic_id,
 				"source_archetype_id": archetype.archetype_id,
 				"initial_state": &"arming",
+				"state_liveness": {
+					&"arming": {
+						&"targetable": false,
+						&"damageable": false,
+						&"collidable": false,
+					},
+				},
 				"transitions": [{
 					"transition_id": StringName("%s__arming_to_active" % String(mechanic.mechanic_id)),
 					"from_state": &"arming",
@@ -753,6 +760,12 @@ static func _build_state_spec_inline(archetype, mechanic) -> Dictionary:
 				"mechanic_id": mechanic.mechanic_id,
 				"source_archetype_id": archetype.archetype_id,
 				"initial_state": &"sleeping",
+				"state_liveness": {
+					&"sleeping": {
+						&"triggers": false,
+						&"controllers": false,
+					},
+				},
 				"transitions": [{
 					"transition_id": StringName("%s__sleeping_to_awake" % String(mechanic.mechanic_id)),
 					"from_state": &"sleeping",
@@ -795,6 +808,13 @@ static var _compile_state_arming: Callable = func(mechanic, archetype, _merged_p
 		"mechanic_id": mechanic.mechanic_id,
 		"source_archetype_id": archetype.archetype_id,
 		"initial_state": &"arming",
+		"state_liveness": {
+			&"arming": {
+				&"targetable": false,
+				&"damageable": false,
+				&"collidable": false,
+			},
+		},
 		"transitions": [{
 			"transition_id": StringName("%s__arming_to_active" % String(mechanic.mechanic_id)),
 			"from_state": &"arming",
@@ -858,6 +878,12 @@ static var _compile_state_sleeping: Callable = func(mechanic, archetype, _merged
 		"mechanic_id": mechanic.mechanic_id,
 		"source_archetype_id": archetype.archetype_id,
 		"initial_state": &"sleeping",
+		"state_liveness": {
+			&"sleeping": {
+				&"triggers": false,
+				&"controllers": false,
+			},
+		},
 		"transitions": [{
 			"transition_id": StringName("%s__sleeping_to_awake" % String(mechanic.mechanic_id)),
 			"from_state": &"sleeping",

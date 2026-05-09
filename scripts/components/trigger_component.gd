@@ -59,6 +59,13 @@ func subscribe_all() -> void:
 
 
 func _on_event(event_data, event_name: StringName) -> void:
+	var owner := get_parent()
+	if owner != null and owner.has_method("is_liveness_enabled") and not bool(owner.call("is_liveness_enabled", &"triggers")) and not _is_lifecycle_event(event_name):
+		return
 	for instance in trigger_instances:
 		if instance.event_name == event_name:
 			instance.execute(event_name, event_data)
+
+
+func _is_lifecycle_event(event_name: StringName) -> bool:
+	return event_name == &"placement.accepted" or event_name == &"entity.spawned" or event_name == &"entity.died"

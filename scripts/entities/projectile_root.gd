@@ -276,26 +276,20 @@ func _find_terminal_hit_target() -> Node:
 	if _terminal_hit_strategy == &"none":
 		return null
 	var battle := GameState.current_battle
-	if battle == null or not battle.has_method("get_runtime_entities"):
+	if battle == null or not battle.has_method("spatial_query"):
 		return null
 
 	var best_target: Node2D = null
 	var best_distance := INF
-	for candidate in battle.call("get_runtime_entities"):
-		if candidate == null or candidate == self or candidate == owner_entity:
-			continue
-		if _is_ignored_target(candidate):
-			continue
-		if _hit_strategy == &"pierce" and _pierce_hit_entity_ids.has(candidate.get_instance_id()):
-			continue
-		if not candidate.has_method("take_damage"):
-			continue
-		if not (candidate is Node2D):
-			continue
-		if candidate.has_method("get") and candidate.get("team") == team:
-			continue
-		if candidate.has_method("is_combat_active") and not candidate.call("is_combat_active"):
-			continue
+	var candidates: Array = battle.call("spatial_query", {
+		"team_exclude": team,
+		"center": _ground_position,
+		"radius": _impact_radius + _spatial_hitbox_padding(),
+		"height_range": Vector2(_height, _height),
+		"filter": func(candidate): return _is_projectile_hit_candidate(candidate),
+		"sort_by_distance": true,
+	})
+	for candidate in candidates:
 		var candidate_node := candidate as Node2D
 		if _matches_terminal_hit_target(candidate_node):
 			return candidate_node
@@ -313,24 +307,26 @@ func _find_segment_hit_target(start_position: Vector2, end_position: Vector2, pr
 	if start_position == end_position:
 		return null
 	var battle := GameState.current_battle
-	if battle == null or not battle.has_method("get_runtime_entities"):
+	if battle == null or not battle.has_method("spatial_query"):
 		return null
 
 	var best_target: Node2D = null
 	var best_score := INF
-	for candidate in battle.call("get_runtime_entities"):
-		if candidate == null or candidate == self or candidate == owner_entity:
-			continue
-		if _is_ignored_target(candidate):
-			continue
-		if not candidate.has_method("take_damage"):
-			continue
-		if not (candidate is Node2D):
-			continue
-		if candidate.has_method("get") and candidate.get("team") == team:
-			continue
-		if candidate.has_method("is_combat_active") and not candidate.call("is_combat_active"):
-			continue
+	var x_min := minf(start_position.x, end_position.x) - maxf(_impact_radius, _collision_padding)
+	var x_max := maxf(start_position.x, end_position.x) + maxf(_impact_radius, _collision_padding)
+	var center := (start_position + end_position) * 0.5
+	var query_padding := maxf(_impact_radius, _collision_padding) + _spatial_hitbox_padding()
+	var radius := start_position.distance_to(end_position) * 0.5 + query_padding
+	var candidates: Array = battle.call("spatial_query", {
+		"team_exclude": team,
+		"center": center,
+		"radius": radius,
+		"x_min": x_min - _spatial_hitbox_padding(),
+		"x_max": x_max + _spatial_hitbox_padding(),
+		"height_range": Vector2(minf(previous_height, current_height), maxf(previous_height, current_height)),
+		"filter": func(candidate): return _is_projectile_hit_candidate(candidate),
+	})
+	for candidate in candidates:
 		var candidate_node := candidate as Node2D
 		if not _matches_height_range(candidate_node, previous_height, current_height):
 			continue
@@ -347,6 +343,26 @@ func _find_segment_hit_target(start_position: Vector2, end_position: Vector2, pr
 			best_score = score
 			best_target = candidate_node
 	return best_target
+
+
+func _spatial_hitbox_padding() -> float:
+	return 64.0
+
+
+func _is_projectile_hit_candidate(candidate: Variant) -> bool:
+	if candidate == null or candidate == self or candidate == owner_entity:
+		return false
+	if _is_ignored_target(candidate):
+		return false
+	if _hit_strategy == &"pierce" and candidate is Object and _pierce_hit_entity_ids.has(candidate.get_instance_id()):
+		return false
+	if not candidate.has_method("take_damage"):
+		return false
+	if not (candidate is Node2D):
+		return false
+	if candidate.has_method("is_collidable") and not bool(candidate.call("is_collidable")):
+		return false
+	return true
 
 
 func _matches_terminal_hit_target(candidate_node: Node2D) -> bool:

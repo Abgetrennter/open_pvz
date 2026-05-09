@@ -37,7 +37,7 @@ func _fire_delayed_explode(context, params: Dictionary) -> void:
 	for entity in GameState.current_battle.call("get_runtime_combat_entities"):
 		if entity == null or not entity.has_method("take_damage"):
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_damageable") and not bool(entity.call("is_damageable")):
 			continue
 		if EffectRuntimeUtilsRef.extract_team(entity) == source_team:
 			continue

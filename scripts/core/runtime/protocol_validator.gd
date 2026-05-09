@@ -1266,6 +1266,12 @@ static func _normalize_param_value(value: Variant, param_def: Dictionary, errors
 			else:
 				errors.append("%s param %s must be PackedStringArray." % [scope, param_name])
 				normalized_value = PackedStringArray()
+		"dictionary":
+			if not (value is Dictionary):
+				errors.append("%s param %s must be Dictionary." % [scope, param_name])
+				normalized_value = {}
+			else:
+				normalized_value = Dictionary(value).duplicate(true)
 		"resource":
 			if value != null and not (value is Resource):
 				errors.append("%s param %s must be Resource." % [scope, param_name])
@@ -1321,7 +1327,7 @@ static func _allowed_dynamic_target_axes() -> Array[String]:
 
 
 static func _allowed_param_types() -> Array[String]:
-	return ["int", "float", "string", "string_name", "bool", "vector2", "packed_string_array", "resource"]
+	return ["int", "float", "string", "string_name", "bool", "vector2", "packed_string_array", "dictionary", "resource"]
 
 
 static func _allowed_trigger_behavior_keys() -> Array[String]:

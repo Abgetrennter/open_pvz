@@ -94,7 +94,7 @@ func _resolve_entity(archetype_id: StringName, lane_id: int) -> Node:
 	for entity in battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_runtime_alive") and not bool(entity.call("is_runtime_alive")):
 			continue
 		if archetype_id != StringName() and StringName(entity.get("archetype_id")) != archetype_id:
 			continue

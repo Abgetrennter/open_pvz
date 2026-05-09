@@ -80,7 +80,7 @@ func _find_split_targets(context, impact_position: Vector2, search_radius: float
 			continue
 		if not entity.has_method("take_damage"):
 			continue
-		if entity.has_method("is_combat_active") and not bool(entity.call("is_combat_active")):
+		if entity.has_method("is_targetable") and not bool(entity.call("is_targetable")):
 			continue
 		if _extract_team(entity) == source_team:
 			continue
