@@ -24,7 +24,7 @@ required_placement_tags = PackedStringArray("supports_primary")
 max_health = 300
 hitbox_size = Vector2(44, 56)
 default_params = {
-"interval": 0.65,
+"interval": 3.0,
 "scan_range": 900.0,
 "speed": 220.0,
 "start_delay": 0.1

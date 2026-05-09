@@ -8,5 +8,5 @@ card_id = &"card_original_plantern"
 display_name = "Plantern"
 archetype_id = &"archetype_original_plantern"
 sun_cost = 25
-cooldown_seconds = 3.0
+cooldown_seconds = 30.0
 placement_tags = PackedStringArray("supports_primary")

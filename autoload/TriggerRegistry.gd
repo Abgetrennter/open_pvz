@@ -34,6 +34,16 @@ func _register_builtin_defs() -> void:
 		"min": 0.25,
 		"max": 60.0,
 	}, {
+		"name": "interval_min",
+		"type": "float",
+		"min": 0.0,
+		"max": 60.0,
+	}, {
+		"name": "interval_max",
+		"type": "float",
+		"min": 0.0,
+		"max": 60.0,
+	}, {
 		"name": "detection_id",
 		"type": "string_name",
 		"default": &"always",
@@ -57,8 +67,18 @@ func _register_builtin_defs() -> void:
 		"name": "start_delay",
 		"type": "float",
 		"min": 0.0,
-		"max": 30.0,
+		"max": 60.0,
 		"default": 0.0,
+	}, {
+		"name": "start_delay_min",
+		"type": "float",
+		"min": 0.0,
+		"max": 60.0,
+	}, {
+		"name": "start_delay_max",
+		"type": "float",
+		"min": 0.0,
+		"max": 60.0,
 	}, {
 		"name": "required_state",
 		"type": "string_name",
@@ -163,15 +183,26 @@ func _register_builtin_strategies() -> void:
 				return false
 
 		var start_delay := float(condition_values.get("start_delay", 0.0))
-		if start_delay > 0.0 and instance.last_triggered_time < -999999.0:
-			if game_time - instance.bind_time < start_delay:
+		var timing_uses_window := _condition_uses_windowed_schedule(condition_values)
+		var interval_min := float(condition_values.get("interval_min", -1.0))
+		var interval_max := float(condition_values.get("interval_max", -1.0))
+		var start_delay_min := float(condition_values.get("start_delay_min", -1.0))
+		var start_delay_max := float(condition_values.get("start_delay_max", -1.0))
+		if timing_uses_window:
+			instance.initialize_window_schedule(start_delay_min, start_delay_max, start_delay)
+			if not instance.is_window_schedule_ready(game_time):
 				return false
-
-		if game_time - instance.last_triggered_time < interval:
-			return false
+		else:
+			if start_delay > 0.0 and instance.last_triggered_time < -999999.0:
+				if game_time - instance.bind_time < start_delay:
+					return false
+			if game_time - instance.last_triggered_time < interval:
+				return false
 
 		var detection_id := StringName(condition_values.get("detection_id", &"always"))
 		if detection_id == StringName() or detection_id == &"always":
+			if timing_uses_window:
+				instance.schedule_next_window(interval_min, interval_max, interval, game_time)
 			return true
 
 		var detection_params := {
@@ -194,6 +225,8 @@ func _register_builtin_strategies() -> void:
 			"detection_id": detection_id,
 			"detected_target_ids": detected_target_ids,
 		})
+		if timing_uses_window:
+			instance.schedule_next_window(interval_min, interval_max, interval, game_time)
 		return true
 	)
 
@@ -297,3 +330,10 @@ func _on_def_registered(entry: Dictionary) -> void:
 			if strategy_owner != null and strategy_owner.has_method("evaluate"):
 				_trigger_strategy_owners[def.id] = strategy_owner
 				_trigger_strategies[def.id] = Callable(strategy_owner, "evaluate")
+
+
+func _condition_uses_windowed_schedule(condition_values: Dictionary) -> bool:
+	for key in ["interval_min", "interval_max", "start_delay_min", "start_delay_max"]:
+		if condition_values.has(key):
+			return true
+	return false

@@ -8,5 +8,5 @@ card_id = &"card_original_gatlingpea"
 display_name = "Gatling Pea"
 archetype_id = &"archetype_original_gatlingpea"
 sun_cost = 250
-cooldown_seconds = 5.0
+cooldown_seconds = 50.0
 placement_tags = PackedStringArray("supports_primary")

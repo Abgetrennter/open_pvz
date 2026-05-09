@@ -16,8 +16,12 @@ optional_components = PackedStringArray("DebugViewComponent")
 max_health = 300
 hitbox_size = Vector2(38, 50)
 default_params = {
-"start_delay": 7.2,
-"interval": 24.0,
+"start_delay": 7.75,
+"start_delay_min": 3.0,
+"start_delay_max": 12.5,
+"interval": 24.25,
+"interval_min": 23.5,
+"interval_max": 25.0,
 "value": 25
 }
 mechanics = [ExtResource("2_mechanic_0"), ExtResource("3_mechanic_1")]

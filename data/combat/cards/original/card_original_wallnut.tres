@@ -8,5 +8,5 @@ card_id = &"card_original_wallnut"
 display_name = "Wall-nut"
 archetype_id = &"archetype_original_wallnut"
 sun_cost = 50
-cooldown_seconds = 3.0
+cooldown_seconds = 30.0
 placement_tags = PackedStringArray("supports_primary")

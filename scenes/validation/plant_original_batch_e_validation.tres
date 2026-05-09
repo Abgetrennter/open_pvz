@@ -77,7 +77,7 @@ script = ExtResource("3_rule")
 rule_id = &"sunflower_sun"
 description = "Sunflower should produce plant-generated sun"
 event_name = &"sun.spawned"
-min_count = 2
+min_count = 1
 required_core_values = {
 "source_type": &"plant_generated"
 }
@@ -119,7 +119,7 @@ scenario_id = &"plant_original_batch_e_validation"
 display_name = "Original Plant Batch E Validation"
 description = "Validates Batch E roof, upgrade and economy plants: Repeater as base for upgrade, Sunflower sun production, Winter Melon splash damage, Flower Pot support spawn, and Marigold coin-generated collectible output."
 goals = PackedStringArray("Verify Repeater damages bucket tank.", "Verify Sunflower produces sun.", "Verify Winter Melon deals splash damage to clustered targets.", "Verify Flower Pot spawns as a support plant.", "Verify Marigold emits a coin-generated collectible through the shared economy path.")
-validation_time_limit = 6.0
+validation_time_limit = 28.0
 lane_count = 4
 validation_rules = [SubResource("Rule_repeater_damage"), SubResource("Rule_sunflower_sun_production"), SubResource("Rule_winter_splash"), SubResource("Rule_flowerpot_spawn"), SubResource("Rule_marigold_coin")]
 spawns = [SubResource("Spawn_repeater_base"), SubResource("Spawn_gatling_target"), SubResource("Spawn_sunflower_base"), SubResource("Spawn_wintermelon"), SubResource("Spawn_winter_target_a"), SubResource("Spawn_winter_target_b"), SubResource("Spawn_flowerpot"), SubResource("Spawn_marigold")]

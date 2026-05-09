@@ -8,5 +8,5 @@ card_id = &"card_original_wintermelon"
 display_name = "Winter Melon"
 archetype_id = &"archetype_original_wintermelon"
 sun_cost = 200
-cooldown_seconds = 5.0
+cooldown_seconds = 50.0
 placement_tags = PackedStringArray("supports_primary")

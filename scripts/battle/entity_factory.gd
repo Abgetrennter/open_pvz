@@ -382,6 +382,7 @@ func _build_triggers_from_specs(
 		if trigger_spec == null:
 			continue
 		var trigger = TriggerInstanceRef.new()
+		trigger.spec_id = StringName(trigger_spec.spec_id)
 		trigger.def_id = StringName(trigger_spec.trigger_id)
 		trigger.event_name = StringName(trigger_spec.event_name)
 		trigger.condition_values = _merge_spec_condition_values(trigger_spec, params)
@@ -396,9 +397,29 @@ func _build_triggers_from_specs(
 func _merge_spec_condition_values(trigger_spec, params: Dictionary) -> Dictionary:
 	var merged: Dictionary = trigger_spec.condition_values.duplicate(true)
 	for key: Variant in merged.keys():
+		var key_str := String(key)
 		if params.has(key):
 			merged[key] = params[key]
+		elif params.has(key_str):
+			merged[key] = params[key_str]
+	if _has_fixed_override_without_window(params, "interval", "interval_min", "interval_max"):
+		_erase_condition_key_variants(merged, "interval_min")
+		_erase_condition_key_variants(merged, "interval_max")
+	if _has_fixed_override_without_window(params, "start_delay", "start_delay_min", "start_delay_max"):
+		_erase_condition_key_variants(merged, "start_delay_min")
+		_erase_condition_key_variants(merged, "start_delay_max")
 	return merged
+
+
+func _has_fixed_override_without_window(params: Dictionary, fixed_key: String, min_key: String, max_key: String) -> bool:
+	return (params.has(fixed_key) or params.has(StringName(fixed_key))) \
+		and not (params.has(min_key) or params.has(StringName(min_key))) \
+		and not (params.has(max_key) or params.has(StringName(max_key)))
+
+
+func _erase_condition_key_variants(values: Dictionary, key_name: String) -> void:
+	values.erase(key_name)
+	values.erase(StringName(key_name))
 
 
 func _build_effect_node_from_spec(

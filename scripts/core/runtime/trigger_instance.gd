@@ -4,6 +4,7 @@ class_name TriggerInstance
 const RuleContextRef = preload("res://scripts/core/runtime/rule_context.gd")
 const EffectExecutorRef = preload("res://scripts/core/runtime/effect_executor.gd")
 
+var spec_id: StringName = StringName()
 var def_id: StringName = StringName()
 var event_name: StringName = StringName()
 var condition_values: Dictionary = {}
@@ -12,10 +13,14 @@ var last_triggered_time := -1000000.0
 var bind_time := 0.0
 var owner_entity: Node = null
 var pending_context_overrides: Dictionary = {}
+var _timing_rng: RandomNumberGenerator = null
+var _schedule_initialized := false
+var _next_trigger_time := -1.0
 
 
 func bind_owner(entity: Node) -> void:
 	owner_entity = entity
+	_reset_timing_schedule()
 
 
 func set_pending_context_overrides(overrides: Dictionary) -> void:
@@ -24,6 +29,25 @@ func set_pending_context_overrides(overrides: Dictionary) -> void:
 
 func clear_pending_context_overrides() -> void:
 	pending_context_overrides.clear()
+
+
+func initialize_window_schedule(start_delay_min: float, start_delay_max: float, fallback_start_delay: float) -> void:
+	if _schedule_initialized:
+		return
+	var initial_delay := _sample_window_value(start_delay_min, start_delay_max, fallback_start_delay)
+	_next_trigger_time = bind_time + initial_delay
+	_schedule_initialized = true
+
+
+func is_window_schedule_ready(game_time: float) -> bool:
+	if not _schedule_initialized:
+		return false
+	return game_time + 0.000001 >= _next_trigger_time
+
+
+func schedule_next_window(interval_min: float, interval_max: float, fallback_interval: float, from_time: float) -> void:
+	_next_trigger_time = from_time + _sample_window_value(interval_min, interval_max, fallback_interval)
+	_schedule_initialized = true
 
 
 func should_trigger(incoming_event_name: StringName, event_data) -> bool:
@@ -134,3 +158,35 @@ func _extract_team(node: Node) -> StringName:
 	if team_value is String:
 		return StringName(team_value)
 	return StringName()
+
+
+func _reset_timing_schedule() -> void:
+	_timing_rng = null
+	_schedule_initialized = false
+	_next_trigger_time = -1.0
+
+
+func _sample_window_value(min_value: float, max_value: float, fallback_value: float) -> float:
+	var resolved_min := fallback_value if min_value < 0.0 else min_value
+	var resolved_max := fallback_value if max_value < 0.0 else max_value
+	if resolved_max < resolved_min:
+		var temp := resolved_min
+		resolved_min = resolved_max
+		resolved_max = temp
+	if is_equal_approx(resolved_min, resolved_max):
+		return resolved_min
+	return _get_timing_rng().randf_range(resolved_min, resolved_max)
+
+
+func _get_timing_rng() -> RandomNumberGenerator:
+	if _timing_rng != null:
+		return _timing_rng
+	_timing_rng = RandomNumberGenerator.new()
+	var entity_seed := GameState.battle_seed
+	if owner_entity != null and owner_entity.has_method("get_entity_id"):
+		entity_seed = GameState.derive_entity_seed(GameState.battle_seed, int(owner_entity.call("get_entity_id")))
+	var mechanic_seed_key := spec_id
+	if mechanic_seed_key == StringName():
+		mechanic_seed_key = StringName("%s__%s" % [String(def_id), String(event_name)])
+	_timing_rng.seed = GameState.derive_mechanic_seed(entity_seed, mechanic_seed_key)
+	return _timing_rng
