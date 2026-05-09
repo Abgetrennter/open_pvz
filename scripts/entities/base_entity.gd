@@ -2,6 +2,7 @@ extends Node2D
 class_name BaseEntity
 
 const EntityStateRef = preload("res://scripts/core/runtime/entity_state.gd")
+const LivenessEventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 
 const LIVENESS_AXES = [
 	&"triggers",
@@ -152,6 +153,7 @@ func is_liveness_enabled(axis: StringName) -> bool:
 func push_liveness_override(source_id: StringName, profile: Dictionary, priority: int = LIVENESS_PRIORITY_STATUS) -> void:
 	if source_id == StringName():
 		return
+	var previous_profile := _liveness_cache.duplicate(true)
 	var normalized_profile := _normalize_liveness_profile(profile)
 	if normalized_profile.is_empty():
 		_liveness_overrides.erase(source_id)
@@ -162,15 +164,18 @@ func push_liveness_override(source_id: StringName, profile: Dictionary, priority
 		}
 	_rebuild_liveness()
 	_sync_entity_state()
+	_emit_liveness_changed(source_id, previous_profile)
 
 
 func pop_liveness_override(source_id: StringName) -> void:
 	if source_id == StringName():
 		return
+	var previous_profile := _liveness_cache.duplicate(true)
 	if not _liveness_overrides.erase(source_id):
 		return
 	_rebuild_liveness()
 	_sync_entity_state()
+	_emit_liveness_changed(source_id, previous_profile)
 
 
 func is_targetable() -> bool:
@@ -321,3 +326,20 @@ func _normalize_liveness_profile(profile: Dictionary) -> Dictionary:
 
 func _status_liveness_source(status_id: StringName) -> StringName:
 	return StringName("status:%s" % String(status_id))
+
+
+func _emit_liveness_changed(source_id: StringName, previous_profile: Dictionary) -> void:
+	if previous_profile == _liveness_cache:
+		return
+	var changed_axes := PackedStringArray()
+	for axis in LIVENESS_AXES:
+		if bool(previous_profile.get(axis, true)) != bool(_liveness_cache.get(axis, true)):
+			changed_axes.append(String(axis))
+	if changed_axes.is_empty():
+		return
+	var liveness_event: Variant = LivenessEventDataRef.create(self, self, null, PackedStringArray(["liveness", String(source_id)]))
+	liveness_event.core["source_id"] = source_id
+	liveness_event.core["changed_axes"] = changed_axes
+	for axis in LIVENESS_AXES:
+		liveness_event.core[axis] = bool(_liveness_cache.get(axis, true))
+	EventBus.push_event(&"entity.liveness_changed", liveness_event)

@@ -15,6 +15,7 @@ const DebugOverlayRef = preload("res://scripts/debug/debug_overlay.gd")
 const VisualFeedbackHostRef = preload("res://scripts/visual/visual_feedback_host.gd")
 const VisualStageLayerServiceRef = preload("res://scripts/visual/visual_stage_layer_service.gd")
 const VisualValidationProbeRef = preload("res://scripts/validation/visual_validation_probe.gd")
+const InfrastructureValidationProbeRef = preload("res://scripts/validation/infrastructure_validation_probe.gd")
 const SpatialIndexRef = preload("res://scripts/battle/spatial_index.gd")
 
 var lane_y_map := {
@@ -54,6 +55,7 @@ var _scenario_override_failed := false
 var _visual_feedback_host: Node = null
 var _visual_stage_layer_service: Node = null
 var _visual_validation_probe: Node = null
+var _infrastructure_validation_probe: Node = null
 var _spatial_index: Variant = SpatialIndexRef.new()
 var _last_tick_budget_warning_time := -999999.0
 
@@ -142,6 +144,7 @@ func reset_battle() -> void:
 	add_child(_visual_stage_layer_service)
 	_visual_stage_layer_service.initialize(self)
 	_try_spawn_visual_validation_probe()
+	_try_spawn_infrastructure_validation_probe()
 
 	_rebuild_lane_config()
 	_subsystem_host.reset_runtime_services()
@@ -510,7 +513,23 @@ func _try_spawn_visual_validation_probe() -> void:
 	_visual_validation_probe.setup(self)
 
 
+func _try_spawn_infrastructure_validation_probe() -> void:
+	var active_scenario = resolve_scenario()
+	if active_scenario == null:
+		return
+	var scenario_id: String = String(active_scenario.scenario_id)
+	if not scenario_id.begins_with("spatial_index_"):
+		return
+	_infrastructure_validation_probe = InfrastructureValidationProbeRef.new()
+	_infrastructure_validation_probe.name = "InfrastructureValidationProbe"
+	add_child(_infrastructure_validation_probe)
+	_infrastructure_validation_probe.setup(self)
+
+
 func _cleanup_visual_runtime() -> void:
+	if _infrastructure_validation_probe != null:
+		_infrastructure_validation_probe.queue_free()
+		_infrastructure_validation_probe = null
 	if _visual_validation_probe != null:
 		_visual_validation_probe.queue_free()
 		_visual_validation_probe = null
@@ -596,6 +615,10 @@ func _apply_scenario_simulation_options() -> void:
 		GameState.set_simulation_speed(float(active_scenario.get("simulation_speed_override")))
 	if bool(active_scenario.get("simulation_paused_on_start")):
 		GameState.set_simulation_paused(true)
+	if float(active_scenario.get("tick_budget_warning_ms_override")) >= 0.0:
+		tick_budget_warning_ms = float(active_scenario.get("tick_budget_warning_ms_override"))
+	if float(active_scenario.get("tick_budget_critical_ms_override")) >= 0.0:
+		tick_budget_critical_ms = float(active_scenario.get("tick_budget_critical_ms_override"))
 
 
 func _should_run_validation_fixed_steps() -> bool:

@@ -8,6 +8,8 @@ class_name BattleScenario
 @export var validation_time_limit := 8.0
 @export var simulation_speed_override := -1.0
 @export var simulation_paused_on_start := false
+@export var tick_budget_warning_ms_override := -1.0
+@export var tick_budget_critical_ms_override := -1.0
 @export var validation_fixed_step_count := -1
 @export var validation_finish_after_fixed_steps := false
 @export var initial_sun := 0

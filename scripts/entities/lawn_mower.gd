@@ -75,17 +75,6 @@ func _expire() -> void:
 	queue_free()
 
 
-func _get_combat_entities() -> Array:
-	if _battle_ref == null or not is_instance_valid(_battle_ref):
-		if get_parent() != null and get_parent().has_method("get_runtime_combat_entities"):
-			_battle_ref = get_parent().get_parent()
-	if _battle_ref == null or not is_instance_valid(_battle_ref):
-		return []
-	if not _battle_ref.has_method("get_runtime_combat_entities"):
-		return []
-	return _battle_ref.call("get_runtime_combat_entities")
-
-
 func _draw() -> void:
 	var body_color := Color("6a8a5a") if _mower_state == &"idle" else Color("5a8a6a")
 	draw_rect(Rect2(Vector2(-18, -14), Vector2(36, 28)), body_color)
@@ -123,7 +112,7 @@ func _sweep_with_speed(delta: float, resolved_move_speed: float) -> void:
 func _query_zombies_ahead(max_forward_distance: float, require_collidable: bool) -> Array:
 	var battle := _resolve_battle_ref()
 	if battle == null or not battle.has_method("spatial_query"):
-		return _query_zombies_ahead_fallback(max_forward_distance, require_collidable)
+		return []
 	return battle.call("spatial_query", {
 		"team_include": &"zombie",
 		"lane_ids": PackedInt32Array([lane_id]),
@@ -135,26 +124,6 @@ func _query_zombies_ahead(max_forward_distance: float, require_collidable: bool)
 				return candidate.has_method("is_collidable") and bool(candidate.call("is_collidable"))
 			return candidate.has_method("is_targetable") and bool(candidate.call("is_targetable")),
 	})
-
-
-func _query_zombies_ahead_fallback(max_forward_distance: float, require_collidable: bool) -> Array:
-	var result: Array = []
-	for entity in _get_combat_entities():
-		if entity == null or not is_instance_valid(entity):
-			continue
-		if StringName(entity.get("team")) != &"zombie":
-			continue
-		if int(entity.get("lane_id")) != lane_id:
-			continue
-		if require_collidable:
-			if not entity.has_method("is_collidable") or not bool(entity.call("is_collidable")):
-				continue
-		elif not entity.has_method("is_targetable") or not bool(entity.call("is_targetable")):
-			continue
-		var zombie_x: float = float(entity.get("global_position").x) if entity.get("global_position") != null else 0.0
-		if zombie_x <= global_position.x + max_forward_distance:
-			result.append(entity)
-	return result
 
 
 func _resolve_battle_ref() -> Node:

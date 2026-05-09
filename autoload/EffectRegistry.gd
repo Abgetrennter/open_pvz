@@ -1024,20 +1024,12 @@ func _resolve_detected_targets(context) -> Array:
 	var id_lookup: Dictionary = {}
 	for entity_id: Variant in detected_ids:
 		id_lookup[int(entity_id)] = true
-	if GameState.current_battle.has_method("spatial_query"):
-		return GameState.current_battle.call("spatial_query", {
-			"filter": func(candidate):
-				return candidate != null and candidate.has_method("get_entity_id") and id_lookup.has(int(candidate.call("get_entity_id"))),
-		})
-	if not GameState.current_battle.has_method("get_runtime_entities"):
+	if not GameState.current_battle.has_method("spatial_query"):
 		return []
-	var targets: Array = []
-	for child in GameState.current_battle.call("get_runtime_entities"):
-		if child == null or not child.has_method("get_entity_id"):
-			continue
-		if id_lookup.has(int(child.call("get_entity_id"))):
-			targets.append(child)
-	return targets
+	return GameState.current_battle.call("spatial_query", {
+		"filter": func(candidate):
+			return candidate != null and candidate.has_method("get_entity_id") and id_lookup.has(int(candidate.call("get_entity_id"))),
+	})
 
 
 func _resolve_shuffle_projectile_params(context, params: Dictionary) -> Dictionary:

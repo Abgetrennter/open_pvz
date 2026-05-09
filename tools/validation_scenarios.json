@@ -306,6 +306,24 @@
     "layers": ["core"]
   },
   {
+    "id": "liveness_system_validation",
+    "scenario": "res://scenes/validation/liveness_system_validation.tres",
+    "description": "Validates state and status liveness overrides for arming, sleeping and stunned entities.",
+    "layers": ["core"]
+  },
+  {
+    "id": "spatial_index_consistency_validation",
+    "scenario": "res://scenes/validation/spatial_index_consistency_validation.tres",
+    "description": "Validates SpatialIndex query results against full-scan baselines for lane/team/x, tag/kind, height_range and stable ordering.",
+    "layers": ["core"]
+  },
+  {
+    "id": "tick_budget_monitor_validation",
+    "scenario": "res://scenes/validation/tick_budget_monitor_validation.tres",
+    "description": "Validates that tick budget monitoring emits simulation.control metadata when the configured threshold is crossed.",
+    "layers": ["smoke", "core"]
+  },
+  {
     "id": "field_object_mower_validation",
     "scenario": "res://scenes/validation/field_object_mower_validation.tres",
     "description": "Validates the first-stage field object runtime through a lawn mower that activates, kills a zombie, and expires without triggering defeat.",

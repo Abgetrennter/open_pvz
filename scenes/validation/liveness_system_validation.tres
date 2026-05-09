@@ -1,0 +1,160 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/status_application_request.gd" id="3_status_request"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="4_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_hypnoshroom.tres" id="6_hypno_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_coffeebean.tres" id="7_coffee_card"]
+
+[sub_resource type="Resource" id="Spawn_potatomine"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_potatomine"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_potato_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 205.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_status_zombie"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 1
+x_position = 360.0
+spawn_overrides = {
+"move_speed": 80.0
+}
+
+[sub_resource type="Resource" id="Spawn_hypno_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 2
+x_position = 205.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Status_stunned"]
+script = ExtResource("3_status_request")
+at_time = 0.2
+target_archetype_id = &"archetype_brisk_runner"
+lane_id = 1
+status_id = &"stunned"
+duration = 0.7
+movement_scale = 0.0
+liveness_overrides = {
+"controllers": false,
+"movement": false
+}
+
+[sub_resource type="Resource" id="Req_hypno"]
+script = ExtResource("4_card_request")
+at_time = 0.05
+card_id = &"card_original_hypnoshroom"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_coffee"]
+script = ExtResource("4_card_request")
+at_time = 0.25
+card_id = &"card_original_coffeebean"
+lane_id = 2
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_potato_arming_liveness"]
+script = ExtResource("5_rule")
+rule_id = &"potato_arming_liveness"
+description = "Potato Mine arming state should disable targetable, damageable and collidable."
+event_name = &"entity.liveness_changed"
+required_core_values = {
+"source_archetype_id": &"archetype_original_potatomine",
+"source_id": &"state:arming",
+"targetable": false,
+"damageable": false,
+"collidable": false
+}
+
+[sub_resource type="Resource" id="Rule_potato_active_liveness"]
+script = ExtResource("5_rule")
+rule_id = &"potato_active_liveness"
+description = "Potato Mine active state should restore targetable, damageable and collidable."
+event_name = &"entity.liveness_changed"
+required_core_values = {
+"source_archetype_id": &"archetype_original_potatomine",
+"source_id": &"state:arming",
+"targetable": true,
+"damageable": true,
+"collidable": true
+}
+
+[sub_resource type="Resource" id="Rule_hypno_sleep_liveness"]
+script = ExtResource("5_rule")
+rule_id = &"hypno_sleep_liveness"
+description = "Sleeping Hypno-shroom should disable triggers and controllers."
+event_name = &"entity.liveness_changed"
+required_core_values = {
+"source_archetype_id": &"archetype_original_hypnoshroom",
+"source_id": &"state:sleeping",
+"triggers": false,
+"controllers": false
+}
+
+[sub_resource type="Resource" id="Rule_hypno_awake_liveness"]
+script = ExtResource("5_rule")
+rule_id = &"hypno_awake_liveness"
+description = "Awakened Hypno-shroom should restore triggers and controllers."
+event_name = &"entity.liveness_changed"
+required_core_values = {
+"source_archetype_id": &"archetype_original_hypnoshroom",
+"source_id": &"state:sleeping",
+"triggers": true,
+"controllers": true
+}
+
+[sub_resource type="Resource" id="Rule_stunned_disable_liveness"]
+script = ExtResource("5_rule")
+rule_id = &"stunned_disable_liveness"
+description = "Stunned status should disable movement and controllers without disabling damageable."
+event_name = &"entity.liveness_changed"
+required_core_values = {
+"source_archetype_id": &"archetype_brisk_runner",
+"source_id": &"status:stunned",
+"movement": false,
+"controllers": false,
+"damageable": true
+}
+
+[sub_resource type="Resource" id="Rule_stunned_restore_liveness"]
+script = ExtResource("5_rule")
+rule_id = &"stunned_restore_liveness"
+description = "Stunned status removal should restore movement and controllers."
+event_name = &"entity.liveness_changed"
+required_core_values = {
+"source_archetype_id": &"archetype_brisk_runner",
+"source_id": &"status:stunned",
+"movement": true,
+"controllers": true,
+"damageable": true
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"liveness_system_validation"
+display_name = "Liveness System Validation"
+description = "Validates state and status liveness overrides through arming, sleeping and stunned examples."
+goals = PackedStringArray("Verify arming disables targetable/damageable/collidable and restores them after activation.", "Verify sleeping disables triggers/controllers and Coffee Bean restores them.", "Verify stunned disables movement/controllers without disabling damageable, then restores them on expiry.")
+validation_time_limit = 1.6
+initial_sun = 1000
+lane_count = 3
+card_defs = [ExtResource("6_hypno_card"), ExtResource("7_coffee_card")]
+card_play_requests = [SubResource("Req_hypno"), SubResource("Req_coffee")]
+status_application_requests = [SubResource("Status_stunned")]
+validation_rules = [SubResource("Rule_potato_arming_liveness"), SubResource("Rule_potato_active_liveness"), SubResource("Rule_hypno_sleep_liveness"), SubResource("Rule_hypno_awake_liveness"), SubResource("Rule_stunned_disable_liveness"), SubResource("Rule_stunned_restore_liveness")]
+spawns = [SubResource("Spawn_potatomine"), SubResource("Spawn_potato_target"), SubResource("Spawn_status_zombie"), SubResource("Spawn_hypno_target")]

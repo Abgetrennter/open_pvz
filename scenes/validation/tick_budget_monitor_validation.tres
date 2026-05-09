@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick_budget_warning"]
+script = ExtResource("2_rule")
+rule_id = &"tick_budget_warning"
+description = "Tick budget monitor should emit a simulation.control event with budget metadata when threshold is crossed."
+event_name = &"simulation.control"
+required_tags = PackedStringArray("simulation", "tick_budget_warning")
+required_core_values = {
+"action": &"tick_budget_warning",
+"warning_threshold_ms": 0.0,
+"critical": false
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"tick_budget_monitor_validation"
+display_name = "Tick Budget Monitor Validation"
+description = "Forces the tick budget warning threshold to zero and verifies that budget metadata is emitted through DebugService."
+goals = PackedStringArray("Verify tick budget monitoring emits a simulation.control event with budget metadata.")
+validation_time_limit = 0.1
+tick_budget_warning_ms_override = 0.0
+tick_budget_critical_ms_override = 999999.0
+validation_fixed_step_count = 1
+validation_finish_after_fixed_steps = true
+validation_rules = [SubResource("Rule_tick_budget_warning")]

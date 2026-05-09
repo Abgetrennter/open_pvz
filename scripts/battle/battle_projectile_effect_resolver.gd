@@ -208,49 +208,27 @@ func _find_nearest_enemy(source_node: Node) -> Node2D:
 	var source_team: Variant = source_node.get("team")
 	var source_lane: Variant = source_node.get("lane_id")
 	var source_position: Vector2 = _node_ground_position(source_node as Node2D)
-	if _battle.has_method("spatial_query"):
-		var source_team_name := StringName(source_team) if source_team != null else StringName()
-		var query := {
-			"team_exclude": source_team_name,
-			"center": source_position,
-			"sort_by_distance": true,
-			"max_results": 1,
-			"filter": func(candidate):
-				if candidate == source_node:
-					return false
-				if not candidate.has_method("take_damage"):
-					return false
-				if candidate.has_method("is_targetable") and not bool(candidate.call("is_targetable")):
-					return false
-				return candidate is Node2D,
-		}
-		if source_lane is int:
-			query["lane_ids"] = PackedInt32Array([int(source_lane)])
-		var spatial_targets: Array = _battle.call("spatial_query", query)
-		return spatial_targets[0] as Node2D if not spatial_targets.is_empty() else null
-
-	var best_candidate: Node2D = null
-	var best_distance := INF
-
-	for child in _battle.get_runtime_entities():
-		if child == null or child == source_node:
-			continue
-		if not child.has_method("take_damage"):
-			continue
-		if not (child is Node2D):
-			continue
-		if child.get("team") == source_team:
-			continue
-		if source_lane is int and child.get("lane_id") != source_lane:
-			continue
-
-		var candidate := child as Node2D
-		var distance := source_position.distance_to(_node_ground_position(candidate))
-		if distance < best_distance:
-			best_distance = distance
-			best_candidate = candidate
-
-	return best_candidate
+	if _battle == null or not _battle.has_method("spatial_query"):
+		return null
+	var source_team_name := StringName(source_team) if source_team != null else StringName()
+	var query := {
+		"team_exclude": source_team_name,
+		"center": source_position,
+		"sort_by_distance": true,
+		"max_results": 1,
+		"filter": func(candidate):
+			if candidate == source_node:
+				return false
+			if not candidate.has_method("take_damage"):
+				return false
+			if candidate.has_method("is_targetable") and not bool(candidate.call("is_targetable")):
+				return false
+			return candidate is Node2D,
+	}
+	if source_lane is int:
+		query["lane_ids"] = PackedInt32Array([int(source_lane)])
+	var spatial_targets: Array = _battle.call("spatial_query", query)
+	return spatial_targets[0] as Node2D if not spatial_targets.is_empty() else null
 
 
 func _estimate_parabola_duration(spawn_position: Vector2, target_node: Node2D, speed: float) -> float:
