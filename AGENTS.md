@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-05-09** — 规则基础设施第二轮完成：多维 liveness、`SpatialIndex` / `BattleManager.spatial_query(params)`、`height_range` 过滤、tick budget 监控与专项验证进入主干，验证基线扩展到 140 场景
 - **2026-05-06** — 验证批处理支持受控并行：`tools/run_all_validations.ps1` 新增 `-MaxParallel`，默认自动取 `min(CPU核心数, 4)`，批量验证改为并发调度并保持汇总输出顺序稳定
 - **2026-05-05** — 统一 Registry/Slot 生产线完成：`TriggerRegistry`、`DetectionRegistry`、`ControllerRegistry` 全部继承 `RegistryBase`，contributor 字段统一为 `id`/`param_defs`，`ExtensionPackCatalog.ALLOWED_REGISTER_KINDS` 扩展至 7 种，验证基线扩展到 121 场景
 - **2026-04-24** — wiki 同步 Mechanic-first 决策：11 份文档更新，旧"模板与装配边界"重写为"编译链与 Mechanic 系统"；AGENTS.md 同步代码现状
@@ -14,7 +15,7 @@
 
 Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规则"成为核心玩法驱动力。项目已完成旧实体作者模型归档，正式运行时唯一入口是 **Mechanic-first** 架构：`CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory`。
 
-当前阶段：**Mechanic-first 主链已完成三阶段，通用扩展插槽 v1 已落地**。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)、[wiki/04-roadmap-reference/42-通用扩展插槽机制.md](wiki/04-roadmap-reference/42-通用扩展插槽机制.md) 和 [wiki/decisions/](wiki/decisions/README.md)。
+当前阶段：**Mechanic-first 主链已完成三阶段，通用扩展插槽 v1 与规则基础设施第二轮已落地**。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)、[wiki/04-roadmap-reference/42-通用扩展插槽机制.md](wiki/04-roadmap-reference/42-通用扩展插槽机制.md)、[wiki/02-runtime-protocol/17-实体活跃性与空间查询.md](wiki/02-runtime-protocol/17-实体活跃性与空间查询.md) 和 [wiki/decisions/](wiki/decisions/README.md)。
 
 ## 架构总览
 
@@ -57,7 +58,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `EffectRegistry` | 效果定义与策略注册（damage / spawn_projectile / explode / apply_status / produce_sun / spawn_entity，继承 RegistryBase） |
 | `ControllerRegistry` | Controller 策略注册（core.bite / core.sweep / core.ground_damage / core.projectile_transform，继承 RegistryBase） |
 | `ProjectileMovementRegistry` | 抛射体 movement 定义注册与组件创建（core.linear / core.parabola / core.track，支持扩展包 movement，继承 RegistryBase） |
-| `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
+| `GameState` | 游戏状态管理（当前战斗、100Hz 仿真时间、实体 ID 分配、battle_seed） |
 
 ### 战斗运行时子系统
 
@@ -70,6 +71,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | 波次运行器 | `WaveRunner` | 波次调度、敌人生成、胜败条件检测 |
 | 场上物件状态 | `BattleFieldObjectState` | 场上物件生成、管理、事件发射（割草机等） |
 | 模式宿主 | `BattleModeHost` | 模式运行时宿主：解析 mode_def、合并 override、驱动规则模块、评估目标 |
+| 空间索引 | `SpatialIndex` | 统一目标查询基础设施：team/lane/tag/kind/x/radius/height_range 过滤与稳定排序 |
 
 ## 模块结构图
 
@@ -120,7 +122,7 @@ graph TD
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
 | `data/combat/archetypes/` | .tres | 97 | Archetype 资源（85 植物 + 10 僵尸 + 2 场上物件） |
 | `data/combat/` | .tres | 270 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
-| `scenes/validation/` | .tres/.tscn | 110 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 121 个场景为准 |
+| `scenes/validation/` | .tres/.tscn | 110 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 140 个场景为准 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |
 | `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
@@ -153,7 +155,7 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 
 批量验证说明：`run_all_validations.ps1` 在批处理层做受控并行调度，单场景执行仍复用 `run_validation.ps1`；每个场景输出目录独立，最终 `summary.json` / `summary.txt` 按 manifest 原始顺序汇总。
 
-场景定义：`tools/validation_scenarios.json`（121 个场景，分层 smoke / core / extension / guardrail）
+场景定义：`tools/validation_scenarios.json`（140 个场景，分层 smoke / core / extension / guardrail / showcase）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 

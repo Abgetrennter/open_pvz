@@ -11,11 +11,12 @@
 截至当前仓库状态，可以统一确认：
 
 - 正式 archetype 总数为 `97`：`85` 植物、`10` 僵尸、`2` 场上物件。
-- 验证场景总数为 `113`，其中包含 `8` 个 `smoke`、`90` 个 `core`、`12` 个 `extension`、`12` 个 `guardrail` 分层标签。
+- 验证场景总数为 `140`，其中包含 `20` 个 `smoke`、`102` 个 `core`、`16` 个 `extension`、`18` 个 `guardrail`、`8` 个 `showcase` 分层标签。
 - Mechanic 一级 family 已冻结为 `10` 个；当前正文已按 `10/10` 建立正式编译覆盖理解。
 - `EntityTemplate / TriggerBinding` 已从运行时、正式内容入口、扩展模板和验证主线中移除；历史记录只允许留在归档叙述中。
 - `ProjectileTemplate` 继续保留为抛射体内容资源，不再与实体旧作者模型并列为顶层入口。
 - battle 模式组织层 v1 已经进入主干：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef` 已具备运行时主链和批量验证入口。
+- 规则基础设施第二轮已完成：多维 liveness、`SpatialIndex` / `spatial_query`、`height_range` 过滤和 tick budget 监控已经进入主干。
 
 一句话判断：
 
@@ -79,6 +80,7 @@
 - [连续行为模型](02-runtime-protocol/08-连续行为模型.md)
 - [战斗距离与棋盘度量](02-runtime-protocol/15-战斗距离与棋盘度量.md)
 - [帧率与仿真时间](02-runtime-protocol/16-帧率与仿真时间.md)
+- [实体活跃性与空间查询](02-runtime-protocol/17-实体活跃性与空间查询.md)
 - [编译链与 Mechanic 系统](02-runtime-protocol/11-编译链与Mechanic系统.md)
 - [战斗模式组织层](02-runtime-protocol/14-战斗模式组织层.md)
 - [调试与日志观察](02-runtime-protocol/12-调试与日志观察.md)
@@ -126,4 +128,5 @@
 - [项目 README](../README.md)
 - [历史归档与退役文档索引](05-governance/37-历史归档与退役文档索引.md)
 - [战斗距离与仿真时间统一重构执行计划](../plans/archive/runtime-metrics-time/战斗距离与仿真时间统一重构执行计划.md)
+- [规则基础设施收口归档](../plans/archive/rules-infrastructure-2026-05/README.md)
 - [扩展系统草案目录](../plans/draft/extension-system/README.md)
