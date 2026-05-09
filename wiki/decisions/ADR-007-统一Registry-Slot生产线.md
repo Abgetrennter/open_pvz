@@ -104,7 +104,7 @@ runtime contributor 必须同时满足：
 - `EffectDef / TriggerDef / ProjectileMovementDef / MechanicCompilerDef / DetectionDef / ControllerDef` 均继承 `RegistryContributorDef`。
 - `Trigger / Detection / Controller` 的扩展 `strategy_script` 已具备注册前校验和运行时分发。
 - `MechanicCompilerRegistry` 回到统一 `rebuild_registry()` 生命周期，通过重放内置 compiler 定义与 callable 保留现有编译路径。
-- validation baseline 为 121 个场景，已全量通过。
+- validation baseline 已全量通过（场景数见 `tools/validation_scenarios.json`）。
 
 ## 5. 后续约束
 

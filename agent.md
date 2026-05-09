@@ -174,19 +174,10 @@ After major changes:
 
 - The repository is no longer in the old "phase 5 chaos-tech mainline" framing.
 - The current formal mainline is Mechanic-first post-stage-3 consolidation.
-- `tools/validation_scenarios.json` currently contains `87` validation scenarios.
-- Current validation layer-tag counts are:
-  - `smoke = 9`
-  - `core = 67`
-  - `extension = 10`
-  - `guardrail = 10`
-  - `migration = 3`
-- `data/combat/archetypes/` currently contains `51` archetypes:
-  - `39` plants
-  - `10` zombies
-  - `2` field objects
+- `tools/validation_scenarios.json` defines all validation scenarios; check the file for current count and layer distribution.
+- `data/combat/archetypes/` contains archetype resources organized under `plants/`, `zombies/`, and `field_objects/`.
 - The 10 Mechanic families are frozen, and current documentation now treats `Placement` as having reached the same first-round formal closure tier as the other 9 families.
-- `48` current archetypes still carry `backend_entity_template*` fields, so the legacy layer still exists physically even though the first backend-free archetype batch has been detached.
+- Do not hard-code counts (archetype numbers, validation scenario numbers, file counts) into documentation or agent notes — these change frequently and stale numbers are worse than no numbers.
 
 ## Documentation Reality Checks
 

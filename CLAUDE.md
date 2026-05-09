@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 变更记录 (Changelog)
 
-- **2026-05-06** — 更新 CLAUDE.md：同步 16 个 autoload、新增 visual/ui/demo/input/main/validation 模块、修正文件计数和验证场景数
+- **2026-05-09** — CLAUDE.md / README / agent.md / wiki：删除易过时的具体数量，改为定性描述
 - **2026-04-24** — wiki 同步 Mechanic-first 决策：11 份文档更新，旧"模板与装配边界"重写为"编译链与 Mechanic 系统"；CLAUDE.md 同步代码现状
 - **2026-04-22** — Mechanic-first 重构第三阶段完成：multi-payload 编译、per-type compiler dispatch、Controller/State/Lifecycle 扩展、确定性随机协议、Archetype 独立实例化、迁移对照验证
 - **2026-04-15** — init-architect 全仓扫描：新增模块结构图、模块索引表、模块级 CLAUDE.md、覆盖率报告
@@ -23,7 +23,7 @@ Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规
 
 1. **语义事件层** -- "发生了什么"。事件如 `game.tick`、`entity.damaged`、`entity.died`、`projectile.hit` 通过 `EventBus`（autoload）流转。
 2. **行为效果层** -- "该做什么"。`EffectDef` -> `EffectNode`，由 `EffectExecutor` 执行。效果是原子化、可组合、可嵌套的（最大深度 5）。注册于 `EffectRegistry`。
-3. **编译装配层** -- "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。10 个冻结 Mechanic family，37 个内置 type。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`。
+3. **编译装配层** -- "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。10 个冻结 Mechanic family。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`。
 4. **连续行为层** -- "持续对象如何更新"。抛射体使用 3D 逻辑 + 2D 投影；Controller（bite / sweep 等）通过 `ControllerComponent` 每帧执行。命中时重新进入事件链。
 
 ### 执行链
@@ -43,25 +43,25 @@ Archetype + Mechanic[] -> NormalizedMechanicSet -> RuntimeSpec -> EntityFactory 
 _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Strategy
 ```
 
-### 全局单例 (Autoloads) — 16 个
+### 全局单例 (Autoloads)
 
-**核心规则引擎（11 个）**：
+**核心规则引擎**：
 
 | 单例名 | 职责 |
 |--------|------|
-| `EventBus` | 事件分发，优先级订阅，历史追踪（最多 256 条） |
+| `EventBus` | 事件分发，优先级订阅，历史追踪 |
 | `DebugService` | 集中式日志：事件/触发器/效果/运行时快照/协议问题 |
 | `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/`，支持 archetype 查询 |
 | `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
 | `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id，委托 MechanicCompiler 注册内置 type） |
 | `MechanicCompilerRegistry` | Mechanic per-type 编译器 callable 注册与分发 |
-| `DetectionRegistry` | 目标发现策略注册（always / lane_forward / lane_backward） |
-| `TriggerRegistry` | 触发器定义与策略注册（periodically / when_damaged / on_death） |
-| `EffectRegistry` | 效果定义与策略注册（damage / spawn_projectile / explode / apply_status / produce_sun / spawn_entity） |
-| `ControllerRegistry` | Controller 策略注册（core.bite / core.sweep） |
+| `DetectionRegistry` | 目标发现策略注册 |
+| `TriggerRegistry` | 触发器定义与策略注册 |
+| `EffectRegistry` | 效果定义与策略注册 |
+| `ControllerRegistry` | Controller 策略注册 |
 | `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
 
-**运动与表现（5 个）**：
+**运动与表现**：
 
 | 单例名 | 职责 |
 |--------|------|
@@ -87,7 +87,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 
 ```mermaid
 graph TD
-    Root["Open PVZ (根)"] --> Autoload["autoload/ (16 个全局单例)"]
+    Root["Open PVZ (根)"] --> Autoload["autoload/ (全局单例)"]
     Root --> Scripts["scripts"]
     Root --> Data["data/combat"]
     Root --> Scenes["scenes"]
@@ -110,7 +110,7 @@ graph TD
 
     Battle --> BattleMode["battle/mode (BattleModeHost, 模式系统)"]
 
-    Data --> Archetypes["data/combat/archetypes/ (97 个 .tres)"]
+    Data --> Archetypes["data/combat/archetypes/"]
     Data --> Projectiles["data/combat/projectile_templates/"]
 
     click Autoload "./autoload/CLAUDE.md" "查看 autoload 模块文档"
@@ -125,31 +125,31 @@ graph TD
 
 ## 模块索引
 
-| 模块路径 | 语言 | 文件数 | 职责概述 |
-|----------|------|--------|----------|
-| `autoload/` | GDScript | 16 | 全局单例：事件总线、注册表、编译器分发、游戏状态、运动/视觉/音频注册表 |
-| `scripts/core/defs/` | GDScript | 19 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, ProjectileTemplate 等 |
-| `scripts/core/runtime/` | GDScript | 16 | 运行时：MechanicCompiler, RuntimeSpec, RuntimeTriggerSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
-| `scripts/core/registry/` | GDScript | 3 | 注册表内部实现 |
-| `scripts/battle/` | GDScript | 34 | 战斗协调：BattleManager, EntityFactory（archetype-only）, 经济/棋盘/卡片/波次子系统 |
-| `scripts/battle/mode/` | GDScript | 7 | 模式系统：BattleModeHost, 模式解析与驱动 |
-| `scripts/entities/` | GDScript | 6 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot |
-| `scripts/components/` | GDScript | 8 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
-| `scripts/projectile/` | GDScript | 2 | 抛射体基础：ProjectileRoot |
-| `scripts/projectile/movement/` | GDScript | 4 | 抛射体运动策略：linear / parabola / track |
-| `scripts/visual/` | GDScript | 4 | 视觉反馈层：VisualFeedbackHost, VisualActionRunner, 层级策略 |
-| `scripts/ui/` | GDScript | 8 | UI 系统：面板、屏幕 |
-| `scripts/input/` | GDScript | 1 | 输入处理 |
-| `scripts/main/` | GDScript | 2 | 主场景入口 |
-| `scripts/demo/` | GDScript | 2 | Demo 场景脚本 |
-| `scripts/validation/` | GDScript | 3 | 验证场景专用脚本 |
-| `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
-| `data/combat/archetypes/` | .tres | 97 | Archetype 资源（85 植物 + 10 僵尸 + 2 场上物件） |
-| `scenes/validation/` | .tres/.tscn | 120 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 127 个场景为准 |
-| `scenes/showcase/` | .tscn | 9 | 展示场景 |
-| `tools/` | PS1/JSON | 3+ | 验证运行工具 |
-| `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
-| `vendor/` | -- | 大量 | 参考实现（PVZ-Godot-Dream），不属于引擎核心 |
+| 模块路径 | 语言 | 职责概述 |
+|----------|------|----------|
+| `autoload/` | GDScript | 全局单例：事件总线、注册表、编译器分发、游戏状态、运动/视觉/音频注册表 |
+| `scripts/core/defs/` | GDScript | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, ProjectileTemplate 等 |
+| `scripts/core/runtime/` | GDScript | 运行时：MechanicCompiler, RuntimeSpec, RuntimeTriggerSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
+| `scripts/core/registry/` | GDScript | 注册表内部实现 |
+| `scripts/battle/` | GDScript | 战斗协调：BattleManager, EntityFactory（archetype-only）, 经济/棋盘/卡片/波次子系统 |
+| `scripts/battle/mode/` | GDScript | 模式系统：BattleModeHost, 模式解析与驱动 |
+| `scripts/entities/` | GDScript | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot |
+| `scripts/components/` | GDScript | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
+| `scripts/projectile/` | GDScript | 抛射体基础：ProjectileRoot |
+| `scripts/projectile/movement/` | GDScript | 抛射体运动策略：linear / parabola / track |
+| `scripts/visual/` | GDScript | 视觉反馈层：VisualFeedbackHost, VisualActionRunner, 层级策略 |
+| `scripts/ui/` | GDScript | UI 系统：面板、屏幕 |
+| `scripts/input/` | GDScript | 输入处理 |
+| `scripts/main/` | GDScript | 主场景入口 |
+| `scripts/demo/` | GDScript | Demo 场景脚本 |
+| `scripts/validation/` | GDScript | 验证场景专用脚本 |
+| `scripts/debug/` | GDScript | 调试覆盖层 |
+| `data/combat/archetypes/` | .tres | Archetype 资源（plants / zombies / field_objects） |
+| `scenes/validation/` | .tres/.tscn | 自动化验证场景资源 |
+| `scenes/showcase/` | .tscn | 展示场景 |
+| `tools/` | PS1/JSON | 验证运行工具 |
+| `wiki/` | Markdown | 中文设计文档（6 个分区 + decisions） |
+| `vendor/` | -- | 参考实现（PVZ-Godot-Dream），不属于引擎核心 |
 
 ## 运行与开发
 
@@ -172,7 +172,7 @@ pwsh tools/run_all_validations.ps1
 pwsh tools/run_validation.ps1 -ScenarioId <id>
 ```
 
-场景定义：`tools/validation_scenarios.json`（127 个场景，分层 smoke / core / extension / guardrail）
+场景定义：`tools/validation_scenarios.json`（分层 smoke / core / extension / guardrail）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 

@@ -15,13 +15,13 @@
 
 请把当前项目理解成三层：
 
-1. **引擎层**  
+1. **引擎层**
    目标是定义一套可组合的规则运行时，包括事件语义、效果执行、实体组合、连续行为和扩展加载。
 
-2. **内容层**  
+2. **内容层**
    植物、僵尸、投射物、关卡模板、扩展包，都建立在引擎层之上。
 
-3. **验证场景层**  
+3. **验证场景层**
    "错误技系统"是当前优先实现的核心验证场景，用来证明这套引擎确实能支撑高自由度组合与涌现。
 
 ## 架构总览
@@ -60,16 +60,16 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
 | `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id） |
 | `MechanicCompilerRegistry` | Mechanic per-type 编译器 callable 注册与分发 |
-| `DetectionRegistry` | 目标发现策略注册（6 内置 detection） |
-| `TriggerRegistry` | 触发器定义与策略注册（6 内置 trigger） |
+| `DetectionRegistry` | 目标发现策略注册 |
+| `TriggerRegistry` | 触发器定义与策略注册 |
 | `EffectRegistry` | 效果定义与策略注册 |
-| `ControllerRegistry` | Controller 策略注册（4 内置 controller） |
+| `ControllerRegistry` | Controller 策略注册 |
 | `ProjectileMovementRegistry` | 抛射体 movement 定义注册与组件创建 |
 | `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
-| `VisualCueRegistry` | 视觉提示注册（命中闪光、状态变化等） |
-| `VisualFxRegistry` | 视觉特效注册（粒子、动画等） |
+| `VisualCueRegistry` | 视觉提示注册 |
+| `VisualFxRegistry` | 视觉特效注册 |
 | `AudioCueRegistry` | 音频提示注册 |
-| `VisualProfileRegistry` | 视觉外观档案注册（角色视觉配置） |
+| `VisualProfileRegistry` | 视觉外观档案注册 |
 
 所有 registry 统一继承 `RegistryBase`（位于 `scripts/core/registry/`），共享注册、去重、信任检查、来源追踪和协议错误记录逻辑。
 
@@ -81,13 +81,12 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 
 - 引擎主干、Mechanic-first 主链和战斗玩法层已经稳定落地
 - Mechanic family 已冻结为 10 个：`Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller`
-- 通用扩展插槽 v1 已落地：6 个 registry 统一继承 `RegistryBase`，6 个开放 slot（`projectile_movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`）
+- 通用扩展插槽 v1 已落地：所有 registry 统一继承 `RegistryBase`，开放 slot 包括 `projectile_movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`
 - 战斗模式组织层 v1 已落地：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef`
 - 视觉反馈层骨架已合入：`VisualCueRegistry / VisualFxRegistry / AudioCueRegistry / VisualProfileRegistry` + `scripts/visual/` 运行时
-- 实体替换/升级系统已落地：支持通用的升级植物替换（自动升级种子、阶段升级、地刺升级等）
+- 实体替换/升级系统已落地
 - 爆发间隔发射已支持：Emission mechanic 支持 burst interval 配置
 - 错误技、扩展入口、扩展 effect 家族与守卫体系已经完成核心收口
-- 正式植物与僵尸 roster、正式交互矩阵、正式战场语义、正式波次与关卡模板已经形成基线
 - 主线已进入"archetype-only 内容与回归同步"阶段
 
 这意味着当前项目已经同时具备：
@@ -102,7 +101,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 - 内容与协议主链：
   - `CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory`（唯一正式入口）
   - 规则协议白名单与守卫
-  - 10 个冻结 Mechanic family，49 个内置 type
+  - 10 个冻结 Mechanic family，大量内置 type
   - 扩展包可通过 `MechanicCompilerDef` 在冻结 family 下新增 type
 - 战斗玩法层：
   - 阳光与资源
@@ -113,17 +112,17 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
   - 场上物件与机关
   - 战斗模式组织层（mode 定义、输入能力、规则模块、胜负条件）
 - 内容与发射系统：
-  - 100 个 archetype（88 植物 + 10 僵尸 + 2 场上物件）
-  - 277 个战斗数据资源（.tres）
+  - 大量 archetype（plants / zombies / field_objects）
+  - 战斗数据资源（.tres）
   - 爆发间隔发射（burst interval）
-  - 8 组原版植物迁移展示（覆盖 42 种原版植物）
+  - 原版植物迁移展示
 - 验证与展示：
-  - 136 个验证场景（smoke / core / extension / guardrail / showcase 分层）
+  - 验证场景（smoke / core / extension / guardrail / showcase 分层）
   - 批量回归入口（支持受控并行）
-  - 40 个 Showcase 场景（含 8 组原版植物花园展示）
+  - Showcase 场景（含原版植物花园展示）
   - 可运行的 Demo 关卡
 - 扩展体系：
-  - 8 个扩展包（样例、守卫、探测等）
+  - 扩展包（样例、守卫、探测等）
   - 扩展包 smoke / chaos / guardrail 已进入稳定回归
   - `core.*` 由主仓独占，扩展包不得覆盖
 
@@ -164,16 +163,16 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 
 ### 4. 通用扩展插槽 v1 已经落地
 
-所有 registry 统一继承 `RegistryBase`，6 个已开放 slot：
+所有 registry 统一继承 `RegistryBase`，已开放 slot：
 
 | Slot | Registry | 说明 |
 |------|----------|------|
 | `projectile_movement` | `ProjectileMovementRegistry` | linear / parabola / track |
 | `mechanic_compilers` | `MechanicCompilerRegistry` | 扩展包可在冻结 family 下新增 type |
 | `effects` | `EffectRegistry` | 保留现有成熟路径 |
-| `triggers` | `TriggerRegistry` | 6 内置 trigger，支持 strategy_script 注册 |
-| `detections` | `DetectionRegistry` | 6 内置 detection，支持 strategy_script 注册 |
-| `controllers` | `ControllerRegistry` | 4 内置 controller，支持 strategy_script 注册 |
+| `triggers` | `TriggerRegistry` | 支持 strategy_script 注册 |
+| `detections` | `DetectionRegistry` | 支持 strategy_script 注册 |
+| `controllers` | `ControllerRegistry` | 支持 strategy_script 注册 |
 
 ### 5. 视觉反馈层骨架已合入
 
@@ -181,8 +180,8 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 
 | Registry | 职责 |
 |----------|------|
-| `VisualCueRegistry` | 视觉提示注册（命中闪光、状态变化等） |
-| `VisualFxRegistry` | 视觉特效注册（粒子、动画等） |
+| `VisualCueRegistry` | 视觉提示注册 |
+| `VisualFxRegistry` | 视觉特效注册 |
 | `AudioCueRegistry` | 音频提示注册 |
 | `VisualProfileRegistry` | 角色视觉外观档案注册 |
 
@@ -190,54 +189,42 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 
 ### 6. 内容基线已经形成
 
-- **100 个 archetype**：88 植物 + 10 僵尸 + 2 场上物件
-- **277 个战斗数据资源**（.tres）：archetype、投射物模板、飞行配置、卡片、波次等
+- Archetype 资源覆盖 plants / zombies / field_objects
+- 战斗数据资源（.tres）：archetype、投射物模板、飞行配置、卡片、波次等
 - 第一轮正式交互矩阵、正式战场语义、正式波次 / 关卡模板集
-- 8 组原版植物迁移展示（覆盖 42 种原版植物：射手、冰控、投手、生产、蘑菇、爆炸、防御支援、特殊）
+- 原版植物迁移展示
 
 ### 7. 验证体系已经进入持续回归状态
 
 - `tools/run_validation.ps1` — 单场景验证
 - `tools/run_all_validations.ps1` — 批量验证（支持 `-MaxParallel` 受控并行）
-- `tools/validation_scenarios.json` — **136 个验证场景**，分层如下：
-
-| 分层 | 场景数 |
-|------|--------|
-| smoke | 8 |
-| smoke + core | 5 |
-| core | 86 |
-| showcase + core | 8 |
-| extension | 10 |
-| smoke + extension | 2 |
-| guardrail | 10 |
-| smoke + guardrail | 3 |
-| guardrail + extension | 4 |
+- `tools/validation_scenarios.json` — 验证场景定义，分层：smoke / core / extension / guardrail / showcase
 
 ### 8. 仓库已经有可操作 Demo
 
-当前项目默认启动场景是 `res://scenes/main/main.tscn`，进入 Showcase Hub 后可浏览 40 个展示场景（含 8 组原版植物花园展示）和 Demo 关卡。
+当前项目默认启动场景是 `res://scenes/main/main.tscn`，进入 Showcase Hub 后可浏览展示场景和 Demo 关卡。
 
 ## 模块结构
 
 ```text
-autoload/                 16 个全局单例（EventBus、各 Registry、GameState、视觉/音频 Registry 等）
-scripts/core/defs/        资源定义（Archetype, Mechanic, TriggerDef, EffectDef, VisualCueDef 等）
+autoload/                 全局单例（EventBus、各 Registry、GameState、视觉/音频 Registry 等）
+scripts/core/defs/        资源定义（Archetype, Mechanic, TriggerDef, EffectDef 等）
 scripts/core/registry/    统一注册体系基类（RegistryBase, RegistryConfig, RegistryContributorDef）
 scripts/core/runtime/     运行时（MechanicCompiler, RuntimeSpec, EffectExecutor 等）
 scripts/battle/           战斗协调（BattleManager, EntityFactory, 各子系统, 模式层, 升级替换）
 scripts/entities/         实体类型（BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot）
-scripts/components/       可复用组件（HealthComponent, TriggerComponent, ControllerComponent, VisualActorComponent 等）
+scripts/components/       可复用组件（HealthComponent, TriggerComponent, ControllerComponent 等）
 scripts/projectile/       抛射体运动系统（linear / parabola / track）
 scripts/visual/           视觉反馈运行时（VisualFeedbackHost, VisualActionRunner, StageLayerService, LayerPolicy）
 scripts/debug/            调试覆盖层
-data/combat/              战斗数据资源（277 个 .tres）
-  archetypes/             100 个 archetype（plants/88 + zombies/10 + field_objects/2）
+data/combat/              战斗数据资源（.tres）
+  archetypes/             Archetype 资源（plants / zombies / field_objects）
   projectile_templates/   投射物模板
-scenes/validation/        自动化验证场景资源（131 个）
-scenes/showcase/          展示场景（40 个）
-extensions/               扩展包（8 个：样例、守卫、探测等）
+scenes/validation/        自动化验证场景资源
+scenes/showcase/          展示场景
+extensions/               扩展包（样例、守卫、探测等）
 tools/                    验证运行工具（PowerShell）
-wiki/                     中文设计文档（47 篇）
+wiki/                     中文设计文档
 vendor/                   参考实现（PVZ-Godot-Dream），不属于引擎核心
 ```
 
@@ -250,7 +237,7 @@ wiki/                    结构化设计文档
 ├── 03-content-validation/ 验证矩阵和覆盖率
 ├── 04-roadmap-reference/ 参考实现、扩展系统规划、通用扩展插槽机制
 ├── 05-governance/        Archetype 编写约定、术语表、方法论
-├── decisions/            ADR 决策记录（ADR-001 ~ ADR-006+）
+├── decisions/            ADR 决策记录（ADR-001 ~ ADR-007+）
 plans/                   规划稿、阶段总结与执行清单
 plans/archive/           已完成阶段归档总览
 plans/draft/             未来方向草案
@@ -343,7 +330,7 @@ pwsh tools/run_all_validations.ps1 -MaxParallel 4
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"
 ```
 
-验证场景定义：`tools/validation_scenarios.json`  
+验证场景定义：`tools/validation_scenarios.json`
 验证结果输出：`artifacts/validation/`
 
 ## 许可证
