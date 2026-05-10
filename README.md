@@ -65,7 +65,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `EffectRegistry` | 效果定义与策略注册 |
 | `ControllerRegistry` | Controller 策略注册 |
 | `ProjectileMovementRegistry` | 抛射体 movement 定义注册与组件创建 |
-| `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
+| `GameState` | 游戏状态管理（当前战斗、100Hz 仿真时间、实体 ID 分配、battle_seed） |
 | `VisualCueRegistry` | 视觉提示注册 |
 | `VisualFxRegistry` | 视觉特效注册 |
 | `AudioCueRegistry` | 音频提示注册 |
@@ -75,7 +75,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 
 ## 当前阶段
 
-仓库已完成 **Mechanic-first 重构三阶段**，实体旧作者模型已归档，通用扩展插槽 v1 已落地，战斗模式组织层 v1 已进入可验证基线，视觉反馈层骨架已合入主干。
+仓库已完成 **Mechanic-first 重构三阶段**，实体旧作者模型已归档，通用扩展插槽 v1 与规则基础设施第二轮已落地，战斗模式组织层 v1 已进入可验证基线，视觉反馈层骨架已合入主干。
 
 更准确地说，当前状态是：
 
@@ -83,11 +83,12 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 - Mechanic family 已冻结为 10 个：`Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller`
 - 通用扩展插槽 v1 已落地：所有 registry 统一继承 `RegistryBase`，开放 slot 包括 `projectile_movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`
 - 战斗模式组织层 v1 已落地：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef`
+- 规则基础设施第二轮已落地：多维 liveness、`SpatialIndex` / `BattleManager.spatial_query(params)`、`height_range` 过滤、tick budget 监控
 - 视觉反馈层骨架已合入：`VisualCueRegistry / VisualFxRegistry / AudioCueRegistry / VisualProfileRegistry` + `scripts/visual/` 运行时
 - 实体替换/升级系统已落地
 - 爆发间隔发射已支持：Emission mechanic 支持 burst interval 配置
 - 错误技、扩展入口、扩展 effect 家族与守卫体系已经完成核心收口
-- 主线已进入"archetype-only 内容与回归同步"阶段
+- 主线已进入"archetype-only 内容、验证与支撑层规范同步"阶段
 
 这意味着当前项目已经同时具备：
 
@@ -95,7 +96,10 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
   - 结构化事件链
   - 触发器与效果执行链
   - 实体运行时状态
+  - 多维 liveness 与明确目标/伤害/碰撞语义
   - 投射体连续行为与高度命中模型
+  - SpatialIndex 统一目标查询与 `height_range` 过滤
+  - tick budget 运行时观测
   - 统一 Registry 注册体系（`RegistryBase` + `RegistryConfig` + `RegistryContributorDef`）
   - 视觉反馈层骨架（cue / fx / audio / profile 四个注册表 + 运行时分发）
 - 内容与协议主链：
@@ -160,6 +164,7 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 - `BattleFlowState` — 战斗阶段管理（preparing / running / victory / defeat）
 - `BattleFieldObjectState` — 场上物件生成、管理、事件发射
 - `BattleModeHost` — 模式运行时宿主：解析 mode_def、合并 override、驱动规则模块、评估目标
+- `SpatialIndex` — 目标查询基础设施，负责 team/lane/tag/kind/x/radius/height_range 过滤和稳定排序
 
 ### 4. 通用扩展插槽 v1 已经落地
 
@@ -187,20 +192,28 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 
 运行时组件：`scripts/visual/` 下的 `VisualFeedbackHost`、`VisualActionRunner`、`VisualStageLayerService`、`VisualLayerPolicy`。
 
-### 6. 内容基线已经形成
+### 6. 规则基础设施第二轮已完成
+
+- 实体活跃性不再使用单一 `combat_active` 语义，改用 targetable / damageable / collidable / controllers / triggers / movement 等维度。
+- 新目标查询默认走 `BattleManager.spatial_query(params)`，业务语义由调用方 `filter` 注入。
+- HeightBand overlap 已收敛为 `height_range` 空间查询过滤。
+- tick budget warning 已进入 DebugService / `simulation.control` 观测链。
+- 对象池、碰撞层声明、BoardSlot modifier 和帧间插值暂缓，等待真实内容或性能需求。
+
+### 7. 内容基线已经形成
 
 - Archetype 资源覆盖 plants / zombies / field_objects
 - 战斗数据资源（.tres）：archetype、投射物模板、飞行配置、卡片、波次等
 - 第一轮正式交互矩阵、正式战场语义、正式波次 / 关卡模板集
 - 原版植物迁移展示
 
-### 7. 验证体系已经进入持续回归状态
+### 8. 验证体系已经进入持续回归状态
 
 - `tools/run_validation.ps1` — 单场景验证
 - `tools/run_all_validations.ps1` — 批量验证（支持 `-MaxParallel` 受控并行）
-- `tools/validation_scenarios.json` — 验证场景定义，分层：smoke / core / extension / guardrail / showcase
+- `tools/validation_scenarios.json` — 140 个验证场景，分层：smoke / core / extension / guardrail / showcase
 
-### 8. 仓库已经有可操作 Demo
+### 9. 仓库已经有可操作 Demo
 
 当前项目默认启动场景是 `res://scenes/main/main.tscn`，进入 Showcase Hub 后可浏览展示场景和 Demo 关卡。
 
@@ -330,7 +343,7 @@ pwsh tools/run_all_validations.ps1 -MaxParallel 4
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"
 ```
 
-验证场景定义：`tools/validation_scenarios.json`
+验证场景定义：`tools/validation_scenarios.json`（140 个场景）
 验证结果输出：`artifacts/validation/`
 
 ## 许可证
