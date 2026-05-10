@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-05-10** — 原版植物 E 批补齐 Gloom-shroom、Cattail、Winter Melon、Spikerock、Gold Magnet 单体验证，验证 manifest 扩展到 145 场景
 - **2026-05-09** — 规则基础设施第二轮完成：多维 liveness、`SpatialIndex` / `BattleManager.spatial_query(params)`、`height_range` 过滤、tick budget 监控与专项验证进入主干，验证基线扩展到 140 场景
 - **2026-05-06** — 验证批处理支持受控并行：`tools/run_all_validations.ps1` 新增 `-MaxParallel`，默认自动取 `min(CPU核心数, 4)`，批量验证改为并发调度并保持汇总输出顺序稳定
 - **2026-05-05** — 统一 Registry/Slot 生产线完成：`TriggerRegistry`、`DetectionRegistry`、`ControllerRegistry` 全部继承 `RegistryBase`，contributor 字段统一为 `id`/`param_defs`，`ExtensionPackCatalog.ALLOWED_REGISTER_KINDS` 扩展至 7 种，验证基线扩展到 121 场景
@@ -122,7 +123,7 @@ graph TD
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
 | `data/combat/archetypes/` | .tres | 97 | Archetype 资源（85 植物 + 10 僵尸 + 2 场上物件） |
 | `data/combat/` | .tres | 270 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
-| `scenes/validation/` | .tres/.tscn | 110 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 140 个场景为准 |
+| `scenes/validation/` | .tres/.tscn | 140 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 145 个场景为准 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |
 | `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
@@ -155,7 +156,7 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 
 批量验证说明：`run_all_validations.ps1` 在批处理层做受控并行调度，单场景执行仍复用 `run_validation.ps1`；每个场景输出目录独立，最终 `summary.json` / `summary.txt` 按 manifest 原始顺序汇总。
 
-场景定义：`tools/validation_scenarios.json`（140 个场景，分层 smoke / core / extension / guardrail / showcase）
+场景定义：`tools/validation_scenarios.json`（145 个场景，分层 smoke / core / extension / guardrail / showcase）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 

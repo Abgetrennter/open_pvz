@@ -3,13 +3,13 @@
 - 状态：执行中
 - 数据源：`vendor/de-pvz/ConstEnums.h` + `vendor/de-pvz/Lawn/Plant.cpp`
 - 创建日期：2026-04-27
-- 最后更新：2026-05-04 (Grave Buster / D 批次最小语义 / Kernel-pult / Marigold 验证补齐)
+- 最后更新：2026-05-10 (规则基础设施第二轮后重评：liveness / SpatialIndex / height_range / tick budget 基线)
 
 > 本文档是阶段 0 产出物，为 49 个原版植物提供可追踪的迁移底账。
 
 ---
 
-## 执行状态总览 (2026-05-04 机制补齐口径)
+## 执行状态总览 (2026-05-10 规则基础设施重评口径)
 
 完成度拆成三层记录：
 
@@ -21,12 +21,12 @@
 |------|------|---------------|--------------|--------------|
 | A | 7 | **7/7** | `plant_original_batch_a_validation` 覆盖 7/7 | **完成** |
 | B | 7 | **7/7** | `plant_original_batch_b_validation` + Potato Mine / Squash / Chomper 单体验证覆盖 7/7 | **完成** |
-| C | 9 | **9/9** | `plant_original_batch_c_validation` + Grave Buster tombstone + Coffee Bean targeted wake + Fume-shroom pierce + Hypno/Sun/Scaredy 单体验证 | 未完成：Sun-shroom 成长、Scaredy-shroom 近敌停火仍是原版精确度缺口 |
-| D | 12 | **12/12** | `plant_original_batch_d_validation` + Split Pea / Starfruit / Cactus / Blover / Magnet / Lily+Sea / Sea wake-damage；Tangle Kelp 致死+自消耗；Plantern reveal | 机制优先完成；完整拖拽动画和全局雾场/视野系统后置 |
-| E | 14 | **11/14** | `plant_original_kernelpult_validation` + `plant_original_marigold_validation` + `plant_original_batch_e_validation` + Flower Pot roof support + E upgrade placement 依赖验证 | 未完成：升级替换、多格占用、完整金币/银币经济、手动/复制等能力未验收 |
-| **总计** | **49** | **46/49** | A/B/C/D/round1 与新增 B/C/D/E 单体验证当前目标均可信通过 | **严格完成 14/49；机制优先覆盖继续扩大** |
+| C | 9 | **9/9** | `plant_original_batch_c_validation` + Grave Buster / Coffee Bean / Fume / Hypno / Sun / Scaredy 单体验证 | 机制优先完成；Sun-shroom 成长、Scaredy-shroom 近敌停火为原版精确度缺口 |
+| D | 12 | **12/12** | `plant_original_batch_d_validation` + Split Pea / Starfruit / Cactus / Blover / Magnet / Lily+Sea / Sea / Tangle+Plantern 单体验证 | 机制优先完成；完整拖拽动画和全局雾场/视野系统后置 |
+| E | 14 | **11/14** | Kernel-pult / Marigold / Flower Pot / E upgrade dependency 已验证；Gloom/Cattail/Winter/Spikerock/Gold 单体验证已补 | 未完成：Garlic / Umbrella Leaf / Imitater 资源缺失；Cob Cannon 受多格占用/手动发射阻塞 |
+| **总计** | **49** | **46/49** | A/B/C/D 机制优先可信覆盖，E 既有资源单体验证继续补齐 | **严格完成 A/B；C/D 机制优先完成；E 仅剩缺失资源与后置协议** |
 
-> 2026-05-04 已补齐：Grave Buster 墓碑依赖与目标移除、Tangle Kelp 水面近距致死+自身消耗、Plantern reveal、Kernel-pult 玉米/黄油确定性轮换与黄油眩晕、Marigold coin_generated collectible 最小经济产出。完整拖拽动画、雾场/视野系统、完整金币/银币经济、Sun-shroom 成长、Scaredy-shroom 近敌停火、E 批次复杂交互仍后置。
+> 2026-05-10 重评：规则基础设施第二轮已把多维 liveness、`SpatialIndex` / `spatial_query`、`height_range` overlap 和 tick budget 监控纳入主干。早期登记的睡眠、唤醒、近距触发、对空高度、地面持续伤害、投射物改写、全局飞行驱散等缺口不再是基础设施阻塞。E 批次已有资源的单体验证已补齐；下一步应转向缺失资源和真正后置协议，而不是提前实现对象池、碰撞矩阵或 BoardSlot modifier。
 
 ### Round 2 新增植物 (15)
 
@@ -117,11 +117,25 @@
 
 ### 当前主要缺口
 
-1. **单体验证缺口** — E 中多数复杂植物仍缺单体验证；C 的 Grave Buster、D 的 Tangle Kelp/Plantern 已补齐机制优先验证。
-2. **sleep/wake 精确语义** — 已修正 `entity.wake` 目标过滤，并以 Coffee Bean targeted wake 验证防止广播唤醒回归。
-3. **升级替换与多格占用** — Cob Cannon 已能表达同格 + 相邻 Kernel-pult 依赖；真正替换/占用两格仍需后续协议。
-4. **缺失资源** — Garlic、Umbrella Leaf、Imitater 未落地。
-5. **复杂行为边界** — Sun-shroom 成长、Scaredy-shroom 近敌停火、Tangle Kelp 拖拽动画、完整雾场/视野、完整金币/银币经济、Gold Magnet、Cattail、Winter Melon、Cob Cannon 等仍需行为级验证。
+1. **E 批次剩余单体验证缺口** — Gloom-shroom、Cattail、Winter Melon、Gold Magnet、Spikerock 已补单体验证；Cob Cannon 仍受多格占用/手动发射阻塞。
+2. **缺失资源** — Garlic、Umbrella Leaf、Imitater 未落地，资源和卡片均缺失。
+3. **后置基础设施缺口** — Cob Cannon 多格占用、Doom-shroom 坑洞、Tall-nut 跳跃阻挡、完整 coin/silver economy 仍需内容需求驱动后再做。
+4. **原版精确度缺口** — Sun-shroom 成长、Scaredy-shroom 近敌停火、Tangle Kelp 拖拽动画、完整雾场/视野、黄油概率精确值等不阻塞机制优先完成。
+5. **规则基础设施已吸收的旧缺口** — sleep/wake、近距触发、对空高度、地面持续伤害、投射物改写、飞行驱散、liveness 行为暂停、height overlap 查询不再作为协议阻塞项。
+
+### E-existing-validation 单体验证
+
+本批已按“只补已有资源的单体验证，不新增基础设施”的口径完成：
+
+| 顺序 | 验证 | 目标 |
+|------|----------|------|
+| 1 | `plant_original_gloomshroom_validation` | 验证 `radius_around` + `detected_targets` 范围攻击 |
+| 2 | `plant_original_cattail_validation` | 验证水面升级 + 当前 track-air projectile 路径 |
+| 3 | `plant_original_wintermelon_validation` | 验证升级依赖 + terminal blast 伤害；slow/freeze 若未覆盖则单独记录 |
+| 4 | `plant_original_spikerock_validation` | 验证升级依赖 + `ground_damage`，特殊车辆交互后置 |
+| 5 | `plant_original_goldmagnet_validation` | 验证升级依赖/最小语义，完整 collectible 吸附后置 |
+
+本批后仍不建议立即做对象池、碰撞矩阵或泛化 BoardSlot modifier。下一步若继续原版植物迁移，应优先评估 Garlic、Umbrella Leaf、Imitater、Cob Cannon 多格占用/手动发射这些明确内容缺口。
 
 ---
 
@@ -894,51 +908,27 @@
 
 ## 批次汇总
 
-| 批次 | 植物数 | 仅需资源 | 需最小 type/effect | 需协议设计 |
-|------|--------|----------|--------------------|------------|
-| A | 7 | **7** | 0 | 0 |
-| B | 7 | **3** (Cherry Bomb, Tall-nut, Pumpkin) | **4** (Potato Mine, Squash, Jalapeno, Chomper) | 0 |
-| C | 9 | **0** | **6** (Puff-shroom, Sun-shroom, Fume-shroom, Scaredy-shroom, Ice-shroom, Grave Buster) | **3** (Hypno-shroom, Doom-shroom, Coffee Bean) |
-| D | 12 | **1** (Lily Pad) | **7** (Tangle Kelp, Threepeater, Sea-shroom, Cactus, Split Pea, Starfruit, Plantern) | **4** (Spikeweed, Torchwood, Blover, Magnet-shroom) |
-| E | 14 | **1** (Flower Pot) | **7** (Kernel-pult, Marigold, Gatling Pea, Twin Sunflower, Gloom-shroom, Cattail, Winter Melon) | **6** (Garlic, Umbrella Leaf, Gold Magnet, Spikerock, Cob Cannon, Imitater) |
-| **总计** | **49** | **12** | **21** | **16** |
+| 批次 | 植物数 | 当前状态 | 下一步 |
+|------|--------|----------|--------|
+| A | 7 | 完成 | 仅维护回归 |
+| B | 7 | 完成；Tall-nut 跳跃阻挡后置 | 仅维护回归 |
+| C | 9 | 机制优先完成；Sun-shroom 成长、Scaredy-shroom 近敌停火为精确度缺口 | 后续按原版精确度单独补 |
+| D | 12 | 机制优先完成；Tangle Kelp 动画、Plantern 完整雾场后置 | 后续按表现/场景系统补 |
+| E | 14 | 11/14 资源落地；E-existing-validation 已补并通过，仍缺 3 个资源与 Cob Cannon 后置协议 | 缺失资源/后置协议 |
+| **总计** | **49** | **46/49** 资源+卡片落地 | 下一步处理缺失资源与后置协议 |
 
 ---
 
 ## 全局协议缺口清单
 
-| 序号 | 缺口名称 | 关联植物 | 建议落点 | 阻塞批次 |
-|------|---------|---------|---------|---------|
-| G-01 | 夜间蘑菇睡眠 | 所有批次 C 蘑菇 | State / Placement | C |
-| G-02 | Coffee Bean 唤醒 | Coffee Bean | Lifecycle / Effect | C |
-| G-03 | 催眠反转阵营 | Hypno-shroom | apply_status (team switch) | C |
-| G-04 | 墓碑目标标签 | Grave Buster | 已补齐：placement_blocker target + required_present_archetypes | C |
-| G-05 | 近距触发入口 | Potato Mine, Squash, Chomper | Trigger (proximity/contact) | B |
-| G-06 | 整行目标筛选 | Jalapeno | Targeting / Effect (enemies_in_lane) | B |
-| G-07 | 吞噬消化状态 | Chomper | State (digesting) | B |
-| G-08 | 穿透 hit policy | Fume-shroom, Gloom-shroom | HitPolicy (pierce/penetrate) | C |
-| G-09 | 多 lane emission | Threepeater | Emission (multi_lane) | D |
-| G-10 | 双向 emission | Split Pea | Emission (dual_direction) | D |
-| G-11 | 多方向 emission | Starfruit | Emission (multi_angle) | D |
-| G-12 | 环形范围攻击 | Gloom-shroom | Targeting (radius_around) | E |
-| G-13 | 全场追踪 targeting | Cattail | Targeting (global_track) | E |
-| G-14 | 对空高度切换 | Cactus | HeightBand / State | D |
-| G-15 | 地面持续伤害 | Spikeweed, Spikerock | Controller (ground_damage) | D |
-| G-16 | 投射物改写 | Torchwood | Emission / projectile transform | D |
-| G-17 | 全局飞行驱散 | Blover | Effect / Targeting (flying_tag) | D |
-| G-18 | 反隐机制 | Plantern | 已补齐：`reveal` effect 最小语义 | D |
-| G-19 | 金属吸附 | Magnet-shroom, Gold Magnet | Targeting (metal_tag) + Effect | D |
-| G-20 | 升级放置依赖 | 批次 E 升级植物 | Placement (upgrade) | E |
-| G-21 | 黄油眩晕 | Kernel-pult | 已补齐：`apply_status` + `butter_stun` | E |
-| G-22 | 换道 | Garlic | Effect / RuleModule | E |
-| G-23 | 防护特定攻击 | Umbrella Leaf | RuleModule (protection) | E |
-| G-24 | 金币资源 | Marigold, Gold Magnet | Marigold 已最小覆盖：`source_type=coin_generated` collectible；完整 coin/silver economy 后置 | E |
-| G-25 | 手动瞄准 | Cob Cannon | BattleModeHost / InputProfile | E |
-| G-26 | 多格占用 | Cob Cannon | Placement (multi_tile) | E |
-| G-27 | 卡片复制 | Imitater | Card layer 协议 | E |
-| G-28 | 跳跃高度阻挡 | Tall-nut | HeightBand / collision | B |
-| G-29 | 坑洞/crater | Doom-shroom | 场地变形协议 | C |
-| G-30 | 随机 payload 选择 | Kernel-pult | 已补齐：`Emission.core.shuffle_cycle` 确定性轮换 | E |
+当前去重后的权威清单见 [原版植物协议缺口清单](./original-plant-protocol-gaps.md)。本表只保留状态摘要：
+
+| 状态 | 缺口 |
+|------|------|
+| 已覆盖 | G-01, G-02, G-03, G-04, G-05, G-06, G-07, G-08, G-09, G-10, G-11, G-14, G-15, G-16, G-17, G-18, G-20, G-21, G-30 |
+| 已有能力但缺验证/精确资源 | G-12, G-13, G-19, G-24, G-25 |
+| 仍需协议或内容实现 | G-22, G-23, G-26, G-27 |
+| 后置基础设施/内容驱动 | G-28, G-29 |
 
 ---
 
@@ -956,7 +946,7 @@
 | `archetype_pumpkin_cover` | Pumpkin | ✅ 已迁移为 `archetype_original_pumpkin` |
 | `archetype_flower_pot_surface` | Flower Pot | ✅ 已迁移为 `archetype_original_flowerpot` |
 | `archetype_water_pod` | Lily Pad | ✅ 已迁移为 `archetype_original_lilypad` |
-| `archetype_air_interceptor` | Cactus (参考) | ⚠️ 需对空高度切换协议 |
+| `archetype_air_interceptor` | Cactus (参考) | ✅ HeightBand / `height_range` 基线已覆盖最小对空语义 |
 
 ---
 
@@ -976,3 +966,5 @@
 | 2026-04-27(R3) | Round 3: G-03/G-04/G-08/G-09/G-10/G-11/G-16 解决，+6 植物，累计 45/49 (92%) |
 | 2026-05-04(Marigold) | Marigold 资源、卡片、单体验证与 Batch E coin_generated collectible 覆盖补齐，累计 46/49 (94%) |
 | 2026-04-28 | 完成度口径校准：资源+卡片落地为 42/49；严格完成仅 A 批次 7/49；A/B/C/D/round1 目标验证可信通过但 B/C/D 仍为代表性覆盖 |
+| 2026-05-10 | 规则基础设施第二轮后重评：liveness / SpatialIndex / height_range 已吸收早期多数协议阻塞；E 批次已有资源单体验证成为下一主攻 |
+| 2026-05-10(E-existing) | 新增 Gloom-shroom / Cattail / Winter Melon / Spikerock / Gold Magnet 单体验证，继续收口 E 批次已有资源 |

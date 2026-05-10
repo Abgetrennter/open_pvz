@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_fumeshroom.tres" id="5_fume_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_gloomshroom.tres" id="6_gloom_card"]
+
+[sub_resource type="Resource" id="Req_fume"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_fumeshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_gloom"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_gloomshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_target_a"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 250.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_target_b"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_brisk_runner"
+lane_id = 0
+x_position = 295.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_gloom_accept"]
+script = ExtResource("4_rule")
+rule_id = &"gloom_accept"
+description = "Gloom-shroom should be accepted as an upgrade over Fume-shroom."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_gloomshroom",
+"placement_role": &"upgrade",
+"upgrade_archetype_id": &"archetype_original_gloomshroom"
+}
+
+[sub_resource type="Resource" id="Rule_gloom_replace"]
+script = ExtResource("4_rule")
+rule_id = &"gloom_replace"
+description = "Gloom-shroom should replace the Fume-shroom base."
+event_name = &"entity.replaced"
+required_core_values = {
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_fumeshroom",
+"replacement_archetype_id": &"archetype_original_gloomshroom"
+}
+
+[sub_resource type="Resource" id="Rule_gloom_radius_damage"]
+script = ExtResource("4_rule")
+rule_id = &"gloom_radius_damage"
+description = "Gloom-shroom should damage multiple nearby enemies through radius targeting."
+event_name = &"entity.damaged"
+min_count = 2
+required_core_values = {
+"source_archetype_id": &"archetype_original_gloomshroom"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_gloomshroom_validation"
+display_name = "Original Gloom-shroom Validation"
+description = "Validates Gloom-shroom upgrade placement and radius-based detected-target damage."
+goals = PackedStringArray("Verify Gloom-shroom upgrades from Fume-shroom.", "Verify Gloom-shroom damages multiple nearby enemies through radius targeting.")
+validation_time_limit = 5.0
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 1
+card_defs = [ExtResource("5_fume_card"), ExtResource("6_gloom_card")]
+card_play_requests = [SubResource("Req_fume"), SubResource("Req_gloom")]
+validation_rules = [SubResource("Rule_gloom_accept"), SubResource("Rule_gloom_replace"), SubResource("Rule_gloom_radius_damage")]
+spawns = [SubResource("Spawn_target_a"), SubResource("Spawn_target_b")]

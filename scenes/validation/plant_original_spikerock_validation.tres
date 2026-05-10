@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_spikeweed.tres" id="5_spikeweed_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_spikerock.tres" id="6_spikerock_card"]
+
+[sub_resource type="Resource" id="Req_spikeweed"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_spikeweed"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_spikerock"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_spikerock"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 175.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_spikerock_accept"]
+script = ExtResource("4_rule")
+rule_id = &"spikerock_accept"
+description = "Spikerock should be accepted as an upgrade over Spikeweed."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_spikerock",
+"placement_role": &"upgrade",
+"upgrade_archetype_id": &"archetype_original_spikerock"
+}
+
+[sub_resource type="Resource" id="Rule_spikerock_replace"]
+script = ExtResource("4_rule")
+rule_id = &"spikerock_replace"
+description = "Spikerock should replace the Spikeweed base."
+event_name = &"entity.replaced"
+required_core_values = {
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_spikeweed",
+"replacement_archetype_id": &"archetype_original_spikerock"
+}
+
+[sub_resource type="Resource" id="Rule_spikerock_damage"]
+script = ExtResource("4_rule")
+rule_id = &"spikerock_damage"
+description = "Spikerock should deal ground damage to an overlapping target."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("ground_damage", "spike")
+required_core_values = {
+"source_archetype_id": &"archetype_original_spikerock",
+"target_archetype_id": &"archetype_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_spikerock_validation"
+display_name = "Original Spikerock Validation"
+description = "Validates Spikerock upgrade placement and ground damage controller behavior."
+goals = PackedStringArray("Verify Spikerock upgrades from Spikeweed.", "Verify Spikerock damages an overlapping ground enemy.")
+validation_time_limit = 2.0
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 1
+card_defs = [ExtResource("5_spikeweed_card"), ExtResource("6_spikerock_card")]
+card_play_requests = [SubResource("Req_spikeweed"), SubResource("Req_spikerock")]
+validation_rules = [SubResource("Rule_spikerock_accept"), SubResource("Rule_spikerock_replace"), SubResource("Rule_spikerock_damage")]
+spawns = [SubResource("Spawn_target")]

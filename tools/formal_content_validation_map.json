@@ -144,19 +144,24 @@
     },
     {
       "id": "original_plants_batch_e",
-      "description": "PVZ1 Batch E weak coverage: 11/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output and available upgrade placement dependencies are validated, but upgrade replacement, multi-slot occupancy, full coin/silver economy, manual/copy behavior and missing Imitater/Garlic/Umbrella Leaf still prevent batch completion.",
+      "description": "PVZ1 Batch E mechanism-first coverage: 11/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output, available upgrade placement dependencies, and existing E-resource single-plant validations are covered. Remaining work is Garlic, Umbrella Leaf, Imitater, Cob Cannon multi-slot occupancy/manual firing, and full coin/silver economy.",
       "validations": [
         "plant_original_kernelpult_validation",
         "plant_original_marigold_validation",
         "plant_original_batch_e_validation",
         "plant_original_flowerpot_validation",
-        "plant_original_e_upgrade_placement_validation"
+        "plant_original_e_upgrade_placement_validation",
+        "plant_original_gloomshroom_validation",
+        "plant_original_cattail_validation",
+        "plant_original_wintermelon_validation",
+        "plant_original_spikerock_validation",
+        "plant_original_goldmagnet_validation"
       ],
       "showcases": []
     },
     {
       "id": "original_plants_protocol_gaps",
-      "description": "Plants waiting on protocol design before they can be completed.",
+      "description": "Current original-plant protocol gap tracker. Most early gaps are now covered by liveness, SpatialIndex, height_range and existing Mechanic/Effect/Controller paths; remaining blockers are lane reroute, protection, card clone and multi-tile/field-modifier style systems.",
       "validations": [
         "plant_original_round1_validation"
       ],
@@ -164,7 +169,7 @@
     },
     {
       "id": "original_plants_round1_extensions",
-      "description": "Round 1 protocol extensions: G-20 upgrade placement, G-12 radius_around, G-13 global_track, G-06 enemies_in_lane, G-17 dispel_flying, G-19 metal tags, G-14 height toggle.",
+      "description": "Historical Round 1 protocol extensions now treated as part of the current baseline: G-20 upgrade placement, G-12 radius_around, G-13 global_track, G-06 enemies_in_lane, G-17 dispel_flying, G-19 metal tags and G-14 height handling.",
       "validations": [
         "plant_original_round1_validation"
       ],

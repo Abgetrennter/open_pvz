@@ -702,6 +702,36 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_gloomshroom_validation",
+    "scenario": "res://scenes/validation/plant_original_gloomshroom_validation.tres",
+    "description": "Validates Gloom-shroom upgrade placement and radius-based detected-target damage.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_cattail_validation",
+    "scenario": "res://scenes/validation/plant_original_cattail_validation.tres",
+    "description": "Validates Cattail water upgrade placement and current track-air projectile damage path.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_wintermelon_validation",
+    "scenario": "res://scenes/validation/plant_original_wintermelon_validation.tres",
+    "description": "Validates Winter Melon upgrade placement and terminal blast damage.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_spikerock_validation",
+    "scenario": "res://scenes/validation/plant_original_spikerock_validation.tres",
+    "description": "Validates Spikerock upgrade placement and ground damage controller behavior.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_goldmagnet_validation",
+    "scenario": "res://scenes/validation/plant_original_goldmagnet_validation.tres",
+    "description": "Validates Gold Magnet upgrade placement over Magnet-shroom.",
+    "layers": ["core"]
+  },
+  {
     "id": "entity_replacement_validation",
     "scenario": "res://scenes/validation/entity_replacement_validation.tres",
     "description": "Validates generic entity.replaced semantics for card upgrades, multi-stage upgrades, and lifecycle-triggered automatic replacement.",

@@ -211,7 +211,7 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 
 - `tools/run_validation.ps1` — 单场景验证
 - `tools/run_all_validations.ps1` — 批量验证（支持 `-MaxParallel` 受控并行）
-- `tools/validation_scenarios.json` — 140 个验证场景，分层：smoke / core / extension / guardrail / showcase
+- `tools/validation_scenarios.json` — 145 个验证场景，分层：smoke / core / extension / guardrail / showcase
 
 ### 9. 仓库已经有可操作 Demo
 
@@ -343,7 +343,7 @@ pwsh tools/run_all_validations.ps1 -MaxParallel 4
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"
 ```
 
-验证场景定义：`tools/validation_scenarios.json`（140 个场景）
+验证场景定义：`tools/validation_scenarios.json`（145 个场景）
 验证结果输出：`artifacts/validation/`
 
 ## 许可证

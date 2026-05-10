@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_lilypad.tres" id="6_lily_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_cattail.tres" id="7_cattail_card"]
+
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("4_slot_config")
+lane_id = 0
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water")
+
+[sub_resource type="Resource" id="Req_lily"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_lilypad"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_cattail"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_cattail"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_cattail_accept"]
+script = ExtResource("5_rule")
+rule_id = &"cattail_accept"
+description = "Cattail should be accepted as an upgrade over Lily Pad on water."
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"card_original_cattail",
+"placement_role": &"upgrade",
+"upgrade_archetype_id": &"archetype_original_cattail"
+}
+
+[sub_resource type="Resource" id="Rule_cattail_replace"]
+script = ExtResource("5_rule")
+rule_id = &"cattail_replace"
+description = "Cattail should replace the Lily Pad support."
+event_name = &"entity.replaced"
+required_core_values = {
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_lilypad",
+"replacement_archetype_id": &"archetype_original_cattail"
+}
+
+[sub_resource type="Resource" id="Rule_cattail_damage"]
+script = ExtResource("5_rule")
+rule_id = &"cattail_damage"
+description = "Cattail should damage a lane target through its tracking projectile path."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cattail",
+"target_archetype_id": &"archetype_air_scout"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_cattail_validation"
+display_name = "Original Cattail Validation"
+description = "Validates Cattail water upgrade placement and current track-air projectile damage path."
+goals = PackedStringArray("Verify Cattail upgrades from Lily Pad on a water slot.", "Verify Cattail damages an air target through its tracking projectile payload.")
+validation_time_limit = 5.0
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 1
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("6_lily_card"), ExtResource("7_cattail_card")]
+card_play_requests = [SubResource("Req_lily"), SubResource("Req_cattail")]
+validation_rules = [SubResource("Rule_cattail_accept"), SubResource("Rule_cattail_replace"), SubResource("Rule_cattail_damage")]
+spawns = [SubResource("Spawn_target")]
