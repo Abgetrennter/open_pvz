@@ -21,7 +21,7 @@ default_params = {
 "detection_id": &"proximity",
 "start_delay": 0.0,
 "interval": 5.0,
-"scan_range": 4000.0,
+"scan_range_slots": 41.666667,
 "target_tags": PackedStringArray("metal")
 }
 mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("4_payload")]

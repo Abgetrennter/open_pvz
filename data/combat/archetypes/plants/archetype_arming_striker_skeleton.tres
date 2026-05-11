@@ -20,7 +20,7 @@ default_params = {
 "amount": 20,
 "interval": 0.3,
 "required_state": &"active",
-"scan_range": 900.0,
+"range_mode": &"full_lane",
 "start_delay": 0.0
 }
 compiler_hints = {

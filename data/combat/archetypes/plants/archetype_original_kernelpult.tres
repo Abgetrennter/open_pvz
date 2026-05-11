@@ -25,8 +25,8 @@ max_health = 300
 hitbox_size = Vector2(44, 56)
 default_params = {
 "interval": 3.0,
-"scan_range": 900.0,
-"speed": 220.0,
+"range_mode": &"full_lane",
+"speed_slots_per_sec": 2.291667,
 "start_delay": 0.1
 }
 mechanics = [ExtResource("2_trigger"), ExtResource("3_emission"), ExtResource("4_payload")]

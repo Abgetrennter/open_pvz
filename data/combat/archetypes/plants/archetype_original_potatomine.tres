@@ -22,7 +22,7 @@ default_params = {
 "required_state": &"active",
 "scan_range_slots": 0.6875,
 "amount": 1800,
-"radius": 150.0,
+"radius_slots": 1.5625,
 "target_mode": &"enemies_in_radius"
 }
 mechanics = [ExtResource("2_state"), ExtResource("3_trigger"), ExtResource("4_payload")]

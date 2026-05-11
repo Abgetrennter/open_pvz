@@ -13,7 +13,7 @@ tags = PackedStringArray("air", "attack", "projectile", "interceptor")
 params = {
 "damage": 20,
 "direction": Vector2(1, 0),
-"speed": 300.0,
+"speed_slots_per_sec": 3.125,
 "turn_rate": 8.0,
 "on_hit_effect_id": &"damage",
 "on_hit_effect_params": {

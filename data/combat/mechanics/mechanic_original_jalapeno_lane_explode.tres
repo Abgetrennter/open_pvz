@@ -12,6 +12,6 @@ priority = 20
 tags = PackedStringArray("original", "instant", "explode", "lane")
 params = {
 "amount": 1800,
-"radius": 1000.0,
+"radius_slots": 10.416667,
 "target_mode": &"enemies_in_lane"
 }

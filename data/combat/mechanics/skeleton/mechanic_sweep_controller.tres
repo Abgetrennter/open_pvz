@@ -12,5 +12,5 @@ priority = 10
 tags = PackedStringArray("skeleton", "controller", "sweep", "field_object")
 params = {
 "detection_radius": 50.0,
-"move_speed": 300.0
+"move_speed_slots_per_sec": 3.125
 }

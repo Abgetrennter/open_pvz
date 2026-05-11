@@ -12,5 +12,5 @@ priority = 5
 tags = PackedStringArray("skeleton", "targeting", "lane", "forward")
 params = {
 "detection_id": &"lane_forward",
-"scan_range": 900.0
+"range_mode": &"full_lane"
 }

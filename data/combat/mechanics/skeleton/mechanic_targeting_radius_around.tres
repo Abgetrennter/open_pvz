@@ -12,5 +12,5 @@ priority = 15
 tags = PackedStringArray("skeleton", "targeting", "radius")
 params = {
 "detection_id": &"radius_around",
-"scan_range": 180.0
+"scan_range_slots": 1.875
 }

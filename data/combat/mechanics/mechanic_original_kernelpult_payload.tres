@@ -20,5 +20,5 @@ params = {
 "target_mode": &"context_target"
 },
 "projectile_template": ExtResource("2_projectile"),
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }

@@ -16,7 +16,7 @@ optional_components = PackedStringArray("DebugViewComponent")
 max_health = 300
 hitbox_size = Vector2(44, 48)
 default_params = {
-"radius": 4000.0,
+"radius_slots": 41.666667,
 "target_mode": &"enemies_in_radius",
 "target_tags": PackedStringArray("air")
 }

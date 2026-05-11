@@ -7,11 +7,11 @@ script = ExtResource("1_mechanic")
 mechanic_id = &"core.original.chomper_devour"
 display_name = "Original Chomper Devour"
 family = &"Payload"
-type_id = &"core.explode"
+type_id = &"core.damage"
 priority = 20
 tags = PackedStringArray("original", "devour", "near")
 params = {
 "amount": 1800,
-"radius": 80.0,
-"target_mode": &"enemies_in_radius"
+"binding_group": &"chomper_devour",
+"target_mode": &"context_target"
 }

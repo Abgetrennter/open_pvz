@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_on_place_lifecycle.tres" id="2_lifecycle"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_chomper_proximity.tres" id="2_trigger"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_chomper_devour.tres" id="3_payload"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_chomper_digest_status.tres" id="5_digest"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -18,7 +19,7 @@ max_health = 300
 hitbox_size = Vector2(48, 56)
 default_params = {
 "amount": 1800,
-"radius": 64.0,
+"radius_slots": 0.666667,
 "target_mode": &"enemies_in_radius"
 }
-mechanics = [ExtResource("2_lifecycle"), ExtResource("3_payload")]
+mechanics = [ExtResource("2_trigger"), ExtResource("3_payload"), ExtResource("5_digest")]

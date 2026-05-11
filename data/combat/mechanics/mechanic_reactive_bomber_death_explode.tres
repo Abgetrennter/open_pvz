@@ -13,6 +13,6 @@ tags = PackedStringArray("reactive", "death", "explode")
 params = {
 "amount": 21,
 "binding_group": &"death_burst",
-"radius": 120.0,
+"radius_slots": 1.25,
 "target_mode": &"enemies_in_radius"
 }

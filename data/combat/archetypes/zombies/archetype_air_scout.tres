@@ -15,6 +15,6 @@ required_components = PackedStringArray("TriggerComponent", "MovementComponent")
 max_health = 270
 hitbox_size = Vector2(40, 54)
 default_params = {
-"move_speed": 40.0
+"move_speed_slots_per_sec": 0.416667
 }
 mechanics = [ExtResource("3_mechanic_0")]

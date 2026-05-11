@@ -12,5 +12,5 @@ priority = 15
 tags = PackedStringArray("skeleton", "targeting", "tracking")
 params = {
 "detection_id": &"global_track",
-"scan_range": 4000.0
+"scan_range_slots": 41.666667
 }

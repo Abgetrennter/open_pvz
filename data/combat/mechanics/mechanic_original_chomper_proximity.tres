@@ -4,14 +4,15 @@
 
 [resource]
 script = ExtResource("1_mechanic")
-mechanic_id = &"core.skeleton.proximity_trigger"
-display_name = "Proximity Trigger"
+mechanic_id = &"core.original.chomper_proximity"
+display_name = "Original Chomper Proximity"
 family = &"Trigger"
 type_id = &"core.proximity"
 priority = 10
-tags = PackedStringArray("skeleton", "proximity")
+tags = PackedStringArray("original", "chomper", "proximity")
 params = {
+"binding_group": &"chomper_devour",
 "interval": 0.25,
-"scan_range_slots": 0.666667,
+"scan_range_slots": 1.25,
 "start_delay": 0.0
 }

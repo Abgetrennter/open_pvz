@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"original.goldmagnet.collect"
+display_name = "Original Gold Magnet Collect"
+family = &"Controller"
+type_id = &"core.collectible_magnet"
+priority = 5
+tags = PackedStringArray("original", "goldmagnet", "collectible", "magnet", "economy")
+params = {
+"interval": 0.5,
+"scan_range_slots": 9.0,
+"source_types": PackedStringArray("coin_generated")
+}

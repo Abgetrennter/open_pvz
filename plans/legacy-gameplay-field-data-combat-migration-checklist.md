@@ -254,6 +254,22 @@
 - 未校准字段先按当前行为等价迁移；原版精确值校对另开任务。
 - `cattail/magnetshroom/blover` 的 2000/4000 范围先保持等价迁移为 slots，后续再决定是否引入全场语义字段。
 
+## 阶段 2 完成记录
+
+完成时间：2026-05-11
+
+- 2A Projectile profiles：9/9 文件，新增 `impact_radius_slots` / `collision_padding_slots`
+- 2B Projectile templates：6/6 文件（pea_linear 已提前迁移），`"speed"` → `"speed_slots_per_sec"`
+- 2C Reusable mechanics：20/20 文件，`"speed"` → `"speed_slots_per_sec"`，`"radius"` → `"radius_slots"`
+- 2D Skeleton mechanics：13/13 文件，含 lane targeting 的 `scan_range` → `range_mode`
+- 2E Zombie archetypes：8/8 文件，`"move_speed"` → `"move_speed_slots_per_sec"`，lane targeting 的 `scan_range` → `range_mode`
+- 2F Non-original plant archetypes：20/20 文件，`"speed"` / `"scan_range"` 全部迁移
+- 2G Original plant archetypes：22/22 文件，`"speed"` / `"scan_range"` / `"radius"` 全部迁移
+
+验收：
+- `data/combat` 字典字段 0 残留（rg 检查通过）
+- Resource 属性字段保留向后兼容
+
 ## 阶段 2 验收
 
 完成 `data/combat` 迁移后运行：

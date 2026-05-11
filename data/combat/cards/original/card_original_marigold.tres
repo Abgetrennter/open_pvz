@@ -8,5 +8,5 @@ card_id = &"card_original_marigold"
 display_name = "Marigold"
 archetype_id = &"archetype_original_marigold"
 sun_cost = 50
-cooldown_seconds = 7.5
+cooldown_seconds = 30.0
 placement_tags = PackedStringArray("supports_primary")

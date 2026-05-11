@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.chomper_digest"
+display_name = "Original Chomper Digest"
+family = &"Payload"
+type_id = &"core.apply_status"
+priority = 25
+tags = PackedStringArray("original", "chomper", "digest", "status")
+params = {
+"binding_group": &"chomper_devour",
+"duration": 42.0,
+"liveness_overrides": {
+"triggers": false
+},
+"status_id": &"digesting",
+"target_mode": "source"
+}

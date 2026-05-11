@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.sunshroom_growth"
+display_name = "Original Sun-shroom Growth"
+family = &"State"
+type_id = &"core.growth"
+priority = 6
+tags = PackedStringArray("original", "sunshroom", "growth")
+params = {
+"stages": [{
+"after": 0.0,
+"state": &"awake"
+}, {
+"after": 120.0,
+"state": &"mature"
+}]
+}

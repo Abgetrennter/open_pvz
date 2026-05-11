@@ -13,5 +13,7 @@ max_hit_height = 96.0
 hit_strategy = &"swept_segment"
 impact_radius = 20.0
 collision_padding = 12.0
+impact_radius_slots = 0.208333
+collision_padding_slots = 0.125
 lead_time_scale = 1.0
 dynamic_target_axis = &"xy"

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.scaredyshroom_cower"
+display_name = "Original Scaredy-shroom Cower"
+family = &"Controller"
+type_id = &"core.proximity_liveness"
+priority = 30
+tags = PackedStringArray("original", "scaredyshroom", "proximity", "liveness")
+params = {
+"active_state": &"cowering",
+"inactive_state": &"ready",
+"interval": 0.05,
+"liveness_overrides": {
+"triggers": false
+},
+"scan_range_slots": 1.0,
+"source_id": &"scaredy_cower"
+}

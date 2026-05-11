@@ -9,7 +9,7 @@ script = ExtResource("1_archetype")
 archetype_id = &"archetype_basic_zombie_skeleton"
 display_name = "Basic Zombie Archetype Skeleton"
 default_params = {
-"move_speed": 55.0
+"move_speed_slots_per_sec": 0.572917
 }
 hit_height_band = ExtResource("migrated_2_height")
 hitbox_size = Vector2(44, 60)

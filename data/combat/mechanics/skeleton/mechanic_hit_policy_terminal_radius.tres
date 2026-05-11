@@ -13,5 +13,5 @@ tags = PackedStringArray("skeleton", "hit_policy", "terminal", "radius")
 params = {
 "hit_strategy": &"terminal_radius",
 "terminal_hit_strategy": &"impact_radius",
-"impact_radius": 36.0
+"impact_radius_slots": 0.375
 }

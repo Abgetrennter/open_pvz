@@ -13,7 +13,7 @@ tags = PackedStringArray("sporeling", "attack", "projectile", "spore")
 params = {
 "damage": 10,
 "direction": Vector2(1, 0),
-"speed": 180.0,
+"speed_slots_per_sec": 1.875,
 "on_hit_effect_id": &"damage",
 "on_hit_effect_params": {
 "amount": 10,

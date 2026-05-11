@@ -19,7 +19,7 @@ hitbox_size = Vector2(40, 40)
 default_params = {
 "required_state": &"awake",
 "amount": 20,
-"radius": 900.0,
+"radius_slots": 9.375,
 "target_mode": &"enemies_in_radius"
 }
 mechanics = [ExtResource("2_state"), ExtResource("3_lifecycle"), ExtResource("4_payload")]

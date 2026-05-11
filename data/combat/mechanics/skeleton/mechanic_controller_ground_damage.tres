@@ -13,5 +13,5 @@ tags = PackedStringArray("skeleton", "controller", "ground_damage")
 params = {
 "damage": 20,
 "interval": 0.5,
-"detection_range": 48.0
+"detection_range_slots": 0.5
 }

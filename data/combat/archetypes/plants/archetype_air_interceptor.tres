@@ -24,7 +24,7 @@ hitbox_size = Vector2(42, 54)
 default_params = {
 "damage": 20,
 "interval": 1.5,
-"speed": 300.0,
+"speed_slots_per_sec": 3.125,
 "start_delay": 0.2
 }
 mechanics = [ExtResource("3_mechanic_0"), ExtResource("4_mechanic_1"), ExtResource("5_mechanic_2")]

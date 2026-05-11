@@ -12,7 +12,7 @@ priority = 20
 tags = PackedStringArray("original", "blover", "dispel", "air")
 params = {
 "amount": 1800,
-"radius": 4000.0,
+"radius_slots": 41.666667,
 "target_mode": &"enemies_in_radius",
 "target_tags": PackedStringArray("air")
 }

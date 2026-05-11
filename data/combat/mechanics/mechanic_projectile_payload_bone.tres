@@ -13,7 +13,7 @@ tags = PackedStringArray("bone", "attack", "projectile", "ranged", "zombie")
 params = {
 "damage": 18,
 "direction": Vector2(-1, 0),
-"speed": 190.0,
+"speed_slots_per_sec": 1.979167,
 "on_hit_effect_id": &"damage",
 "on_hit_effect_params": {
 "amount": 18,

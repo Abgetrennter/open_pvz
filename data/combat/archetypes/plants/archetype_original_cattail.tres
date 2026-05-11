@@ -25,8 +25,8 @@ hitbox_size = Vector2(44, 56)
 default_params = {
 "damage": 20,
 "interval": 1.5,
-"scan_range": 2000.0,
-"speed": 320.0,
+"scan_range_slots": 20.833333,
+"speed_slots_per_sec": 3.333333,
 "turn_rate": 4.0,
 "start_delay": 0.2
 }

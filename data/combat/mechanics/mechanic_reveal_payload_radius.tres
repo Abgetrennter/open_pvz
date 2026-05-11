@@ -12,6 +12,6 @@ priority = 20
 tags = PackedStringArray("control", "reveal", "radius")
 params = {
 "duration": 8.0,
-"radius": 180.0,
+"radius_slots": 1.875,
 "target_mode": &"enemies_in_radius"
 }

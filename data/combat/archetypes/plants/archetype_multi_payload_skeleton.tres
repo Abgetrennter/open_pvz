@@ -19,7 +19,7 @@ tags = PackedStringArray("archetype", "plant", "attack", "multi-payload", "skele
 default_params = {
 "amount": 20,
 "interval": 0.4,
-"scan_range": 900.0,
+"range_mode": &"full_lane",
 "start_delay": 0.2
 }
 compiler_hints = {
