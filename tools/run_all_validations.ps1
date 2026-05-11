@@ -62,7 +62,7 @@ if ($ScenarioManifest.Count -eq 0) {
 
 $ResolvedMaxParallel = $MaxParallel
 if ($ResolvedMaxParallel -le 0) {
-	$ResolvedMaxParallel = [Math]::Min([Environment]::ProcessorCount, 4)
+	$ResolvedMaxParallel = [Math]::Min([Environment]::ProcessorCount, 8)
 }
 $ResolvedMaxParallel = [Math]::Max(1, $ResolvedMaxParallel)
 

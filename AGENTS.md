@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-05-11** — init-deep 全仓扫描：补充 autoload 清单（16 个）、模块索引（视觉/UI/输入/demo/验证）、反模式章节、守卫脚本命令、扩展包 AGENTS.md
 - **2026-05-10** — 原版植物 E 批补齐 Gloom-shroom、Cattail、Winter Melon、Spikerock、Gold Magnet 单体验证，验证 manifest 扩展到 145 场景
 - **2026-05-09** — 规则基础设施第二轮完成：多维 liveness、`SpatialIndex` / `BattleManager.spatial_query(params)`、`height_range` 过滤、tick budget 监控与专项验证进入主干，验证基线扩展到 140 场景
 - **2026-05-06** — 验证批处理支持受控并行：`tools/run_all_validations.ps1` 新增 `-MaxParallel`，默认自动取 `min(CPU核心数, 4)`，批量验证改为并发调度并保持汇总输出顺序稳定
@@ -60,6 +61,10 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `ControllerRegistry` | Controller 策略注册（core.bite / core.sweep / core.ground_damage / core.projectile_transform，继承 RegistryBase） |
 | `ProjectileMovementRegistry` | 抛射体 movement 定义注册与组件创建（core.linear / core.parabola / core.track，支持扩展包 movement，继承 RegistryBase） |
 | `GameState` | 游戏状态管理（当前战斗、100Hz 仿真时间、实体 ID 分配、battle_seed） |
+| `VisualCueRegistry` | 视觉提示注册与分发 |
+| `VisualFxRegistry` | 视觉特效注册与分发 |
+| `VisualProfileRegistry` | 视觉外观档案注册 |
+| `AudioCueRegistry` | 音频提示注册与分发 |
 
 ### 战斗运行时子系统
 
@@ -78,7 +83,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 
 ```mermaid
 graph TD
-    Root["Open PVZ (根)"] --> Autoload["autoload/ (12 个全局单例)"]
+    Root["Open PVZ (根)"] --> Autoload["autoload/ (16 个全局单例)"]
     Root --> Scripts["scripts"]
     Root --> Data["data/combat"]
     Root --> Scenes["scenes"]
@@ -92,12 +97,16 @@ graph TD
     Scripts --> Entities["scripts/entities"]
     Scripts --> Components["scripts/components"]
     Scripts --> Projectile["scripts/projectile"]
+    Scripts --> Visual["scripts/visual"]
+    Scripts --> UI["scripts/ui"]
+    Scripts --> Input["scripts/input"]
+    Scripts --> Demo["scripts/demo"]
     Scripts --> Debug["scripts/debug"]
 
     Core --> CoreDefs["core/defs (Archetype, Mechanic, TriggerDef, EffectDef...)"]
     Core --> CoreRuntime["core/runtime (MechanicCompiler, RuntimeSpec, EffectExecutor, ShuffleBag...)"]
 
-    Data --> Archetypes["data/combat/archetypes/ (97 个 .tres)"]
+    Data --> Archetypes["data/combat/archetypes/"]
     Data --> Projectiles["data/combat/projectile_templates/"]
 
     click Autoload "./autoload/AGENTS.md" "查看 autoload 模块文档"
@@ -106,7 +115,9 @@ graph TD
     click Entities "./scripts/entities/AGENTS.md" "查看 entities 模块文档"
     click Components "./scripts/components/AGENTS.md" "查看 components 模块文档"
     click Projectile "./scripts/projectile/AGENTS.md" "查看 projectile 模块文档"
+    click Visual "./scripts/visual/AGENTS.md" "查看 visual 模块文档"
     click Data "./data/combat/AGENTS.md" "查看 data/combat 模块文档"
+    click Extensions "./extensions/AGENTS.md" "查看 extensions 模块文档"
 ```
 
 ## 模块索引
@@ -120,6 +131,10 @@ graph TD
 | `scripts/entities/` | GDScript | 6 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot 等 |
 | `scripts/components/` | GDScript | 7 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
 | `scripts/projectile/` | GDScript | 6 | 抛射体运动系统：linear / parabola / track movement 组件与飞行配置 |
+| `scripts/visual/` | GDScript | 8 | 视觉反馈层：VisualFeedbackHost, VisualActionRunner, 层级策略 |
+| `scripts/ui/` | GDScript | 8 | UI 面板与屏幕组件 |
+| `scripts/input/` | GDScript | 2 | 输入路由与处理 |
+| `scripts/demo/` | GDScript | 4 | 可玩 Demo 关卡脚本 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
 | `data/combat/archetypes/` | .tres | 97 | Archetype 资源（85 植物 + 10 僵尸 + 2 场上物件） |
 | `data/combat/` | .tres | 270 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
@@ -162,6 +177,16 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 
 在 Godot 编辑器中运行单个场景：打开 `scenes/validation/` 中的 `.tscn` 文件并按 F6。
 
+### 守卫检查
+
+```powershell
+# 检查旧实体模型残留（禁止 EntityTemplate / TriggerBinding）
+pwsh tools/check_no_legacy_entity_model.ps1
+
+# 检查运行时指标/时间违规（禁止 OS.get_ticks_* 和 Timer 用于游戏逻辑）
+pwsh tools/check_runtime_metrics_time_guardrails.ps1
+```
+
 ## 编码规范
 
 ### 资源定义
@@ -193,6 +218,35 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 - PascalCase 用于类名，snake_case 用于变量/函数
 - StringName 用于驻留标识符
 - RefCounted 用于系统间传递的数据
+
+## 反模式 (禁止事项)
+
+### 架构级禁止
+- **禁止为单个实体硬编码业务逻辑**：不得编写 `PeaShooterAttack`、`WallNutLogic`、`ConeHeadZombieAI` 这类命名；所有行为通过 `CombatArchetype + CombatMechanic[]` 驱动
+- **禁止 BattleManager 特判**：不得为特定实体、特定模式在 BattleManager 中添加 if/switch 分支；模式差异通过 `BattleModeHost / BattleRuleModule` 吸收
+- **禁止用 `print()` 替代 `DebugService`**：除 DebugService 自身和 validation reporter 外，所有运行时日志必须通过 DebugService 记录
+- **禁止旧实体模型**：`EntityTemplate` / `TriggerBinding` 已归档，运行时唯一入口是 `CombatArchetype + CombatMechanic[]`
+- **禁止 `migrated_wrapper` 编译提示**：封装 archetype 必须迁移为原生 mechanic，ProtocolValidator 运行时拒绝
+
+### 魔法数字禁止
+- **禁止 `4000.0` / `99999.0` 模拟"全范围"**：用 `range_mode = "full_lane"` 或显式 lane 距离查询替代（wiki/02-runtime-protocol/15 明确禁止）
+- **禁止 `-999999.0` 作为哨兵值**：用显式布尔标志或 optional 值替代
+
+### 扩展系统禁止
+- **扩展包不得注册或覆盖 `core.*` 命名空间**
+- **扩展包不得新增 Mechanic family**（只能在冻结 family 下新增 type）
+- **不得绕开 `RegistryBase` 自建注册逻辑**：新增扩展点必须走 `RegistryBase + RegistryConfig + ContributorDef`
+- **默认不做跨包 override**，重复 id 拒绝并记录 `protocol.issue`
+
+### 时间与输入禁止
+- **不得在游戏逻辑中使用 `OS.get_ticks_msec/usec` 或 Godot `Timer` 节点**：仿真时间走 100Hz 固定 tick + GameState 派生链
+- **不得在渲染/UI 中消费玩法随机数**
+- **不得让视觉反馈改变战斗结果**（伤害/命中/冷却等不依赖 Tween 或粒子）
+
+### 内容禁止
+- **不得在 GDScript 中硬编码内容**：所有游戏数据必须走 `.tres` Resource
+- **遗留字段仅为迁移桥接**：`_LEGACY_TO_SEMANTIC_OVERRIDE_KEYS` 和 `legacy_*` 字段为临时桥接，最终须移除
+- **不得直接修改 `vendor/` 参考实现**
 
 ## 冻结协议
 
