@@ -11,8 +11,8 @@ var _current_sun := 0
 var _cooldown_ready_times: Dictionary = {}
 
 
-func panel_setup(battle: Node, scenario: Resource) -> void:
-	super.panel_setup(battle, scenario)
+func panel_setup(battle: Node, scenario: Resource, theme: UIThemeProfile = null) -> void:
+	super.panel_setup(battle, scenario, theme)
 	_card_defs.clear()
 	_card_slots.clear()
 	_selected_card_id = StringName()
@@ -123,7 +123,7 @@ func _build_card_slot(card_def: Resource, card_id: StringName) -> Control:
 	vbox.add_child(cost_label)
 	var cooldown_overlay := ColorRect.new()
 	cooldown_overlay.name = "CooldownOverlay"
-	cooldown_overlay.color = Color(0.0, 0.0, 0.0, 0.5)
+	cooldown_overlay.color = _get_theme().card_cooldown_overlay_color
 	cooldown_overlay.visible = false
 	cooldown_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cooldown_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -153,7 +153,7 @@ func _refresh_selection() -> void:
 			slot.modulate = Color.WHITE
 			slot.scale = Vector2(1.08, 1.08)
 		else:
-			slot.modulate = Color(0.8, 0.8, 0.8, 1.0)
+			slot.modulate = _get_theme().card_unselected_modulate
 			slot.scale = Vector2(1.0, 1.0)
 
 
@@ -224,9 +224,9 @@ func _refresh_affordability() -> void:
 			continue
 		var cost := int(card_def.get("sun_cost"))
 		if cost > _current_sun:
-			cost_label.add_theme_color_override("font_color", Color("e06060"))
+			cost_label.add_theme_color_override("font_color", _get_theme().card_unaffordable_text_color)
 		else:
-			cost_label.add_theme_color_override("font_color", Color("ffffff"))
+			cost_label.add_theme_color_override("font_color", _get_theme().card_affordable_text_color)
 
 
 func _find_slot_by_card_id(card_id: StringName) -> Control:
@@ -238,14 +238,10 @@ func _find_slot_by_card_id(card_id: StringName) -> Control:
 
 func _card_color(card_id: StringName) -> Color:
 	var id := String(card_id)
-	if id.contains("sunflower"):
-		return Color("ffd700")
-	if id.contains("shooter") or id.contains("pea"):
-		return Color("4caf50")
-	if id.contains("wall") or id.contains("nut"):
-		return Color("8d6e63")
-	if id.contains("repeater"):
-		return Color("2e7d32")
-	if id.contains("lobber") or id.contains("cabbage"):
-		return Color("66bb6a")
-	return Color("78909c")
+	var type_colors: Dictionary = _get_theme().card_type_colors
+	for key: StringName in type_colors:
+		if key == &"default":
+			continue
+		if id.contains(String(key)):
+			return type_colors[key]
+	return type_colors.get(&"default", Color("78909c"))

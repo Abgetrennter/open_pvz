@@ -8,8 +8,8 @@ var _subscriptions: Array[Dictionary] = []
 var _active_tweens: Array[Tween] = []
 
 
-func screen_setup(battle: Node) -> void:
-	super.screen_setup(battle)
+func screen_setup(battle: Node, theme: UIThemeProfile = null) -> void:
+	super.screen_setup(battle, theme)
 	_flow_state = null
 	if battle != null and is_instance_valid(battle):
 		if battle.has_method("get_flow_state"):
@@ -41,7 +41,7 @@ func _build_ui() -> void:
 		child.queue_free()
 	_overlay = ColorRect.new()
 	_overlay.anchors_preset = Control.PRESET_FULL_RECT
-	_overlay.color = Color(0.0, 0.0, 0.0, 0.0)
+	_overlay.color = _get_theme().phase_overlay_initial_color
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_overlay)
 	_label = Label.new()
@@ -81,11 +81,11 @@ func _kill_active_tweens() -> void:
 
 
 func _on_victory(_event_data: Variant) -> void:
-	_show_result("Victory!", Color("4caf50"))
+	_show_result("Victory!", _get_theme().victory_text_color)
 
 
 func _on_defeat(_event_data: Variant) -> void:
-	_show_result("Defeat!", Color("e06060"))
+	_show_result("Defeat!", _get_theme().defeat_text_color)
 
 
 func _show_result(text: String, color: Color) -> void:

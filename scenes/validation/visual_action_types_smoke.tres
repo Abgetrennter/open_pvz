@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_shooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 1.0,
+"speed": 300.0
+}
+
+[sub_resource type="Resource" id="Spawn_dummy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 400.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_projectile_hit"]
+script = ExtResource("3_rule")
+rule_id = &"projectile_hit"
+description = "projectile should hit the target to trigger visual actions"
+event_name = &"projectile.hit"
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_action_types_smoke"
+display_name = "Visual Action Types Smoke"
+description = "Verify that all 6 visual action types are attempted (result is not 'unknown action type') when projectile.hit and entity.damaged events fire."
+goals = PackedStringArray("Verify flash_actor action executes on entity.damaged.", "Verify spawn_fx action is attempted on projectile.hit.", "Verify play_actor_animation action is wired correctly.")
+validation_time_limit = 5.0
+validation_rules = [SubResource("Rule_projectile_hit")]
+spawns = [SubResource("Spawn_shooter"), SubResource("Spawn_dummy")]

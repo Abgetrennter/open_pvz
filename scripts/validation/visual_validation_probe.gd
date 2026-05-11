@@ -21,13 +21,15 @@ func _process(_delta: float) -> void:
 	if active_scenario == null:
 		return
 	var scenario_id := StringName(active_scenario.scenario_id)
-	if not String(scenario_id).begins_with("visual_"):
+	var sid := String(scenario_id)
+	if not sid.begins_with("visual_") and not sid.begins_with("ui_theme_"):
 		return
 
 	_probe_registries()
 	_probe_extension_register_kinds()
 	_probe_stage_layers()
 	_probe_visual_log()
+	_probe_ui_theme()
 	if scenario_id == &"visual_slot_guardrail":
 		_probe_guardrails()
 
@@ -130,6 +132,23 @@ func _extension_source(path_suffix: String) -> Dictionary:
 		"path": "res://scripts/validation/visual_validation_probe.gd:%s" % path_suffix,
 		"trust_level": &"data_only",
 	}
+
+
+func _probe_ui_theme() -> void:
+	if _emitted.has(&"ui_theme_default"):
+		return
+	if not ClassDB.class_exists(&"UIThemeProfile"):
+		return
+	var default_theme: Resource = UIThemeProfile.default()
+	if default_theme == null:
+		return
+	if default_theme.theme_id != &"default":
+		return
+	# Verify a concrete color field has a non-zero value (sanity check)
+	if default_theme.victory_text_color.a <= 0.0:
+		return
+	_emitted[&"ui_theme_default"] = true
+	_emit_probe(&"theme_default_loaded", &"passed")
 
 
 func _emit_probe(probe: StringName, result: StringName, extra_core: Dictionary = {}) -> void:

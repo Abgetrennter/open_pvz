@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="UIThemeProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/theme/ui_theme_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+theme_id = &"default"
+sun_icon_color = Color(0.94902, 0.823529, 0.360784, 1)
+sun_counter_text_color = Color(1, 1, 1, 1)
+sun_counter_font_size = 24
+card_cooldown_overlay_color = Color(0, 0, 0, 0.5)
+card_unselected_modulate = Color(0.8, 0.8, 0.8, 1)
+card_affordable_text_color = Color(1, 1, 1, 1)
+card_unaffordable_text_color = Color(0.878431, 0.376471, 0.376471, 1)
+card_font_size = 16
+cell_normal_color = Color(0.3, 0.5, 0.2, 0.3)
+cell_hover_color = Color(0.4, 0.7, 0.3, 0.5)
+cell_occupied_color = Color(0.5, 0.3, 0.2, 0.3)
+cell_invalid_color = Color(0.7, 0.2, 0.2, 0.3)
+phase_overlay_initial_color = Color(0, 0, 0, 0)
+victory_text_color = Color(0.298039, 0.686275, 0.313726, 1)
+defeat_text_color = Color(0.878431, 0.376471, 0.376471, 1)
+wave_normal_color = Color(1, 1, 1, 1)
+wave_final_color = Color(0.878431, 0.376471, 0.376471, 1)
+wave_font_size = 18
