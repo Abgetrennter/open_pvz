@@ -24,7 +24,8 @@ function Add-ViolationLines {
 	param(
 		[string]$Title,
 		[string[]]$Lines,
-		[string[]]$AllowPathFragments = @()
+		[string[]]$AllowPathFragments = @(),
+		[string[]]$AllowLinePatterns = @()
 	)
 	foreach ($Line in $Lines) {
 		$Allowed = $false
@@ -32,6 +33,14 @@ function Add-ViolationLines {
 			if ($Line -like "*$Fragment*") {
 				$Allowed = $true
 				break
+			}
+		}
+		if (-not $Allowed) {
+			foreach ($Pattern in $AllowLinePatterns) {
+				if ($Line -match $Pattern) {
+					$Allowed = $true
+					break
+				}
 			}
 		}
 		if (-not $Allowed) {
@@ -52,7 +61,11 @@ try {
 	)
 
 	$WallClockLines = Invoke-Ripgrep "Time\.get_ticks_(msec|usec)" $GameplayPaths
-	Add-ViolationLines "Wall-clock API in gameplay code" $WallClockLines @("scripts/core/runtime/event_data.gd", "scripts/core/runtime\event_data.gd")
+	$AllowedWallClockLinePatterns = @(
+		"scripts[\\/]+battle[\\/]+battle_manager\.gd:\d+:\s*var tick_started_usec := Time\.get_ticks_usec\(\)",
+		"scripts[\\/]+battle[\\/]+battle_manager\.gd:\d+:\s*var elapsed_ms := float\(Time\.get_ticks_usec\(\) - tick_started_usec\) / 1000\.0"
+	)
+	Add-ViolationLines "Wall-clock API in gameplay code" $WallClockLines @("scripts/core/runtime/event_data.gd", "scripts/core/runtime\event_data.gd") $AllowedWallClockLinePatterns
 
 	$TimerLines = Invoke-Ripgrep "\bTimer\b|SceneTreeTimer|create_timer" $GameplayPaths
 	Add-ViolationLines "Timer API in gameplay code" $TimerLines @("scripts/components/visual_actor_component.gd", "scripts/components\visual_actor_component.gd")

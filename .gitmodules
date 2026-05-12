@@ -13,3 +13,6 @@
 [submodule "vendor/r2ga"]
 	path = vendor/r2ga
 	url = https://github.com/hsk-dream/PVZ_reanim2godot_animation
+[submodule "vendor/Plants-vs-zombies"]
+	path = vendor/Plants-vs-zombies
+	url = https://github.com/MissingYoung/Plants-vs-zombies.git
