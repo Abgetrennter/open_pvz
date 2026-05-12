@@ -103,7 +103,7 @@
     },
     {
       "id": "original_plants_batch_b",
-      "description": "PVZ1 Batch B validation: batch representative coverage plus Potato Mine, Squash, and Chomper single-plant validations. Resources/cards and trusted validations exist for 7/7.",
+      "description": "PVZ1 Batch B validation: batch representative coverage plus Potato Mine, Squash, and Chomper single-plant validations. Chomper now covers proximity devour plus digesting stop-fire status. Resources/cards and trusted validations exist for 7/7.",
       "validations": [
         "plant_original_batch_b_validation",
         "plant_original_potatomine_validation",
@@ -114,7 +114,7 @@
     },
     {
       "id": "original_plants_batch_c",
-      "description": "PVZ1 Batch C validation: Puff/Fume spawn path, Ice/Doom on-place damage, Grave Buster tombstone targeting, Coffee Bean targeted wake, Fume-shroom pierce, Hypno team switch, Sun-shroom production, and Scaredy-shroom shooting. Sun-shroom growth and Scaredy-shroom near-enemy stop-fire remain precision gaps.",
+      "description": "PVZ1 Batch C validation: Puff/Fume spawn path, Ice/Doom on-place damage, Grave Buster tombstone targeting, Coffee Bean targeted wake, Fume-shroom pierce, Hypno team switch, Sun-shroom production/growth state, Scaredy-shroom shooting, and Scaredy-shroom near-enemy stop-fire. Sun-shroom long-duration growth-to-25-sun output remains a precision validation gap.",
       "validations": [
         "plant_original_batch_c_validation",
         "plant_original_gravebuster_validation",
@@ -122,18 +122,20 @@
         "plant_original_fumeshroom_pierce_validation",
         "plant_original_hypnoshroom_validation",
         "plant_original_sunshroom_validation",
-        "plant_original_scaredyshroom_validation"
+        "plant_original_scaredyshroom_validation",
+        "plant_original_scaredyshroom_cower_validation"
       ],
       "showcases": []
     },
     {
       "id": "original_plants_batch_d",
-      "description": "PVZ1 Batch D validation: Threepeater multi-lane, Spikeweed ground_damage, Torchwood path, Split Pea dual direction, Starfruit multi-angle, Cactus air target, Blover air-only dispel, Magnet metal targeting, Lily Pad/Sea-shroom water placement, Sea-shroom wake/damage, Tangle Kelp lethal consume, and Plantern reveal are behavior checks. Exact Tangle Kelp drag animation and full fog/visibility systems remain out of scope for the minimal formal semantics.",
+      "description": "PVZ1 Batch D validation: Threepeater multi-lane, Spikeweed ground_damage, Torchwood path, Split Pea dual direction, Starfruit multi-angle, Cactus air target plus air/ground switch, Blover air-only dispel, Magnet metal targeting, Lily Pad/Sea-shroom water placement, Sea-shroom wake/damage, Tangle Kelp lethal consume, and Plantern reveal are behavior checks. Exact Tangle Kelp drag animation and full fog/visibility systems remain out of scope for the minimal formal semantics.",
       "validations": [
         "plant_original_batch_d_validation",
         "plant_original_splitpea_validation",
         "plant_original_starfruit_validation",
         "plant_original_cactus_validation",
+        "plant_original_cactus_switch_validation",
         "plant_original_blover_validation",
         "plant_original_magnetshroom_validation",
         "plant_original_water_pair_validation",
@@ -144,7 +146,7 @@
     },
     {
       "id": "original_plants_batch_e",
-      "description": "PVZ1 Batch E mechanism-first coverage: 11/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output, available upgrade placement dependencies, and existing E-resource single-plant validations are covered. Remaining work is Garlic, Umbrella Leaf, Imitater, Cob Cannon multi-slot occupancy/manual firing, and full coin/silver economy.",
+      "description": "PVZ1 Batch E mechanism-first coverage: 11/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output, Gold Magnet coin-generated collectible collection, Cattail global tracking with air priority, Cob Cannon two-Kernel-pult footprint plus manual aimed area damage, available upgrade placement dependencies, and existing E-resource single-plant validations are covered. Remaining work is Garlic, Umbrella Leaf, Imitater, Cob Cannon projectile/reload precision, and full coin/silver/gold source taxonomy.",
       "validations": [
         "plant_original_kernelpult_validation",
         "plant_original_marigold_validation",
@@ -153,9 +155,11 @@
         "plant_original_e_upgrade_placement_validation",
         "plant_original_gloomshroom_validation",
         "plant_original_cattail_validation",
+        "plant_original_cattail_priority_validation",
         "plant_original_wintermelon_validation",
         "plant_original_spikerock_validation",
-        "plant_original_goldmagnet_validation"
+        "plant_original_goldmagnet_validation",
+        "plant_original_cobcannon_validation"
       ],
       "showcases": []
     },

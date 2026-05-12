@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.cactus.air_target"
+display_name = "Original Cactus Air Target"
+family = &"Trigger"
+type_id = &"core.periodic"
+priority = 10
+tags = PackedStringArray("original", "cactus", "air")
+params = {
+"binding_group": &"cactus_air",
+"detection_id": &"lane_forward",
+"interval": 1.5,
+"range_mode": &"full_lane",
+"start_delay": 0.2,
+"target_tags": PackedStringArray("air")
+}

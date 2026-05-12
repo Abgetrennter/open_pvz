@@ -19,7 +19,6 @@ max_health = 300
 hitbox_size = Vector2(48, 56)
 default_params = {
 "amount": 1800,
-"radius_slots": 0.666667,
-"target_mode": &"enemies_in_radius"
+"radius_slots": 0.666667
 }
 mechanics = [ExtResource("2_trigger"), ExtResource("3_payload"), ExtResource("5_digest")]

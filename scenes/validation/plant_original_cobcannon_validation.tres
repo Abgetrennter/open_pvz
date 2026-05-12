@@ -1,0 +1,193 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=27 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="5_card_def"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_manual_aim_lane_battle.tres" id="6_mode"]
+[ext_resource type="Resource" path="res://data/combat/modes/objective_score_1.tres" id="7_objective"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_mode_input_request.gd" id="8_mode_input"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="9_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_kernelpult.tres" id="10_kernel_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_cobcannon.tres" id="11_cob_card"]
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 544.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
+[sub_resource type="Resource" id="Req_kernel_primary"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_kernelpult"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Card_kernel_neighbor"]
+script = ExtResource("5_card_def")
+card_id = &"card_original_kernelpult_neighbor"
+display_name = "Kernel-pult Neighbor"
+archetype_id = &"archetype_original_kernelpult"
+sun_cost = 100
+cooldown_seconds = 7.5
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="Req_kernel_neighbor"]
+script = ExtResource("3_request")
+at_time = 0.05
+card_id = &"card_original_kernelpult_neighbor"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Req_cob"]
+script = ExtResource("3_request")
+at_time = 0.1
+card_id = &"card_original_cobcannon"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="ModeInput_select_cob"]
+script = ExtResource("8_mode_input")
+at_time = 0.4
+action_name = &"entity_click"
+entity_archetype_id = &"archetype_original_cobcannon"
+
+[sub_resource type="Resource" id="ModeInput_fire_cob"]
+script = ExtResource("8_mode_input")
+at_time = 0.6
+action_name = &"cell_click"
+lane_id = 0
+slot_index = 4
+
+[sub_resource type="Resource" id="RuleModule_manual_cob"]
+script = ExtResource("9_rule_module")
+module_id = &"manual_entity_skill"
+display_name = "Manual Cob Cannon Skill"
+enabled = true
+priority = 100
+params = {
+"allowed_archetype_ids": PackedStringArray("archetype_original_cobcannon"),
+"damage": 1800,
+"damage_tags": PackedStringArray("manual_skill", "cobcannon", "explode"),
+"radius_slots": 1.5,
+"reload_seconds": 3.0,
+"skill_type": &"area_damage",
+"target_team": &"zombie"
+}
+tags = PackedStringArray("rule", "skill", "manual", "cobcannon")
+
+[sub_resource type="Resource" id="Rule_cob_primary_replace"]
+script = ExtResource("4_rule")
+rule_id = &"cob_primary_kernel_replace"
+description = "Cob Cannon should replace the clicked Kernel-pult."
+event_name = &"entity.replaced"
+required_core_values = {
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_kernelpult",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_original_cobcannon",
+"replacement_role": &"upgrade",
+"slot_index": 0
+}
+
+[sub_resource type="Resource" id="Rule_cob_adjacent_replace"]
+script = ExtResource("4_rule")
+rule_id = &"cob_adjacent_kernel_replace"
+description = "Cob Cannon should consume the adjacent Kernel-pult as part of its two-slot footprint."
+event_name = &"entity.replaced"
+required_core_values = {
+"reason": &"upgrade_replacement",
+"replaced_archetype_id": &"archetype_original_kernelpult",
+"replaced_role": &"primary",
+"replacement_archetype_id": &"archetype_original_cobcannon",
+"replacement_role": &"upgrade",
+"slot_index": 1
+}
+
+[sub_resource type="Resource" id="Rule_cob_selection"]
+script = ExtResource("4_rule")
+rule_id = &"cob_manual_selection"
+description = "Manual aim mode should select the spawned Cob Cannon."
+event_name = &"battle.mode_selection_changed"
+required_core_values = {
+"module_id": &"manual_entity_skill"
+}
+
+[sub_resource type="Resource" id="Rule_cob_manual_applied"]
+script = ExtResource("4_rule")
+rule_id = &"cob_manual_applied"
+description = "Manual aim mode should apply the Cob Cannon cell click through the mode module."
+event_name = &"battle.mode_rule_applied"
+required_core_values = {
+"module_id": &"manual_entity_skill",
+"source_event": &"input.action.cell_clicked",
+"target_lane_id": 0,
+"target_slot_index": 4,
+"score_key": &"score",
+"score_gain": 1,
+"current_score": 1
+}
+
+[sub_resource type="Resource" id="Rule_cob_fired"]
+script = ExtResource("4_rule")
+rule_id = &"cob_manual_fired"
+description = "Cob Cannon should emit a manual skill fired event and enter reload."
+event_name = &"entity.manual_skill_fired"
+required_tags = PackedStringArray("manual_skill", "cobcannon", "explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_cobcannon",
+"skill_type": &"area_damage",
+"target_lane_id": 0,
+"target_slot_index": 4,
+"damage": 1800,
+"hit_count": 1,
+"state_id": &"reloading"
+}
+
+[sub_resource type="Resource" id="Rule_cob_damage"]
+script = ExtResource("4_rule")
+rule_id = &"cob_manual_damage"
+description = "Cob Cannon manual skill should damage the aimed target area."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("manual_skill", "cobcannon", "explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_cobcannon",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_cob_kill"]
+script = ExtResource("4_rule")
+rule_id = &"cob_manual_kill"
+description = "Cob Cannon manual skill should kill the basic walker target."
+event_name = &"entity.died"
+required_tags = PackedStringArray("manual_skill", "cobcannon", "explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_cobcannon",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_cobcannon_validation"
+display_name = "Original Cob Cannon Validation"
+description = "Validates the first Cob Cannon mechanism loop: two Kernel-pult upgrade footprint plus one manual aimed area-damage shot."
+goals = PackedStringArray("Verify Cob Cannon consumes the clicked and adjacent Kernel-pults.", "Verify manual entity selection plus cell click fires Cob Cannon.", "Verify the manual shot damages the aimed target area and enters reload.")
+validation_time_limit = 1.5
+initial_sun = 2000
+lane_count = 1
+board_slot_count = 6
+mode_def = ExtResource("6_mode")
+objective_override = ExtResource("7_objective")
+mode_rule_modules = [SubResource("RuleModule_manual_cob")]
+card_defs = [ExtResource("10_kernel_card"), SubResource("Card_kernel_neighbor"), ExtResource("11_cob_card")]
+card_play_requests = [SubResource("Req_kernel_primary"), SubResource("Req_kernel_neighbor"), SubResource("Req_cob")]
+mode_input_requests = [SubResource("ModeInput_select_cob"), SubResource("ModeInput_fire_cob")]
+validation_rules = [SubResource("Rule_cob_primary_replace"), SubResource("Rule_cob_adjacent_replace"), SubResource("Rule_cob_selection"), SubResource("Rule_cob_manual_applied"), SubResource("Rule_cob_fired"), SubResource("Rule_cob_damage"), SubResource("Rule_cob_kill")]
+spawns = [SubResource("Spawn_target")]

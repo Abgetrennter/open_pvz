@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_cactus_air_lane"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_cactus"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_air_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 0
+x_position = 500.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_cactus_ground_lane"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_cactus"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_ground_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 1
+x_position = 500.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_air_damage"]
+script = ExtResource("3_rule")
+rule_id = &"cactus_air_lane_damage"
+description = "Cactus should damage an air target through the air spike path."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cactus",
+"target_archetype_id": &"archetype_air_scout",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_ground_damage"]
+script = ExtResource("3_rule")
+rule_id = &"cactus_ground_lane_damage"
+description = "Cactus should damage a ground target through the ground spike path."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_cactus",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 1
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_cactus_switch_validation"
+display_name = "Original Cactus Switch Validation"
+description = "Validates Cactus split air/ground target paths with separate projectile payloads."
+goals = PackedStringArray("Verify Cactus can hit air targets.", "Verify Cactus can also hit ground targets when no air target is present in lane.")
+validation_time_limit = 4.0
+lane_count = 2
+validation_rules = [SubResource("Rule_air_damage"), SubResource("Rule_ground_damage")]
+spawns = [SubResource("Spawn_cactus_air_lane"), SubResource("Spawn_air_target"), SubResource("Spawn_cactus_ground_lane"), SubResource("Spawn_ground_target")]

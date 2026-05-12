@@ -120,6 +120,8 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"range_mode": true,
 	"detection_id": true,
 	"target_tags": true,
+	"target_priority_tags": true,
+	"target_exclude_tags": true,
 	"required_state": true,
 	"arming_time": true,
 	"start_delay": true,
@@ -128,6 +130,7 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"interval_min": true,
 	"interval_max": true,
 	"value": true,
+	"value_by_state": true,
 	"source_type": true,
 	"offset_y": true,
 }
@@ -1292,10 +1295,10 @@ static func _normalize_param_value(value: Variant, param_def: Dictionary, errors
 		if float(normalized_value) > float(param_def["max"]):
 			errors.append("%s param %s must be <= %s." % [scope, param_name, str(param_def["max"])])
 	if param_def.has("options"):
-		var options := _variant_string_set(param_def["options"])
-		var option_value := String(normalized_value)
+		var options := _variant_option_key_set(param_def["options"])
+		var option_value := _variant_option_key(normalized_value)
 		if not options.has(option_value):
-			errors.append("%s param %s must be one of %s." % [scope, param_name, _join_strings(options)])
+			errors.append("%s param %s must be one of %s." % [scope, param_name, _join_strings(_variant_string_set(param_def["options"]))])
 
 	return normalized_value
 
@@ -1350,6 +1353,26 @@ static func _variant_string_set(values: Variant) -> Array[String]:
 		for value in values:
 			result.append(String(value))
 	return result
+
+
+static func _variant_option_key_set(values: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if values is PackedStringArray:
+		for value in values:
+			result.append(_variant_option_key(value))
+	elif values is Array:
+		for value in values:
+			result.append(_variant_option_key(value))
+	return result
+
+
+static func _variant_option_key(value: Variant) -> String:
+	var text := str(value)
+	if text.begins_with("&\"") and text.ends_with("\""):
+		return text.substr(2, text.length() - 3)
+	if text.begins_with("\"") and text.ends_with("\""):
+		return text.substr(1, text.length() - 2)
+	return text
 
 
 static func _join_strings(values: Array[String]) -> String:

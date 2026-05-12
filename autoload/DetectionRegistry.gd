@@ -128,7 +128,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -143,7 +143,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -155,7 +155,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 180.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -167,7 +167,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 4000.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets.slice(0, 1),
@@ -179,7 +179,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 64.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags)
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -193,6 +193,8 @@ func _scan_enemies(
 	scan_range: float,
 	direction: StringName = &"both",
 	target_tags: PackedStringArray = PackedStringArray(),
+	target_priority_tags: PackedStringArray = PackedStringArray(),
+	target_exclude_tags: PackedStringArray = PackedStringArray(),
 ) -> Array:
 	if source == null or not (source is Node2D):
 		return []
@@ -210,7 +212,10 @@ func _scan_enemies(
 		"center": source_position,
 		"radius": scan_range,
 		"tags_any": target_tags,
-		"filter": func(candidate): return candidate != source and candidate.has_method("take_damage") and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
+		"filter": func(candidate): return candidate != source \
+			and candidate.has_method("take_damage") \
+			and not _node_has_any_tag(candidate, target_exclude_tags) \
+			and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
 		"sort_by_distance": true,
 	}
 	if not lane_ids.is_empty():
@@ -220,7 +225,7 @@ func _scan_enemies(
 			query["x_min"] = source_position.x
 		&"backward":
 			query["x_max"] = source_position.x
-	return battle.call("spatial_query", query)
+	return _prioritize_targets_by_tags(battle.call("spatial_query", query), target_priority_tags)
 
 
 func _node_ground_position(node: Node) -> Vector2:
@@ -246,6 +251,53 @@ func _resolve_target_tags(params: Dictionary) -> PackedStringArray:
 	if raw is Array:
 		return PackedStringArray(raw)
 	return PackedStringArray()
+
+
+func _resolve_target_priority_tags(params: Dictionary) -> PackedStringArray:
+	var raw: Variant = params.get("target_priority_tags", PackedStringArray())
+	if raw is PackedStringArray:
+		return PackedStringArray(raw)
+	if raw is Array:
+		return PackedStringArray(raw)
+	return PackedStringArray()
+
+
+func _resolve_target_exclude_tags(params: Dictionary) -> PackedStringArray:
+	var raw: Variant = params.get("target_exclude_tags", PackedStringArray())
+	if raw is PackedStringArray:
+		return PackedStringArray(raw)
+	if raw is Array:
+		return PackedStringArray(raw)
+	return PackedStringArray()
+
+
+func _prioritize_targets_by_tags(targets: Array, priority_tags: PackedStringArray) -> Array:
+	if priority_tags.is_empty() or targets.is_empty():
+		return targets
+	var prioritized: Array = []
+	var remaining: Array = []
+	for target in targets:
+		if _node_has_any_tag(target, priority_tags):
+			prioritized.append(target)
+		else:
+			remaining.append(target)
+	prioritized.append_array(remaining)
+	return prioritized
+
+
+func _node_has_any_tag(node: Node, tags: PackedStringArray) -> bool:
+	if node == null or tags.is_empty():
+		return false
+	var raw_tags: Variant = node.get("tags")
+	var node_tags := PackedStringArray()
+	if raw_tags is PackedStringArray:
+		node_tags = PackedStringArray(raw_tags)
+	elif raw_tags is Array:
+		node_tags = PackedStringArray(raw_tags)
+	for tag in tags:
+		if node_tags.has(StringName(tag)):
+			return true
+	return false
 
 
 func _resolve_scan_range(owner: Node, params: Dictionary, default_world: float) -> float:

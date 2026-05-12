@@ -1,0 +1,84 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="3_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/board_slot_config.gd" id="4_slot_config"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_lilypad.tres" id="6_lily_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_cattail.tres" id="7_cattail_card"]
+
+[sub_resource type="Resource" id="Water_slot"]
+script = ExtResource("4_slot_config")
+lane_id = 0
+slot_index = 0
+slot_type = &"water"
+placement_tags = PackedStringArray("water", "supports_water")
+
+[sub_resource type="Resource" id="Req_lily"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_lilypad"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_cattail"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_cattail"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_ground_close"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 300.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Spawn_air_far"]
+script = ExtResource("3_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 1
+x_position = 560.0
+spawn_overrides = {"move_speed": 0.0}
+
+[sub_resource type="Resource" id="Rule_air_priority_damage"]
+script = ExtResource("5_rule")
+rule_id = &"cattail_air_priority_damage"
+description = "Cattail should prioritize a farther air target over a closer ground target."
+event_name = &"entity.damaged"
+min_count = 2
+required_core_values = {
+"source_archetype_id": &"archetype_original_cattail",
+"target_archetype_id": &"archetype_air_scout",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_ground_not_first"]
+script = ExtResource("5_rule")
+rule_id = &"cattail_ground_not_first"
+description = "Cattail should not damage the closer ground target while the air target is available."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_original_cattail",
+"target_archetype_id": &"archetype_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_cattail_priority_validation"
+display_name = "Original Cattail Priority Validation"
+description = "Validates Cattail global tracking, air target priority, and two-shot burst cadence."
+goals = PackedStringArray("Verify Cattail can select targets outside its lane.", "Verify Cattail prioritizes air targets over closer ground targets.", "Verify Cattail emits two damaging shots in one attack cycle.")
+validation_time_limit = 3.0
+initial_sun = 1000
+lane_count = 2
+board_slot_count = 1
+board_slot_configs = [SubResource("Water_slot")]
+card_defs = [ExtResource("6_lily_card"), ExtResource("7_cattail_card")]
+card_play_requests = [SubResource("Req_lily"), SubResource("Req_cattail")]
+validation_rules = [SubResource("Rule_air_priority_damage"), SubResource("Rule_ground_not_first")]
+spawns = [SubResource("Spawn_ground_close"), SubResource("Spawn_air_far")]

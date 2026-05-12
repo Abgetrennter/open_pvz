@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
 [ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
 [ext_resource type="Resource" path="res://data/combat/cards/original/card_original_magnetshroom.tres" id="4_magnet_card"]
 [ext_resource type="Resource" path="res://data/combat/cards/original/card_original_goldmagnet.tres" id="5_gold_card"]
+[ext_resource type="Script" path="res://scripts/battle/sun_drop_entry.gd" id="6_sun_drop"]
 
 [sub_resource type="Resource" id="Req_magnet"]
 script = ExtResource("2_request")
@@ -19,6 +20,15 @@ at_time = 0.3
 card_id = &"card_original_goldmagnet"
 lane_id = 0
 slot_index = 0
+
+[sub_resource type="Resource" id="Drop_coin"]
+script = ExtResource("6_sun_drop")
+at_time = 0.6
+lane_id = 0
+x_position = 170.0
+value = 50
+source_type = &"coin_generated"
+auto_collect_delay = -1.0
 
 [sub_resource type="Resource" id="Rule_gold_accept"]
 script = ExtResource("3_rule")
@@ -42,16 +52,28 @@ required_core_values = {
 "replacement_archetype_id": &"archetype_original_goldmagnet"
 }
 
+[sub_resource type="Resource" id="Rule_gold_collect"]
+script = ExtResource("3_rule")
+rule_id = &"gold_collect"
+description = "Gold Magnet should collect coin-generated collectibles through its magnet controller."
+event_name = &"collectible.magnet_collected"
+required_core_values = {
+"collector_archetype_id": &"archetype_original_goldmagnet",
+"source_type": &"coin_generated",
+"value": 50
+}
+
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"plant_original_goldmagnet_validation"
 display_name = "Original Gold Magnet Validation"
-description = "Validates Gold Magnet's currently supported minimal semantics: upgrade placement over Magnet-shroom."
-goals = PackedStringArray("Verify Gold Magnet upgrades from Magnet-shroom.", "Keep full collectible attraction explicitly out of scope until the coin/silver economy is expanded.")
-validation_time_limit = 2.0
+description = "Validates Gold Magnet upgrade placement and its coin-generated collectible magnet controller."
+goals = PackedStringArray("Verify Gold Magnet upgrades from Magnet-shroom.", "Verify Gold Magnet collects coin-generated collectibles through the shared economy path.")
+validation_time_limit = 2.5
 initial_sun = 1000
 lane_count = 1
 board_slot_count = 1
+sun_drop_entries = [SubResource("Drop_coin")]
 card_defs = [ExtResource("4_magnet_card"), ExtResource("5_gold_card")]
 card_play_requests = [SubResource("Req_magnet"), SubResource("Req_gold")]
-validation_rules = [SubResource("Rule_gold_accept"), SubResource("Rule_gold_replace")]
+validation_rules = [SubResource("Rule_gold_accept"), SubResource("Rule_gold_replace"), SubResource("Rule_gold_collect")]

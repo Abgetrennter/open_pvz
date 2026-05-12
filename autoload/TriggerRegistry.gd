@@ -85,6 +85,12 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "target_tags",
 		"type": "packed_string_array",
+	}, {
+		"name": "target_priority_tags",
+		"type": "packed_string_array",
+	}, {
+		"name": "target_exclude_tags",
+		"type": "packed_string_array",
 	}]
 	periodically.id = &"periodically"
 	periodically.event_name = &"game.tick"
@@ -209,6 +215,8 @@ func _register_builtin_strategies() -> void:
 			"scan_range": float(condition_values.get("scan_range", 900.0)),
 			"range_mode": StringName(condition_values.get("range_mode", StringName())),
 			"target_tags": PackedStringArray(condition_values.get("target_tags", PackedStringArray())),
+			"target_priority_tags": PackedStringArray(condition_values.get("target_priority_tags", PackedStringArray())),
+			"target_exclude_tags": PackedStringArray(condition_values.get("target_exclude_tags", PackedStringArray())),
 		}
 		if condition_values.has("scan_range_slots"):
 			detection_params["scan_range_slots"] = float(condition_values.get("scan_range_slots"))

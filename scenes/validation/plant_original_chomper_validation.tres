@@ -15,6 +15,15 @@ spawn_overrides = {
 "move_speed": 0.0
 }
 
+[sub_resource type="Resource" id="Spawn_digest_guard"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_bucket_tank"
+lane_id = 0
+x_position = 360.0
+spawn_overrides = {
+"move_speed": 0.0
+}
+
 [sub_resource type="Resource" id="CardPlayRequest_chomper"]
 script = ExtResource("3_request")
 at_time = 0.1
@@ -25,25 +34,47 @@ slot_index = 1
 [sub_resource type="Resource" id="Rule_damage"]
 script = ExtResource("4_rule")
 rule_id = &"chomper_devour_damage"
-description = "Chomper should damage a nearby zombie through its devour payload"
+description = "Chomper should damage one nearby zombie through its devour payload"
 event_name = &"entity.damaged"
-required_tags = PackedStringArray("explode")
 required_core_values = {
 "source_archetype_id": &"archetype_original_chomper",
 "target_archetype_id": &"archetype_basic_walker",
 "target_lane": 0
 }
 
+[sub_resource type="Resource" id="Rule_digest_status"]
+script = ExtResource("4_rule")
+rule_id = &"chomper_digest_status"
+description = "Chomper should enter digesting status after a devour."
+event_name = &"entity.status_applied"
+required_core_values = {
+"source_archetype_id": &"archetype_original_chomper",
+"target_archetype_id": &"archetype_original_chomper",
+"status_id": &"digesting"
+}
+
+[sub_resource type="Resource" id="Rule_digest_blocks_second"]
+script = ExtResource("4_rule")
+rule_id = &"chomper_digest_blocks_second_target"
+description = "Digesting Chomper should not immediately devour a second nearby target."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_original_chomper",
+"target_archetype_id": &"archetype_bucket_tank"
+}
+
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"plant_original_chomper_validation"
 display_name = "Original Chomper Validation"
-description = "Validates Chomper near-target devour damage through the original card path."
-goals = PackedStringArray("Verify Chomper is placed from its original card.", "Verify Chomper damages a nearby zombie through devour payload.")
+description = "Validates Chomper near-target devour damage and digesting stop-fire state through the original card path."
+goals = PackedStringArray("Verify Chomper is placed from its original card.", "Verify Chomper damages one nearby zombie through devour payload.", "Verify Chomper enters digesting status and does not immediately devour a second target.")
 validation_time_limit = 1.5
 initial_sun = 500
 lane_count = 1
 card_defs = [ExtResource("5_card")]
 card_play_requests = [SubResource("CardPlayRequest_chomper")]
-validation_rules = [SubResource("Rule_damage")]
-spawns = [SubResource("Spawn_target")]
+validation_rules = [SubResource("Rule_damage"), SubResource("Rule_digest_status"), SubResource("Rule_digest_blocks_second")]
+spawns = [SubResource("Spawn_target"), SubResource("Spawn_digest_guard")]

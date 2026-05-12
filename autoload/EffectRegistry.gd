@@ -365,7 +365,7 @@ func _register_builtin_defs() -> void:
 		"name": "duration",
 		"type": "float",
 		"min": 0.1,
-		"max": 30.0,
+		"max": 60.0,
 		"default": 2.0,
 	}, {
 		"name": "movement_scale",
@@ -459,6 +459,10 @@ func _register_builtin_defs() -> void:
 		"min": -200.0,
 		"max": 200.0,
 		"default": -36.0,
+	}, {
+		"name": "value_by_state",
+		"type": "dictionary",
+		"default": {},
 	}]
 	produce_sun.param_defs = produce_sun_param_defs
 	produce_sun.allow_extra_params = false
@@ -812,7 +816,7 @@ func _register_builtin_strategies() -> void:
 			result.notes.append("No economy state available.")
 			return result
 
-		var value := int(params.get("value", 25))
+		var value := _resolve_produce_sun_value(context.owner_entity, params)
 		var source_type := StringName(params.get("source_type", &"plant_generated"))
 		var offset_y := float(params.get("offset_y", -36.0))
 		var spawn_pos: Vector2 = context.position + Vector2(0.0, offset_y)
@@ -1030,6 +1034,31 @@ func _resolve_detected_targets(context) -> Array:
 		"filter": func(candidate):
 			return candidate != null and candidate.has_method("get_entity_id") and id_lookup.has(int(candidate.call("get_entity_id"))),
 	})
+
+
+func _resolve_produce_sun_value(owner: Node, params: Dictionary) -> int:
+	var default_value := int(params.get("value", 25))
+	var raw_values: Variant = params.get("value_by_state", {})
+	if not (raw_values is Dictionary):
+		return default_value
+	var value_by_state := Dictionary(raw_values)
+	if value_by_state.is_empty() or owner == null or not is_instance_valid(owner):
+		return default_value
+	var state_id := StringName()
+	if owner.has_method("get_state_value"):
+		state_id = StringName(owner.call("get_state_value", &"state_stage", StringName()))
+	else:
+		var state_ref: Variant = owner.get("entity_state")
+		if state_ref != null and state_ref.has_method("get_value"):
+			state_id = StringName(state_ref.call("get_value", &"state_stage", StringName()))
+	if state_id == StringName():
+		return default_value
+	if value_by_state.has(state_id):
+		return int(value_by_state[state_id])
+	var state_key := String(state_id)
+	if value_by_state.has(state_key):
+		return int(value_by_state[state_key])
+	return default_value
 
 
 func _resolve_shuffle_projectile_params(context, params: Dictionary) -> Dictionary:

@@ -47,6 +47,8 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.sweep": &"Controller",
 		&"core.ground_damage": &"Controller",
 		&"core.projectile_transform": &"Controller",
+		&"core.collectible_magnet": &"Controller",
+		&"core.proximity_liveness": &"Controller",
 		&"core.arming": &"State",
 		&"core.growth": &"State",
 		&"core.rage": &"State",
@@ -427,6 +429,8 @@ const _TARGETING_CONDITION_KEYS: Dictionary = {
 	&"required_state": true,
 	&"start_delay": true,
 	&"target_tags": true,
+	&"target_priority_tags": true,
+	&"target_exclude_tags": true,
 }
 
 
@@ -692,6 +696,20 @@ static func _build_controller_spec_inline(archetype, mechanic) -> Dictionary:
 		&"core.projectile_transform":
 			return {
 				"controller_id": &"core.projectile_transform",
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"params": Dictionary(mechanic.params).duplicate(true),
+			}
+		&"core.collectible_magnet":
+			return {
+				"controller_id": &"core.collectible_magnet",
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"params": Dictionary(mechanic.params).duplicate(true),
+			}
+		&"core.proximity_liveness":
+			return {
+				"controller_id": &"core.proximity_liveness",
 				"mechanic_id": mechanic.mechanic_id,
 				"source_archetype_id": archetype.archetype_id,
 				"params": Dictionary(mechanic.params).duplicate(true),

@@ -612,6 +612,12 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_scaredyshroom_cower_validation",
+    "scenario": "res://scenes/validation/plant_original_scaredyshroom_cower_validation.tres",
+    "description": "Validates Scaredy-shroom near-enemy cower liveness and stop-fire behavior.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_seashroom_validation",
     "scenario": "res://scenes/validation/plant_original_seashroom_validation.tres",
     "description": "Validates Sea-shroom water placement, wake flow, and short-range damage.",
@@ -639,6 +645,12 @@
     "id": "plant_original_cactus_validation",
     "scenario": "res://scenes/validation/plant_original_cactus_validation.tres",
     "description": "Validates Cactus air-target projectile path.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_cactus_switch_validation",
+    "scenario": "res://scenes/validation/plant_original_cactus_switch_validation.tres",
+    "description": "Validates Cactus split air and ground target projectile paths.",
     "layers": ["core"]
   },
   {
@@ -714,6 +726,12 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_cattail_priority_validation",
+    "scenario": "res://scenes/validation/plant_original_cattail_priority_validation.tres",
+    "description": "Validates Cattail global tracking, air priority, and two-shot burst cadence.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_wintermelon_validation",
     "scenario": "res://scenes/validation/plant_original_wintermelon_validation.tres",
     "description": "Validates Winter Melon upgrade placement and terminal blast damage.",
@@ -729,6 +747,12 @@
     "id": "plant_original_goldmagnet_validation",
     "scenario": "res://scenes/validation/plant_original_goldmagnet_validation.tres",
     "description": "Validates Gold Magnet upgrade placement over Magnet-shroom.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_cobcannon_validation",
+    "scenario": "res://scenes/validation/plant_original_cobcannon_validation.tres",
+    "description": "Validates Cob Cannon two-Kernel-pult upgrade footprint and one manual aimed area-damage shot.",
     "layers": ["core"]
   },
   {

@@ -456,12 +456,21 @@ func _resolve_upgrade_replacement_targets(slot, request: Resource, placement_rol
 
 	var targets: Array = []
 	var used_roles: Dictionary = {}
+	var used_slot_roles: Dictionary = {}
 	for required_arch in required_archetypes:
 		var target := _find_upgrade_replacement_target(slot, StringName(required_arch), used_roles)
 		if target.is_empty():
 			return []
 		used_roles[StringName(target.get("role", StringName()))] = true
+		used_slot_roles[_target_slot_role_key(target)] = true
 		targets.append(target)
+	var required_adjacent_archetypes := PackedStringArray(constraints.get("required_adjacent_archetypes", PackedStringArray()))
+	for required_adjacent_arch in required_adjacent_archetypes:
+		var adjacent_target := _find_adjacent_upgrade_replacement_target(slot, StringName(required_adjacent_arch), used_slot_roles)
+		if adjacent_target.is_empty():
+			return []
+		used_slot_roles[_target_slot_role_key(adjacent_target)] = true
+		targets.append(adjacent_target)
 	return targets
 
 
@@ -479,6 +488,7 @@ func _find_upgrade_replacement_target(slot, archetype_id: StringName, used_roles
 		if StringName(occupant.get("archetype_id")) != archetype_id:
 			continue
 		return {
+			"slot": slot,
 			"role": role,
 			"entity": occupant,
 			"granted_tags": slot.get_role_granted_tags(role),
@@ -486,9 +496,59 @@ func _find_upgrade_replacement_target(slot, archetype_id: StringName, used_roles
 	return {}
 
 
+func _find_adjacent_upgrade_replacement_target(slot, archetype_id: StringName, used_slot_roles: Dictionary) -> Dictionary:
+	if slot == null or archetype_id == StringName():
+		return {}
+	for offset in [1, -1]:
+		var adjacent_slot = _resolve_slot(int(slot.lane_id), int(slot.slot_index) + int(offset))
+		if adjacent_slot == null:
+			continue
+		for role in _upgrade_replacement_candidate_roles():
+			var slot_role_key := _slot_role_key(adjacent_slot, role)
+			if bool(used_slot_roles.get(slot_role_key, false)):
+				continue
+			var occupant: Node = adjacent_slot.get_role_occupant(role)
+			if occupant == null or not is_instance_valid(occupant):
+				continue
+			if not occupant.has_method("get"):
+				continue
+			if StringName(occupant.get("archetype_id")) != archetype_id:
+				continue
+			return {
+				"slot": adjacent_slot,
+				"role": role,
+				"entity": occupant,
+				"granted_tags": adjacent_slot.get_role_granted_tags(role),
+			}
+	return {}
+
+
+func _target_slot_role_key(target: Dictionary) -> String:
+	return _slot_role_key(target.get("slot", null), StringName(target.get("role", StringName())))
+
+
+func _slot_role_key(slot, role: StringName) -> String:
+	if slot == null:
+		return "none:%s" % String(role)
+	return "%d:%d:%s" % [int(slot.lane_id), int(slot.slot_index), String(role)]
+
+
 func _replacement_targets_include_role(targets: Array, role: StringName) -> bool:
 	for target in targets:
 		if target is Dictionary and StringName(Dictionary(target).get("role", StringName())) == role:
+			return true
+	return false
+
+
+func _replacement_targets_include_slot_entity(targets: Array, slot, entity: Node) -> bool:
+	if slot == null or entity == null or not is_instance_valid(entity):
+		return false
+	for target in targets:
+		if not (target is Dictionary):
+			continue
+		var target_slot = Dictionary(target).get("slot", slot)
+		var target_entity: Node = Dictionary(target).get("entity", null)
+		if target_slot == slot and target_entity == entity:
 			return true
 	return false
 
@@ -513,14 +573,25 @@ func _replace_occupants(
 			return false
 		var target_role := StringName(Dictionary(target).get("role", StringName()))
 		var target_entity: Node = Dictionary(target).get("entity", null)
+		var target_slot = Dictionary(target).get("slot", slot)
 		if target_role == StringName() or target_entity == null or not is_instance_valid(target_entity):
+			return false
+		if target_slot == null:
+			return false
+		var existing_replacement_role: Node = target_slot.get_role_occupant(replacement_role)
+		if (
+			existing_replacement_role != null
+			and existing_replacement_role != replacement_entity
+			and not _replacement_targets_include_slot_entity(replacement_targets, target_slot, existing_replacement_role)
+		):
 			return false
 		for tag in PackedStringArray(Dictionary(target).get("granted_tags", PackedStringArray())):
 			if not inherited_tags.has(tag):
 				inherited_tags.append(tag)
 
 	for target in replacement_targets:
-		slot.remove_role_occupant(StringName(Dictionary(target).get("role", StringName())))
+		var target_slot = Dictionary(target).get("slot", slot)
+		target_slot.remove_role_occupant(StringName(Dictionary(target).get("role", StringName())))
 
 	var merged_granted_tags := PackedStringArray(replacement_granted_tags)
 	for tag in inherited_tags:
@@ -528,13 +599,20 @@ func _replace_occupants(
 			merged_granted_tags.append(tag)
 	slot.add_role_occupant(replacement_role, replacement_entity, merged_granted_tags)
 	_bind_replacement_entity_state(slot, replacement_entity, replacement_role)
+	for target in replacement_targets:
+		var target_slot = Dictionary(target).get("slot", slot)
+		if target_slot == slot:
+			continue
+		target_slot.add_role_occupant(replacement_role, replacement_entity, merged_granted_tags)
+		_bind_replacement_footprint_state(replacement_entity, replacement_targets)
 
 	for target in replacement_targets:
 		var replaced_entity: Node = Dictionary(target).get("entity", null)
 		var replaced_role := StringName(Dictionary(target).get("role", StringName()))
+		var target_slot = Dictionary(target).get("slot", slot)
 		if replaced_entity == null or not is_instance_valid(replaced_entity):
 			continue
-		_emit_entity_replaced(slot, replaced_entity, replaced_role, replacement_entity, replacement_role, reason, source_id)
+		_emit_entity_replaced(target_slot, replaced_entity, replaced_role, replacement_entity, replacement_role, reason, source_id)
 		if replaced_entity.has_method("set_status"):
 			replaced_entity.call("set_status", reason)
 		replaced_entity.queue_free()
@@ -547,6 +625,20 @@ func _bind_replacement_entity_state(slot, entity: Node, placement_role: StringNa
 	if entity.has_method("set_state_value"):
 		entity.call("set_state_value", &"slot_index", int(slot.slot_index))
 		entity.call("set_state_value", &"placement_role", placement_role)
+
+
+func _bind_replacement_footprint_state(entity: Node, replacement_targets: Array) -> void:
+	if entity == null or not is_instance_valid(entity) or not entity.has_method("set_state_value"):
+		return
+	var footprint_slots := PackedStringArray()
+	for target in replacement_targets:
+		if not (target is Dictionary):
+			continue
+		var target_slot = Dictionary(target).get("slot", null)
+		if target_slot == null:
+			continue
+		footprint_slots.append("%d:%d" % [int(target_slot.lane_id), int(target_slot.slot_index)])
+	entity.call("set_state_value", &"footprint_slots", footprint_slots)
 
 
 func _emit_entity_replaced(

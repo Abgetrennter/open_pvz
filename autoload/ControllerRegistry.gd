@@ -41,6 +41,14 @@ func _register_builtin_defs() -> void:
 	projectile_transform_def.id = &"core.projectile_transform"
 	register_def(projectile_transform_def, {"kind": &"core", "source": &"core"})
 
+	var collectible_magnet_def = ControllerDefRef.new()
+	collectible_magnet_def.id = &"core.collectible_magnet"
+	register_def(collectible_magnet_def, {"kind": &"core", "source": &"core"})
+
+	var proximity_liveness_def = ControllerDefRef.new()
+	proximity_liveness_def.id = &"core.proximity_liveness"
+	register_def(proximity_liveness_def, {"kind": &"core", "source": &"core"})
+
 	_register_builtin_strategies()
 
 
@@ -172,6 +180,125 @@ func _register_builtin_strategies() -> void:
 		})
 		for child in projectiles:
 			child.call("modify", {"damage_multiplier": multipler})
+
+	_controller_strategies[&"core.collectible_magnet"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+		_process_collectible_magnet(owner, spec, delta, blackboard)
+
+	_controller_strategies[&"core.proximity_liveness"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+		_process_proximity_liveness(owner, spec, delta, blackboard)
+
+
+func _process_collectible_magnet(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+	if owner == null or not is_instance_valid(owner):
+		return
+	if not owner is Node2D:
+		return
+	if GameState.current_battle == null or not GameState.current_battle.has_method("get_economy_state"):
+		return
+	var economy: Node = GameState.current_battle.call("get_economy_state")
+	if economy == null or not is_instance_valid(economy):
+		return
+	var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
+	var interval: float = maxf(float(params.get("interval", 1.0)), 0.01)
+	var acc_time: float = float(blackboard.get("acc_time", 0.0)) + delta
+	if acc_time < interval:
+		blackboard["acc_time"] = acc_time
+		return
+	blackboard["acc_time"] = acc_time - interval
+	var collectible: Node = _find_collectible_magnet_target(owner as Node2D, economy, params)
+	if collectible == null:
+		return
+	var collected_value := int(collectible.get("sun_value"))
+	var source_type := StringName(collectible.get("source_type"))
+	var sun_id := int(collectible.get("sun_id"))
+	if not economy.call("collect_sun", collectible, owner):
+		return
+	var collected_event: Variant = EventDataRef.create(owner, collectible, collected_value, PackedStringArray(["collectible", "magnet"]))
+	collected_event.core["collector_id"] = int(owner.call("get_entity_id")) if owner.has_method("get_entity_id") else -1
+	collected_event.core["collector_archetype_id"] = StringName(owner.get("archetype_id")) if owner.get("archetype_id") != null else StringName()
+	collected_event.core["sun_id"] = sun_id
+	collected_event.core["source_type"] = source_type
+	collected_event.core["value"] = collected_value
+	EventBus.push_event(&"collectible.magnet_collected", collected_event)
+
+
+func _find_collectible_magnet_target(owner: Node2D, economy: Node, params: Dictionary) -> Node:
+	var active_suns: Dictionary = Dictionary(economy.get("active_suns")) if economy.get("active_suns") is Dictionary else {}
+	if active_suns.is_empty():
+		return null
+	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", "scan_range", 4000.0)
+	var allowed_source_types := _resolve_source_type_filter(params.get("source_types", PackedStringArray(["coin_generated"])))
+	var best_collectible: Node = null
+	var best_distance := INF
+	var best_sun_id := 9223372036854775807
+	for candidate in active_suns.values():
+		if candidate == null or not is_instance_valid(candidate):
+			continue
+		if not candidate is Node2D:
+			continue
+		if bool(candidate.get("collected")):
+			continue
+		var source_type := StringName(candidate.get("source_type"))
+		if not allowed_source_types.is_empty() and not allowed_source_types.has(source_type):
+			continue
+		var distance := owner.global_position.distance_to((candidate as Node2D).global_position)
+		if distance > scan_range:
+			continue
+		var sun_id := int(candidate.get("sun_id"))
+		if best_collectible == null or distance < best_distance or (is_equal_approx(distance, best_distance) and sun_id < best_sun_id):
+			best_collectible = candidate
+			best_distance = distance
+			best_sun_id = sun_id
+	return best_collectible
+
+
+func _process_proximity_liveness(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+	if owner == null or not is_instance_valid(owner):
+		return
+	if not owner is Node2D:
+		return
+	var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
+	var interval: float = maxf(float(params.get("interval", 0.1)), 0.01)
+	var acc_time: float = float(blackboard.get("acc_time", 0.0)) + delta
+	if acc_time < interval:
+		blackboard["acc_time"] = acc_time
+		return
+	blackboard["acc_time"] = acc_time - interval
+	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", "scan_range", 96.0)
+	var detection_id := StringName(params.get("detection_id", &"proximity"))
+	var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, owner, {
+		"scan_range": scan_range,
+		"target_tags": PackedStringArray(params.get("target_tags", PackedStringArray())),
+	})
+	var has_target := bool(detection_result.get("has_target", false))
+	var source_id := StringName(params.get("source_id", spec.get("mechanic_id", &"proximity_liveness")))
+	var active_state := StringName(params.get("active_state", &"active"))
+	var inactive_state := StringName(params.get("inactive_state", &"inactive"))
+	if has_target:
+		var profile: Dictionary = Dictionary(params.get("liveness_overrides", {})).duplicate(true)
+		if not profile.is_empty() and owner.has_method("push_liveness_override"):
+			owner.call("push_liveness_override", source_id, profile, 10)
+		if owner.has_method("set_state_value"):
+			owner.call("set_state_value", &"proximity_liveness_state", active_state)
+	else:
+		if owner.has_method("pop_liveness_override"):
+			owner.call("pop_liveness_override", source_id)
+		if owner.has_method("set_state_value"):
+			owner.call("set_state_value", &"proximity_liveness_state", inactive_state)
+
+
+func _resolve_source_type_filter(raw_value: Variant) -> Array[StringName]:
+	var resolved: Array[StringName] = []
+	if raw_value is PackedStringArray:
+		for source_type in PackedStringArray(raw_value):
+			resolved.append(StringName(source_type))
+	elif raw_value is Array:
+		for source_type in Array(raw_value):
+			resolved.append(StringName(source_type))
+	elif raw_value != null:
+		resolved.append(StringName(raw_value))
+	return resolved
+
 
 func _resolve_slots_distance(params: Dictionary, slots_key: String, legacy_key: String, default_world: float) -> float:
 	var metrics := _get_battlefield_metrics()
