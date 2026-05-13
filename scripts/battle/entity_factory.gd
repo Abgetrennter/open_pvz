@@ -21,28 +21,10 @@ const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_
 const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 const VisualActorComponentRef = preload("res://scripts/components/visual_actor_component.gd")
 
-const DEFAULT_TEMPLATE_CONFIG := {
-	&"plant": {
-		"max_health": 100,
-		"hitbox_size": Vector2(42.0, 54.0),
-		"trigger_component": true,
-		"movement_component": false,
-		"debug_view_component": true,
-	},
-	&"zombie": {
-		"max_health": 120,
-		"hitbox_size": Vector2(44.0, 60.0),
-		"trigger_component": true,
-		"movement_component": true,
-		"debug_view_component": false,
-	},
-	&"field_object": {
-		"max_health": -1,
-		"hitbox_size": Vector2(36.0, 36.0),
-		"trigger_component": false,
-		"movement_component": false,
-		"debug_view_component": true,
-	},
+const DEFAULT_COMPONENT_FLAGS := {
+	&"plant":        {"trigger_component": true, "movement_component": false, "debug_view_component": true},
+	&"zombie":       {"trigger_component": true, "movement_component": true,  "debug_view_component": false},
+	&"field_object": {"trigger_component": false, "movement_component": false, "debug_view_component": true},
 }
 const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"interval": true,
@@ -87,9 +69,7 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 		archetype_for_root = resolved_archetype
 	var entity = instantiate_entity(entity_kind, position, archetype_for_root, params)
 	if entity == null:
-		entity = _instantiate_builtin_entity(entity_kind, position, params, runtime_spec)
-		if entity == null:
-			return {}
+		return {}
 	if runtime_spec.source_archetype_id != StringName():
 		entity.set("archetype_id", runtime_spec.source_archetype_id)
 	entity.set("tags", PackedStringArray(runtime_spec.tags))
@@ -205,7 +185,7 @@ func _instantiate_field_object(template):
 func _ensure_archetype_components(entity: Node, entity_kind: StringName, template = null, params: Dictionary = {}) -> void:
 	if entity == null:
 		return
-	var config := _default_config_for_kind(entity_kind)
+	var config := _component_flags_for_kind(entity_kind)
 	if bool(config.get("trigger_component", false)):
 		_ensure_named_child(entity, "TriggerComponent", func(): return _make_trigger_component())
 	if bool(config.get("movement_component", false)):
@@ -219,28 +199,26 @@ func _ensure_archetype_components(entity: Node, entity_kind: StringName, templat
 	_ensure_required_archetype_components(entity, template)
 
 
-func _default_config_for_kind(entity_kind: StringName) -> Dictionary:
-	if DEFAULT_TEMPLATE_CONFIG.has(entity_kind):
-		return DEFAULT_TEMPLATE_CONFIG[entity_kind]
+func _component_flags_for_kind(entity_kind: StringName) -> Dictionary:
+	if DEFAULT_COMPONENT_FLAGS.has(entity_kind):
+		return DEFAULT_COMPONENT_FLAGS[entity_kind]
 	return {}
 
 
 func _resolve_max_health(entity_kind: StringName, template = null, params: Dictionary = {}) -> int:
-	var default_value := int(_default_config_for_kind(entity_kind).get("max_health", 100))
 	if params.has("max_health"):
-		return int(params.get("max_health", default_value))
+		return int(params.get("max_health", 100))
 	if template is CombatArchetypeRef and int(template.max_health) > 0:
 		return int(template.max_health)
-	return default_value
+	return 100
 
 
 func _resolve_hitbox_size(entity_kind: StringName, template = null, params: Dictionary = {}) -> Vector2:
-	var default_value: Variant = _default_config_for_kind(entity_kind).get("hitbox_size", Vector2(40.0, 40.0))
 	if params.has("hitbox_size") and params["hitbox_size"] is Vector2:
 		return params["hitbox_size"]
 	if template is CombatArchetypeRef and template.hitbox_size != Vector2.ZERO:
 		return template.hitbox_size
-	return default_value
+	return Vector2(40.0, 40.0)
 
 
 func _ensure_named_child(parent: Node, child_name: String, builder: Callable) -> Node:
@@ -640,30 +618,6 @@ func _make_minimal_archetype_for_root(runtime_spec) -> Resource:
 	archetype.hitbox_size = runtime_spec.hitbox_size
 	return archetype
 
-
-func _instantiate_builtin_entity(entity_kind: StringName, position: Vector2, params: Dictionary, runtime_spec) -> Node:
-	var entity = _instantiate_builtin_root(entity_kind, null)
-	if entity == null:
-		return null
-	if entity is Node2D:
-		(entity as Node2D).position = position
-	var resolved_max_health := int(runtime_spec.max_health) if runtime_spec.get("max_health") is int and int(runtime_spec.max_health) > 0 else int(_default_config_for_kind(entity_kind).get("max_health", 100))
-	if params.has("max_health"):
-		resolved_max_health = int(params["max_health"])
-	_ensure_health_component(entity, resolved_max_health)
-	var resolved_hitbox_size: Vector2 = runtime_spec.hitbox_size if runtime_spec.get("hitbox_size") is Vector2 and runtime_spec.hitbox_size != Vector2.ZERO else Vector2(_default_config_for_kind(entity_kind).get("hitbox_size", Vector2(40.0, 40.0)))
-	if params.has("hitbox_size") and params["hitbox_size"] is Vector2:
-		resolved_hitbox_size = params["hitbox_size"]
-	_ensure_passive_hitbox(entity, resolved_hitbox_size)
-	var trigger_config := _default_config_for_kind(entity_kind)
-	if bool(trigger_config.get("trigger_component", false)):
-		_ensure_named_child(entity, "TriggerComponent", func(): return _make_trigger_component())
-	if bool(trigger_config.get("movement_component", false)):
-		_ensure_named_child(entity, "MovementComponent", func(): return _make_movement_component())
-	if bool(trigger_config.get("debug_view_component", false)):
-		_ensure_named_child(entity, "DebugViewComponent", func(): return _make_debug_component())
-	_apply_entity_property_overrides(entity, params)
-	return entity
 
 
 func _try_mount_visual_actor(entity: Node, archetype) -> void:
