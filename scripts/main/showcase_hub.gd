@@ -260,6 +260,38 @@ const GROUPS := [
 			},
 		],
 	},
+	{
+		"group_title": "本地素材导入",
+		"group_summary": "仅用于本机私有解包素材的预览验证；场景动态读取 ignored 导入产物，不作为发布资源依赖。",
+		"color": Color("ba68c8"),
+		"items": [
+			{
+				"title": "Reanim 豌豆射手预览",
+				"summary": "加载 reanim_import_one.gd 生成的 Peashooter actor，并轮播 idle、shooting 等导入动画。",
+				"scene": "res://scenes/validation/visual_reanim_import_preview.tscn",
+			},
+			{
+				"title": "Reanim 实际尺寸参考",
+				"summary": "按原版 80 设计单位对齐 OpenPVZ 当前 80 world unit 格距，检查导入 actor 的真实战场占比。",
+				"scene": "res://scenes/validation/visual_reanim_actual_size_preview.tscn",
+			},
+			{
+				"title": "Reanim 实际演示",
+				"summary": "在 OpenPVZ 当前 5 lane / 9 slot 棋盘尺度下播放 idle 与 shooting，并按 slots/s 展示豌豆弹道。",
+				"scene": "res://scenes/validation/visual_reanim_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 向日葵实际演示",
+				"summary": "加载本地导入的 Sunflower actor，在实际棋盘尺度下循环 idle 并展示周期产阳视觉。",
+				"scene": "res://scenes/validation/visual_reanim_sunflower_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 三线射手实际演示",
+				"summary": "加载本地导入的 ThreePeater actor，复刻三头 attachment，并向上中下三条 lane 同步发射。",
+				"scene": "res://scenes/validation/visual_reanim_threepeater_actual_demo.tscn",
+			},
+		],
+	},
 ]
 
 var _root: VBoxContainer = null

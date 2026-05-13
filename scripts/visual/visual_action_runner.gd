@@ -21,7 +21,11 @@ func execute_action(action: Dictionary, event_data: Variant) -> void:
 	elif action_type == &"flash_actor":
 		_execute_flash_actor(action, event_data, cue_id, event_name, target, target_id)
 	elif action_type == &"play_actor_animation":
-		_execute_play_actor_animation(action, event_data, cue_id, event_name, target_id)
+		_execute_play_actor_animation(action, event_data, cue_id, event_name, target, target_id)
+	elif action_type == &"play_actor_action":
+		_execute_play_actor_action(action, event_data, cue_id, event_name, target, target_id)
+	elif action_type == &"play_actor_state":
+		_execute_play_actor_state(action, event_data, cue_id, event_name, target, target_id)
 	elif action_type == &"attach_fx":
 		_execute_attach_fx(action, event_data, cue_id, event_name, target_id)
 	elif action_type == &"screen_overlay":
@@ -167,16 +171,138 @@ func _restore_modulate(target: Node2D, original_modulate: Color) -> void:
 		target.modulate = original_modulate
 
 
-func _execute_play_actor_animation(action: Dictionary, _event_data: Variant, cue_id: StringName, event_name: StringName, target_id: int) -> void:
-	# v1: no animation system integration, log request only
+func _execute_play_actor_animation(action: Dictionary, _event_data: Variant, cue_id: StringName, event_name: StringName, target: Node, target_id: int) -> void:
+	_execute_visual_actor_command(
+		action,
+		cue_id,
+		event_name,
+		target,
+		target_id,
+		&"play_actor_animation",
+		[&"animation_name", &"animation"],
+		&"play_animation",
+		"animation_name is empty",
+		"animation '%s' is missing"
+	)
+
+
+func _execute_play_actor_action(action: Dictionary, _event_data: Variant, cue_id: StringName, event_name: StringName, target: Node, target_id: int) -> void:
+	_execute_visual_actor_command(
+		action,
+		cue_id,
+		event_name,
+		target,
+		target_id,
+		&"play_actor_action",
+		[&"action_name", &"action"],
+		&"play_action",
+		"action_name is empty",
+		"action '%s' is missing"
+	)
+
+
+func _execute_play_actor_state(action: Dictionary, _event_data: Variant, cue_id: StringName, event_name: StringName, target: Node, target_id: int) -> void:
+	_execute_visual_actor_command(
+		action,
+		cue_id,
+		event_name,
+		target,
+		target_id,
+		&"play_actor_state",
+		[&"state_id", &"state"],
+		&"play_state",
+		"state_id is empty",
+		"state '%s' is missing"
+	)
+
+
+func _execute_visual_actor_command(
+	action: Dictionary,
+	cue_id: StringName,
+	event_name: StringName,
+	target: Node,
+	target_id: int,
+	action_type: StringName,
+	value_keys: Array,
+	method_name: StringName,
+	empty_reason: String,
+	missing_template: String
+) -> void:
+	var command_name := _first_string_name(action, value_keys)
+	if command_name == StringName():
+		DebugService.record_visual_event({
+			"cue_id": cue_id,
+			"event_name": event_name,
+			"action_type": action_type,
+			"target_id": target_id,
+			"result": "skipped",
+			"skip_reason": empty_reason,
+		})
+		return
+
+	var visual_actor := _resolve_visual_actor(target, method_name)
+	if visual_actor == null:
+		DebugService.record_visual_event({
+			"cue_id": cue_id,
+			"event_name": event_name,
+			"action_type": action_type,
+			"target_id": target_id,
+			"result": "no_op",
+			"skip_reason": "visual actor component is missing",
+		})
+		return
+
+	var played: bool = visual_actor.call(method_name, command_name)
+	if played:
+		DebugService.record_visual_event({
+			"cue_id": cue_id,
+			"event_name": event_name,
+			"action_type": action_type,
+			"target_id": target_id,
+			"result": "executed",
+		})
+		return
+
 	DebugService.record_visual_event({
 		"cue_id": cue_id,
 		"event_name": event_name,
-		"action_type": &"play_actor_animation",
+		"action_type": action_type,
 		"target_id": target_id,
 		"result": "no_op",
-		"skip_reason": "animation player wiring not yet implemented",
+		"skip_reason": missing_template % String(command_name),
 	})
+
+
+func _first_string_name(action: Dictionary, keys: Array) -> StringName:
+	for key: Variant in keys:
+		var value_name := _action_value_as_string_name(action, key)
+		if value_name != StringName():
+			return value_name
+	return StringName()
+
+
+func _action_value_as_string_name(action: Dictionary, key: Variant) -> StringName:
+	var value: Variant = null
+	if action.has(key):
+		value = action[key]
+	else:
+		var string_key := str(key)
+		if action.has(string_key):
+			value = action[string_key]
+	if value == null:
+		return StringName()
+	if value is StringName:
+		return value
+	return StringName(str(value))
+
+
+func _resolve_visual_actor(target: Node, method_name: StringName) -> Node:
+	if target == null:
+		return null
+	var visual_actor: Node = target.get_node_or_null("VisualActorComponent")
+	if visual_actor != null and visual_actor.has_method(method_name):
+		return visual_actor
+	return null
 
 
 func _execute_attach_fx(action: Dictionary, _event_data: Variant, cue_id: StringName, event_name: StringName, target_id: int) -> void:

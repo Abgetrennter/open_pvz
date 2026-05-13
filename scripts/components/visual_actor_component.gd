@@ -61,6 +61,7 @@ func bind_profile(profile_def: Resource, owner: Node) -> void:
 		if _actor_root != null:
 			_actor_root.name = "ActorRoot"
 			add_child(_actor_root)
+			_apply_profile_transform()
 
 	# Subscribe to visual-relevant events
 	_subscribe_event(EVENT_DAMAGED)
@@ -71,9 +72,98 @@ func bind_profile(profile_def: Resource, owner: Node) -> void:
 	_is_projectile = _owner != null and StringName(_owner.get("entity_kind")) == &"projectile"
 	_setup_shadow_for_projectile()
 
+	play_state(&"idle")
+
 
 func get_actor_root() -> Node2D:
 	return _actor_root
+
+
+func play_animation(animation_name: StringName) -> bool:
+	if animation_name == StringName():
+		return false
+	if _actor_root == null:
+		return false
+
+	var actor_result := _call_actor_method(&"play_animation", [animation_name])
+	if bool(actor_result.get("handled", false)):
+		return true
+
+	var resolved_animation := _resolve_profile_animation_name(animation_name)
+	var anim_player: AnimationPlayer = _find_animation_player()
+	if anim_player == null:
+		return false
+
+	if not anim_player.has_animation(resolved_animation):
+		return false
+
+	anim_player.play(resolved_animation)
+	return true
+
+
+func play_state(state_id: StringName) -> bool:
+	if state_id == StringName():
+		return false
+
+	var actor_result := _call_actor_method(&"play_state", [state_id])
+	if bool(actor_result.get("handled", false)):
+		return true
+
+	if _profile_def == null:
+		return false
+	var state_anim_map := _get_profile_dictionary(&"state_animation_map")
+	var animation_name := _lookup_string_name(state_anim_map, state_id)
+	if animation_name == StringName():
+		return false
+	return play_animation(animation_name)
+
+
+func play_action(action_id: StringName) -> bool:
+	if action_id == StringName():
+		return false
+
+	var actor_result := _call_actor_method(&"play_action", [action_id])
+	if bool(actor_result.get("handled", false)):
+		return true
+
+	var action_anim_map := _get_profile_dictionary(&"action_animation_map")
+	var animation_name := _lookup_string_name(action_anim_map, action_id)
+	if animation_name == StringName():
+		animation_name = _resolve_profile_animation_name(action_id)
+	if animation_name == StringName():
+		animation_name = action_id
+	return play_animation(animation_name)
+
+
+func set_visual_speed(speed_scale: float) -> bool:
+	if _actor_root == null:
+		return false
+
+	var actor_result := _call_actor_method(&"set_visual_speed", [speed_scale])
+	if bool(actor_result.get("handled", false)):
+		return true
+
+	var anim_player: AnimationPlayer = _find_animation_player()
+	if anim_player == null:
+		return false
+	anim_player.speed_scale = speed_scale
+	return true
+
+
+func get_anchor(anchor_name: StringName) -> Node2D:
+	if anchor_name == StringName() or _actor_root == null:
+		return null
+
+	var actor_result := _call_actor_method(&"get_anchor", [anchor_name])
+	if bool(actor_result.get("handled", false)):
+		var result: Variant = actor_result.get("result", null)
+		if result is Node2D:
+			return result
+
+	var direct := _actor_root.get_node_or_null(NodePath(String(anchor_name))) as Node2D
+	if direct != null:
+		return direct
+	return _find_node2d_by_name(_actor_root, String(anchor_name))
 
 
 # ── Event subscription ──────────────────────────────────────────────
@@ -298,27 +388,67 @@ func _on_state_changed(event_data: Variant) -> void:
 	if state_id == StringName():
 		return
 
-	var state_anim_map: Dictionary = _profile_def.state_animation_map
-	if state_anim_map.is_empty():
+	play_state(state_id)
+
+
+func _apply_profile_transform() -> void:
+	if _actor_root == null or _profile_def == null:
 		return
 
-	var animation_name: StringName = state_anim_map.get(state_id, StringName())
-	if animation_name == StringName():
-		return
+	var default_scale_value: Variant = _profile_def.get("default_scale")
+	if default_scale_value is Vector2:
+		_actor_root.scale *= default_scale_value
 
-	_play_animation(animation_name)
+	var ground_offset_value: Variant = _profile_def.get("ground_offset")
+	if ground_offset_value is Vector2:
+		_actor_root.position += ground_offset_value
 
 
-func _play_animation(animation_name: StringName) -> void:
+func _call_actor_method(method_name: StringName, args: Array) -> Dictionary:
 	if _actor_root == null:
-		return
+		return {"handled": false, "result": null}
+	if not _actor_root.has_method(method_name):
+		return {"handled": false, "result": null}
 
-	var anim_player: AnimationPlayer = _find_animation_player()
-	if anim_player == null:
-		return
+	var result: Variant = _actor_root.callv(method_name, args)
+	if result is bool:
+		return {"handled": bool(result), "result": result}
+	return {"handled": true, "result": result}
 
-	if anim_player.has_animation(StringName(animation_name)):
-		anim_player.play(StringName(animation_name))
+
+func _resolve_profile_animation_name(animation_name: StringName) -> StringName:
+	if animation_name == StringName():
+		return StringName()
+	var animation_map := _get_profile_dictionary(&"animation_map")
+	return _lookup_string_name(animation_map, animation_name, animation_name)
+
+
+func _lookup_string_name(values: Dictionary, key: StringName, fallback: StringName = StringName()) -> StringName:
+	if values.is_empty():
+		return fallback
+	if values.has(key):
+		return _variant_to_string_name(values[key])
+	var string_key := String(key)
+	if values.has(string_key):
+		return _variant_to_string_name(values[string_key])
+	return fallback
+
+
+func _variant_to_string_name(value: Variant) -> StringName:
+	if value == null:
+		return StringName()
+	if value is StringName:
+		return value
+	return StringName(str(value))
+
+
+func _get_profile_dictionary(property_name: StringName) -> Dictionary:
+	if _profile_def == null:
+		return {}
+	var value: Variant = _profile_def.get(property_name)
+	if value is Dictionary:
+		return value
+	return {}
 
 
 func _find_animation_player() -> AnimationPlayer:
@@ -335,4 +465,16 @@ func _find_animation_player() -> AnimationPlayer:
 		if child is AnimationPlayer:
 			return child
 
+	return null
+
+
+func _find_node2d_by_name(root: Node, node_name: String) -> Node2D:
+	if root == null:
+		return null
+	for child: Node in root.get_children():
+		if child is Node2D and child.name == node_name:
+			return child
+		var found := _find_node2d_by_name(child, node_name)
+		if found != null:
+			return found
 	return null
