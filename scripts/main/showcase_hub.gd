@@ -291,6 +291,16 @@ const GROUPS := [
 				"scene": "res://scenes/validation/visual_reanim_gatlingpea_actual_demo.tscn",
 			},
 			{
+				"title": "Reanim Chomper 实际演示",
+				"summary": "加载 Chomper.reanim 生成的 composite actor，展示 bite、chew、swallow 的单体状态机式视觉流程。",
+				"scene": "res://scenes/validation/visual_reanim_chomper_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 胆小菇实际演示",
+				"summary": "加载 ScaredyShroom.reanim 生成的 composite actor，展示 sleep、grow、shooting、scared 与 scaredidle 形态变化。",
+				"scene": "res://scenes/validation/visual_reanim_scaredyshroom_actual_demo.tscn",
+			},
+			{
 				"title": "Reanim 向日葵实际演示",
 				"summary": "加载本地导入的 Sunflower actor，在实际棋盘尺度下循环 idle 并展示周期产阳视觉。",
 				"scene": "res://scenes/validation/visual_reanim_sunflower_actual_demo.tscn",

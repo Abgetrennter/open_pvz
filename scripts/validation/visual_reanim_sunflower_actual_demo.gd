@@ -32,6 +32,7 @@ var _idle_start_seconds := 0.0
 var _idle_end_seconds := 0.0
 var _idle_elapsed := 0.0
 var _head_sprite: Sprite2D = null
+var _blink_track_sprite: Sprite2D = null
 var _blink_sprite: Sprite2D = null
 var _blink1_texture: Texture2D = null
 var _blink2_texture: Texture2D = null
@@ -179,10 +180,15 @@ func _configure_blink_overlay() -> void:
 	if _actor == null:
 		return
 	_head_sprite = _actor.get_node_or_null("anim_idle") as Sprite2D
-	_blink_sprite = _actor.get_node_or_null("anim_blink") as Sprite2D
-	if _head_sprite == null or _blink_sprite == null:
+	_blink_track_sprite = _actor.get_node_or_null("anim_blink") as Sprite2D
+	if _head_sprite == null or _blink_track_sprite == null:
 		return
+	_blink_track_sprite.visible = false
+	_blink_sprite = Sprite2D.new()
+	_blink_sprite.name = "BlinkOverlay"
+	_blink_sprite.centered = false
 	_blink_sprite.visible = false
+	_actor.add_child(_blink_sprite)
 	_blink1_texture = _load_texture(BLINK1_TEXTURE_PATH)
 	_blink2_texture = _load_texture(BLINK2_TEXTURE_PATH)
 
@@ -207,7 +213,7 @@ func _show_blink_frame(texture: Texture2D, y_offset: float) -> void:
 		return
 	_blink_sprite.visible = true
 	_blink_sprite.position = _head_sprite.position + BLINK_HEAD_OFFSET + Vector2(0.0, y_offset)
-	_blink_sprite.scale = Vector2(_head_sprite.scale.x, _head_sprite.scale.x)
+	_blink_sprite.scale = _head_sprite.scale
 	_blink_sprite.rotation = _head_sprite.rotation
 	_blink_sprite.skew = _head_sprite.skew
 	_blink_sprite.self_modulate = Color.WHITE

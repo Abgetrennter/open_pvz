@@ -5,7 +5,7 @@ param(
 	[switch]$EnableRuntimeSnapshots,
 	[int]$RuntimeSnapshotInterval = 30,
 	[string[]]$Layers = @(),
-	[int]$MaxParallel = 0
+	[int]$MaxParallel = 8
 )
 
 function Get-EntryLayers {

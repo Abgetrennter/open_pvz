@@ -58,9 +58,19 @@ func _run() -> int:
 	_image_fallback_map = _build_case_insensitive_image_map(_args["image-root"])
 	_image_map = _parse_resources_xml(_args["resources"], _args["image-root"])
 
+	if _args.has("source-dir"):
+		return _run_report_batch(out_dir)
+
+	_reset_file_state()
 	var reanim := _parse_reanim(_args["source"])
 	if reanim.is_empty():
 		return 4
+
+	if _is_truthy(String(_args.get("report-only", "false"))):
+		var report_path := out_dir.path_join("semantic_report.json")
+		_save_json(report_path, _build_semantic_report(reanim))
+		print("Wrote reanim semantic report: %s" % report_path)
+		return 0
 
 	var actor := _build_actor_scene(reanim)
 	var actor_path := out_dir.path_join("actor.tscn")
@@ -78,6 +88,53 @@ func _run() -> int:
 
 	_save_report(out_dir.path_join("import_report.json"), actor_path, profile_path, reanim)
 	print("Imported reanim actor: %s" % actor_path)
+	return 0
+
+
+func _run_report_batch(out_dir: String) -> int:
+	var source_dir := _normalize_res_dir(String(_args["source-dir"]))
+	var sources := _list_reanim_sources(source_dir)
+	if sources.is_empty():
+		push_error("No .reanim files found under --source-dir: %s" % source_dir)
+		return 4
+
+	var entries: Array[Dictionary] = []
+	for source_path in sources:
+		_reset_file_state()
+		var reanim := _parse_reanim(source_path)
+		if reanim.is_empty():
+			entries.append({
+				"source": source_path,
+				"ok": false,
+				"error": "parse_failed",
+			})
+			continue
+
+		var report := _build_semantic_report(reanim)
+		var report_file := "%s.semantic_report.json" % source_path.get_file().get_basename()
+		var report_path := out_dir.path_join(report_file)
+		_save_json(report_path, report)
+		entries.append({
+			"source": source_path,
+			"ok": true,
+			"report": report_path,
+			"track_count": int(report["track_count"]),
+			"marker_track_count": int(report["marker_track_count"]),
+			"visual_layer_count": int(report["visual_layer_count"]),
+			"suspected_overlay_count": int(report["suspected_overlay_count"]),
+			"suspected_attachment_count": int(report["suspected_attachment_count"]),
+			"unresolved_layer_count": int(report["unresolved_layer_count"]),
+			"angle_warning_count": int(report["angle_warning_count"]),
+		})
+
+	var index_payload := {
+		"source_dir": source_dir,
+		"report_count": entries.size(),
+		"reports": entries,
+	}
+	var index_path := out_dir.path_join("semantic_report_index.json")
+	_save_json(index_path, index_payload)
+	print("Wrote %d reanim semantic reports: %s" % [entries.size(), index_path])
 	return 0
 
 
@@ -100,12 +157,29 @@ func _parse_args(raw_args: PackedStringArray) -> Dictionary:
 
 
 func _validate_args(args: Dictionary) -> bool:
-	for key in ["source", "image-root", "resources", "out-dir", "profile-id"]:
+	for key in ["image-root", "resources", "out-dir"]:
 		if not args.has(key) or String(args[key]).strip_edges() == "":
 			push_error("Missing required argument: --%s" % key)
 			return false
 
-	for file_key in ["source", "resources"]:
+	if not args.has("source") and not args.has("source-dir"):
+		push_error("Missing required argument: --source or --source-dir")
+		return false
+
+	if not _is_truthy(String(args.get("report-only", "false"))) and not args.has("source-dir"):
+		if not args.has("profile-id") or String(args["profile-id"]).strip_edges() == "":
+			push_error("Missing required argument: --profile-id")
+			return false
+
+	if args.has("source") and not FileAccess.file_exists(String(args["source"])):
+		push_error("File not found for --source: %s" % String(args["source"]))
+		return false
+
+	if args.has("source-dir") and not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(String(args["source-dir"]))):
+		push_error("Source directory not found: %s" % String(args["source-dir"]))
+		return false
+
+	for file_key in ["resources"]:
 		if not FileAccess.file_exists(String(args[file_key])):
 			push_error("File not found for --%s: %s" % [file_key, String(args[file_key])])
 			return false
@@ -120,6 +194,8 @@ func _validate_args(args: Dictionary) -> bool:
 func _print_usage() -> void:
 	print("Usage:")
 	print("  godot --headless --script res://tools/reanim_importer/reanim_import_one.gd -- --source <file.reanim> --image-root <res://dir> --resources <resources.xml> --out-dir <res://dir> --profile-id <id>")
+	print("  godot --headless --script res://tools/reanim_importer/reanim_import_one.gd -- --source <file.reanim> --image-root <res://dir> --resources <resources.xml> --out-dir <res://dir> --report-only true")
+	print("  godot --headless --script res://tools/reanim_importer/reanim_import_one.gd -- --source-dir <res://dir> --image-root <res://dir> --resources <resources.xml> --out-dir <res://dir>")
 
 
 func _normalize_res_dir(path: String) -> String:
@@ -127,6 +203,19 @@ func _normalize_res_dir(path: String) -> String:
 	if normalized.ends_with("/"):
 		normalized = normalized.substr(0, normalized.length() - 1)
 	return normalized
+
+
+func _is_truthy(value: String) -> bool:
+	var normalized := value.strip_edges().to_lower()
+	return normalized in ["1", "true", "yes", "on"]
+
+
+func _reset_file_state() -> void:
+	_loaded_textures = {}
+	_unresolved_textures = {}
+	_blend_modes = {}
+	_warnings = []
+	_verification = {}
 
 
 func _parse_resources_xml(resources_path: String, image_root: String) -> Dictionary:
@@ -316,22 +405,28 @@ func _append_visual_layer_animations(animations: Array[Dictionary], tracks: Arra
 func _derive_track_visible_range(track: Dictionary, frame_count: int) -> Dictionary:
 	var start_frame := -1
 	var end_frame := -1
+	var is_visible := true
 	for frame in track.get("frames", []):
 		var frame_dict: Dictionary = frame
 		var frame_index := int(frame_dict.get("frame", 0))
 		if not frame_dict.has("f"):
-			if start_frame != -1:
+			if is_visible:
+				if start_frame == -1:
+					start_frame = frame_index
 				end_frame = frame_index
 			continue
 
 		var visible_flag := String(frame_dict["f"])
 		if visible_flag == "0":
+			is_visible = true
 			if start_frame == -1:
 				start_frame = frame_index
 			end_frame = frame_index
-		elif visible_flag == "-1" and start_frame != -1:
-			end_frame = max(start_frame, frame_index - 1)
-			break
+		elif visible_flag == "-1":
+			is_visible = false
+			if start_frame != -1:
+				end_frame = max(start_frame, frame_index - 1)
+				break
 
 	if start_frame == -1:
 		return {}
@@ -424,11 +519,11 @@ func _add_track_animation(animation: Animation, track: Dictionary, node_name: St
 			continue
 		var time := float(frame_index - start_frame) / float(fps)
 		_insert_if_changed(animation, last_written, node_name, "visible", time, state["visible"], Animation.UPDATE_DISCRETE)
-		_insert_if_changed(animation, last_written, node_name, "position", time, state["position"], Animation.UPDATE_CONTINUOUS)
-		_insert_if_changed(animation, last_written, node_name, "scale", time, state["scale"], Animation.UPDATE_CONTINUOUS)
-		_insert_if_changed(animation, last_written, node_name, "rotation", time, state["rotation"], Animation.UPDATE_CONTINUOUS)
-		_insert_if_changed(animation, last_written, node_name, "skew", time, state["skew"], Animation.UPDATE_CONTINUOUS)
-		_insert_if_changed(animation, last_written, node_name, "self_modulate", time, state["self_modulate"], Animation.UPDATE_CONTINUOUS)
+		_insert_key(animation, node_name, "position", time, state["position"], Animation.UPDATE_CONTINUOUS)
+		_insert_key(animation, node_name, "scale", time, state["scale"], Animation.UPDATE_CONTINUOUS)
+		_insert_key(animation, node_name, "rotation", time, state["rotation"], Animation.UPDATE_CONTINUOUS)
+		_insert_key(animation, node_name, "skew", time, state["skew"], Animation.UPDATE_CONTINUOUS)
+		_insert_key(animation, node_name, "self_modulate", time, state["self_modulate"], Animation.UPDATE_CONTINUOUS)
 		_insert_if_changed(animation, last_written, node_name, "texture", time, state["texture"], Animation.UPDATE_DISCRETE)
 
 
@@ -451,11 +546,11 @@ func _apply_frame_state(state: Dictionary, frame: Dictionary) -> void:
 		state["scale"] = scale
 	var axis_angle := float(state["axis_angle"])
 	if frame.has("kx"):
-		var next_rotation := _degrees_to_radians_wrapped(float(frame["kx"]))
+		var next_rotation := _degrees_to_radians_continuous(float(frame["kx"]))
 		state["rotation"] = next_rotation
 		state["skew"] = axis_angle - next_rotation
 	if frame.has("ky"):
-		axis_angle = _degrees_to_radians_wrapped(float(frame["ky"]))
+		axis_angle = _degrees_to_radians_continuous(float(frame["ky"]))
 		state["axis_angle"] = axis_angle
 		state["skew"] = axis_angle - float(state["rotation"])
 	if frame.has("a"):
@@ -475,12 +570,16 @@ func _insert_if_changed(animation: Animation, last_written: Dictionary, node_nam
 	if last_written.has(last_key) and last_written[last_key] == value:
 		return
 	last_written[last_key] = value
+	_insert_key(animation, node_name, property_name, time, value, update_mode)
+
+
+func _insert_key(animation: Animation, node_name: String, property_name: String, time: float, value: Variant, update_mode: int) -> void:
 	var track_index := _ensure_value_track(animation, NodePath("%s:%s" % [node_name, property_name]), update_mode)
 	animation.track_insert_key(track_index, time, value)
 
 
-func _degrees_to_radians_wrapped(degrees: float) -> float:
-	return deg_to_rad(fmod(degrees, 360.0))
+func _degrees_to_radians_continuous(degrees: float) -> float:
+	return deg_to_rad(degrees)
 
 
 func _ensure_value_track(animation: Animation, path: NodePath, update_mode: int) -> int:
@@ -585,6 +684,477 @@ func _make_default_state_animation_map(animations: Array) -> Dictionary:
 	return result
 
 
+func _build_semantic_report(reanim: Dictionary) -> Dictionary:
+	var frame_count := int(reanim["frame_count"])
+	var marker_tracks: Array[Dictionary] = []
+	for marker in reanim["markers"]:
+		marker_tracks.append(_summarize_track_semantics(marker, "marker", frame_count))
+
+	var track_summaries: Array[Dictionary] = []
+	var visual_layers: Array[Dictionary] = []
+	var suspected_overlays: Array[Dictionary] = []
+	var suspected_attachments: Array[Dictionary] = []
+	var default_visible_segments: Array[Dictionary] = []
+	var unresolved_layers: Array[Dictionary] = []
+	var angle_warnings: Array[Dictionary] = []
+	var blend_modes_seen: Dictionary = {}
+	var texture_keys_seen: Dictionary = {}
+
+	for track in reanim["tracks"]:
+		var summary := _summarize_track_semantics(track, "track", frame_count)
+		track_summaries.append(summary)
+
+		if bool(summary["is_visual_layer"]):
+			visual_layers.append(_pick_track_summary_fields(summary))
+		if bool(summary["is_suspected_overlay"]):
+			suspected_overlays.append(_pick_track_summary_fields(summary))
+		if bool(summary["is_suspected_attachment"]):
+			suspected_attachments.append(_pick_track_summary_fields(summary))
+		if int(summary["unresolved_texture_count"]) > 0:
+			unresolved_layers.append(_pick_track_summary_fields(summary))
+
+		for segment in summary["visible_segments"]:
+			var segment_dict: Dictionary = segment
+			if bool(segment_dict.get("starts_from_default_visible", false)):
+				default_visible_segments.append({
+					"track": summary["name"],
+					"start_frame": int(segment_dict["start_frame"]),
+					"end_frame": int(segment_dict["end_frame"]),
+				})
+
+		for warning in summary["angle_warnings"]:
+			angle_warnings.append(warning)
+		for blend_mode in summary["blend_modes"]:
+			blend_modes_seen[String(blend_mode)] = true
+		for texture_key in summary["texture_keys"]:
+			texture_keys_seen[String(texture_key)] = true
+
+	var overlay_bindings := _infer_overlay_bindings(track_summaries)
+	var overlay_follow_warning_count := 0
+	for binding in overlay_bindings:
+		var binding_dict: Dictionary = binding
+		if String(binding_dict.get("recommended_parent_track", "")) != "":
+			overlay_follow_warning_count += 1
+
+	var animations: Array[Dictionary] = []
+	for animation_def in reanim["animations"]:
+		animations.append({
+			"name": String(animation_def.get("name", "")),
+			"start_frame": int(animation_def.get("start_frame", 0)),
+			"end_frame": int(animation_def.get("end_frame", 0)),
+			"source_track": String(animation_def.get("source_track", "")),
+			"source_kind": String(animation_def.get("source_kind", "marker")),
+		})
+
+	return {
+		"source": reanim["source"],
+		"fps": int(reanim["fps"]),
+		"frame_count": frame_count,
+		"track_count": int(reanim["tracks"].size() + reanim["markers"].size()),
+		"marker_track_count": marker_tracks.size(),
+		"visual_track_count": reanim["tracks"].size(),
+		"visual_layer_count": visual_layers.size(),
+		"suspected_overlay_count": suspected_overlays.size(),
+		"suspected_attachment_count": suspected_attachments.size(),
+		"default_visible_segment_count": default_visible_segments.size(),
+		"unresolved_layer_count": unresolved_layers.size(),
+		"angle_warning_count": angle_warnings.size(),
+		"overlay_binding_count": overlay_bindings.size(),
+		"overlay_follow_warning_count": overlay_follow_warning_count,
+		"marker_tracks": marker_tracks,
+		"track_summaries": track_summaries,
+		"visual_layers": visual_layers,
+		"suspected_overlays": suspected_overlays,
+		"suspected_attachments": suspected_attachments,
+		"overlay_bindings": overlay_bindings,
+		"default_visible_segments": default_visible_segments,
+		"unresolved_layers": unresolved_layers,
+		"angle_warnings": angle_warnings,
+		"animations": animations,
+		"texture_key_count": texture_keys_seen.size(),
+		"blend_modes_seen": blend_modes_seen.keys(),
+		"warnings": _warnings,
+	}
+
+
+func _summarize_track_semantics(track: Dictionary, kind: String, frame_count: int) -> Dictionary:
+	var track_name := String(track.get("name", ""))
+	var field_counts: Dictionary = {}
+	var texture_keys: Dictionary = {}
+	var unresolved_textures: Array[String] = []
+	var resolved_textures: Array[Dictionary] = []
+	var blend_modes: Dictionary = {}
+	var angle_warnings: Array[Dictionary] = []
+	var previous_angles: Dictionary = {}
+
+	for frame in track.get("frames", []):
+		var frame_dict: Dictionary = frame
+		var frame_index := int(frame_dict.get("frame", 0))
+		for key in frame_dict.keys():
+			var field := String(key)
+			if field == "frame":
+				continue
+			field_counts[field] = int(field_counts.get(field, 0)) + 1
+
+		if frame_dict.has("i"):
+			var texture_key := String(frame_dict["i"])
+			texture_keys[texture_key] = true
+			var resolved_path := _resolve_texture_path(texture_key)
+			if resolved_path == "":
+				if not unresolved_textures.has(texture_key):
+					unresolved_textures.append(texture_key)
+			else:
+				resolved_textures.append({
+					"frame": frame_index,
+					"key": texture_key,
+					"path": resolved_path,
+				})
+
+		if frame_dict.has("bm"):
+			blend_modes[String(frame_dict["bm"])] = true
+
+		for angle_field in ["kx", "ky"]:
+			if not frame_dict.has(angle_field):
+				continue
+			var degrees := float(frame_dict[angle_field])
+			if absf(degrees) >= 360.0:
+				angle_warnings.append({
+					"track": track_name,
+					"frame": frame_index,
+					"field": angle_field,
+					"degrees": degrees,
+					"reason": "absolute_angle_at_or_above_360",
+				})
+			if previous_angles.has(angle_field):
+				var previous := float(previous_angles[angle_field])
+				if absf(degrees - previous) > 180.0:
+					angle_warnings.append({
+						"track": track_name,
+						"frame": frame_index,
+						"field": angle_field,
+						"degrees": degrees,
+						"previous_degrees": previous,
+						"reason": "large_frame_to_frame_delta",
+					})
+			previous_angles[angle_field] = degrees
+
+	var visible_segments := _derive_track_visible_segments(track, frame_count)
+	var has_texture := not texture_keys.is_empty()
+	var has_transform := _has_any_field(field_counts, ["x", "y", "sx", "sy", "kx", "ky"])
+	var has_alpha := field_counts.has("a")
+	var is_marker := kind == "marker"
+	var is_anim_track := track_name.begins_with("anim_")
+	var lower_name := track_name.to_lower()
+	var is_suspected_attachment := not is_marker and is_anim_track and not has_texture and has_transform
+	var is_short_visible := _is_short_visible_track(visible_segments, frame_count)
+	var is_overlay_name := _name_suggests_overlay(lower_name)
+	var is_suspected_overlay := not is_marker and has_texture and (is_overlay_name or (is_anim_track and is_short_visible and _is_micro_visible_track(visible_segments)))
+	var is_visual_layer := not is_marker and (has_texture or has_transform or has_alpha)
+	var semantic_kind := "marker"
+	if not is_marker:
+		if is_suspected_attachment:
+			semantic_kind = "suspected_attachment"
+		elif is_suspected_overlay:
+			semantic_kind = "suspected_overlay"
+		elif is_visual_layer:
+			semantic_kind = "visual_layer"
+		else:
+			semantic_kind = "unclassified"
+
+	return {
+		"name": track_name,
+		"semantic_kind": semantic_kind,
+		"frame_count": track.get("frames", []).size(),
+		"field_counts": field_counts,
+		"texture_keys": texture_keys.keys(),
+		"resolved_texture_count": resolved_textures.size(),
+		"resolved_texture_samples": resolved_textures.slice(0, min(5, resolved_textures.size())),
+		"unresolved_textures": unresolved_textures,
+		"unresolved_texture_count": unresolved_textures.size(),
+		"visible_segments": visible_segments,
+		"blend_modes": blend_modes.keys(),
+		"angle_warnings": angle_warnings,
+		"is_marker": is_marker,
+		"is_visual_layer": is_visual_layer,
+		"is_suspected_overlay": is_suspected_overlay,
+		"is_suspected_attachment": is_suspected_attachment,
+		"is_default_visible": _has_default_visible_segment(visible_segments),
+		"has_texture": has_texture,
+		"has_transform": has_transform,
+	}
+
+
+func _derive_track_visible_segments(track: Dictionary, frame_count: int) -> Array[Dictionary]:
+	var segments: Array[Dictionary] = []
+	var is_visible := true
+	var segment_start := 0
+	var starts_from_default := true
+	var has_open_segment := frame_count > 0
+
+	for frame in track.get("frames", []):
+		var frame_dict: Dictionary = frame
+		if not frame_dict.has("f"):
+			continue
+
+		var frame_index := int(frame_dict.get("frame", 0))
+		var visible_flag := String(frame_dict["f"])
+		if visible_flag == "-1":
+			if is_visible and has_open_segment and frame_index > segment_start:
+				segments.append({
+					"start_frame": segment_start,
+					"end_frame": frame_index - 1,
+					"starts_from_default_visible": starts_from_default,
+				})
+			is_visible = false
+			has_open_segment = false
+		elif visible_flag == "0":
+			if not is_visible:
+				segment_start = frame_index
+				starts_from_default = false
+				has_open_segment = true
+			is_visible = true
+
+	if is_visible and has_open_segment:
+		segments.append({
+			"start_frame": segment_start,
+			"end_frame": max(0, frame_count - 1),
+			"starts_from_default_visible": starts_from_default,
+		})
+	return segments
+
+
+func _has_any_field(field_counts: Dictionary, fields: Array[String]) -> bool:
+	for field in fields:
+		if field_counts.has(field):
+			return true
+	return false
+
+
+func _has_default_visible_segment(visible_segments: Array) -> bool:
+	for segment in visible_segments:
+		var segment_dict: Dictionary = segment
+		if bool(segment_dict.get("starts_from_default_visible", false)):
+			return true
+	return false
+
+
+func _is_short_visible_track(visible_segments: Array, frame_count: int) -> bool:
+	if frame_count <= 0 or visible_segments.is_empty():
+		return false
+	var visible_frames := 0
+	for segment in visible_segments:
+		var segment_dict: Dictionary = segment
+		visible_frames += int(segment_dict["end_frame"]) - int(segment_dict["start_frame"]) + 1
+	return visible_frames < int(ceil(float(frame_count) * 0.5))
+
+
+func _is_micro_visible_track(visible_segments: Array) -> bool:
+	var visible_frames := 0
+	for segment in visible_segments:
+		var segment_dict: Dictionary = segment
+		visible_frames += int(segment_dict["end_frame"]) - int(segment_dict["start_frame"]) + 1
+	return visible_frames <= 6
+
+
+func _name_suggests_overlay(lower_name: String) -> bool:
+	for token in ["blink", "eye", "glow", "light", "shine", "spark", "tongue", "zombie", "arm", "effect"]:
+		if lower_name.contains(token):
+			return true
+	return false
+
+
+func _infer_overlay_bindings(track_summaries: Array[Dictionary]) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for summary in track_summaries:
+		if not bool(summary.get("is_suspected_overlay", false)):
+			continue
+
+		var parent := _find_overlay_parent(summary, track_summaries)
+		var binding := {
+			"overlay_track": String(summary["name"]),
+			"recommended_parent_track": String(parent.get("name", "")),
+			"confidence": String(parent.get("confidence", "none")),
+			"reason": String(parent.get("reason", "no suitable moving visual parent found")),
+			"transform_policy": "inherit_parent_current_transform",
+			"implementation_note": "Do not play this overlay as a full actor replacement or pin it to world coordinates.",
+			"visible_segments": summary["visible_segments"],
+		}
+		result.append(binding)
+	return result
+
+
+func _find_overlay_parent(overlay_summary: Dictionary, track_summaries: Array[Dictionary]) -> Dictionary:
+	var best_score := -999999
+	var best_summary: Dictionary = {}
+	var best_reasons: Array[String] = []
+	for candidate in track_summaries:
+		if String(candidate.get("name", "")) == String(overlay_summary.get("name", "")):
+			continue
+		if bool(candidate.get("is_marker", false)):
+			continue
+		if bool(candidate.get("is_suspected_attachment", false)):
+			continue
+		if bool(candidate.get("is_suspected_overlay", false)):
+			continue
+		if not bool(candidate.get("has_texture", false)):
+			continue
+
+		var score_info := _score_overlay_parent_candidate(overlay_summary, candidate)
+		var score := int(score_info["score"])
+		if score > best_score:
+			best_score = score
+			best_summary = candidate
+			best_reasons = score_info["reasons"]
+
+	if best_summary.is_empty() or best_score < 20:
+		return {}
+
+	var confidence := "low"
+	if best_score >= 80:
+		confidence = "high"
+	elif best_score >= 45:
+		confidence = "medium"
+
+	return {
+		"name": String(best_summary["name"]),
+		"confidence": confidence,
+		"reason": "; ".join(best_reasons),
+	}
+
+
+func _score_overlay_parent_candidate(overlay_summary: Dictionary, candidate: Dictionary) -> Dictionary:
+	var overlay_name := String(overlay_summary.get("name", "")).to_lower()
+	var candidate_name := String(candidate.get("name", "")).to_lower()
+	var overlay_texture_text := " ".join(_to_string_array(overlay_summary.get("texture_keys", []))).to_lower()
+	var candidate_texture_text := " ".join(_to_string_array(candidate.get("texture_keys", []))).to_lower()
+	var score := 0
+	var reasons: Array[String] = []
+
+	if _segments_overlap_or_touch(overlay_summary.get("visible_segments", []), candidate.get("visible_segments", []), 2):
+		score += 20
+		reasons.append("visible segment overlaps or touches parent candidate")
+
+	var overlay_head_index := _extract_head_index("%s %s" % [overlay_name, overlay_texture_text])
+	var candidate_head_index := _extract_head_index("%s %s" % [candidate_name, candidate_texture_text])
+	if overlay_head_index != "" and overlay_head_index == candidate_head_index:
+		score += 45
+		reasons.append("same head index %s" % overlay_head_index)
+
+	if overlay_name.contains("blink") or overlay_texture_text.contains("blink") or overlay_name.contains("eye") or overlay_texture_text.contains("eye"):
+		if candidate_name.contains("face"):
+			score += 65
+			reasons.append("eye/blink overlay prefers face visual parent")
+		elif candidate_texture_text.contains("head") and not candidate_texture_text.contains("headleaf"):
+			score += 35
+			reasons.append("eye/blink overlay prefers face/head visual parent")
+		elif candidate_name.contains("head") or candidate_name == "anim_idle":
+			score += 30
+			reasons.append("eye/blink overlay prefers moving head parent")
+
+	if overlay_name.begins_with("anim_blink") and candidate_name == "anim_idle":
+		score += 80
+		reasons.append("anim_blink conventionally follows anim_idle local head layer")
+
+	var shared_prefix := _shared_prefix_score(overlay_name, candidate_name)
+	if shared_prefix > 0:
+		score += shared_prefix
+		reasons.append("shares name prefix")
+
+	if candidate_name.contains("leaf") and (overlay_name.contains("blink") or overlay_name.contains("eye")):
+		score -= 45
+		reasons.append("leaf is a weaker parent for eye/blink overlay")
+
+	return {
+		"score": score,
+		"reasons": reasons,
+	}
+
+
+func _segments_overlap_or_touch(left_segments: Array, right_segments: Array, tolerance_frames: int) -> bool:
+	for left in left_segments:
+		var left_dict: Dictionary = left
+		var left_start := int(left_dict["start_frame"]) - tolerance_frames
+		var left_end := int(left_dict["end_frame"]) + tolerance_frames
+		for right in right_segments:
+			var right_dict: Dictionary = right
+			var right_start := int(right_dict["start_frame"])
+			var right_end := int(right_dict["end_frame"])
+			if left_start <= right_end and right_start <= left_end:
+				return true
+	return false
+
+
+func _extract_head_index(value: String) -> String:
+	var regex := RegEx.new()
+	if regex.compile("(?:head|face)[_a-z]*([0-9]+)") != OK:
+		return ""
+	var match := regex.search(value)
+	if match == null:
+		return ""
+	return match.get_string(1)
+
+
+func _shared_prefix_score(left: String, right: String) -> int:
+	var left_parts := left.split("_", false)
+	var right_parts := right.split("_", false)
+	var count := 0
+	var limit: int = min(left_parts.size(), right_parts.size())
+	for i in range(limit):
+		if left_parts[i] != right_parts[i]:
+			break
+		count += 1
+	return min(count * 5, 20)
+
+
+func _to_string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if value is Array:
+		for item in value:
+			result.append(String(item))
+	return result
+
+
+func _pick_track_summary_fields(summary: Dictionary) -> Dictionary:
+	return {
+		"name": String(summary["name"]),
+		"semantic_kind": String(summary["semantic_kind"]),
+		"texture_keys": summary["texture_keys"],
+		"unresolved_textures": summary["unresolved_textures"],
+		"visible_segments": summary["visible_segments"],
+		"field_counts": summary["field_counts"],
+		"angle_warning_count": summary["angle_warnings"].size(),
+	}
+
+
+func _list_reanim_sources(source_dir: String) -> Array[String]:
+	var result: Array[String] = []
+	_collect_reanim_sources(source_dir, result)
+	result.sort()
+	return result
+
+
+func _collect_reanim_sources(res_dir: String, output: Array[String]) -> void:
+	var absolute_dir := ProjectSettings.globalize_path(res_dir)
+	for file_name in DirAccess.get_files_at(absolute_dir):
+		if String(file_name).get_extension().to_lower() == "reanim":
+			output.append(res_dir.path_join(file_name))
+	if not _is_truthy(String(_args.get("recursive", "false"))):
+		return
+	for dir_name in DirAccess.get_directories_at(absolute_dir):
+		if String(dir_name).begins_with("."):
+			continue
+		_collect_reanim_sources(res_dir.path_join(dir_name), output)
+
+
+func _save_json(path: String, payload: Dictionary) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_warning("Could not write JSON report: %s" % path)
+		return
+	file.store_string(JSON.stringify(payload, "\t"))
+	file.close()
+
+
 func _save_report(report_path: String, actor_path: String, profile_path: String, reanim: Dictionary) -> void:
 	var payload := {
 		"source": _args["source"],
@@ -599,15 +1169,11 @@ func _save_report(report_path: String, actor_path: String, profile_path: String,
 		"unresolved_texture_count": _unresolved_textures.size(),
 		"unresolved_textures": _unresolved_textures.keys(),
 		"blend_modes_seen": _blend_modes.keys(),
+		"semantic_analysis": _build_semantic_report(reanim),
 		"verification": _verification,
 		"warnings": _warnings,
 	}
-	var file := FileAccess.open(report_path, FileAccess.WRITE)
-	if file == null:
-		push_warning("Could not write import report: %s" % report_path)
-		return
-	file.store_string(JSON.stringify(payload, "\t"))
-	file.close()
+	_save_json(report_path, payload)
 
 
 func _verify_generated_actor(actor_path: String) -> Dictionary:
