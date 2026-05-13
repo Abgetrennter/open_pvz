@@ -1333,15 +1333,6 @@ static func _allowed_param_types() -> Array[String]:
 	return ["int", "float", "string", "string_name", "bool", "vector2", "packed_string_array", "dictionary", "resource"]
 
 
-static func _allowed_trigger_behavior_keys() -> Array[String]:
-	var keys: Array[String] = []
-	for key: Variant in FROZEN_TRIGGER_BEHAVIOR_SPECS.keys():
-		keys.append(String(key))
-	return keys
-
-
-static func _trigger_behavior_spec(behavior_key: StringName) -> Dictionary:
-	return Dictionary(FROZEN_TRIGGER_BEHAVIOR_SPECS.get(behavior_key, {}))
 
 
 static func _variant_string_set(values: Variant) -> Array[String]:

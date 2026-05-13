@@ -501,37 +501,31 @@ static func _map_trigger_type(type_id: StringName) -> Dictionary:
 	match type_id:
 		&"core.periodic":
 			return {
-				"behavior_key": &"attack",
 				"trigger_id": &"periodically",
 				"event_name": &"game.tick",
 			}
 		&"core.when_damaged":
 			return {
-				"behavior_key": &"when_damaged",
 				"trigger_id": &"when_damaged",
 				"event_name": &"entity.damaged",
 			}
 		&"core.on_death":
 			return {
-				"behavior_key": &"on_death",
 				"trigger_id": &"on_death",
 				"event_name": &"entity.died",
 			}
 		&"core.on_spawned":
 			return {
-				"behavior_key": &"on_spawned",
 				"trigger_id": &"on_spawned",
 				"event_name": &"entity.spawned",
 			}
 		&"core.on_place":
 			return {
-				"behavior_key": &"on_place",
 				"trigger_id": &"on_place",
 				"event_name": &"placement.accepted",
 			}
 		&"core.proximity":
 			return {
-				"behavior_key": &"proximity",
 				"trigger_id": &"proximity",
 				"event_name": &"game.tick",
 			}
