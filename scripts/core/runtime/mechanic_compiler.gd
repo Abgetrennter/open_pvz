@@ -9,16 +9,6 @@ const RuntimeTriggerSpecRef = preload("res://scripts/core/runtime/runtime_trigge
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 
 const COMPILER_VERSION := &"mechanic_first_v0"
-const _LEGACY_TO_SEMANTIC_OVERRIDE_KEYS := {
-	"move_speed": ["move_speed_slots_per_sec"],
-	"speed": ["speed_slots_per_sec"],
-	"scan_range": ["scan_range_slots", "range_mode"],
-	"detection_radius": ["detection_radius_slots"],
-	"radius": ["radius_slots"],
-	"impact_radius": ["impact_radius_slots"],
-	"collision_padding": ["collision_padding_slots"],
-	"distance": ["distance_slots"],
-}
 
 
 static func register_builtin_mechanic_types() -> void:
@@ -188,7 +178,6 @@ static func normalize_archetype(archetype, spawn_overrides: Dictionary = {}):
 			normalized.merged_params[key] = archetype.default_params[key]
 	for key: Variant in spawn_overrides.keys():
 		normalized.merged_params[key] = spawn_overrides[key]
-	_apply_legacy_override_precedence(normalized.merged_params, spawn_overrides)
 
 	for mechanic in _sorted_enabled_mechanics(archetype):
 		normalized.mechanics.append(mechanic)
@@ -196,13 +185,6 @@ static func normalize_archetype(archetype, spawn_overrides: Dictionary = {}):
 	return normalized
 
 
-static func _apply_legacy_override_precedence(resolved_params: Dictionary, spawn_overrides: Dictionary) -> void:
-	for legacy_key: String in _LEGACY_TO_SEMANTIC_OVERRIDE_KEYS.keys():
-		if not spawn_overrides.has(legacy_key):
-			continue
-		for semantic_key in _LEGACY_TO_SEMANTIC_OVERRIDE_KEYS[legacy_key]:
-			if not spawn_overrides.has(semantic_key):
-				resolved_params.erase(semantic_key)
 
 
 static func _compile_trigger_payload_specs(normalized, archetype) -> Array:

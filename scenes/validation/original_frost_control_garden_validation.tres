@@ -29,14 +29,14 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 500.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_ice_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 1
 x_position = 420.0
-spawn_overrides = {"max_health": 20, "move_speed": 0.0}
+spawn_overrides = {"max_health": 20, "move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_cactus"]
 script = ExtResource("2_spawn")
@@ -49,28 +49,28 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_air_scout"
 lane_id = 2
 x_position = 760.0
-spawn_overrides = {"max_health": 100, "move_speed": 0.0}
+spawn_overrides = {"max_health": 100, "move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_winter_target_a"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 3
 x_position = 500.0
-spawn_overrides = {"max_health": 100, "move_speed": 0.0}
+spawn_overrides = {"max_health": 100, "move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_winter_target_b"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
 lane_id = 3
 x_position = 560.0
-spawn_overrides = {"max_health": 120, "move_speed": 0.0}
+spawn_overrides = {"max_health": 120, "move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_cattail_air_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_air_scout"
 lane_id = 4
 x_position = 480.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Req_iceshroom"]
 script = ExtResource("3_request")

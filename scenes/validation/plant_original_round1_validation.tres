@@ -11,7 +11,7 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
 lane_id = 0
 x_position = 580.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_gloomshroom"]
 script = ExtResource("2_spawn")
@@ -24,7 +24,7 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 1
 x_position = 300.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="CardPlayRequest_jalapeno"]
 script = ExtResource("4_request")

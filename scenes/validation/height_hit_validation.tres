@@ -17,7 +17,7 @@ projectile_flight_profile_override = ExtResource("6_linear_ground")
 spawn_overrides = {
 "damage": 20,
 "interval": 1.2,
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_air_plant"]
@@ -29,7 +29,7 @@ projectile_flight_profile_override = ExtResource("7_linear_air")
 spawn_overrides = {
 "damage": 20,
 "interval": 1.6,
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_air_target"]
@@ -39,7 +39,7 @@ lane_id = 0
 x_position = 620.0
 hit_height_band_override = ExtResource("5_air_height")
 spawn_overrides = {
-"move_speed": 45.0
+"move_speed_slots_per_sec": 0.46875
 }
 
 [sub_resource type="Resource" id="Rule_low_spawn"]

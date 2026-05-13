@@ -15,7 +15,7 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_bucket_tank"
 lane_id = 0
 x_position = 500.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_sunflower_base"]
 script = ExtResource("2_spawn")
@@ -35,14 +35,14 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 2
 x_position = 500.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_winter_target_b"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
 lane_id = 2
 x_position = 560.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_flowerpot"]
 script = ExtResource("2_spawn")

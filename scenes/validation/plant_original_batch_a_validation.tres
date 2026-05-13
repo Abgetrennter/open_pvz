@@ -39,7 +39,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 2
 x_position = 210.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_snowpea"]
@@ -84,7 +84,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 5
 x_position = 520.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_lobber_target_b"]
@@ -93,7 +93,7 @@ archetype_id = &"archetype_brisk_runner"
 lane_id = 5
 x_position = 580.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Rule_peashooter_hit"]

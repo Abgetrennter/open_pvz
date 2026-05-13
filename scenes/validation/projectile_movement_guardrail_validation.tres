@@ -12,8 +12,8 @@ x_position = 160.0
 spawn_overrides = {
 "interval": 0.4,
 "movement_mode": &"missing_pack.unknown_move",
-"scan_range": 900.0,
-"speed": 320.0
+"scan_range_slots": 9.375,
+"speed_slots_per_sec": 3.333333
 }
 
 [sub_resource type="Resource" id="Spawn_target"]

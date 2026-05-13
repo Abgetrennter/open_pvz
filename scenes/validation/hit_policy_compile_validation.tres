@@ -13,8 +13,8 @@ x_position = 160.0
 spawn_overrides = {
 "damage": 20,
 "interval": 0.5,
-"scan_range": 900.0,
-"speed": 320.0
+"scan_range_slots": 9.375,
+"speed_slots_per_sec": 3.333333
 }
 
 [sub_resource type="Resource" id="Spawn_target_dummy"]

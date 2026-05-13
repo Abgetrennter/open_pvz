@@ -14,7 +14,7 @@ x_position = 160.0
 spawn_overrides = {
 "damage": 60,
 "interval": 0.6,
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="BattleSpawnEntry_wave_zombie"]
@@ -23,7 +23,7 @@ archetype_id = &"archetype_lane_dummy"
 lane_id = 0
 x_position = 520.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="WaveSpawnEntry_zombie"]

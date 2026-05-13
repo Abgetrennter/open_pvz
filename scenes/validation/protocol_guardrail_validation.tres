@@ -14,7 +14,7 @@ spawn_overrides = {
 "damage": 10,
 "interval": 0.5,
 "on_hit_effect_id": &"spawn_projectile",
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_invalid_profile"]
@@ -26,7 +26,7 @@ projectile_flight_profile_override = ExtResource("4_ground_height")
 spawn_overrides = {
 "damage": 10,
 "interval": 0.5,
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_invalid_effect_param"]
@@ -38,7 +38,7 @@ spawn_overrides = {
 "damage": 10,
 "ghost_speed": 999.0,
 "interval": 0.5,
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_invalid_trigger_condition"]
@@ -49,7 +49,7 @@ x_position = 240.0
 spawn_overrides = {
 "damage": 10,
 "interval": "fast",
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_unknown_on_hit_effect"]
@@ -61,7 +61,7 @@ spawn_overrides = {
 "damage": 10,
 "interval": 0.5,
 "on_hit_effect_id": &"void_burst",
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_invalid_on_hit_params_shape"]
@@ -74,7 +74,7 @@ spawn_overrides = {
 "interval": 0.5,
 "on_hit_effect_id": &"damage",
 "on_hit_effect_params": "not_a_dictionary",
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_invalid_effect_overrides_shape"]
@@ -86,7 +86,7 @@ spawn_overrides = {
 "damage": 10,
 "effect_overrides": 7,
 "interval": 0.5,
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Spawn_invalid_target_mode"]
@@ -101,7 +101,7 @@ spawn_overrides = {
 "on_hit_effect_params": {
 	"target_mode": &"ally_team"
 },
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="Rule_protocol_issues"]

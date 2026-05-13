@@ -13,7 +13,7 @@ x_position = 160.0
 spawn_overrides = {
 "amount": 20,
 "interval": 0.4,
-"scan_range": 900.0,
+"scan_range_slots": 9.375,
 "start_delay": 0.2
 }
 

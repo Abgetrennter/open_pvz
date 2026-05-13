@@ -16,7 +16,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 500.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_kernelpult"]
@@ -31,7 +31,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 1
 x_position = 320.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_melonpult"]
@@ -46,7 +46,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 2
 x_position = 500.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_runner_lane2"]
@@ -55,7 +55,7 @@ archetype_id = &"archetype_brisk_runner"
 lane_id = 2
 x_position = 560.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_starfruit"]
@@ -70,7 +70,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 3
 x_position = 500.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Rule_cabbage_damage"]

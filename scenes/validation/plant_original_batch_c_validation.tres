@@ -18,7 +18,7 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 300.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_coffeebean"]
 script = ExtResource("2_spawn")
@@ -44,28 +44,28 @@ script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 2
 x_position = 280.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_fume_target_b"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_brisk_runner"
 lane_id = 2
 x_position = 380.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_ice_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 3
 x_position = 420.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_doom_target"]
 script = ExtResource("2_spawn")
 archetype_id = &"archetype_bucket_tank"
 lane_id = 4
 x_position = 460.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="CardPlayRequest_iceshroom"]
 script = ExtResource("4_request")

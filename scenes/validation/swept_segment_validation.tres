@@ -15,7 +15,7 @@ projectile_flight_profile_override = ExtResource("5_fast_profile")
 spawn_overrides = {
 "damage": 20,
 "interval": 0.25,
-"speed": 10000.0
+"speed_slots_per_sec": 104.166667
 }
 
 [sub_resource type="Resource" id="Spawn_stationary_target"]
@@ -24,7 +24,7 @@ archetype_id = &"archetype_lane_dummy"
 lane_id = 0
 x_position = 320.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Rule_spawn"]

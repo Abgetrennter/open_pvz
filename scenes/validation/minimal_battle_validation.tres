@@ -16,7 +16,7 @@ x_position = 160.0
 spawn_overrides = {
 "damage": 20,
 "interval": 1.4,
-"speed": 220.0
+"speed_slots_per_sec": 2.291667
 }
 
 [sub_resource type="Resource" id="BattleSpawnEntry_track"]
@@ -28,7 +28,7 @@ spawn_overrides = {
 "damage": 15,
 "interval": 2.1,
 "movement_mode": &"track",
-"speed": 210.0,
+"speed_slots_per_sec": 2.1875,
 "turn_rate": 5.5
 }
 
@@ -41,7 +41,7 @@ projectile_flight_profile_override = ExtResource("7_parabola_profile")
 spawn_overrides = {
 "damage": 20,
 "interval": 1.6,
-"speed": 220.0,
+"speed_slots_per_sec": 2.291667,
 "travel_duration": 1.4
 }
 
@@ -51,7 +51,7 @@ archetype_id = &"archetype_reactive_bomber"
 lane_id = 0
 x_position = 330.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="BattleSpawnEntry_zombie_b"]

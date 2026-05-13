@@ -16,7 +16,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 1
 x_position = 240.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_lane_fast"]
@@ -25,7 +25,7 @@ archetype_id = &"archetype_brisk_runner"
 lane_id = 1
 x_position = 320.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_off_lane"]
@@ -34,7 +34,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 2
 x_position = 280.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_air_scout"]
@@ -43,7 +43,7 @@ archetype_id = &"archetype_air_scout"
 lane_id = 1
 x_position = 280.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Rule_lane_team_x"]

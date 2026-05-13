@@ -14,7 +14,7 @@ x_position = 160.0
 spawn_overrides = {
 "damage": 9,
 "interval": 0.4,
-"speed": 180.0
+"speed_slots_per_sec": 1.875
 }
 projectile_template_override = ExtResource("4_projectile_template")
 projectile_flight_profile_override = ExtResource("5_profile_override")

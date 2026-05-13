@@ -14,9 +14,9 @@ x_position = 140.0
 projectile_flight_profile_override = ExtResource("5_profile")
 spawn_overrides = {
 "damage": 20,
-"impact_radius": 36.0,
+"impact_radius_slots": 0.375,
 "interval": 1.2,
-"speed": 220.0,
+"speed_slots_per_sec": 2.291667,
 "travel_duration": 2.5
 }
 

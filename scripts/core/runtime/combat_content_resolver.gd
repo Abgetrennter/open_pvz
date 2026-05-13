@@ -6,16 +6,6 @@ const MechanicCompilerRef = preload("res://scripts/core/runtime/mechanic_compile
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
 
-const _LEGACY_TO_SEMANTIC_OVERRIDE_KEYS := {
-	"move_speed": ["move_speed_slots_per_sec"],
-	"speed": ["speed_slots_per_sec"],
-	"scan_range": ["scan_range_slots", "range_mode"],
-	"detection_radius": ["detection_radius_slots"],
-	"radius": ["radius_slots"],
-	"impact_radius": ["impact_radius_slots"],
-	"collision_padding": ["collision_padding_slots"],
-	"distance": ["distance_slots"],
-}
 
 
 static func resolve_spawn_entry_archetype(spawn_entry: Resource):
@@ -99,7 +89,6 @@ static func merge_spawn_params(spawn_entry: Resource, archetype = null) -> Dicti
 	var spawn_overrides := resolve_spawn_overrides(spawn_entry)
 	for key: Variant in spawn_overrides.keys():
 		resolved_params[key] = spawn_overrides[key]
-	_apply_legacy_override_precedence(resolved_params, spawn_overrides)
 	if spawn_entry != null and spawn_entry.get("projectile_template_override") is ProjectileTemplateRef:
 		resolved_params["projectile_template"] = spawn_entry.get("projectile_template_override")
 	if spawn_entry != null and spawn_entry.get("projectile_flight_profile_override") != null:
@@ -107,13 +96,6 @@ static func merge_spawn_params(spawn_entry: Resource, archetype = null) -> Dicti
 	return resolved_params
 
 
-static func _apply_legacy_override_precedence(resolved_params: Dictionary, spawn_overrides: Dictionary) -> void:
-	for legacy_key: String in _LEGACY_TO_SEMANTIC_OVERRIDE_KEYS.keys():
-		if not spawn_overrides.has(legacy_key):
-			continue
-		for semantic_key in _LEGACY_TO_SEMANTIC_OVERRIDE_KEYS[legacy_key]:
-			if not spawn_overrides.has(semantic_key):
-				resolved_params.erase(semantic_key)
 
 
 static func resolve_projectile_template(spawn_entry: Resource, archetype = null):

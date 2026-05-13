@@ -22,7 +22,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 205.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_hidden_target"]
@@ -31,7 +31,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 1
 x_position = 220.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Status_hidden_target"]

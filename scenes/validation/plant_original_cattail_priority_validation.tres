@@ -34,14 +34,14 @@ script = ExtResource("3_spawn")
 archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 300.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Spawn_air_far"]
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_air_scout"
 lane_id = 1
 x_position = 560.0
-spawn_overrides = {"move_speed": 0.0}
+spawn_overrides = {"move_speed_slots_per_sec": 0.0}
 
 [sub_resource type="Resource" id="Rule_air_priority_damage"]
 script = ExtResource("5_rule")

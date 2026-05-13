@@ -17,7 +17,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 200.0
 spawn_overrides = {
-"move_speed": 55.0
+"move_speed_slots_per_sec": 0.572917
 }
 
 [sub_resource type="Resource" id="BattleValidationRule_mower_spawned"]

@@ -13,7 +13,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 300.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_target_b"]
@@ -22,7 +22,7 @@ archetype_id = &"archetype_brisk_runner"
 lane_id = 0
 x_position = 390.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="CardPlayRequest_fume"]

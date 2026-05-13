@@ -12,8 +12,8 @@ lane_id = 0
 x_position = 160.0
 spawn_overrides = {
 "interval": 0.5,
-"scan_range": 900.0,
-"speed": 320.0,
+"scan_range_slots": 9.375,
+"speed_slots_per_sec": 3.333333,
 "start_delay": 0.2
 }
 
@@ -25,8 +25,8 @@ lane_id = 1
 x_position = 160.0
 spawn_overrides = {
 "interval": 0.7,
-"scan_range": 900.0,
-"speed": 260.0,
+"scan_range_slots": 9.375,
+"speed_slots_per_sec": 2.708333,
 "start_delay": 0.2
 }
 

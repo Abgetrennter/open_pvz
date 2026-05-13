@@ -18,7 +18,7 @@ archetype_id = &"archetype_basic_walker"
 lane_id = 0
 x_position = 230.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_normal_enemy"]
@@ -27,7 +27,7 @@ archetype_id = &"archetype_brisk_runner"
 lane_id = 0
 x_position = 280.0
 spawn_overrides = {
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Spawn_hidden_friend"]
@@ -37,7 +37,7 @@ lane_id = 1
 x_position = 220.0
 spawn_overrides = {
 "interval": 60.0,
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Status_hidden_enemy"]
@@ -82,7 +82,7 @@ at_time = 0.75
 effect_id = &"reveal"
 params = {
 "duration": 3.0,
-"radius": 180.0,
+"radius_slots": 1.875,
 "target_mode": &"enemies_in_radius"
 }
 owner_archetype_id = &"archetype_wall_barrier"

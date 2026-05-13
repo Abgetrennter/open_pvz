@@ -14,7 +14,7 @@ spawn_overrides = {
 "amount": 20,
 "interval": 0.3,
 "required_state": &"active",
-"scan_range": 900.0
+"scan_range_slots": 9.375
 }
 
 [sub_resource type="Resource" id="Spawn_target_dummy_guard"]

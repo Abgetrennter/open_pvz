@@ -19,7 +19,7 @@ x_position = 210.0
 spawn_overrides = {
 "attack_damage": 10,
 "attack_interval": 0.3,
-"move_speed": 0.0
+"move_speed_slots_per_sec": 0.0
 }
 
 [sub_resource type="Resource" id="Rule_zombie_archetype_spawned"]
