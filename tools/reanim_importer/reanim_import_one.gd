@@ -238,7 +238,8 @@ func _parse_reanim(source_path: String) -> Dictionary:
 					result["tracks"].append(current_track)
 				current_track = {}
 
-	result["animations"] = _derive_animations(result["markers"], int(result["frame_count"]), int(result["fps"]))
+	result["animations"] = _derive_marker_animations(result["markers"], int(result["frame_count"]), int(result["fps"]))
+	_append_visual_layer_animations(result["animations"], result["tracks"], int(result["frame_count"]))
 	if result["animations"].is_empty():
 		result["animations"].append({"name": "all", "start_frame": 0, "end_frame": max(0, int(result["frame_count"]) - 1)})
 	return result
@@ -256,7 +257,7 @@ func _is_marker_track(track: Dictionary) -> bool:
 	return true
 
 
-func _derive_animations(markers: Array, frame_count: int, _fps: int) -> Array[Dictionary]:
+func _derive_marker_animations(markers: Array, frame_count: int, _fps: int) -> Array[Dictionary]:
 	var animations: Array[Dictionary] = []
 	for marker in markers:
 		var marker_name := String(marker.get("name", ""))
@@ -281,6 +282,66 @@ func _derive_animations(markers: Array, frame_count: int, _fps: int) -> Array[Di
 			"end_frame": max(start_frame, end_frame),
 		})
 	return animations
+
+
+func _append_visual_layer_animations(animations: Array[Dictionary], tracks: Array, frame_count: int) -> void:
+	var existing_names: Dictionary = {}
+	for animation_def in animations:
+		existing_names[String(animation_def.get("name", ""))] = true
+
+	for track in tracks:
+		var track_dict: Dictionary = track
+		var track_name := String(track_dict.get("name", ""))
+		if not track_name.begins_with("anim_"):
+			continue
+
+		var animation_name := track_name.trim_prefix("anim_")
+		if animation_name == "" or existing_names.has(animation_name):
+			continue
+
+		var visible_range := _derive_track_visible_range(track_dict, frame_count)
+		if visible_range.is_empty():
+			continue
+
+		animations.append({
+			"name": animation_name,
+			"start_frame": int(visible_range["start_frame"]),
+			"end_frame": int(visible_range["end_frame"]),
+			"source_track": track_name,
+			"source_kind": "visual_layer",
+		})
+		existing_names[animation_name] = true
+
+
+func _derive_track_visible_range(track: Dictionary, frame_count: int) -> Dictionary:
+	var start_frame := -1
+	var end_frame := -1
+	for frame in track.get("frames", []):
+		var frame_dict: Dictionary = frame
+		var frame_index := int(frame_dict.get("frame", 0))
+		if not frame_dict.has("f"):
+			if start_frame != -1:
+				end_frame = frame_index
+			continue
+
+		var visible_flag := String(frame_dict["f"])
+		if visible_flag == "0":
+			if start_frame == -1:
+				start_frame = frame_index
+			end_frame = frame_index
+		elif visible_flag == "-1" and start_frame != -1:
+			end_frame = max(start_frame, frame_index - 1)
+			break
+
+	if start_frame == -1:
+		return {}
+	if end_frame == -1:
+		end_frame = frame_count - 1
+
+	return {
+		"start_frame": start_frame,
+		"end_frame": max(start_frame, end_frame),
+	}
 
 
 func _build_actor_scene(reanim: Dictionary) -> PackedScene:

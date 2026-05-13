@@ -1,49 +1,55 @@
 extends Node2D
 
-const PROFILE_PATH := "res://vendor/out_files/_openpvz_import/peashooter_composite/visual_profile.tres"
+@export_file("*.tres") var profile_path := ""
+@export var display_name := "Pea Family"
+@export var status_text := ""
+@export var plant_slot := 1
+@export var plant_lane := 2
+@export var target_slot := 7
+@export var fire_interval_seconds := 1.45
+@export var projectile_release_times := PackedFloat32Array([0.32])
+@export var fallback_muzzle_offset := Vector2(46.0, -38.0)
+
 const VIEWPORT_SIZE := Vector2(960.0, 540.0)
 const BOARD_ORIGIN := Vector2(120.0, 135.0)
 const SLOT_COUNT := 9
 const LANE_COUNT := 5
 const OPENPVZ_SLOT_SPACING := 80.0
 const OPENPVZ_LANE_SPACING := 60.0
-const PLANT_SLOT := 1
-const PLANT_LANE := 2
-const TARGET_SLOT := 7
 const PEA_SPEED_SLOTS_PER_SEC := 4.1625
-const FIRE_INTERVAL_SECONDS := 1.45
-const PEA_RELEASE_SECONDS := 0.32
 const PEA_RADIUS := 7.0
-const FALLBACK_MUZZLE_OFFSET := Vector2(46.0, -38.0)
 
 var _status_label: Label = null
 var _actor: Node2D = null
 var _fire_elapsed := 0.0
-var _pending_pea_elapsed := 0.0
-var _has_pending_pea := false
+var _pending_elapsed := 0.0
+var _pending_release_times: Array[float] = []
 var _peas: Array[Dictionary] = []
 
 
 func _ready() -> void:
 	_create_status_label()
 	_load_actor()
-	_set_status("Peashooter composite actor 演示：body/head/anim_stem 已封装在 actor scene，demo 只调用 play_action(shooting)。")
+	if status_text == "":
+		_set_status("%s composite actor 演示：body/head attachment 封装在 actor scene，demo 只调用 play_action(shooting)。" % display_name)
+	else:
+		_set_status(status_text)
 
 
 func _process(delta: float) -> void:
 	_fire_elapsed += delta
-	if _fire_elapsed >= FIRE_INTERVAL_SECONDS:
+	if _fire_elapsed >= fire_interval_seconds:
 		_fire_elapsed = 0.0
 		_fire_pea()
 
-	if _has_pending_pea:
-		_pending_pea_elapsed += delta
-		if _pending_pea_elapsed >= PEA_RELEASE_SECONDS:
-			_has_pending_pea = false
+	if not _pending_release_times.is_empty():
+		_pending_elapsed += delta
+		while not _pending_release_times.is_empty() and _pending_elapsed >= _pending_release_times[0]:
+			_pending_release_times.pop_front()
 			_spawn_pea()
 
 	var pea_speed := PEA_SPEED_SLOTS_PER_SEC * OPENPVZ_SLOT_SPACING
-	var target_x := _slot_position(PLANT_LANE, TARGET_SLOT).x
+	var target_x := _slot_position(plant_lane, target_slot).x
 	for i in range(_peas.size() - 1, -1, -1):
 		var pea := _peas[i]
 		var position := pea.get("position", Vector2.ZERO) as Vector2
@@ -57,7 +63,13 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, VIEWPORT_SIZE), Color("203928"))
-	draw_rect(Rect2(BOARD_ORIGIN + Vector2(-40.0, -42.0), Vector2(OPENPVZ_SLOT_SPACING * float(SLOT_COUNT) + 80.0, OPENPVZ_LANE_SPACING * float(LANE_COUNT - 1) + 84.0)), Color("24492e"))
+	draw_rect(
+		Rect2(
+			BOARD_ORIGIN + Vector2(-40.0, -42.0),
+			Vector2(OPENPVZ_SLOT_SPACING * float(SLOT_COUNT) + 80.0, OPENPVZ_LANE_SPACING * float(LANE_COUNT - 1) + 84.0)
+		),
+		Color("24492e")
+	)
 
 	for lane_index in range(LANE_COUNT):
 		var y := _lane_y(lane_index)
@@ -89,24 +101,24 @@ func _create_status_label() -> void:
 
 
 func _load_actor() -> void:
-	if not ResourceLoader.exists(PROFILE_PATH):
-		_set_status("未找到 composite visual profile：%s\n请先运行 Peashooter reanim 导入并生成 composite 输出。" % PROFILE_PATH)
+	if profile_path == "" or not ResourceLoader.exists(profile_path):
+		_set_status("未找到 composite visual profile：%s\n请先运行 reanim 导入并生成 composite 输出。" % profile_path)
 		return
 
-	var profile := ResourceLoader.load(PROFILE_PATH)
+	var profile := ResourceLoader.load(profile_path)
 	if profile == null or profile.get("actor_scene") == null:
-		_set_status("composite visual profile 无法加载 actor_scene：%s" % PROFILE_PATH)
+		_set_status("composite visual profile 无法加载 actor_scene：%s" % profile_path)
 		return
-	var packed_scene := profile.get("actor_scene") as PackedScene
 
+	var packed_scene := profile.get("actor_scene") as PackedScene
 	var instance := packed_scene.instantiate()
 	_actor = instance as Node2D
 	if _actor == null:
 		instance.queue_free()
-		_set_status("composite actor 根节点不是 Node2D：%s" % PROFILE_PATH)
+		_set_status("composite actor 根节点不是 Node2D：%s" % profile_path)
 		return
 
-	_actor.position = _slot_position(PLANT_LANE, PLANT_SLOT)
+	_actor.position = _slot_position(plant_lane, plant_slot)
 	add_child(_actor)
 	if _actor.has_method("play_state"):
 		_actor.call("play_state", &"idle")
@@ -118,8 +130,12 @@ func _fire_pea() -> void:
 	var played := bool(_actor.call("play_action", &"shooting"))
 	if not played:
 		return
-	_has_pending_pea = true
-	_pending_pea_elapsed = 0.0
+
+	_pending_elapsed = 0.0
+	_pending_release_times.clear()
+	for release_time in projectile_release_times:
+		_pending_release_times.append(float(release_time))
+	_pending_release_times.sort()
 
 
 func _spawn_pea() -> void:
@@ -133,11 +149,11 @@ func _muzzle_position() -> Vector2:
 		var anchor := _actor.call("get_anchor", &"muzzle") as Node2D
 		if anchor != null:
 			return anchor.global_position
-	return _slot_position(PLANT_LANE, PLANT_SLOT) + FALLBACK_MUZZLE_OFFSET
+	return _slot_position(plant_lane, plant_slot) + fallback_muzzle_offset
 
 
 func _draw_target() -> void:
-	var center := _slot_position(PLANT_LANE, TARGET_SLOT)
+	var center := _slot_position(plant_lane, target_slot)
 	var body_rect := Rect2(center + Vector2(-16.0, -50.0), Vector2(32.0, 72.0))
 	draw_rect(body_rect, Color("65705a"))
 	draw_circle(center + Vector2(0.0, -64.0), 18.0, Color("879174"))

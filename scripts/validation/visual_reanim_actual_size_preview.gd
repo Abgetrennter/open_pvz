@@ -1,6 +1,6 @@
 extends Node2D
 
-const ACTOR_SCENE_PATH := "res://vendor/out_files/_openpvz_import/peashooter_composite/actor.tscn"
+const PROFILE_PATH := "res://vendor/out_files/_openpvz_import/peashooter_composite/visual_profile.tres"
 const VIEWPORT_SIZE := Vector2(960.0, 540.0)
 const BOARD_ORIGIN := Vector2(120.0, 135.0)
 const SLOT_COUNT := 9
@@ -52,20 +52,21 @@ func _create_status_label() -> void:
 
 
 func _load_actor() -> void:
-	if not ResourceLoader.exists(ACTOR_SCENE_PATH):
-		_set_status("未找到 composite actor：%s\n请先运行 Peashooter reanim 导入并生成 composite 输出。" % ACTOR_SCENE_PATH)
+	if not ResourceLoader.exists(PROFILE_PATH):
+		_set_status("未找到 composite visual profile：%s\n请先运行 Peashooter reanim 导入并生成 composite 输出。" % PROFILE_PATH)
 		return
 
-	var packed_scene := ResourceLoader.load(ACTOR_SCENE_PATH) as PackedScene
-	if packed_scene == null:
-		_set_status("composite actor 无法作为 PackedScene 加载：%s" % ACTOR_SCENE_PATH)
+	var profile := ResourceLoader.load(PROFILE_PATH)
+	if profile == null or profile.get("actor_scene") == null:
+		_set_status("composite visual profile 无法加载 actor_scene：%s" % PROFILE_PATH)
 		return
+	var packed_scene := profile.get("actor_scene") as PackedScene
 
 	var instance := packed_scene.instantiate()
 	_actor = instance as Node2D
 	if _actor == null:
 		instance.queue_free()
-		_set_status("composite actor 根节点不是 Node2D：%s" % ACTOR_SCENE_PATH)
+		_set_status("composite actor 根节点不是 Node2D：%s" % PROFILE_PATH)
 		return
 
 	_actor.position = _slot_position(PLANT_LANE, PLANT_SLOT)

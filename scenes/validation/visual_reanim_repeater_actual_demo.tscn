@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/validation/visual_reanim_pea_family_actual_demo.gd" id="1_pea_family_demo"]
+
+[node name="VisualReanimRepeaterActualDemo" type="Node2D"]
+script = ExtResource("1_pea_family_demo")
+profile_path = "res://vendor/out_files/_openpvz_import/repeater_composite/visual_profile.tres"
+display_name = "Repeater"
+status_text = "Repeater composite actor 演示：源文件为 PeaShooter.reanim，body/head 已封装，demo 只调用 play_action(shooting) 并按双发节奏生成豌豆。"
+projectile_release_times = PackedFloat32Array(0.26, 0.51)

@@ -281,6 +281,16 @@ const GROUPS := [
 				"scene": "res://scenes/validation/visual_reanim_actual_demo.tscn",
 			},
 			{
+				"title": "Reanim Repeater 实际演示",
+				"summary": "使用 PeaShooter.reanim 生成 Repeater composite actor，展示 body/head attachment 与双发节奏。",
+				"scene": "res://scenes/validation/visual_reanim_repeater_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim Gatling Pea 实际演示",
+				"summary": "加载 GatlingPea.reanim 生成的 composite actor，展示 anim_idle 挂点、head shooting 与四连发节奏。",
+				"scene": "res://scenes/validation/visual_reanim_gatlingpea_actual_demo.tscn",
+			},
+			{
 				"title": "Reanim 向日葵实际演示",
 				"summary": "加载本地导入的 Sunflower actor，在实际棋盘尺度下循环 idle 并展示周期产阳视觉。",
 				"scene": "res://scenes/validation/visual_reanim_sunflower_actual_demo.tscn",
