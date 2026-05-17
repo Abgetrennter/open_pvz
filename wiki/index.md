@@ -71,6 +71,14 @@
 - [外部项目调研 PVZ-Godot-Dream](04-roadmap-reference/24-外部项目调研-PVZ-Godot-Dream.md)
 - [vendor 参考实现：游戏模式分析](04-roadmap-reference/39-vendor参考实现-游戏模式分析.md)
 
+### 扩展系统
+
+- [扩展系统总体规划](04-roadmap-reference/38-扩展系统总体规划.md)
+- [通用扩展插槽机制](04-roadmap-reference/42-通用扩展插槽机制.md)
+- [扩展包边界与依赖规则](04-roadmap-reference/43-扩展包边界与依赖规则.md)
+- [素材包系统与本地私有包](04-roadmap-reference/44-素材包系统与本地私有包.md)
+- [扩展包 Manifest 规范](04-roadmap-reference/45-扩展包Manifest规范.md)
+
 ### 运行时与协议
 
 - [触发器系统](02-runtime-protocol/03-触发器系统.md)

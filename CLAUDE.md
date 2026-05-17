@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 变更记录 (Changelog)
 
+- **2026-05-17** — CLAUDE.md 与 AGENTS.md 对齐：修正验证命令参数（`-Scenario` 而非 `-ScenarioId`）、补充反模式与通用扩展插槽章节、加入 `SpatialIndex` 与 `extensions/` 模块、补全守卫检查脚本与 `-MaxParallel` 参数；ADR 索引更新至 007
 - **2026-05-09** — CLAUDE.md / README / agent.md / wiki：删除易过时的具体数量，改为定性描述
 - **2026-04-24** — wiki 同步 Mechanic-first 决策：11 份文档更新，旧"模板与装配边界"重写为"编译链与 Mechanic 系统"；CLAUDE.md 同步代码现状
 - **2026-04-22** — Mechanic-first 重构第三阶段完成：multi-payload 编译、per-type compiler dispatch、Controller/State/Lifecycle 扩展、确定性随机协议、Archetype 独立实例化、迁移对照验证
@@ -45,27 +46,27 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 
 ### 全局单例 (Autoloads)
 
-**核心规则引擎**：
+**核心规则引擎**（标 ★ 的注册表统一继承 `RegistryBase`，是通用扩展插槽的入口）：
 
 | 单例名 | 职责 |
 |--------|------|
-| `EventBus` | 事件分发，优先级订阅，历史追踪 |
+| `EventBus` | 事件分发，优先级订阅，历史追踪（最多 256 条） |
 | `DebugService` | 集中式日志：事件/触发器/效果/运行时快照/协议问题 |
 | `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/`，支持 archetype 查询 |
 | `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
 | `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id，委托 MechanicCompiler 注册内置 type） |
-| `MechanicCompilerRegistry` | Mechanic per-type 编译器 callable 注册与分发 |
-| `DetectionRegistry` | 目标发现策略注册 |
-| `TriggerRegistry` | 触发器定义与策略注册 |
-| `EffectRegistry` | 效果定义与策略注册 |
-| `ControllerRegistry` | Controller 策略注册 |
-| `GameState` | 游戏状态管理（当前战斗、时间、实体 ID 分配、battle_seed） |
+| `MechanicCompilerRegistry` ★ | Mechanic per-type 编译器 callable 注册与分发 |
+| `DetectionRegistry` ★ | 目标发现策略注册 |
+| `TriggerRegistry` ★ | 触发器定义与策略注册 |
+| `EffectRegistry` ★ | 效果定义与策略注册 |
+| `ControllerRegistry` ★ | Controller 策略注册 |
+| `ProjectileMovementRegistry` ★ | 抛射体运动策略注册（linear / parabola / track） |
+| `GameState` | 游戏状态管理（当前战斗、100Hz 仿真时间、实体 ID 分配、battle_seed） |
 
-**运动与表现**：
+**表现层**：
 
 | 单例名 | 职责 |
 |--------|------|
-| `ProjectileMovementRegistry` | 抛射体运动策略注册（linear / parabola / track） |
 | `VisualCueRegistry` | 视觉提示注册与分发 |
 | `VisualFxRegistry` | 视觉特效注册与分发 |
 | `VisualProfileRegistry` | 视觉配置档注册 |
@@ -82,6 +83,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | 波次运行器 | `WaveRunner` | 波次调度、敌人生成、胜败条件检测 |
 | 场上物件状态 | `BattleFieldObjectState` | 场上物件生成、管理、事件发射（割草机等） |
 | 模式宿主 | `BattleModeHost` | 模式运行时宿主：解析 mode_def、合并 override、驱动规则模块、评估目标 |
+| 空间索引 | `SpatialIndex` | 统一目标查询基础设施：team/lane/tag/kind/x/radius/height_range 过滤与稳定排序，经 `BattleManager.spatial_query(params)` 调用 |
 
 ## 模块结构图
 
@@ -94,6 +96,7 @@ graph TD
     Root --> Tools["tools"]
     Root --> Wiki["wiki"]
     Root --> Plans["plans"]
+    Root --> Extensions["extensions"]
 
     Scripts --> Core["scripts/core"]
     Scripts --> Battle["scripts/battle"]
@@ -121,6 +124,7 @@ graph TD
     click Projectile "./scripts/projectile/CLAUDE.md" "查看 projectile 模块文档"
     click Visual "./scripts/visual/CLAUDE.md" "查看 visual 模块文档"
     click Data "./data/combat/CLAUDE.md" "查看 data/combat 模块文档"
+    click Extensions "./extensions/CLAUDE.md" "查看 extensions 模块文档"
 ```
 
 ## 模块索引
@@ -147,8 +151,10 @@ graph TD
 | `data/combat/archetypes/` | .tres | Archetype 资源（plants / zombies / field_objects） |
 | `scenes/validation/` | .tres/.tscn | 自动化验证场景资源 |
 | `scenes/showcase/` | .tscn | 展示场景 |
-| `tools/` | PS1/JSON | 验证运行工具 |
+| `tools/` | PS1/JSON | 验证运行工具与守卫检查脚本 |
 | `wiki/` | Markdown | 中文设计文档（6 个分区 + decisions） |
+| `extensions/` | JSON/.tres/GDScript | 扩展包：最小内容包、chaos / guardrail 样例、通用插槽示例 |
+| `extensions_manifest_fixtures/` | JSON | 扩展 manifest 错误样例（用于 guardrail 验证） |
 | `vendor/` | -- | 参考实现（PVZ-Godot-Dream），不属于引擎核心 |
 
 ## 运行与开发
@@ -165,18 +171,32 @@ graph TD
 验证场景是主要的测试机制 -- 没有单元测试框架。
 
 ```powershell
-# 运行所有验证场景
+# 运行所有验证场景（默认自动取 min(CPU 核心数, 4) 并行）
 pwsh tools/run_all_validations.ps1
 
-# 运行单个场景
-pwsh tools/run_validation.ps1 -ScenarioId <id>
+# 控制并行度
+pwsh tools/run_all_validations.ps1 -MaxParallel 4
+
+# 运行单个场景（参数是 -Scenario，不是 -ScenarioId；必须是 res:// 路径）
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"
 ```
 
-场景定义：`tools/validation_scenarios.json`（分层 smoke / core / extension / guardrail）
+场景定义：`tools/validation_scenarios.json`（分层 smoke / core / extension / guardrail / showcase）
 场景资源：`scenes/validation/`
-结果输出：`artifacts/validation/`
+单次结果：`artifacts/validation/<timestamp>_<run_label>/`
+批量汇总：`artifacts/validation/batch_<timestamp>/`
 
 在 Godot 编辑器中运行单个场景：打开 `scenes/validation/` 中的 `.tscn` 文件并按 F6。
+
+### 守卫检查
+
+```powershell
+# 检查旧实体模型残留（禁止 EntityTemplate / TriggerBinding）
+pwsh tools/check_no_legacy_entity_model.ps1
+
+# 检查运行时指标/时间违规（禁止 OS.get_ticks_* 和 Timer 用于游戏逻辑）
+pwsh tools/check_runtime_metrics_time_guardrails.ps1
+```
 
 ## 编码规范
 
@@ -221,6 +241,41 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 
 `ProtocolValidator` 在运行时强制执行参数类型、边界和资源脚本类型检查。
 
+## 通用扩展插槽
+
+详见 [wiki/04-roadmap-reference/42-通用扩展插槽机制.md](wiki/04-roadmap-reference/42-通用扩展插槽机制.md)。
+
+- 已开放 slot：`projectile_movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`
+- 6 个对应的 autoload registry 统一继承 `RegistryBase`，共享注册、去重、信任检查、来源追踪、协议错误记录
+- 贡献项资源统一继承 `RegistryContributorDef`（字段 `id`、`tags`、`param_defs`）：`ProjectileMovementDef`、`MechanicCompilerDef`、`TriggerDef`、`DetectionDef`、`ControllerDef`
+- 运行时代码 slot 需要 `trust_level = "trusted_runtime"`
+- **扩展包不得注册或覆盖 `core.*` 命名空间**
+- **扩展包不得新增 Mechanic family**，只能在冻结 family 下新增 type
+- 默认不做跨包 override，重复 id 拒绝并记录 `protocol.issue`
+- 新增扩展点对齐步骤：定义 contributor Def → registry 单例继承 `RegistryBase` → 实现 `_register_builtin_defs()` 与策略 hook → 接入 `ExtensionPackCatalog.ALLOWED_REGISTER_KINDS` → 补 smoke + guardrail 验证场景
+
+## 反模式 (禁止事项)
+
+### 架构级禁止
+- **禁止为单个实体硬编码业务逻辑**：不得编写 `PeaShooterAttack`、`WallNutLogic`、`ConeHeadZombieAI` 这类命名；所有行为通过 `CombatArchetype + CombatMechanic[]` 驱动
+- **禁止 BattleManager 特判**：不得为特定实体或模式在 BattleManager 中添加 if/switch 分支；模式差异通过 `BattleModeHost / BattleRuleModule` 吸收
+- **禁止用 `print()` 替代 `DebugService`**：除 DebugService 自身和 validation reporter 外，所有运行时日志必须走 DebugService
+- **禁止旧实体模型**：`EntityTemplate` / `TriggerBinding` 已归档，运行时唯一入口是 `CombatArchetype + CombatMechanic[]`
+- **禁止 `migrated_wrapper` 编译提示**：封装 archetype 必须迁移为原生 mechanic，`ProtocolValidator` 运行时拒绝
+
+### 魔法数字禁止
+- **禁止 `4000.0` / `99999.0` 模拟"全范围"**：用 `range_mode = "full_lane"` 或显式 lane 距离查询替代
+- **禁止 `-999999.0` 作为哨兵值**：用显式布尔标志或 optional 值替代
+
+### 时间与输入禁止
+- **不得在游戏逻辑中使用 `OS.get_ticks_msec/usec` 或 Godot `Timer` 节点**：仿真时间走 100Hz 固定 tick + `GameState` 派生链
+- **不得在渲染/UI 中消费玩法随机数**
+- **不得让视觉反馈改变战斗结果**（伤害/命中/冷却等不依赖 Tween 或粒子）
+
+### 内容禁止
+- **不得在 GDScript 中硬编码内容**：所有游戏数据必须走 `.tres` Resource
+- **不得直接修改 `vendor/` 参考实现**
+
 ## 测试策略
 
 - **无单元测试框架**，验证场景是唯一的自动化测试机制
@@ -238,7 +293,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 - `03-content-validation/` -- 验证矩阵和覆盖率
 - `04-roadmap-reference/` -- 参考实现、扩展系统规划、外部调研
 - `05-governance/` -- Archetype 编写约定、术语表、方法论
-- `decisions/` -- ADR 决策记录（ADR-001~005）
+- `decisions/` -- ADR 决策记录（ADR-001~007）
 
 `plans/` 目录包含阶段任务清单和设计草案。
 
@@ -248,7 +303,10 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 - 新增实体时只使用 CombatArchetype + CombatMechanic[]；旧实体作者模型仅作为历史归档，不参与运行时
 - 新增实体功能时，必须同时创建验证场景
 - 优先通过 `.tres` Resource 扩展内容，而非修改 GDScript 代码
+- 新增扩展能力优先走通用插槽：定义 contributor Resource、接入 registry、补 smoke/guardrail validation，再更新 wiki
+- 新增扩展点必须走 `RegistryBase + RegistryConfig + ContributorDef`，不再允许独立实现注册逻辑
 - 调试时使用 `DebugService` 记录，不要用 `print`
-- 所有抛射体运动配置通过 `ProjectileFlightProfile` Resource 驱动
+- 抛射体基础飞行配置通过 `ProjectileFlightProfile` Resource 驱动；新增 movement 类型通过 `ProjectileMovementDef + ProjectileMovementRegistry` 接入
 - 所有随机行为走确定性随机协议（battle_seed 派生链 + ShuffleBag）
 - `vendor/` 目录为参考实现，不要直接修改或依赖
+- 模块级细节优先看 `<module>/CLAUDE.md`（autoload / scripts/core / scripts/battle / 等已就位；其他模块以 `<module>/AGENTS.md` 为准）
