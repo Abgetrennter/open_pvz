@@ -1,0 +1,201 @@
+{
+	"version": 1,
+	"entries": [
+		{
+			"id": "wallnut",
+			"profile_id": "local.original.wallnut.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/wallnut/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/wallnut_manifest_composite",
+			"actor_anchor_offset": [-35.0, -77.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "face"
+			},
+			"texture_override_sets": {
+				"normal": [
+					{"animation": "face", "track": "anim_face:texture", "texture": "res://vendor/out_files/reanim/Wallnut_body.png"}
+				],
+				"cracked1": [
+					{"animation": "face", "track": "anim_face:texture", "texture": "res://vendor/out_files/reanim/Wallnut_cracked1.png"}
+				],
+				"cracked2": [
+					{"animation": "face", "track": "anim_face:texture", "texture": "res://vendor/out_files/reanim/Wallnut_cracked2.png"}
+				]
+			}
+		},
+		{
+			"id": "potatomine",
+			"profile_id": "local.original.potatomine.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/potatomine/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/potatomine_manifest_composite",
+			"actor_anchor_offset": [-36.0, -50.0],
+			"initial_state": "buried",
+			"state_animation_map": {
+				"buried": "rise",
+				"armed": "armed"
+			},
+			"action_animation_map": {
+				"rise": {"animation": "rise", "next_state": "armed"},
+				"explode": {"animation": "mashed", "next_state": "buried"}
+			}
+		},
+		{
+			"id": "cherrybomb",
+			"profile_id": "local.original.cherrybomb.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/cherrybomb/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/cherrybomb_manifest_composite",
+			"actor_anchor_offset": [-48.0, -85.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "idle"
+			},
+			"action_animation_map": {
+				"explode": {"animation": "explode", "next_state": "idle"}
+			}
+		},
+		{
+			"id": "sunflower",
+			"profile_id": "local.original.sunflower.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/sunflower/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/sunflower_manifest_composite",
+			"actor_anchor_offset": [-42.0, -96.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "idle"
+			},
+			"suppressed_tracks": ["anim_blink"],
+			"overlay_bindings": [
+				{"overlay_track": "anim_blink", "parent_track": "anim_idle", "transform_policy": "manual_overlay_sprite"}
+			]
+		},
+		{
+			"id": "squash",
+			"profile_id": "local.original.squash.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/squash/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/squash_manifest_composite",
+			"actor_anchor_offset": [-52.0, -84.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "idle"
+			},
+			"action_animation_map": {
+				"blink": {"animation": "blink", "next_state": "idle"},
+				"look_left": {"animation": "lookleft", "next_state": "idle"},
+				"look_right": {"animation": "lookright", "next_state": "idle"},
+				"jump_up": {"animation": "jumpup", "next_state": "idle"},
+				"jump_down": {"animation": "jumpdown", "next_state": "idle"},
+				"squash": {"animation": "jumpdown", "next_state": "idle"}
+			},
+			"overlay_bindings": [
+				{"overlay_track": "anim_eye", "parent_track": "anim_face", "transform_policy": "inherit_parent_current_transform"}
+			]
+		},
+		{
+			"id": "fumeshroom",
+			"profile_id": "local.original.fumeshroom.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/fumeshroom/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/fumeshroom_manifest_composite",
+			"actor_anchor_offset": [-44.0, -82.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "idle",
+				"sleep": "sleep"
+			},
+			"action_animation_map": {
+				"shoot": {"animation": "shooting", "next_state": "idle"}
+			},
+			"overlay_bindings": [
+				{"overlay_track": "DoomShroom_eyes", "parent_track": "anim_face", "transform_policy": "inherit_parent_current_transform"},
+				{"overlay_track": "anim_blink", "parent_track": "anim_face", "transform_policy": "inherit_parent_current_transform"}
+			]
+		},
+		{
+			"id": "tallnut",
+			"profile_id": "local.original.tallnut.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/tallnut/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/tallnut_manifest_composite",
+			"actor_anchor_offset": [-34.0, -126.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "idle"
+			},
+			"action_animation_map": {
+				"blink_twice": {"animation": "blink_twice", "next_state": "idle"},
+				"blink_thrice": {"animation": "blink_thrice", "next_state": "idle"}
+			},
+			"texture_override_sets": {
+				"normal": [
+					{"animation": "idle", "track": "anim_idle:texture", "texture": "res://vendor/out_files/reanim/Tallnut_body.png"}
+				],
+				"cracked1": [
+					{"animation": "idle", "track": "anim_idle:texture", "texture": "res://vendor/out_files/reanim/Tallnut_cracked1.png"}
+				],
+				"cracked2": [
+					{"animation": "idle", "track": "anim_idle:texture", "texture": "res://vendor/out_files/reanim/Tallnut_cracked2.png"}
+				]
+			},
+			"overlay_bindings": [
+				{"overlay_track": "anim_blink_twice", "parent_track": "anim_idle", "transform_policy": "inherit_parent_current_transform"},
+				{"overlay_track": "anim_blink_thrice", "parent_track": "anim_idle", "transform_policy": "inherit_parent_current_transform"}
+			]
+		},
+		{
+			"id": "pumpkin",
+			"profile_id": "local.original.pumpkin.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/pumpkin/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/pumpkin_manifest_composite",
+			"actor_anchor_offset": [-48.0, -62.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "all"
+			},
+			"texture_override_sets": {
+				"normal": [
+					{"animation": "all", "track": "Pumpkin_front:texture", "texture": "res://vendor/out_files/reanim/Pumpkin_front.png"}
+				],
+				"damage1": [
+					{"animation": "all", "track": "Pumpkin_front:texture", "texture": "res://vendor/out_files/reanim/pumpkin_damage1.png"}
+				],
+				"damage3": [
+					{"animation": "all", "track": "Pumpkin_front:texture", "texture": "res://vendor/out_files/reanim/Pumpkin_damage3.png"}
+				]
+			}
+		},
+		{
+			"id": "jalapeno",
+			"profile_id": "local.original.jalapeno.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/jalapeno/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/jalapeno_manifest_composite",
+			"actor_anchor_offset": [-52.0, -90.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "idle"
+			},
+			"action_animation_map": {
+				"blink": {"animation": "blink", "next_state": "idle"},
+				"explode": {"animation": "explode", "next_state": "idle"}
+			},
+			"overlay_bindings": [
+				{"overlay_track": "Jalapeno_eye1", "parent_track": "Jalapeno_stem", "transform_policy": "inherit_parent_current_transform"},
+				{"overlay_track": "Jalapeno_eye2", "parent_track": "Jalapeno_stem", "transform_policy": "inherit_parent_current_transform"},
+				{"overlay_track": "Jalapeno_eyebrow1", "parent_track": "Jalapeno_stem", "transform_policy": "inherit_parent_current_transform"},
+				{"overlay_track": "Jalapeno_eyebrow2", "parent_track": "Jalapeno_stem", "transform_policy": "inherit_parent_current_transform"}
+			]
+		},
+		{
+			"id": "doomshroom",
+			"profile_id": "local.original.doomshroom.composite",
+			"raw_actor_scene": "res://vendor/out_files/_openpvz_import/doomshroom/actor.tscn",
+			"out_dir": "res://vendor/out_files/_openpvz_import/doomshroom_manifest_composite",
+			"actor_anchor_offset": [-44.0, -86.0],
+			"initial_state": "idle",
+			"state_animation_map": {
+				"idle": "idle",
+				"sleep": "sleep"
+			},
+			"action_animation_map": {
+				"explode": {"animation": "explode", "next_state": "sleep"}
+			}
+		}
+	]
+}

@@ -353,17 +353,21 @@ func _derive_marker_animations(markers: Array, frame_count: int, _fps: int) -> A
 		var animation_name := marker_name.trim_prefix("anim_")
 		if animation_name == "":
 			continue
-		var start_frame := -1
+		var start_frame := 0
 		var end_frame := frame_count - 1
+		var has_explicit_start := false
+		var has_explicit_end := false
 		for frame in marker.get("frames", []):
 			var frame_index := int(frame.get("frame", 0))
 			var visible_flag := String(frame.get("f", ""))
-			if visible_flag == "0" and start_frame == -1:
+			if visible_flag == "0" and not has_explicit_start:
 				start_frame = frame_index
-			elif visible_flag == "-1" and start_frame != -1 and frame_index > start_frame:
+				has_explicit_start = true
+			elif visible_flag == "-1" and frame_index > start_frame:
 				end_frame = frame_index - 1
+				has_explicit_end = true
 				break
-		if start_frame == -1:
+		if not has_explicit_start and not has_explicit_end:
 			continue
 		animations.append({
 			"name": animation_name,

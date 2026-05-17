@@ -310,6 +310,51 @@ const GROUPS := [
 				"summary": "加载本地导入的 ThreePeater actor，复刻三头 attachment，并向上中下三条 lane 同步发射。",
 				"scene": "res://scenes/validation/visual_reanim_threepeater_actual_demo.tscn",
 			},
+			{
+				"title": "Reanim 坚果墙实际演示",
+				"summary": "加载 Wallnut.reanim 生成的 actor，展示 idle 摇摆和 cracked1/cracked2 受伤贴图替换。",
+				"scene": "res://scenes/validation/visual_reanim_wallnut_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 土豆地雷实际演示",
+				"summary": "加载 PotatoMine.reanim 生成的 actor，展示埋地、出土、armed/glow 和 mashed 爆炸状态流。",
+				"scene": "res://scenes/validation/visual_reanim_potatomine_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 樱桃炸弹实际演示",
+				"summary": "加载 CherryBomb.reanim 生成的 actor，展示 idle 到 explode 的一次性爆炸视觉流程。",
+				"scene": "res://scenes/validation/visual_reanim_cherrybomb_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 倭瓜实际演示",
+				"summary": "加载 Squash.reanim 生成的 manifest composite，展示观察、起跳和压制目标的一次性动作流程。",
+				"scene": "res://scenes/validation/visual_reanim_squash_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 大喷菇实际演示",
+				"summary": "加载 FumeShroom.reanim 生成的 manifest composite，展示 idle/shooting 与短程喷雾占位效果。",
+				"scene": "res://scenes/validation/visual_reanim_fumeshroom_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 高坚果实际演示",
+				"summary": "加载 Tallnut.reanim 生成的 manifest composite，展示坚果类 cracked 贴图替换的泛化流程。",
+				"scene": "res://scenes/validation/visual_reanim_tallnut_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 南瓜头实际演示",
+				"summary": "加载 Pumpkin.reanim 生成的 manifest composite，展示 back/front 双层和 front 受伤贴图替换。",
+				"scene": "res://scenes/validation/visual_reanim_pumpkin_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 火爆辣椒实际演示",
+				"summary": "加载 Jalapeno.reanim 生成的 manifest composite，展示 explode 动画和整行火焰占位效果。",
+				"scene": "res://scenes/validation/visual_reanim_jalapeno_actual_demo.tscn",
+			},
+			{
+				"title": "Reanim 毁灭菇实际演示",
+				"summary": "加载 DoomShroom.reanim 生成的 manifest composite，展示 idle、explode、sleep 状态切换和爆炸占位效果。",
+				"scene": "res://scenes/validation/visual_reanim_doomshroom_actual_demo.tscn",
+			},
 		],
 	},
 ]
