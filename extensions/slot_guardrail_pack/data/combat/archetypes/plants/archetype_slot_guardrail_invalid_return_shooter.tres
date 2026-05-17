@@ -25,7 +25,7 @@ hitbox_size = Vector2(42, 54)
 default_params = {
 "damage": 20,
 "interval": 0.4,
-"scan_range": 900.0,
-"speed": 320.0
+"range_mode": &"full_lane",
+"speed_slots_per_sec": 3.333333
 }
 mechanics = [ExtResource("2_trigger"), ExtResource("3_targeting"), ExtResource("4_trajectory"), ExtResource("5_payload")]

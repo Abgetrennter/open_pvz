@@ -372,60 +372,6 @@
     "layers": ["extension"]
   },
   {
-    "id": "hit_split_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/hit_split_chaos_validation.tres",
-    "description": "Validates that an extension-defined on_hit split effect can apply primary hit damage and spawn follow-up projectiles from the impact point.",
-    "layers": ["extension"]
-  },
-  {
-    "id": "periodic_summon_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/periodic_summon_chaos_validation.tres",
-    "description": "Validates that an extension-defined spawn_entity effect can periodically summon combat-ready shardlings into the shared runtime.",
-    "layers": ["extension"]
-  },
-  {
-    "id": "apply_status_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/apply_status_chaos_validation.tres",
-    "description": "Validates that an extension-defined apply_status effect can slow a zombie on hit and reuse the shared status runtime.",
-    "layers": ["extension"]
-  },
-  {
-    "id": "knockback_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/knockback_chaos_validation.tres",
-    "description": "Validates that an extension-defined knockback effect can displace a zombie on hit while preserving primary damage.",
-    "layers": ["extension"]
-  },
-  {
-    "id": "chain_bounce_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/chain_bounce_chaos_validation.tres",
-    "description": "Validates that an extension-defined chain_bounce effect can jump between clustered targets with falloff damage.",
-    "layers": ["extension"]
-  },
-  {
-    "id": "aura_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/aura_chaos_validation.tres",
-    "description": "Validates that an extension-defined aura effect can periodically apply slowed to nearby enemies while leaving distant enemies untouched.",
-    "layers": ["extension"]
-  },
-  {
-    "id": "delayed_trigger_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/delayed_trigger_chaos_validation.tres",
-    "description": "Validates that an extension-defined delayed_trigger effect can defer single-target damage until after a configured delay.",
-    "layers": ["extension"]
-  },
-  {
-    "id": "delayed_explode_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/delayed_explode_chaos_validation.tres",
-    "description": "Validates that an extension-defined delayed_explode effect can defer an area explosion and damage clustered enemies after the delay.",
-    "layers": ["extension"]
-  },
-  {
-    "id": "mark_chaos_validation",
-    "scenario": "res://extensions/phase5_chaos_pack/scenes/validation/mark_chaos_validation.tres",
-    "description": "Validates that an extension-defined mark effect can apply a timed mark and emit a removal event on expiry.",
-    "layers": ["extension"]
-  },
-  {
     "id": "extension_manifest_guardrail_validation",
     "scenario": "res://scenes/validation/extension_manifest_guardrail_validation.tres",
     "description": "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids.",

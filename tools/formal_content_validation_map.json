@@ -81,17 +81,7 @@
         "extension_manifest_guardrail_validation",
         "extension_effect_guardrail_validation"
       ],
-      "showcases": [
-        "hit_split_chaos_showcase",
-        "periodic_summon_chaos_showcase",
-        "apply_status_chaos_showcase",
-        "knockback_chaos_showcase",
-        "chain_bounce_chaos_showcase",
-        "aura_chaos_showcase",
-        "delayed_trigger_chaos_showcase",
-        "delayed_explode_chaos_showcase",
-        "mark_chaos_showcase"
-      ]
+      "showcases": []
     },
     {
       "id": "original_plants_batch_a",

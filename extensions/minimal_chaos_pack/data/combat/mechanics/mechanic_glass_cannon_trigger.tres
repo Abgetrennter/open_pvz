@@ -13,6 +13,6 @@ tags = PackedStringArray("extension", "glass_cannon", "periodic", "attack")
 params = {
 "detection_id": &"lane_forward",
 "interval": 0.45,
-"scan_range": 900.0,
+"range_mode": &"full_lane",
 "start_delay": 0.2
 }

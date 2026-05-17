@@ -196,51 +196,6 @@ const GROUPS := [
 				"summary": "两条 lane 上各自独立完成攻击与反击，验证 retaliation 链不会跨 lane 串线。",
 				"scene": "res://scenes/showcase/multi_lane_retaliation_cascade_showcase.tscn",
 			},
-			{
-				"title": "命中分裂扩展样例",
-				"summary": "主弹命中后从命中点分裂出追击投射物，验证扩展包最小 on_hit effect 位已经打通。",
-				"scene": "res://scenes/showcase/hit_split_chaos_showcase.tscn",
-			},
-			{
-				"title": "周期召唤扩展样例",
-				"summary": "召唤植物周期生成 shardling 并加入战斗，验证扩展包最小 spawn_entity 能力位已经打通。",
-				"scene": "res://scenes/showcase/periodic_summon_chaos_showcase.tscn",
-			},
-			{
-				"title": "状态控制扩展样例",
-				"summary": "命中后直接施加减速状态，验证扩展 apply_status 能力位已经接入现有状态主链。",
-				"scene": "res://scenes/showcase/apply_status_chaos_showcase.tscn",
-			},
-			{
-				"title": "击退扩展样例",
-				"summary": "命中后把僵尸向后推回去，验证扩展 knockback 位移效果已经接入共享实体运行时。",
-				"scene": "res://scenes/showcase/knockback_chaos_showcase.tscn",
-			},
-			{
-				"title": "跳链扩展样例",
-				"summary": "命中后按距离把伤害跳到附近多个目标，验证扩展 chain_bounce 多目标逻辑已经打通。",
-				"scene": "res://scenes/showcase/chain_bounce_chaos_showcase.tscn",
-			},
-			{
-				"title": "光环扩展样例",
-				"summary": "站场植物持续减速近处敌人，验证扩展 aura 能力位已经接入共享状态主链。",
-				"scene": "res://scenes/showcase/aura_chaos_showcase.tscn",
-			},
-			{
-				"title": "延迟触发扩展样例",
-				"summary": "命中后延迟一段时间再造成伤害，验证扩展 delayed_trigger 的时序执行链。",
-				"scene": "res://scenes/showcase/delayed_trigger_chaos_showcase.tscn",
-			},
-			{
-				"title": "延迟爆炸扩展样例",
-				"summary": "命中后延迟爆炸并波及周围目标，验证扩展 delayed_explode 的共享 area effect 链。",
-				"scene": "res://scenes/showcase/delayed_explode_chaos_showcase.tscn",
-			},
-			{
-				"title": "标记扩展样例",
-				"summary": "命中后施加独立 mark，并在持续时间结束后自动移除，验证扩展 mark 生命周期。",
-				"scene": "res://scenes/showcase/mark_chaos_showcase.tscn",
-			},
 		],
 	},
 	{

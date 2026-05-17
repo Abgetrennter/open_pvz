@@ -30,19 +30,6 @@ project's default startup scene:
 - `splash_zone_cascade_showcase.tscn`
 - `fast_pursuit_cascade_showcase.tscn`
 - `multi_lane_retaliation_cascade_showcase.tscn`
-- `hit_split_chaos_showcase.tscn`
-- `periodic_summon_chaos_showcase.tscn`
-- `apply_status_chaos_showcase.tscn`
-- `knockback_chaos_showcase.tscn`
-- `chain_bounce_chaos_showcase.tscn`
-- `aura_chaos_showcase.tscn`
-- `delayed_trigger_chaos_showcase.tscn`
-- `delayed_explode_chaos_showcase.tscn`
-- `mark_chaos_showcase.tscn`
-
-Phase 5 分组的额外说明见：
-
-- `PHASE5_CHAOS_README.md`
 
 All of them use `BattleManager` directly and keep restart enabled with `R`.
 Each showcase scene also supports:

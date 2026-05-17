@@ -11,7 +11,5 @@ flight_height = 56.0
 projection_scale = 1.0
 max_hit_height = 96.0
 hit_strategy = &"swept_segment"
-impact_radius = 20.0
-collision_padding = 10.0
 impact_radius_slots = 0.208333
 collision_padding_slots = 0.104167
