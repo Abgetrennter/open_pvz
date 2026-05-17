@@ -40,9 +40,9 @@ extends Resource
 @export var wave_font_size: int = 18
 
 
-static func default() -> UIThemeProfile:
-	var loaded: UIThemeProfile = load("res://scripts/ui/theme/default_theme.tres") as UIThemeProfile
+static func default() -> Resource:
+	var loaded: Resource = load("res://scripts/ui/theme/default_theme.tres") as Resource
 	if loaded != null:
 		return loaded
 	# Fallback: create a minimal profile with script defaults
-	return UIThemeProfile.new()
+	return load("res://scripts/ui/theme/ui_theme_profile.gd").new()

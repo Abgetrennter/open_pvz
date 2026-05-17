@@ -505,7 +505,8 @@ func _try_spawn_visual_validation_probe() -> void:
 	var active_scenario = resolve_scenario()
 	if active_scenario == null:
 		return
-	if not String(active_scenario.scenario_id).begins_with("visual_"):
+	var scenario_id := String(active_scenario.scenario_id)
+	if not scenario_id.begins_with("visual_") and not scenario_id.begins_with("ui_theme_"):
 		return
 	_visual_validation_probe = VisualValidationProbeRef.new()
 	_visual_validation_probe.name = "VisualValidationProbe"

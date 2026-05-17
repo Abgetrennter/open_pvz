@@ -4,6 +4,7 @@ class_name VisualValidationProbe
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 const VisualCueDefRef = preload("res://scripts/core/defs/visual_cue_def.gd")
+const UIThemeProfileRef = preload("res://scripts/ui/theme/ui_theme_profile.gd")
 
 var _battle: Node = null
 var _emitted: Dictionary = {}
@@ -137,9 +138,7 @@ func _extension_source(path_suffix: String) -> Dictionary:
 func _probe_ui_theme() -> void:
 	if _emitted.has(&"ui_theme_default"):
 		return
-	if not ClassDB.class_exists(&"UIThemeProfile"):
-		return
-	var default_theme: Resource = UIThemeProfile.default()
+	var default_theme: Resource = UIThemeProfileRef.default()
 	if default_theme == null:
 		return
 	if default_theme.theme_id != &"default":
