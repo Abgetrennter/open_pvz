@@ -56,7 +56,6 @@ data/combat/
 - 命名：`plant_role_variant` / `zombie_role_variant` / `projectile_type`
 - 字段顺序：Identity -> Node/Component -> Combat -> Projectile -> Behavior
 - 正式实体只允许使用 `CombatArchetype + CombatMechanic[]`
-- 历史模板资源已归档到 `plans/archive/legacy-resources/`
 - 放置约束通过 `placement_role`, `required_placement_tags`, `granted_placement_tags` 控制
 
 ## 相关验证场景

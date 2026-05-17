@@ -13,7 +13,7 @@ That means the default priority order is:
 1. backbone correctness
 2. repeatable validation
 3. protocol / resource / terminology consistency
-4. legacy-scope tightening
+4. archetype-only hardening
 5. formal content and extension growth on the shared runtime
 
 Do not default to old "phase 4 / phase 5 / phase 6 task-list" language when describing the current mainline. Those documents are historical archive material unless a task explicitly requires historical tracing.
@@ -91,10 +91,6 @@ When making engine, runtime, validation, protocol, content, or documentation cha
 - Do not patch a visible symptom into the backbone if the issue is really a missing abstraction or an uncaptured boundary.
 - Keep backbone work, content work, showcase work, and archive work separate. A showcase-only success is not backbone completion.
 - Treat `CombatArchetype + CombatMechanic[]` as the only formal top-level authoring path.
-- Treat `EntityTemplate / TriggerBinding` as legacy-only terms:
-  - compatibility layer
-  - backend resource layer
-  - migration parity layer
 - Do not describe `EntityTemplate / TriggerBinding` as the formal authoring path in code comments, docs, or task summaries.
 - Keep terminology aligned with `wiki/05-governance/33-术语表.md` so concept names do not drift across docs, resources, and code.
 - Prefer explicit Resource-based configuration over long-lived bare dictionaries.

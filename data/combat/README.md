@@ -25,7 +25,6 @@ This directory stores combat-facing Resource content for the runtime and validat
 
 - New entities must be authored as `CombatArchetype + CombatMechanic[]`.
 - `ProjectileTemplate` resources should describe the projectile itself, not the firing entity.
-- Retired template resources live under `plans/archive/legacy-resources/` and are not scanned at runtime.
 - Formal battle content should prefer `data/combat/*` trees over `scenes/validation` or `scenes/showcase`.
 - `scenes/validation/` is for verification scenarios.
 - `scenes/showcase/` is for display wrappers only.

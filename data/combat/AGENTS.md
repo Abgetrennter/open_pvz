@@ -73,7 +73,6 @@ data/combat/
 - 字段顺序：Identity -> Chassis -> Combat Stats -> Mechanic[]
 - 正式实体只用 `CombatArchetype + CombatMechanic[]`，禁止旧模型
 - 放置约束走 `placement_role` / `required_placement_tags` / `granted_placement_tags`
-- 归档模板在 `plans/archive/legacy-resources/`，运行时不扫描
 
 ## 关键资源类型
 
