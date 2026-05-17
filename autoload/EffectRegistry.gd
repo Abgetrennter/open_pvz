@@ -836,7 +836,7 @@ func _register_builtin_strategies() -> void:
 			return result
 
 		var amount := int(params.get("amount", 1800))
-		var radius := _resolve_slots_distance(params, "radius_slots", "radius", 4000.0)
+		var radius := _resolve_slots_distance(params, "radius_slots", 4000.0)
 		var center: Vector2 = _node_ground_position(context.owner_entity)
 		var effect_source := _resolve_effect_source_node(context)
 
@@ -980,7 +980,7 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 		center = _node_ground_position(context.target_node)
 	if center == Vector2.ZERO:
 		center = _node_ground_position(context.source_node)
-	var radius := _resolve_slots_distance(params, "radius_slots", "radius", 96.0)
+	var radius := _resolve_slots_distance(params, "radius_slots", 96.0)
 	var source_team: StringName = &"neutral"
 	if context.owner_entity != null and context.owner_entity.has_method("get"):
 		source_team = context.owner_entity.get("team")
@@ -1174,13 +1174,13 @@ func _resolve_replacement_granted_tags(archetype_id: StringName) -> PackedString
 	return PackedStringArray()
 
 
-func _resolve_slots_distance(params: Dictionary, slots_key: String, legacy_key: String, default_world: float) -> float:
+func _resolve_slots_distance(params: Dictionary, slots_key: String, default_world: float) -> float:
 	var metrics := _get_battlefield_metrics()
 	if metrics != null and metrics.has_method("resolve_slots_distance"):
-		return float(metrics.call("resolve_slots_distance", params, slots_key, legacy_key, default_world))
+		return float(metrics.call("resolve_slots_distance", params, slots_key, default_world))
 	if params.has(slots_key):
 		return float(params.get(slots_key)) * 96.0
-	return float(params.get(legacy_key, default_world))
+	return default_world
 
 
 func _get_battlefield_metrics() -> RefCounted:

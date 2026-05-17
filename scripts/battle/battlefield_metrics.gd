@@ -29,23 +29,23 @@ func slots_to_world(slot_count: float) -> float:
 	return slot_count * slot_spacing
 
 
-func resolve_slots_distance(params: Dictionary, slots_key: String, legacy_key: String, default_world: float) -> float:
+func resolve_slots_distance(params: Dictionary, slots_key: String, default_world: float) -> float:
 	if params.has(slots_key):
 		return slots_to_world(float(params.get(slots_key)))
-	return float(params.get(legacy_key, default_world))
+	return default_world
 
 
-func resolve_slots_speed(params: Dictionary, slots_key: String, legacy_key: String, default_world_per_sec: float) -> float:
+func resolve_slots_speed(params: Dictionary, slots_key: String, default_world_per_sec: float) -> float:
 	if params.has(slots_key):
 		return slots_to_world(float(params.get(slots_key)))
-	return float(params.get(legacy_key, default_world_per_sec))
+	return default_world_per_sec
 
 
-func resolve_range(params: Dictionary, slots_key: String, legacy_key: String, default_world: float, origin_x: float = slot_origin_x) -> float:
+func resolve_range(params: Dictionary, slots_key: String, default_world: float, origin_x: float = slot_origin_x) -> float:
 	var range_mode := StringName(params.get("range_mode", StringName()))
 	if range_mode == &"full_lane":
 		return maxf(playable_max_x - origin_x, origin_x - playable_min_x)
-	return resolve_slots_distance(params, slots_key, legacy_key, default_world)
+	return resolve_slots_distance(params, slots_key, default_world)
 
 
 func world_to_slot_index(x: float) -> int:

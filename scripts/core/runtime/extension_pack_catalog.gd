@@ -127,7 +127,7 @@ static func _load_manifest(root_path: String, fallback_pack_id: String) -> Dicti
 			return {}
 		manifest["trust_level"] = trust_level
 	else:
-		manifest["trust_level"] = _infer_legacy_trust_level(Array(manifest.get("register", [])))
+		manifest["trust_level"] = &"data_only"
 	var activation_cli_error := _validate_string_array_field(manifest, "activation_cli_flags", pack_id)
 	if not activation_cli_error.is_empty():
 		_record_manifest_issue(activation_cli_error)
@@ -153,15 +153,6 @@ static func _pack_supports_register_kind(manifest: Dictionary, register_kind: St
 	return false
 
 
-static func _infer_legacy_trust_level(register_list: Array) -> StringName:
-	for entry in register_list:
-		var register_kind := StringName(entry)
-		if register_kind == &"projectile_movement" or register_kind == &"mechanic_compilers":
-			return &"data_only"
-	for entry in register_list:
-		if StringName(entry) == &"effects":
-			return &"rule_extended"
-	return &"data_only"
 
 
 static func _pack_enabled(manifest: Dictionary, root_path: String) -> bool:

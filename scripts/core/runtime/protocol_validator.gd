@@ -57,7 +57,6 @@ const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"interval": true,
 	"amount": true,
 	"damage": true,
-	"speed": true,
 	"speed_slots_per_sec": true,
 	"effect_overrides": true,
 	"on_hit_effect_id": true,
@@ -67,7 +66,6 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"interval": true,
 	"amount": true,
 	"damage": true,
-	"speed": true,
 	"speed_slots_per_sec": true,
 	"effect_overrides": true,
 	"on_hit_effect_id": true,
@@ -77,9 +75,7 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"movement_mode": true,
 	"travel_duration": true,
 	"arc_height": true,
-	"impact_radius": true,
 	"impact_radius_slots": true,
-	"collision_padding": true,
 	"collision_padding_slots": true,
 	"lead_time_scale": true,
 	"dynamic_target_adjustment": true,
@@ -87,9 +83,7 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"max_lead_distance": true,
 	"lead_iterations": true,
 	"target_position": true,
-	"distance": true,
 	"distance_slots": true,
-	"radius": true,
 	"radius_slots": true,
 	"target_mode": true,
 	"lifetime": true,
@@ -105,17 +99,13 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"angle_count": true,
 	"angle_spread": true,
 	"turn_rate": true,
-	"move_speed": true,
 	"move_speed_slots_per_sec": true,
 	"attack_damage": true,
 	"attack_interval": true,
 	"max_health": true,
 	"hitbox_size": true,
-	"detection_radius": true,
 	"detection_radius_slots": true,
-	"detection_range": true,
 	"detection_range_slots": true,
-	"scan_range": true,
 	"scan_range_slots": true,
 	"range_mode": true,
 	"detection_id": true,
@@ -348,8 +338,6 @@ static func validate_combat_archetype(archetype: Resource) -> Array[String]:
 		errors.append("CombatArchetype.default_params must be a Dictionary.")
 	if not (archetype.compiler_hints is Dictionary):
 		errors.append("CombatArchetype.compiler_hints must be a Dictionary.")
-	elif bool(archetype.compiler_hints.get("migrated_wrapper", false)):
-		errors.append("CombatArchetype.compiler_hints must not include migrated_wrapper. Wrapper archetypes must be migrated to native mechanics.")
 	if not (archetype.mechanics is Array):
 		errors.append("CombatArchetype.mechanics must be an Array.")
 	else:

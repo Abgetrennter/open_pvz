@@ -296,10 +296,10 @@ func _resolve_manual_skill_radius(battle: Node, module_params: Dictionary) -> fl
 	if battle != null and battle.has_method("get_battlefield_metrics"):
 		var metrics: Variant = battle.call("get_battlefield_metrics")
 		if metrics != null and metrics.has_method("resolve_slots_distance"):
-			return float(metrics.call("resolve_slots_distance", module_params, "radius_slots", "radius", 120.0))
+			return float(metrics.call("resolve_slots_distance", module_params, "radius_slots", 120.0))
 	if module_params.has("radius_slots"):
 		return float(module_params.get("radius_slots")) * 96.0
-	return float(module_params.get("radius", 120.0))
+	return 120.0
 
 
 func _manual_skill_tags(module_params: Dictionary) -> PackedStringArray:

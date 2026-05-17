@@ -306,10 +306,10 @@ func _resolve_scan_range(owner: Node, params: Dictionary, default_world: float) 
 		var origin_x := 0.0
 		if owner is Node2D:
 			origin_x = _node_ground_position(owner).x
-		return float(metrics.call("resolve_range", params, "scan_range_slots", "scan_range", default_world, origin_x))
+		return float(metrics.call("resolve_range", params, "scan_range_slots", default_world, origin_x))
 	if params.has("scan_range_slots"):
 		return float(params.get("scan_range_slots")) * 96.0
-	return float(params.get("scan_range", default_world))
+	return default_world
 
 
 func _get_battlefield_metrics() -> RefCounted:

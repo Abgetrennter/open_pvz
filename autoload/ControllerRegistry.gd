@@ -100,8 +100,8 @@ func _register_builtin_strategies() -> void:
 		if not owner is Node2D:
 			return
 		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
-		var move_speed: float = _resolve_slots_speed(params, "move_speed_slots_per_sec", "move_speed", 300.0)
-		var detection_radius: float = _resolve_slots_distance(params, "detection_radius_slots", "detection_radius", 50.0)
+		var move_speed: float = _resolve_slots_speed(params, "move_speed_slots_per_sec", 300.0)
+		var detection_radius: float = _resolve_slots_distance(params, "detection_radius_slots", 50.0)
 		var sweep_state: String = String(blackboard.get("mower_state", "idle"))
 		if sweep_state == "idle":
 			var detection_result: Dictionary = DetectionRegistry.evaluate(&"lane_forward", owner, {"scan_range": detection_radius})
@@ -139,7 +139,7 @@ func _register_builtin_strategies() -> void:
 		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
 		var damage: int = int(params.get("damage", 20))
 		var interval: float = float(params.get("interval", 0.5))
-		var detection_range: float = _resolve_slots_distance(params, "detection_range_slots", "detection_range", 48.0)
+		var detection_range: float = _resolve_slots_distance(params, "detection_range_slots", 48.0)
 		var acc_time: float = float(blackboard.get("acc_time", 0.0))
 		acc_time += delta
 		if acc_time < interval:
@@ -163,7 +163,7 @@ func _register_builtin_strategies() -> void:
 			return
 		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
 		var multipler: float = float(params.get("damage_multiplier", 2.0))
-		var detection_range: float = _resolve_slots_distance(params, "detection_range_slots", "detection_range", 64.0)
+		var detection_range: float = _resolve_slots_distance(params, "detection_range_slots", 64.0)
 		var last_tick: float = float(blackboard.get("last_transform_tick", -999999.0))
 		var current_time: float = GameState.current_time
 		if current_time - last_tick < 0.1:
@@ -226,7 +226,7 @@ func _find_collectible_magnet_target(owner: Node2D, economy: Node, params: Dicti
 	var active_suns: Dictionary = Dictionary(economy.get("active_suns")) if economy.get("active_suns") is Dictionary else {}
 	if active_suns.is_empty():
 		return null
-	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", "scan_range", 4000.0)
+	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", 4000.0)
 	var allowed_source_types := _resolve_source_type_filter(params.get("source_types", PackedStringArray(["coin_generated"])))
 	var best_collectible: Node = null
 	var best_distance := INF
@@ -264,7 +264,7 @@ func _process_proximity_liveness(owner: Node, spec: Dictionary, delta: float, bl
 		blackboard["acc_time"] = acc_time
 		return
 	blackboard["acc_time"] = acc_time - interval
-	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", "scan_range", 96.0)
+	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", 96.0)
 	var detection_id := StringName(params.get("detection_id", &"proximity"))
 	var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, owner, {
 		"scan_range": scan_range,
@@ -300,22 +300,22 @@ func _resolve_source_type_filter(raw_value: Variant) -> Array[StringName]:
 	return resolved
 
 
-func _resolve_slots_distance(params: Dictionary, slots_key: String, legacy_key: String, default_world: float) -> float:
+func _resolve_slots_distance(params: Dictionary, slots_key: String, default_world: float) -> float:
 	var metrics := _get_battlefield_metrics()
 	if metrics != null and metrics.has_method("resolve_slots_distance"):
-		return float(metrics.call("resolve_slots_distance", params, slots_key, legacy_key, default_world))
+		return float(metrics.call("resolve_slots_distance", params, slots_key, default_world))
 	if params.has(slots_key):
 		return float(params.get(slots_key)) * 96.0
-	return float(params.get(legacy_key, default_world))
+	return default_world
 
 
-func _resolve_slots_speed(params: Dictionary, slots_key: String, legacy_key: String, default_world_per_sec: float) -> float:
+func _resolve_slots_speed(params: Dictionary, slots_key: String, default_world_per_sec: float) -> float:
 	var metrics := _get_battlefield_metrics()
 	if metrics != null and metrics.has_method("resolve_slots_speed"):
-		return float(metrics.call("resolve_slots_speed", params, slots_key, legacy_key, default_world_per_sec))
+		return float(metrics.call("resolve_slots_speed", params, slots_key, default_world_per_sec))
 	if params.has(slots_key):
 		return float(params.get(slots_key)) * 96.0
-	return float(params.get(legacy_key, default_world_per_sec))
+	return default_world_per_sec
 
 
 func _get_battlefield_metrics() -> RefCounted:

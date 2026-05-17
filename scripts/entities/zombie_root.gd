@@ -271,18 +271,14 @@ func is_counted_for_objectives() -> bool:
 
 func _resolve_move_speed(params: Dictionary = {}) -> float:
 	var source_params := {
-		"move_speed": move_speed,
+		"move_speed_slots_per_sec": move_speed_slots_per_sec,
 	}
-	if move_speed_slots_per_sec >= 0.0:
-		source_params["move_speed_slots_per_sec"] = move_speed_slots_per_sec
 	for key: Variant in params.keys():
 		source_params[key] = params[key]
 	var metrics := _get_battlefield_metrics()
 	if metrics != null and metrics.has_method("resolve_slots_speed"):
-		return float(metrics.call("resolve_slots_speed", source_params, "move_speed_slots_per_sec", "move_speed", move_speed))
-	if source_params.has("move_speed_slots_per_sec"):
-		return float(source_params.get("move_speed_slots_per_sec")) * 96.0
-	return float(source_params.get("move_speed", move_speed))
+		return float(metrics.call("resolve_slots_speed", source_params, "move_speed_slots_per_sec", move_speed))
+	return float(source_params.get("move_speed_slots_per_sec", move_speed_slots_per_sec)) * 96.0
 
 
 func _get_battlefield_metrics() -> RefCounted:

@@ -41,7 +41,7 @@ func simulation_step(delta: float) -> void:
 
 
 func _check_zombie_proximity() -> void:
-	if not _query_zombies_ahead(_resolve_slots_distance(detection_radius_slots, detection_radius), false).is_empty():
+	if not _query_zombies_ahead(_resolve_slots_distance(detection_radius_slots), false).is_empty():
 		_trigger()
 
 
@@ -57,7 +57,7 @@ func _trigger() -> void:
 
 
 func _sweep(delta: float) -> void:
-	global_position.x += _resolve_slots_speed(move_speed_slots_per_sec, move_speed) * delta
+	global_position.x += _resolve_slots_speed(move_speed_slots_per_sec) * delta
 	for entity in _query_zombies_ahead(20.0, true):
 		entity.call("take_damage", 9999, self, PackedStringArray(["mower", "sweep"]))
 	if global_position.x > 1000.0:
@@ -87,8 +87,8 @@ func _draw() -> void:
 
 func perform_sweep_cycle_for_controller(spec: Dictionary, delta: float) -> void:
 	var params: Dictionary = Dictionary(spec.get("params", {}))
-	var resolved_move_speed := _resolve_slots_speed(float(params.get("move_speed_slots_per_sec", move_speed_slots_per_sec)), float(params.get("move_speed", move_speed)))
-	var resolved_detection_radius := _resolve_slots_distance(float(params.get("detection_radius_slots", detection_radius_slots)), float(params.get("detection_radius", detection_radius)))
+	var resolved_move_speed := _resolve_slots_speed(float(params.get("move_speed_slots_per_sec", move_speed_slots_per_sec)))
+	var resolved_detection_radius := _resolve_slots_distance(float(params.get("detection_radius_slots", detection_radius_slots)))
 	match _mower_state:
 		&"idle":
 			_check_zombie_proximity_with_radius(resolved_detection_radius)
@@ -135,16 +135,16 @@ func _resolve_battle_ref() -> Node:
 	return null
 
 
-func _resolve_slots_distance(slots_value: float, legacy_world: float) -> float:
+func _resolve_slots_distance(slots_value: float) -> float:
 	if slots_value >= 0.0:
 		return _slots_to_world(slots_value)
-	return legacy_world
+	return 0.0
 
 
-func _resolve_slots_speed(slots_value: float, legacy_world_per_sec: float) -> float:
+func _resolve_slots_speed(slots_value: float) -> float:
 	if slots_value >= 0.0:
 		return _slots_to_world(slots_value)
-	return legacy_world_per_sec
+	return 0.0
 
 
 func _slots_to_world(slot_count: float) -> float:

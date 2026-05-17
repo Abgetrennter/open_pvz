@@ -154,7 +154,7 @@ func _resolve_projectile_target_position(
 	if target_node != null:
 		return _predict_target_position(spawn_position, target_node, travel_duration, speed, params)
 
-	var distance := _resolve_distance_param(params, "distance_slots", "distance", 280.0)
+	var distance := _resolve_distance_param(params, "distance_slots", 280.0)
 	return spawn_position + direction.normalized() * distance
 
 
@@ -171,10 +171,10 @@ func _resolve_semantic_projectile_params(params: Dictionary) -> Dictionary:
 	return resolved
 
 
-func _resolve_distance_param(params: Dictionary, slots_key: String, legacy_key: String, default_world: float) -> float:
+func _resolve_distance_param(params: Dictionary, slots_key: String, default_world: float) -> float:
 	if params.has(slots_key):
 		return _slots_to_world(float(params.get(slots_key)))
-	return float(params.get(legacy_key, default_world))
+	return default_world
 
 
 func _slots_to_world(slot_count: float) -> float:
