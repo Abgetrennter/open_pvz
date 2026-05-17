@@ -7,8 +7,8 @@ var _label: Label = null
 var _is_final := false
 
 
-func panel_setup(battle: Node, scenario: Resource) -> void:
-	super.panel_setup(battle, scenario)
+func panel_setup(battle: Node, scenario: Resource, theme: UIThemeProfile = null) -> void:
+	super.panel_setup(battle, scenario, theme)
 	_total_waves = 0
 	_current_wave = 0
 	_is_final = false
@@ -30,7 +30,7 @@ func _build_ui() -> void:
 		child.queue_free()
 	_label = Label.new()
 	_label.add_theme_font_size_override("font_size", 18)
-	_label.add_theme_color_override("font_color", Color("ffffff"))
+	_label.add_theme_color_override("font_color", _get_theme().wave_normal_color)
 	_label.text = _wave_text()
 	add_child(_label)
 
@@ -42,7 +42,7 @@ func _on_wave_started(_event_data: Variant) -> void:
 		return
 	_label.text = _wave_text()
 	if _is_final:
-		_label.add_theme_color_override("font_color", Color("e06060"))
+		_label.add_theme_color_override("font_color", _get_theme().wave_final_color)
 		var tween := _track_tween(create_tween())
 		if tween == null:
 			return

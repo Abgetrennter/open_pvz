@@ -6,8 +6,8 @@ var _label: Label = null
 var _icon: ColorRect = null
 
 
-func panel_setup(battle: Node, scenario: Resource) -> void:
-	super.panel_setup(battle, scenario)
+func panel_setup(battle: Node, scenario: Resource, theme: UIThemeProfile = null) -> void:
+	super.panel_setup(battle, scenario, theme)
 	_current_sun = _resolve_initial_sun(scenario)
 	_build_ui()
 	_track_subscribe(&"resource.changed", Callable(self, "_on_resource_changed"))
@@ -26,12 +26,12 @@ func _build_ui() -> void:
 	add_child(layout)
 	_icon = ColorRect.new()
 	_icon.custom_minimum_size = Vector2(28.0, 28.0)
-	_icon.color = Color("f2d25c")
+	_icon.color = _get_theme().sun_icon_color
 	layout.add_child(_icon)
 	_label = Label.new()
 	_label.text = "%d" % _current_sun
 	_label.add_theme_font_size_override("font_size", 22)
-	_label.add_theme_color_override("font_color", Color("ffffff"))
+	_label.add_theme_color_override("font_color", _get_theme().sun_counter_text_color)
 	layout.add_child(_label)
 
 

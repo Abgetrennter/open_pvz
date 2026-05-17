@@ -892,5 +892,17 @@
     "scenario": "res://scenes/validation/visual_extension_pack_smoke.tres",
     "description": "Validates that new visual register kinds (visual_cues, visual_fx, audio_cues, visual_profiles) are accepted by ExtensionPackCatalog and battle runs normally.",
     "layers": ["smoke"]
+  },
+  {
+    "id": "visual_action_types_smoke",
+    "scenario": "res://scenes/validation/visual_action_types_smoke.tres",
+    "description": "Validates that all 6 visual action types are wired and produce expected results when projectile.hit and entity.damaged events fire.",
+    "layers": ["smoke"]
+  },
+  {
+    "id": "ui_theme_switch_validation",
+    "scenario": "res://scenes/validation/ui_theme_switch_validation.tres",
+    "description": "Validates that UIThemeProfile.default() loads correctly and theme fields are accessible.",
+    "layers": ["smoke"]
   }
 ]

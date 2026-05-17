@@ -50,6 +50,12 @@ func _register_builtin_defs() -> void:
 	pop_cue.actions = _make_actions({"type": &"spawn_fx", "fx_id": &"core.placement_pop"})
 	register_def(pop_cue, {"kind": &"core", "source": &"core"})
 
+	var status_clear_cue = VisualCueDefRef.new()
+	status_clear_cue.id = &"core.status_removed_clear_overlay"
+	status_clear_cue.listen_event = &"entity.status_removed"
+	status_clear_cue.actions = _make_actions({"type": &"play_actor_animation", "animation": &"status_clear"})
+	register_def(status_clear_cue, {"kind": &"core", "source": &"core"})
+
 
 func get_cues_for_event(event_name: StringName) -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
