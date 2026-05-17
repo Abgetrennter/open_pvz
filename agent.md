@@ -6,7 +6,7 @@ Treat this repository as an open PVZ-like rules engine project, not a one-off de
 
 The current project state is:
 
-> Mechanic-first restructuring has completed its first three stages. `Placement` has now entered the same formalized coverage tier as the other 9 families. The active line is: keep `Archetype + Mechanic[]` as the only formal authoring path, continue closing the legacy layer, and keep content, mode, and validation growth synchronized.
+> Mechanic-first restructuring has completed its first three stages. `Placement` has now entered the same formalized coverage tier as the other 9 families. The active line is: keep `Archetype + Mechanic[]` as the only formal authoring path, legacy layer fully removed as of 2026-05-17, and keep content, mode, and validation growth synchronized.
 
 That means the default priority order is:
 

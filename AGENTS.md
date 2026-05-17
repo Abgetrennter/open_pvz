@@ -225,8 +225,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 - **禁止为单个实体硬编码业务逻辑**：不得编写 `PeaShooterAttack`、`WallNutLogic`、`ConeHeadZombieAI` 这类命名；所有行为通过 `CombatArchetype + CombatMechanic[]` 驱动
 - **禁止 BattleManager 特判**：不得为特定实体、特定模式在 BattleManager 中添加 if/switch 分支；模式差异通过 `BattleModeHost / BattleRuleModule` 吸收
 - **禁止用 `print()` 替代 `DebugService`**：除 DebugService 自身和 validation reporter 外，所有运行时日志必须通过 DebugService 记录
-- **禁止旧实体模型**：`EntityTemplate` / `TriggerBinding` 已归档，运行时唯一入口是 `CombatArchetype + CombatMechanic[]`
-- **禁止 `migrated_wrapper` 编译提示**：封装 archetype 必须迁移为原生 mechanic，ProtocolValidator 运行时拒绝
+- **旧实体模型已物理删除**：`EntityTemplate` / `TriggerBinding` 已在 2026-05 彻底移除，运行时唯一入口始终是 `CombatArchetype + CombatMechanic[]`
 
 ### 魔法数字禁止
 - **禁止 `4000.0` / `99999.0` 模拟"全范围"**：用 `range_mode = "full_lane"` 或显式 lane 距离查询替代（wiki/02-runtime-protocol/15 明确禁止）
