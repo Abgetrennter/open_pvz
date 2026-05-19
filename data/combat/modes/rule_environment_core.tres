@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BattleRuleModule" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="1_rule"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_sunny.tres" id="2_env"]
+
+[resource]
+script = ExtResource("1_rule")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("2_env")
+}
+tags = PackedStringArray("rule", "environment")

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"validation.respect_visibility.targeting"
+display_name = "Validation Respect Visibility Targeting"
+family = &"Targeting"
+type_id = &"core.lane_forward"
+priority = 12
+tags = PackedStringArray("validation", "environment", "fog")
+params = {
+"respect_visibility": true
+}

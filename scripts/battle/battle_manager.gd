@@ -58,6 +58,7 @@ var _visual_validation_probe: Node = null
 var _infrastructure_validation_probe: Node = null
 var _spatial_index: Variant = SpatialIndexRef.new()
 var _last_tick_budget_warning_time := -999999.0
+var _environment_state: RefCounted = null
 
 
 func _ready() -> void:
@@ -114,6 +115,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func reset_battle() -> void:
 	_tick_accumulator = 0.0
 	_runtime_frame_counter = 0
+	_environment_state = null
 	_subsystem_host.clear_runtime_entities(_entity_root, _collectible_root)
 	GameState.begin_battle(self)
 	EventBus.clear()
@@ -162,6 +164,7 @@ func step_simulation_tick() -> void:
 	tick_event.core["tick_index"] = GameState.current_tick
 	tick_event.core["fixed_dt"] = fixed_dt
 	tick_event.core["game_time"] = GameState.current_time
+	_dispatch_mode_pre_tick(GameState.current_time)
 	EventBus.push_event(&"game.tick", tick_event)
 	_dispatch_mode_tick(GameState.current_time)
 	_step_runtime_nodes(fixed_dt)
@@ -600,6 +603,20 @@ func get_mode_host() -> Node:
 
 func _get_mode_host() -> Node:
 	return get_mode_host()
+
+
+func set_environment_state(state: RefCounted) -> void:
+	_environment_state = state
+
+
+func get_environment_state() -> RefCounted:
+	return _environment_state
+
+
+func _dispatch_mode_pre_tick(game_time: float) -> void:
+	var mode_host: Node = _subsystem_host.get_mode_host()
+	if mode_host != null and mode_host.has_method("on_before_tick"):
+		mode_host.call("on_before_tick", game_time)
 
 
 func _dispatch_mode_tick(game_time: float) -> void:

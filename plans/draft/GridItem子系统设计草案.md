@@ -11,11 +11,13 @@
 
 本次修订基于当前代码现状收紧了落地边界：
 
-- 新增 `GridItemRoot` 不再只是可选项。当前 `FieldObjectRoot.take_damage()` 是空实现，无法承接墓碑/罐子等可被攻击物件。
+- 新增 `GridItemRoot` 不再只是可选项。它的核心职责是格子生命周期、BoardSlot 释放和 GridItem 调试状态；`take_damage()` 只作为扩展型可破坏 GridItem 的可选桥接，不再作为墓碑/罐子的原版基线。
 - 阻挡型 GridItem 第一版建议同时占用 `grid_item` role 和现有 `blocker` role，复用当前放置验证与 Grave Buster 的 `placement_blocker` 目标路径。
 - 不再建议用粗粒度 `blocks_planting` tag 直接拒绝所有植物；这会把 Grave Buster 这类交互型植物一并拒绝。
 - GridItem 的生成入口改为 `BattleGridItemState + spawn_grid_item/remove_grid_item`，不要求现有 `spawn_entity` 直接支持 field_object。
 - 现有 `archetype_tombstone_blocker` 是 `plant + blocker` 的过渡资源，迁移为 GridItem 时必须保留专门兼容验证。
+- 割草机不再作为 `EntityFactory` 的专用 root 特判保留；目标形态是普通 `field_object + Controller.core.sweep`，视觉由 VisualProfile / 视觉层负责。
+- 原版墓碑/罐子不走普通伤害链。墓碑由 Grave Buster 这类专门交互通过 effect 移除；罐子由 Vasebreaker 模式输入或专用 effect reveal；`damageable=true` 只作为扩展能力。
 
 ## 文档定位
 
@@ -52,20 +54,20 @@
 | 物件 | 原版行为 | 出现模式 |
 |------|---------|---------|
 | 墓碑 (Gravestone) | 占格阻止种植，定时产僵尸 | 夜间草地关卡 |
-| 罐子 (Scary Pot) | 隐藏内容（植物/僵尸/阳光），被打碎后释放 | Vasebreaker |
+| 罐子 (Scary Pot) | 隐藏内容（植物/僵尸/阳光），被玩家交互打开后释放 | Vasebreaker |
 | 弹坑 (Crater) | 爆炸后留下，阻止种植一段时间 | 爆炸类植物效果 |
 | 大脑 (Brain) | 僵尸需拾取，植物防守 | I, Zombie |
 | 梯子 (Ladder) | 僵尸可翻越坚果墙 | 带梯僵尸放置 |
 | 传送门 (Portal) | 实体从一端传送到另一端 | 传送关卡 |
 | 冰路 (Ice Trail) | 僵尸减速/加速 | 冰车僵尸效果 |
 
-当前 Open PVZ 的棋盘只支持 plant（primary/support/cover/blocker）和 field_object（LawnMower，世界坐标放置，不占格子）。没有任何机制能在运行时在格子上放置"非植物非僵尸的物件"并影响放置规则。
+当前 Open PVZ 的棋盘只支持 plant（primary/support/cover/blocker）和 field_object（割草机等世界坐标物件，不占格子）。没有任何机制能在运行时在格子上放置"非植物非僵尸的物件"并影响放置规则。
 
 ### 设计目标
 
 1. **遵循 Mechanic-first**：GridItem 行为由 Archetype + Mechanic[] 组合驱动，不硬编码
 2. **与 BoardSlot 共存**：GridItem 占据 BoardSlot 的角色，与 primary/support 等角色共存
-3. **影响放置规则**：GridItem 能阻止或允许植物放置（如墓碑阻止、罐子被打碎后恢复）
+3. **影响放置规则**：GridItem 能阻止或允许植物放置（如墓碑阻止、罐子 reveal 后恢复）
 4. **参与事件链**：GridItem 能发射和接收 EventBus 事件
 5. **可被扩展包定义**：新增 GridItem 类型只需 .tres 资源
 6. **与棋盘/环境/生成系统正交**：GridItem 是格子占位实体层，不承担地形、天气、生成入口或模式目标职责
@@ -81,12 +83,12 @@ GridItem 使用新增 `GridItemRoot`（继承 `FieldObjectRoot`），通过 `Com
 **优势**：
 - 复用现有编译链、组件系统、事件链——不引入新代码路径
 - 数据驱动——新增 GridItem 类型只需写 .tres
-- 可参与 SpatialIndex 查询、可被 RuleModule 引用
-- 可被攻击（墓碑有血量）、可发射事件（罐子被打碎）
+- 可参与 SpatialIndex 查询、可被专门交互/effect 移除或转换，可按需扩展为可破坏对象
+- 可被 RuleModule、模式输入、验证和视觉层通过统一事件观察
 - 扩展包可通过现有插槽机制定义新 GridItem
 
 **代价**：
-- 需要新增 `GridItemRoot`，实现 HealthComponent 伤害转发、死亡释放格子和基础调试状态
+- 需要新增 `GridItemRoot`，实现格子生命周期、主动释放格子、基础调试状态，以及可选的 HealthComponent 伤害转发
 - EntityFactory 需要小改：`entity_kind = &"field_object"` 且 `placement_role = &"grid_item"` 时实例化 `GridItemRoot`
 - BattleGridItemState 需要负责双 role 绑定、移除和事件发射
 - ProtocolValidator 需要新增 `GridItemConfig` 与 `BattleScenario.grid_item_configs` 校验
@@ -106,7 +108,7 @@ GridItem 是一个数据对象（继承 Resource），存储在 BoardSlot 上作
 
 ### 推荐：方案 A'
 
-推荐采用“Archetype 驱动实体 + GridItemRoot + BattleGridItemState”的修订版方案 A'。方案 B 虽然更轻量，但每增加一个能力都需要改代码，长期成本更高。直接复用现有 `FieldObjectRoot` 也不够，因为它的 `take_damage()` 当前为空实现，墓碑和罐子无法被通用 damage 链销毁。
+推荐采用“Archetype 驱动实体 + GridItemRoot + BattleGridItemState”的修订版方案 A'。方案 B 虽然更轻量，但每增加一个能力都需要改代码，长期成本更高。直接复用现有 `FieldObjectRoot` 也不够，因为它缺少格子生命周期、BoardSlot 主动释放和 GridItem 调试状态；`take_damage()` 为空也意味着未来扩展型可破坏 GridItem 不能复用通用 HealthComponent 链。
 
 ---
 
@@ -116,8 +118,7 @@ GridItem 是一个数据对象（继承 Resource），存储在 BoardSlot 上作
 
 ```
 BaseEntity (Node2D)
-  └─ FieldObjectRoot              ← 现有，29 行
-       ├─ LawnMower                ← 现有
+  └─ FieldObjectRoot              ← 世界坐标 field_object 通用根
        └─ GridItemRoot             ← 新增，格子物件通用根
 ```
 
@@ -126,11 +127,26 @@ GridItem 第一版直接新增 `GridItemRoot`：
 | 职责 | 说明 |
 |------|------|
 | 保持 field_object 身份 | GridItem archetype 的 `entity_kind` 保持 `&"field_object"`，不新增 entity_kind |
-| 伤害转发 | `take_damage()` 转发给 HealthComponent，尊重 `is_damageable()` |
-| 死亡处理 | 连接 HealthComponent.died，发出标准 `entity.died` 后 queue_free，并通知 BattleGridItemState 释放格子 |
+| 格子生命周期 | 持有 GridItem 与 BoardSlot 的绑定元数据，移除时通知 BattleGridItemState 主动释放 role |
+| 可选伤害桥接 | 对扩展型可破坏 GridItem，`take_damage()` 可转发给 HealthComponent，尊重 `is_damageable()` |
+| 移除处理 | 被 effect、模式交互或可选死亡链移除时，发出 GridItem 语义事件并 queue_free |
 | 格子状态 | `grid_lane_id` / `grid_slot_index` 仍写入 `entity_state`，不需要独立字段成为事实源 |
 
 `FieldObjectRoot` 继续作为割草机等世界坐标物件的轻量基类，不承担格子生命周期和可破坏物件语义。
+
+### 割草机降级决策
+
+割草机不应继续作为 `EntityFactory._instantiate_field_object()` 中按 archetype_id 特判的专用 root。当前 `archetype_lawn_mower` 已经通过 `Controller.core.sweep` 表达检测、触发、移动、扫掠伤害和过期事件，运行时规则不需要依赖 `LawnMower` 子类。
+
+目标形态：
+
+- `archetype_lawn_mower` 保持 `entity_kind = &"field_object"`
+- `EntityFactory` 对普通 field_object 默认返回 `FieldObjectRoot`
+- 割草机行为由 `Controller.core.sweep` 驱动
+- 割草机外观由 VisualProfile / 视觉层绘制，不由 `LawnMower._draw()` 承担
+- 现有 `scripts/entities/lawn_mower.gd` 只作为历史实现参考，后续可在验证通过后退役
+
+这条决策使 `field_object` 的根节点选择保持一致：只有格子物件因生命周期和可破坏语义需要 `GridItemRoot`，不再为单个世界物件保留硬编码分支。
 
 ### 身份与 Liveness
 
@@ -146,7 +162,7 @@ GridItem 作为 field_object 类型，默认 liveness 为：
 | damageable | **false** | 默认不可被攻击 |
 | collidable | **false** | 默认不参与碰撞 |
 
-特定 GridItem 可通过 Mechanic 或 liveness override 修改。例如墓碑需要被攻击（damageable=true），由 State family 的 liveness_overrides 或初始 liveness override 提供。注意：liveness 只决定能否受伤，真正扣血仍依赖 `GridItemRoot.take_damage()` 转发到 HealthComponent。
+特定 GridItem 可通过 Mechanic 或 liveness override 修改。例如扩展包如果需要“可被攻击的水晶/障碍物”，可以设置 `damageable=true` 并依赖 `GridItemRoot.take_damage()` 转发到 HealthComponent。原版墓碑和罐子不以普通伤害链驱动，应保持 `damageable=false`，通过 interaction/effect 移除或 reveal。
 
 ---
 
@@ -186,9 +202,28 @@ GridItem 对植物放置的影响第一版通过 **现有 role 占位**实现：
 
 **validate_request 改动**：第一版不新增粗粒度 `blocks_planting` 拒绝规则。若未来需要“阻止 primary 但允许 cover / support / 特定交互植物”的细粒度阻挡，应新增明确的 `required_absent_tags` / `required_grid_item_tags` / bypass 语义，而不是用一个 tag 拒绝所有 plant。
 
+### 交互 / Effect 驱动
+
+GridItem 第一版不把“普通攻击扣血”作为默认交互模型。GridItem 的变化应由明确的交互或 effect 驱动：
+
+```
+模式输入 / 特定植物放置 / 环境规则 / 效果请求
+  -> remove_grid_item / reveal_grid_item / spawn_grid_item
+  -> BattleGridItemState 更新 BoardSlot role
+  -> grid_item.removed / grid_item.revealed / grid_item.spawned
+```
+
+典型例子：
+
+- Grave Buster 放置成功后，通过 `target_mode = placement_blocker` 找到墓碑，并执行 `remove_grid_item`。
+- Vasebreaker 模式点击罐子后，模式输入层执行 `reveal_grid_item`，而不是让罐子承受植物攻击。
+- 爆炸类 effect 可以请求 `spawn_grid_item` 创建弹坑，也可以按设计请求 reveal 附近罐子。
+
+`HealthComponent` / `entity.damaged` 仍可服务扩展型可破坏 GridItem，但不是墓碑和罐子的原版语义基线。
+
 ### 格子释放
 
-GridItem 被移除（被破坏、被打碎、过期）时：
+GridItem 被移除（被专门交互移除、reveal、过期，或扩展型可破坏物件死亡）时：
 1. `slot.remove_role_occupant("grid_item")`
 2. 如果同一实体占用了 `"blocker"` role，也同步 `slot.remove_role_occupant("blocker")`
 3. 格子恢复可种植状态
@@ -205,15 +240,18 @@ BoardSlot 已有的 `_prune_invalid_occupants()` 会自动清理已销毁（`que
 
 | 属性 | 值 |
 |------|---|
-| max_health | 300 |
-| liveness | damageable=true（通过 liveness_override） |
+| max_health | -1（原版不可被普通攻击破坏） |
+| liveness | damageable=false, targetable=false |
 | slot roles | `grid_item` + `blocker` |
-| granted_placement_tags | `["grid_item", "grave"]`；blocker role 额外授予 `["placement_blocker"]` |
+| granted_placement_tags | `["grid_item", "grave", "removable_by_gravebuster"]`；blocker role 额外授予 `["placement_blocker"]` |
 | Mechanic | Trigger.periodically → 请求生成系统从墓碑入口生成 zombie |
 
-行为：每 30 秒在墓碑所在格或附近入口请求生成一只僵尸。被植物攻击（伤害 300）后销毁，释放格子。
+行为：占据格子并阻挡普通植物放置；可在特定规则下请求生成僵尸。墓碑不作为普通攻击目标，移除由 Grave Buster 这类专门交互或模式/effect 完成。
 
-需要的 effect / 事件：墓碑本体通过 `spawn_grid_item` 或场景 `GridItemConfig` 创建；墓碑周期产僵尸不直接绕过生成系统，建议发布 `spawn.requested` 或调用 `BattleSpawnResolver`，由 `SpawnZoneConfig` / 临时墓碑入口与 zombie 的 `required_spawn_tags` 匹配后再实例化。
+需要的 effect / 事件：
+- 墓碑本体通过 `spawn_grid_item` 或场景 `GridItemConfig` 创建。
+- Grave Buster 放置成功后，通过 `target_mode = placement_blocker` 解析目标，再执行 `remove_grid_item`，由 `BattleGridItemState` 释放 `grid_item` / `blocker` role。
+- 墓碑周期产僵尸不直接绕过生成系统，建议发布 `spawn.requested` 或调用 `BattleSpawnResolver`，由 `SpawnZoneConfig` / 临时墓碑入口与 zombie 的 `required_spawn_tags` 匹配后再实例化。
 
 ### 弹坑 (Crater)
 
@@ -233,18 +271,18 @@ BoardSlot 已有的 `_prune_invalid_occupants()` 会自动清理已销毁（`que
 
 | 属性 | 值 |
 |------|---|
-| max_health | 100（可被攻击） |
-| liveness | damageable=true |
+| max_health | -1（原版不靠普通伤害打开） |
+| liveness | damageable=false, targetable=false |
 | slot roles | 未打开时 `grid_item` + `blocker` |
 | granted_placement_tags | `["grid_item", "vase", "concealed"]`；blocker role 额外授予 `["placement_blocker"]` |
-| Mechanic | Trigger.when_damaged → 条件(health<=0) → Effect.reveal_grid_item |
+| Mechanic | 通常无；由 Vasebreaker 模式输入或专用 effect 调用 reveal |
 
-罐子被打碎后：
+罐子被玩家交互打开后：
 - 移除 "grid_item" 角色（释放格子）
 - 根据罐子内容（`default_params.content_archetype_id`）在原位放置植物、生成僵尸或产生阳光
 - 若内容是僵尸，应通过生成系统处理原位 spawn request；若内容是植物，应走放置/实例化路径并尊重释放后的 BoardSlot 状态
 
-需要的 effect：`reveal_grid_item`（移除罐子自身 + 根据内容类型发起对应请求）。该 effect 不应直接内置 Vasebreaker 模式逻辑。
+需要的 effect：`reveal_grid_item`（移除罐子自身 + 根据内容类型发起对应请求）。该 effect 不应直接内置 Vasebreaker 模式逻辑；Vasebreaker 模式只决定何时、对哪个 slot 调用 reveal。
 
 ### 大脑 (Brain)
 
@@ -305,7 +343,7 @@ BoardSlot 已有的 `_prune_invalid_occupants()` 会自动清理已销毁（`que
 ```
 BattleFieldObjectState          BattleGridItemState
   管理世界坐标物件                管理格子坐标物件
-  (LawnMower 等)                 (墓碑/罐子/弹坑等)
+  (割草机等)                     (墓碑/罐子/弹坑等)
         ↓                                ↓
   FieldObjectConfig              GridItemConfig
   (lane_id + x_position)         (lane_id + slot_index + archetype_id)
@@ -356,9 +394,9 @@ GridItemConfig:
 | Effect ID | 用途 | 参数 |
 |-----------|------|------|
 | `spawn_grid_item` | 在指定格子生成 GridItem | archetype_id, lane_id, slot_index, occupies_blocker_role, spawn_overrides |
-| `reveal_grid_item` | 打开罐子：移除 grid_item 角色，在原位生成内容 | content_archetype_id |
+| `reveal_grid_item` | 打开罐子：移除 grid_item 角色，在原位生成内容；通常由模式输入或专用 effect 调用 | content_archetype_id |
 | `emit_objective_event` / `emit_event` | 通知模式层某个 GridItem 目标被收集或触发 | event_name, payload |
-| `remove_grid_item` | 移除目标格子的 GridItem | lane_id, slot_index |
+| `remove_grid_item` | 移除目标格子的 GridItem；可按 lane/slot 或 target_mode 解析目标 | lane_id, slot_index, target_mode |
 | `teleport_entity` | 将实体传送到目标位置 | target_position |
 
 这些 effect 需要在 EffectRegistry 中注册，遵循 `RegistryBase + EffectDef` 体系。不新增 Registry。
@@ -418,7 +456,7 @@ GridItem 基础设施是**格子占位实体层**：它操作 `BoardSlot role_oc
   消费 GridItem 事件计分/胜负                  发事件，不直接判断胜负
 ```
 
-**核心结论**：GridItem 基础层正交，可以在 BoardSlot API 稳定后独立实现。墓碑“占格和被破坏”属于 GridItem；“夜晚是否生成墓碑”属于环境/模式规则；“墓碑产出的僵尸从哪里出现”属于生成系统。
+**核心结论**：GridItem 基础层正交，可以在 BoardSlot API 稳定后独立实现。墓碑“占格和被专门交互移除”属于 GridItem；“夜晚是否生成墓碑”属于环境/模式规则；“墓碑产出的僵尸从哪里出现”属于生成系统。
 
 ---
 
@@ -444,7 +482,7 @@ GridItem 基础设施是**格子占位实体层**：它操作 `BoardSlot role_oc
 **最小可验证单元**。弹坑是最简单的 GridItem（纯占位，无行为）。
 
 改动范围：
-- GridItemRoot 新建（继承 FieldObjectRoot，转发 HealthComponent 伤害，死亡时通知释放格子）
+- GridItemRoot 新建（继承 FieldObjectRoot，维护格子绑定，移除时通知 BattleGridItemState 释放格子；可选转发 HealthComponent 伤害）
 - BattleGridItemState 新建（生成、格子绑定、销毁）
 - GridItemConfig 资源定义
 - BattleScenario 增加 `grid_item_configs`
@@ -457,9 +495,8 @@ GridItem 基础设施是**格子占位实体层**：它操作 `BoardSlot role_oc
 
 改动范围：
 - `spawn_grid_item` / `remove_grid_item` effect 注册（如果 Phase 1 未注册）
-- archetype_tombstone_grid_item .tres（有血量、periodically trigger + spawn request）
-- liveness override 使墓碑 damageable
-- Grave Buster 兼容：保留 `placement_blocker` 目标路径，或新增 `placement_grid_item` 后同步迁移资源
+- archetype_tombstone_grid_item .tres（不可普通攻击，periodically trigger + spawn request 可选）
+- Grave Buster 兼容：保留 `placement_blocker` 目标路径，通过 `remove_grid_item` 移除墓碑；或新增 `placement_grid_item` 后同步迁移资源
 - 现有 `archetype_tombstone_blocker` 是 plant/blocker 过渡资源，迁移时不得删除旧验证，需新增等价 GridItem 验证
 - 与 `BattleSpawnResolver` 联动：墓碑产僵尸时由生成系统解析入口
 - 动态环境/模式联动（可选）：夜间生成墓碑由环境或模式模块发起，不写入 GridItem 基础设施
@@ -469,7 +506,8 @@ GridItem 基础设施是**格子占位实体层**：它操作 `BoardSlot role_oc
 
 改动范围：
 - `reveal_grid_item` effect 注册
-- archetype_scary_pot .tres（有血量、when_damaged trigger + reveal）
+- archetype_scary_pot .tres（不可普通攻击，携带 concealed/vase 标签和内容参数）
+- Vasebreaker 模式输入：点击/锤子交互解析 slot 后调用 `reveal_grid_item`
 - 罐子内容实体化请求：植物走放置/实例化路径，僵尸走生成系统，阳光走经济/掉落路径
 - 罐子未开/已开的状态切换
 - 验证场景
@@ -496,22 +534,24 @@ GridItem 基础设施是**格子占位实体层**：它操作 `BoardSlot role_oc
 - 不承载模式计分/胜负；GridItem 只发事件，模式模块消费事件
 - 不实现 GridItem 的视觉表现（由 VisualProfile 系统驱动）
 - 不实现 GridItem 的卡牌化（GridItem 不走手牌放置路径）
+- 不把墓碑/罐子建模为原版普通伤害目标；二者通过 interaction/effect 驱动移除或 reveal
 - 不在第一版扩展 `spawn_entity` 以支持 field_object；GridItem 生成走专用 `spawn_grid_item`
+- 不保留割草机的 `EntityFactory` 专用 root 特判；割草机行为走 Controller，视觉走 VisualProfile / 视觉层
 - 不用单一 `blocks_planting` tag 拒绝所有 plant 放置
 
 ---
 
 ## 开放问题
 
-1. **GridItemRoot 是否需要独立类？** 本次审查后建议第一版就新增。原因是 `FieldObjectRoot.take_damage()` 当前为空，不能支撑可破坏 GridItem；格子坐标仍通过 `set_state_value` 存储。
+1. **GridItemRoot 是否需要独立类？** 本次审查后建议第一版就新增。原因是 `FieldObjectRoot` 不承担格子绑定、主动释放和 GridItem 调试状态；`take_damage()` 可作为扩展型可破坏 GridItem 的桥接能力，但墓碑/罐子不依赖它。
 
 2. **阻挡粒度如何表达？** 第一版用 `blocker` role 表达“阻挡普通放置”。若未来需要“阻止 primary 但允许 cover/support/特定交互植物”，再补 `required_absent_tags`、`required_grid_item_tags` 或 placement bypass 语义。
 
-3. **罐子变形的原子性？** 罐子被打碎后需要在同一帧完成"移除 grid_item → 释放格子 → 放置内容实体"。是否需要事务性保证？建议通过 Effect 链的顺序执行保证。
+3. **罐子 reveal 的原子性？** 罐子被模式输入打开后需要在同一帧完成"移除 grid_item → 释放格子 → 放置内容实体"。是否需要事务性保证？建议通过 Effect 链的顺序执行保证。
 
 4. **传送门的成对绑定？** 传送门如何知道自己的 partner 在哪？建议通过 `default_params.partner_lane` + `default_params.partner_slot` 存储，`BattleGridItemState` 在运行时解析。
 
-5. **EntityFactory 如何识别 GridItem？** 当前 `_instantiate_field_object()` 按 archetype_id switch。建议：如果 archetype 的 `entity_kind == &"field_object"` 且 `placement_role == &"grid_item"`，返回 `GridItemRoot`；割草机继续走专用 `LawnMower`，其他 field_object 回退 `FieldObjectRoot`。
+5. **EntityFactory 如何识别 GridItem？** 当前 `_instantiate_field_object()` 按 archetype_id switch。建议移除单个 archetype 的特判：如果 archetype 的 `entity_kind == &"field_object"` 且 `placement_role == &"grid_item"`，返回 `GridItemRoot`；其他 field_object 统一回退 `FieldObjectRoot`。割草机不再走专用 `LawnMower` root，而是普通 `FieldObjectRoot + Controller.core.sweep`。
 
 ---
 
@@ -519,8 +559,9 @@ GridItem 基础设施是**格子占位实体层**：它操作 `BoardSlot role_oc
 
 | 文件 | 用途 |
 |------|------|
-| `scripts/entities/field_object_root.gd` | GridItemRoot 的父类；当前 `take_damage()` 为空，不能直接作为可破坏 GridItem |
-| `scripts/entities/lawn_mower.gd` | 现有 FieldObject 实现参考（158 行） |
+| `scripts/entities/field_object_root.gd` | GridItemRoot 的父类；不承担格子绑定和主动释放语义 |
+| `scripts/entities/lawn_mower.gd` | 割草机历史专用 root；目标是降级为普通 field_object 后退役 |
+| `autoload/ControllerRegistry.gd` | `core.sweep` 已承载割草机运行时行为，降级后继续复用 |
 | `scripts/battle/board_slot.gd` | 角色占位 API（130 行） |
 | `scripts/battle/battle_board_state.gd` | validate_request 检查链（734 行，关键行 223-281） |
 | `scripts/battle/battle_field_object_state.gd` | 现有场物件管理参考（105 行） |

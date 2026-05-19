@@ -25,6 +25,7 @@ const BattleInputProfileRef = preload("res://scripts/battle/mode/battle_input_pr
 const BattleObjectiveDefRef = preload("res://scripts/battle/mode/battle_objective_def.gd")
 const BattleRuleModuleRef = preload("res://scripts/battle/mode/battle_rule_module.gd")
 const BattleModeInputRequestRef = preload("res://scripts/battle/mode/battle_mode_input_request.gd")
+const BattleEnvironmentProfileRef = preload("res://scripts/battle/environment/battle_environment_profile.gd")
 const BattleModeModuleRegistryRef = preload("res://scripts/battle/mode/battle_mode_module_registry.gd")
 const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 	&"attack": {
@@ -534,10 +535,53 @@ static func validate_battle_rule_module(rule_module: Resource) -> Array[String]:
 		errors.append("BattleRuleModule.params must be a Dictionary.")
 	if not (rule_module.get("tags") is PackedStringArray):
 		errors.append("BattleRuleModule.tags must be a PackedStringArray.")
-	var registry := BattleModeModuleRegistryRef.new()
+	var registry: RefCounted = BattleModeModuleRegistryRef.new()
 	var module_id := StringName(rule_module.get("module_id"))
 	if module_id != StringName() and not registry.has_handler(module_id):
 		errors.append("BattleRuleModule.module_id %s must be registered in BattleModeModuleRegistry." % String(module_id))
+	if module_id == &"environment.core":
+		var module_params: Dictionary = Dictionary(rule_module.get("params")) if rule_module.get("params") is Dictionary else {}
+		for error in validate_battle_environment_profile(module_params.get("environment_profile")):
+			errors.append("BattleRuleModule environment.core: %s" % error)
+	return errors
+
+
+static func validate_battle_environment_profile(environment_profile: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if environment_profile == null:
+		errors.append("environment_profile is required.")
+		return errors
+	if environment_profile.get_script() != BattleEnvironmentProfileRef:
+		errors.append("environment_profile must use battle_environment_profile.gd.")
+		return errors
+	if StringName(environment_profile.get("profile_id")) == StringName():
+		errors.append("profile_id must not be empty.")
+	if not (environment_profile.get("initial_conditions") is PackedStringArray):
+		errors.append("initial_conditions must be a PackedStringArray.")
+	if not (environment_profile.get("natural_sun_enabled") is bool):
+		errors.append("natural_sun_enabled must be bool.")
+	if float(environment_profile.get("natural_sun_interval_seconds")) <= 0.0:
+		errors.append("natural_sun_interval_seconds must be > 0.")
+	if int(environment_profile.get("natural_sun_value")) <= 0:
+		errors.append("natural_sun_value must be > 0.")
+	if float(environment_profile.get("sun_interval_scale")) <= 0.0:
+		errors.append("sun_interval_scale must be > 0.")
+	if float(environment_profile.get("sun_value_scale")) < 0.0:
+		errors.append("sun_value_scale must be >= 0.")
+	if float(environment_profile.get("light_level")) < 0.0:
+		errors.append("light_level must be >= 0.")
+	if not (environment_profile.get("fog_enabled") is bool):
+		errors.append("fog_enabled must be bool.")
+	if float(environment_profile.get("fog_max_alpha")) < 0.0 or float(environment_profile.get("fog_max_alpha")) > 1.0:
+		errors.append("fog_max_alpha must be between 0 and 1.")
+	if float(environment_profile.get("fog_alpha_step")) < 0.0 or float(environment_profile.get("fog_alpha_step")) > 1.0:
+		errors.append("fog_alpha_step must be between 0 and 1.")
+	if float(environment_profile.get("fog_clear_default_radius_slots")) < 0.0:
+		errors.append("fog_clear_default_radius_slots must be >= 0.")
+	if float(environment_profile.get("fog_clear_default_duration")) < 0.0:
+		errors.append("fog_clear_default_duration must be >= 0.")
+	if not (environment_profile.get("timeline") is Array):
+		errors.append("timeline must be an Array.")
 	return errors
 
 

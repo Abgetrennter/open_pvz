@@ -121,6 +121,12 @@ func on_battle_start() -> void:
 	_dispatch_modules(&"on_battle_start", {})
 
 
+func on_before_tick(game_time: float) -> void:
+	if _mode_def == null:
+		return
+	_dispatch_modules(&"on_before_game_tick", {"game_time": game_time})
+
+
 func on_tick(game_time: float) -> void:
 	if _mode_def == null:
 		return

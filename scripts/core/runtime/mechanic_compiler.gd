@@ -33,6 +33,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.team_switch": &"Payload",
 		&"core.consume_self": &"Payload",
 		&"core.reveal": &"Payload",
+		&"core.clear_fog": &"Payload",
 		&"core.bite": &"Controller",
 		&"core.sweep": &"Controller",
 		&"core.ground_damage": &"Controller",
@@ -413,6 +414,7 @@ const _TARGETING_CONDITION_KEYS: Dictionary = {
 	&"target_tags": true,
 	&"target_priority_tags": true,
 	&"target_exclude_tags": true,
+	&"respect_visibility": true,
 }
 
 
@@ -541,6 +543,8 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"consume_self"}
 		&"core.reveal":
 			return {"effect_id": &"reveal"}
+		&"core.clear_fog":
+			return {"effect_id": &"clear_fog"}
 		_:
 			return {}
 

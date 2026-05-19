@@ -1,0 +1,99 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_foggy.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="7_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="8_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="9_card_def"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_peashooter.tres" id="10_pea_card"]
+
+[sub_resource type="Resource" id="Card_respect_visibility"]
+script = ExtResource("9_card_def")
+card_id = &"card_validation_respect_visibility_peashooter"
+display_name = "Validation Respect Visibility Peashooter"
+archetype_id = &"archetype_validation_respect_visibility_peashooter"
+sun_cost = 0
+cooldown_seconds = 0.5
+placement_tags = PackedStringArray("supports_primary")
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Req_pea"]
+script = ExtResource("7_card_request")
+at_time = 0.05
+card_id = &"card_validation_respect_visibility_peashooter"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_legacy_pea"]
+script = ExtResource("7_card_request")
+at_time = 0.05
+card_id = &"card_original_peashooter"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Spawn_fog_target"]
+script = ExtResource("8_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 448.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_fog_profile"]
+script = ExtResource("5_rule")
+rule_id = &"fog_profile_active"
+event_name = &"environment.changed"
+required_core_values = {
+"profile_id": &"env_day_foggy",
+"fog_enabled": true
+}
+
+[sub_resource type="Resource" id="Rule_respect_visibility_blocks"]
+script = ExtResource("5_rule")
+rule_id = &"respect_visibility_blocks_fog_target"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_validation_respect_visibility_peashooter",
+"target_archetype_id": &"archetype_basic_walker"
+}
+
+[sub_resource type="Resource" id="Rule_default_damage"]
+script = ExtResource("5_rule")
+rule_id = &"default_detection_ignores_visibility"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_peashooter",
+"target_archetype_id": &"archetype_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_fog_detection_validation"
+display_name = "Environment Fog Detection Validation"
+description = "Validates respect_visibility filtering and legacy detection compatibility in fog."
+validation_time_limit = 1.4
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 5
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+card_defs = [SubResource("Card_respect_visibility"), ExtResource("10_pea_card")]
+card_play_requests = [SubResource("Req_pea"), SubResource("Req_legacy_pea")]
+validation_rules = [SubResource("Rule_fog_profile"), SubResource("Rule_respect_visibility_blocks"), SubResource("Rule_default_damage")]
+spawns = [SubResource("Spawn_fog_target")]

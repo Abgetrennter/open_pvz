@@ -1,0 +1,90 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_foggy.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_blover.tres" id="6_blover_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="7_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="8_spawn"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Req_blover"]
+script = ExtResource("7_card_request")
+at_time = 0.1
+card_id = &"card_original_blover"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_air_target"]
+script = ExtResource("8_spawn")
+archetype_id = &"archetype_air_scout"
+lane_id = 0
+x_position = 360.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_request"]
+script = ExtResource("5_rule")
+rule_id = &"blover_clear_request"
+event_name = &"environment.fog_clear_requested"
+required_core_values = {
+"source_archetype_id": &"archetype_original_blover",
+"clear_mode": &"full_board"
+}
+
+[sub_resource type="Resource" id="Rule_registered"]
+script = ExtResource("5_rule")
+rule_id = &"blover_clear_registered"
+event_name = &"environment.fog_clear_source_registered"
+required_core_values = {
+"source_archetype_id": &"archetype_original_blover",
+"source_kind": &"temporary"
+}
+
+[sub_resource type="Resource" id="Rule_cleared"]
+script = ExtResource("5_rule")
+rule_id = &"blover_full_board_clear"
+event_name = &"environment.fog_updated"
+required_core_values = {
+"reason": &"clear_source_registered",
+"alpha_lane_0_slot_2": 0.0,
+"alpha_lane_0_slot_3": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_air_damage"]
+script = ExtResource("5_rule")
+rule_id = &"blover_air_damage"
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_blover",
+"target_archetype_id": &"archetype_air_scout"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_blover_clear_validation"
+display_name = "Environment Blover Clear Validation"
+description = "Validates Blover fog clear request without losing air dispel behavior."
+validation_time_limit = 1.2
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 5
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+card_defs = [ExtResource("6_blover_card")]
+card_play_requests = [SubResource("Req_blover")]
+validation_rules = [SubResource("Rule_request"), SubResource("Rule_registered"), SubResource("Rule_cleared"), SubResource("Rule_air_damage")]
+spawns = [SubResource("Spawn_air_target")]

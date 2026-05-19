@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_foggy.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Rule_fog_enabled"]
+script = ExtResource("5_rule")
+rule_id = &"fog_enabled"
+event_name = &"environment.changed"
+required_core_values = {
+"profile_id": &"env_day_foggy",
+"fog_enabled": true,
+"fog_start_column": 2,
+"fog_max_alpha": 0.8,
+"fog_alpha_step": 0.25
+}
+
+[sub_resource type="Resource" id="Rule_fog_grid"]
+script = ExtResource("5_rule")
+rule_id = &"fog_grid_alpha"
+event_name = &"environment.fog_updated"
+required_core_values = {
+"reason": &"initialized",
+"fog_enabled": true,
+"alpha_lane_0_slot_0": 0.0,
+"alpha_lane_0_slot_1": 0.0,
+"alpha_lane_0_slot_2": 0.25,
+"alpha_lane_0_slot_3": 0.5
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_fog_alpha_validation"
+display_name = "Environment Fog Alpha Validation"
+description = "Validates fog profile alpha grid generation."
+validation_time_limit = 0.8
+lane_count = 1
+board_slot_count = 5
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+validation_rules = [SubResource("Rule_fog_enabled"), SubResource("Rule_fog_grid")]

@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_night_cycle.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Rule_timeline_night"]
+script = ExtResource("5_rule")
+rule_id = &"timeline_night_applied_before_sun_tick"
+event_name = &"environment.changed"
+required_core_values = {
+"profile_id": &"env_day_night_cycle",
+"source_event": &"timeline",
+"natural_sun_enabled": false,
+"light_level": 0.35
+}
+
+[sub_resource type="Resource" id="Rule_no_boundary_natural_sun"]
+script = ExtResource("5_rule")
+rule_id = &"no_boundary_natural_sun"
+description = "night timeline should disable natural sun before the same tick economy update"
+event_name = &"sun.spawned"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_type": &"natural_sun"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_timeline_night_blocks_natural_sun_validation"
+display_name = "Environment Timeline Night Blocks Natural Sun Validation"
+description = "Validates timeline changes apply before natural sun scheduling on the same simulation tick."
+validation_time_limit = 1.2
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+validation_rules = [SubResource("Rule_timeline_night"), SubResource("Rule_no_boundary_natural_sun")]

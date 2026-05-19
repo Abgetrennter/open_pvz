@@ -1,6 +1,13 @@
 extends RefCounted
 class_name BattleModeModuleRegistry
 
+const BattleEnvironmentStateRef = preload("res://scripts/battle/environment/battle_environment_state.gd")
+const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
+
+const ENVIRONMENT_NOCTURNAL_SLEEP_SOURCE := &"environment:nocturnal_day_sleep"
+const ENVIRONMENT_NOCTURNAL_SLEEP_PRIORITY := 30
+const ENVIRONMENT_FOG_SOURCE_PREFIX := "environment:fog:"
+
 var _handlers: Dictionary = {}
 
 
@@ -25,6 +32,68 @@ func has_handler(module_id: StringName) -> bool:
 func _register_builtin_handlers() -> void:
 	register_handler(&"conveyor_cards", _handler_conveyor_cards)
 	register_handler(&"manual_entity_skill", _handler_manual_entity_skill)
+	register_handler(&"environment.core", _handler_environment_core)
+
+
+func _handler_environment_core(action: StringName, battle: Node, module: Resource, context: Dictionary) -> void:
+	match action:
+		&"on_mode_setup":
+			var module_params := _module_params(module)
+			var environment_profile: Resource = module_params.get("environment_profile")
+			if environment_profile == null:
+				_report_module_issue(battle, "environment.core requires params.environment_profile.")
+				return
+			var environment_state: Variant = BattleEnvironmentStateRef.new()
+			environment_state.configure_from_profile(environment_profile)
+			_configure_environment_board(battle, environment_state)
+			if battle != null and battle.has_method("set_environment_state"):
+				battle.call("set_environment_state", environment_state)
+			_emit_environment_changed(module, environment_state, &"on_mode_setup")
+			if bool(environment_state.snapshot().get("fog_enabled", false)):
+				_emit_environment_fog_updated(module, environment_state, &"initialized")
+			_emit_environment_rule_applied(module, &"on_mode_setup", &"environment_initialized", environment_state.snapshot())
+		&"on_battle_start":
+			var environment_state: Variant = _get_environment_state(battle)
+			if environment_state == null:
+				return
+			_sync_environment_economy(battle, environment_state)
+			_apply_environment_to_all_entities(battle, module, environment_state)
+			_register_existing_fog_sources(battle, module, environment_state)
+			_emit_environment_rule_applied(module, &"on_battle_start", &"environment_applied_to_economy", environment_state.snapshot())
+		&"on_before_game_tick":
+			var environment_state: Variant = _get_environment_state(battle)
+			if environment_state == null:
+				return
+			var game_time := float(context.get("game_time", GameState.current_time))
+			_apply_environment_timeline_tick(battle, module, environment_state, game_time)
+		&"on_game_tick":
+			var environment_state: Variant = _get_environment_state(battle)
+			if environment_state == null:
+				return
+			var game_time := float(context.get("game_time", GameState.current_time))
+			_apply_environment_timeline_tick(battle, module, environment_state, game_time)
+			if bool(environment_state.call("update_clear_sources", game_time)):
+				_emit_environment_fog_updated(module, environment_state, &"clear_source_expired")
+		&"on_event":
+			var environment_state: Variant = _get_environment_state(battle)
+			if environment_state == null:
+				return
+			var event_name := StringName(context.get("event_name", StringName()))
+			var event_data: Variant = context.get("event_data", null)
+			if event_data == null:
+				return
+			match event_name:
+				&"entity.spawned":
+					var entity: Node = event_data.core.get("target_node", null)
+					_apply_nocturnal_environment_to_entity(module, environment_state, entity)
+					_try_register_entity_fog_source(module, environment_state, entity, event_data)
+				&"entity.died", &"entity.consumed":
+					_remove_entity_fog_source(module, environment_state, event_data)
+				&"environment.fog_clear_requested":
+					_register_requested_fog_clear(module, environment_state, event_data)
+		&"on_mode_teardown":
+			if battle != null and battle.has_method("set_environment_state"):
+				battle.call("set_environment_state", null)
 
 
 func _handler_conveyor_cards(action: StringName, battle: Node, module: Resource, context: Dictionary) -> void:
@@ -141,6 +210,234 @@ func _handler_manual_entity_skill(action: StringName, battle: Node, module: Reso
 func _module_params(module: Resource) -> Dictionary:
 	var raw_params: Variant = module.get("params") if module != null else {}
 	return raw_params.duplicate(true) if raw_params is Dictionary else {}
+
+
+func _get_environment_state(battle: Node) -> Variant:
+	if battle == null or not battle.has_method("get_environment_state"):
+		return null
+	return battle.call("get_environment_state")
+
+
+func _configure_environment_board(battle: Node, environment_state: Variant) -> void:
+	if battle == null or environment_state == null or not environment_state.has_method("configure_board"):
+		return
+	var lane_ids := PackedInt32Array()
+	if battle.has_method("get_lane_ids"):
+		lane_ids = PackedInt32Array(battle.call("get_lane_ids"))
+	var board_slot_count := 0
+	if battle.has_method("get_board_state"):
+		var board: Node = battle.call("get_board_state")
+		if board != null:
+			board_slot_count = int(board.get("board_slot_count"))
+	var metrics: RefCounted = null
+	if battle.has_method("get_battlefield_metrics"):
+		var metrics_value: Variant = battle.call("get_battlefield_metrics")
+		metrics = metrics_value if metrics_value is RefCounted else null
+	environment_state.call("configure_board", lane_ids, board_slot_count, metrics)
+
+
+func _sync_environment_economy(battle: Node, environment_state: Variant) -> void:
+	var economy: Node = battle.call("get_economy_state") if battle != null and battle.has_method("get_economy_state") else null
+	if economy == null:
+		return
+	if economy.has_method("configure_natural_sun"):
+		economy.call("configure_natural_sun", environment_state.get_natural_sun_interval_seconds(), environment_state.get_natural_sun_value())
+	if economy.has_method("set_natural_sun_interval_scale"):
+		economy.call("set_natural_sun_interval_scale", environment_state.get_sun_interval_scale())
+	if economy.has_method("set_natural_sun_value_scale"):
+		economy.call("set_natural_sun_value_scale", environment_state.get_sun_value_scale())
+	if economy.has_method("set_natural_sun_enabled"):
+		economy.call("set_natural_sun_enabled", environment_state.is_natural_sun_enabled())
+
+
+func _apply_environment_timeline_tick(battle: Node, module: Resource, environment_state: Variant, game_time: float) -> void:
+	if not bool(environment_state.call("apply_timeline", game_time)):
+		return
+	_sync_environment_economy(battle, environment_state)
+	_apply_environment_to_all_entities(battle, module, environment_state)
+	_emit_environment_changed(module, environment_state, &"timeline")
+
+
+func _emit_environment_changed(module: Resource, environment_state: Variant, source_event: StringName) -> void:
+	var changed_event: Variant = EventDataRef.create(null, null, null, PackedStringArray(["environment", "changed"]))
+	changed_event.core["module_id"] = StringName(module.get("module_id"))
+	var snapshot := Dictionary(environment_state.snapshot())
+	for key: Variant in snapshot.keys():
+		changed_event.core[key] = snapshot[key]
+	changed_event.core["source_event"] = source_event
+	EventBus.push_event(&"environment.changed", changed_event)
+
+
+func _apply_environment_to_all_entities(battle: Node, module: Resource, environment_state: Variant) -> void:
+	if battle == null or not battle.has_method("get_runtime_combat_entities"):
+		return
+	for entity in battle.call("get_runtime_combat_entities"):
+		if entity == null or not is_instance_valid(entity):
+			continue
+		_apply_nocturnal_environment_to_entity(module, environment_state, entity)
+
+
+func _apply_nocturnal_environment_to_entity(module: Resource, environment_state: Variant, entity: Node) -> void:
+	if not _entity_has_tag(entity, &"nocturnal"):
+		return
+	var sleeping_profile := {
+		&"triggers": false,
+		&"controllers": false,
+	}
+	if bool(environment_state.call("is_night")):
+		if entity.has_method("pop_liveness_override"):
+			entity.call("pop_liveness_override", ENVIRONMENT_NOCTURNAL_SLEEP_SOURCE)
+		_emit_environment_wake(entity)
+		_emit_nocturnal_state_applied(module, entity, &"night", false)
+		return
+	if entity.has_method("push_liveness_override"):
+		entity.call("push_liveness_override", ENVIRONMENT_NOCTURNAL_SLEEP_SOURCE, sleeping_profile, ENVIRONMENT_NOCTURNAL_SLEEP_PRIORITY)
+	_emit_nocturnal_state_applied(module, entity, &"day", true)
+
+
+func _emit_environment_wake(entity: Node) -> void:
+	if entity == null or not is_instance_valid(entity):
+		return
+	var wake_event: Variant = EventDataRef.create(entity, entity, null, PackedStringArray(["wake", "environment"]))
+	wake_event.core["state_id"] = &"sleeping"
+	wake_event.core["reason"] = &"environment_night"
+	EventBus.push_event(&"entity.wake", wake_event)
+
+
+func _emit_nocturnal_state_applied(module: Resource, entity: Node, phase: StringName, sleeping: bool) -> void:
+	if entity == null or not is_instance_valid(entity):
+		return
+	var event_data: Variant = EventDataRef.create(entity, entity, null, PackedStringArray(["environment", "nocturnal"]))
+	event_data.core["module_id"] = StringName(module.get("module_id"))
+	event_data.core["phase"] = phase
+	event_data.core["sleeping"] = sleeping
+	event_data.core["triggers"] = not sleeping
+	event_data.core["controllers"] = not sleeping
+	EventBus.push_event(&"environment.nocturnal_state_applied", event_data)
+
+
+func _register_existing_fog_sources(battle: Node, module: Resource, environment_state: Variant) -> void:
+	if battle == null or not battle.has_method("get_runtime_combat_entities"):
+		return
+	for entity in battle.call("get_runtime_combat_entities"):
+		if entity == null or not is_instance_valid(entity):
+			continue
+		_try_register_entity_fog_source(module, environment_state, entity, null)
+
+
+func _try_register_entity_fog_source(module: Resource, environment_state: Variant, entity: Node, event_data: Variant) -> void:
+	if entity == null or not is_instance_valid(entity):
+		return
+	var radius_slots := -1.0
+	if _entity_has_tag(entity, &"plantern"):
+		radius_slots = 2.0
+	elif _entity_has_tag(entity, &"torchwood"):
+		radius_slots = 1.0
+	if radius_slots < 0.0:
+		return
+	var slot_index := _resolve_entity_slot_index(entity, event_data)
+	var lane_id := int(entity.get("lane_id"))
+	var source_id := _entity_fog_source_id(entity)
+	if bool(environment_state.call("add_clear_source", source_id, lane_id, slot_index, radius_slots, 0.0, &"radius", GameState.current_time)):
+		_emit_fog_clear_source_registered(module, environment_state, source_id, entity, &"persistent")
+
+
+func _register_requested_fog_clear(module: Resource, environment_state: Variant, event_data: Variant) -> void:
+	var source_entity_id := int(event_data.core.get("source_entity_id", event_data.core.get("source_id", -1)))
+	var source_id := StringName("environment:fog:request:%d:%d" % [source_entity_id, int(round(GameState.current_time * 100.0))])
+	var lane_id := int(event_data.core.get("lane_id", -1))
+	var slot_index := int(event_data.core.get("slot_index", -1))
+	var radius_slots := float(event_data.core.get("radius_slots", environment_state.fog_clear_default_radius_slots))
+	var duration := float(event_data.core.get("duration", environment_state.fog_clear_default_duration))
+	var clear_mode := StringName(event_data.core.get("clear_mode", &"radius"))
+	if bool(environment_state.call("add_clear_source", source_id, lane_id, slot_index, radius_slots, duration, clear_mode, GameState.current_time)):
+		_emit_fog_clear_source_registered(module, environment_state, source_id, event_data.core.get("source_node", null), &"temporary")
+
+
+func _remove_entity_fog_source(module: Resource, environment_state: Variant, event_data: Variant) -> void:
+	var entity: Node = event_data.core.get("target_node", event_data.core.get("source_node", null))
+	var source_id := _entity_fog_source_id(entity)
+	if source_id == StringName():
+		var entity_id := int(event_data.core.get("target_id", event_data.core.get("source_id", -1)))
+		if entity_id >= 0:
+			source_id = StringName("%s%d" % [ENVIRONMENT_FOG_SOURCE_PREFIX, entity_id])
+	if source_id == StringName():
+		return
+	if bool(environment_state.call("remove_clear_source", source_id)):
+		_emit_environment_fog_updated(module, environment_state, &"clear_source_removed")
+		var removed_event: Variant = EventDataRef.create(null, null, null, PackedStringArray(["environment", "fog"]))
+		removed_event.core["module_id"] = StringName(module.get("module_id"))
+		removed_event.core["source_id"] = source_id
+		removed_event.core["clear_source_count"] = int(environment_state.snapshot().get("clear_source_count", 0))
+		EventBus.push_event(&"environment.fog_clear_source_removed", removed_event)
+
+
+func _emit_fog_clear_source_registered(module: Resource, environment_state: Variant, source_id: StringName, source_entity: Node, source_kind: StringName) -> void:
+	var event_data: Variant = EventDataRef.create(source_entity, null, null, PackedStringArray(["environment", "fog"]))
+	event_data.core["module_id"] = StringName(module.get("module_id"))
+	event_data.core["source_id"] = source_id
+	event_data.core["source_kind"] = source_kind
+	event_data.core["clear_source_count"] = int(environment_state.snapshot().get("clear_source_count", 0))
+	EventBus.push_event(&"environment.fog_clear_source_registered", event_data)
+	_emit_environment_fog_updated(module, environment_state, &"clear_source_registered")
+
+
+func _emit_environment_fog_updated(module: Resource, environment_state: Variant, reason: StringName) -> void:
+	var event_data: Variant = EventDataRef.create(null, null, null, PackedStringArray(["environment", "fog"]))
+	event_data.core["module_id"] = StringName(module.get("module_id"))
+	event_data.core["reason"] = reason
+	var fog_snapshot := Dictionary(environment_state.fog_snapshot())
+	for key: Variant in fog_snapshot.keys():
+		event_data.core[key] = fog_snapshot[key]
+	event_data.core["alpha_lane_0_slot_0"] = float(environment_state.call("fog_alpha_at_slot", 0, 0))
+	event_data.core["alpha_lane_0_slot_1"] = float(environment_state.call("fog_alpha_at_slot", 0, 1))
+	event_data.core["alpha_lane_0_slot_2"] = float(environment_state.call("fog_alpha_at_slot", 0, 2))
+	event_data.core["alpha_lane_0_slot_3"] = float(environment_state.call("fog_alpha_at_slot", 0, 3))
+	EventBus.push_event(&"environment.fog_updated", event_data)
+
+
+func _entity_fog_source_id(entity: Node) -> StringName:
+	if entity == null or not is_instance_valid(entity):
+		return StringName()
+	if not entity.has_method("get_entity_id"):
+		return StringName()
+	return StringName("%s%d" % [ENVIRONMENT_FOG_SOURCE_PREFIX, int(entity.call("get_entity_id"))])
+
+
+func _resolve_entity_slot_index(entity: Node, event_data: Variant) -> int:
+	if event_data != null and event_data.core.has("slot_index"):
+		return int(event_data.core.get("slot_index"))
+	if entity != null and entity.has_method("get_entity_state_ref"):
+		var entity_state: Variant = entity.call("get_entity_state_ref")
+		if entity_state != null and entity_state.has_method("get_value"):
+			return int(entity_state.call("get_value", &"slot_index", -1))
+	return -1
+
+
+func _entity_has_tag(entity: Node, tag: StringName) -> bool:
+	if entity == null or not is_instance_valid(entity):
+		return false
+	var raw_tags: Variant = entity.get("tags")
+	if raw_tags is PackedStringArray:
+		return PackedStringArray(raw_tags).has(String(tag))
+	if raw_tags is Array:
+		return Array(raw_tags).has(tag) or Array(raw_tags).has(String(tag))
+	return false
+
+
+func _emit_environment_rule_applied(module: Resource, source_event: StringName, behavior: StringName, snapshot: Dictionary) -> void:
+	var mode_event: Variant = preload("res://scripts/core/runtime/event_data.gd").create(null, null, null, PackedStringArray(["mode", "rule", "environment"]))
+	mode_event.core["module_id"] = StringName(module.get("module_id"))
+	mode_event.core["source_event"] = source_event
+	mode_event.core["behavior"] = behavior
+	for key: Variant in snapshot.keys():
+		mode_event.core[key] = snapshot[key]
+	EventBus.push_event(&"battle.mode_rule_applied", mode_event)
+
+
+func _report_module_issue(battle: Node, message: String) -> void:
+	if battle != null and battle.has_method("report_protocol_issues"):
+		battle.call("report_protocol_issues", [message], &"battle_mode_module")
 
 
 func _try_apply_manual_entity_skill(

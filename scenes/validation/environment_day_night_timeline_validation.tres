@@ -1,0 +1,93 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_night_cycle.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_puffshroom.tres" id="6_puff_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="7_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="8_spawn"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Req_puff"]
+script = ExtResource("7_card_request")
+at_time = 0.05
+card_id = &"card_original_puffshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("8_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 260.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_changed_initial"]
+script = ExtResource("5_rule")
+rule_id = &"environment_initial_day"
+event_name = &"environment.changed"
+required_core_values = {
+"profile_id": &"env_day_night_cycle",
+"source_event": &"on_mode_setup",
+"natural_sun_enabled": true
+}
+
+[sub_resource type="Resource" id="Rule_changed_night"]
+script = ExtResource("5_rule")
+rule_id = &"environment_timeline_night"
+event_name = &"environment.changed"
+required_core_values = {
+"profile_id": &"env_day_night_cycle",
+"source_event": &"timeline",
+"natural_sun_enabled": false,
+"light_level": 0.35
+}
+
+[sub_resource type="Resource" id="Rule_awake_at_night"]
+script = ExtResource("5_rule")
+rule_id = &"nocturnal_awake_at_night"
+event_name = &"environment.nocturnal_state_applied"
+required_core_values = {
+"target_archetype_id": &"archetype_original_puffshroom",
+"phase": &"night",
+"sleeping": false
+}
+
+[sub_resource type="Resource" id="Rule_sleep_after_day"]
+script = ExtResource("5_rule")
+rule_id = &"nocturnal_sleep_after_day"
+event_name = &"environment.nocturnal_state_applied"
+required_core_values = {
+"target_archetype_id": &"archetype_original_puffshroom",
+"phase": &"day",
+"sleeping": true
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_day_night_timeline_validation"
+display_name = "Environment Day Night Timeline Validation"
+description = "Validates discrete environment timeline changes and nocturnal synchronization."
+validation_time_limit = 2.4
+initial_sun = 1000
+lane_count = 1
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+card_defs = [ExtResource("6_puff_card")]
+card_play_requests = [SubResource("Req_puff")]
+validation_rules = [SubResource("Rule_changed_initial"), SubResource("Rule_changed_night"), SubResource("Rule_awake_at_night"), SubResource("Rule_sleep_after_day")]
+spawns = [SubResource("Spawn_target")]

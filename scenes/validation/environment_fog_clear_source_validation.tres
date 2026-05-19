@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_foggy.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_plantern.tres" id="6_plantern_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="7_card_request"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Req_plantern"]
+script = ExtResource("7_card_request")
+at_time = 0.05
+card_id = &"card_original_plantern"
+lane_id = 0
+slot_index = 2
+
+[sub_resource type="Resource" id="Rule_plantern_source"]
+script = ExtResource("5_rule")
+rule_id = &"plantern_fog_source"
+event_name = &"environment.fog_clear_source_registered"
+max_count = 1
+required_core_values = {
+"source_archetype_id": &"archetype_original_plantern",
+"source_kind": &"persistent"
+}
+
+[sub_resource type="Resource" id="Rule_fog_cleared"]
+script = ExtResource("5_rule")
+rule_id = &"fog_cleared_by_plantern"
+event_name = &"environment.fog_updated"
+max_count = 1
+required_core_values = {
+"reason": &"clear_source_registered",
+"alpha_lane_0_slot_2": 0.0,
+"alpha_lane_0_slot_3": 0.0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_fog_clear_source_validation"
+display_name = "Environment Fog Clear Source Validation"
+description = "Validates persistent clear source registration from Plantern."
+validation_time_limit = 1.0
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 5
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+card_defs = [ExtResource("6_plantern_card")]
+card_play_requests = [SubResource("Req_plantern")]
+validation_rules = [SubResource("Rule_plantern_source"), SubResource("Rule_fog_cleared")]

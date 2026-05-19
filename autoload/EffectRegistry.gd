@@ -559,6 +559,37 @@ func _register_builtin_defs() -> void:
 	reveal.allow_extra_params = false
 	reveal.allow_extra_children = false
 	register_def(reveal)
+
+	var clear_fog = EffectDefRef.new()
+	clear_fog.id = &"clear_fog"
+	clear_fog.tags = PackedStringArray(["environment", "fog", "control"])
+	var clear_fog_param_defs: Array[Dictionary] = [{
+		"name": "target_mode",
+		"type": "string_name",
+		"default": &"owner",
+		"options": PackedStringArray(["owner", "source", "context_target", "event_source", "event_target"]),
+	}, {
+		"name": "radius_slots",
+		"type": "float",
+		"min": 0.0,
+		"max": 64.0,
+		"default": 2.0,
+	}, {
+		"name": "duration",
+		"type": "float",
+		"min": 0.0,
+		"max": 60.0,
+		"default": 4.0,
+	}, {
+		"name": "clear_mode",
+		"type": "string_name",
+		"default": &"radius",
+		"options": PackedStringArray(["radius", "full_board"]),
+	}]
+	clear_fog.param_defs = clear_fog_param_defs
+	clear_fog.allow_extra_params = false
+	clear_fog.allow_extra_children = false
+	register_def(clear_fog)
 	_register_builtin_strategies()
 
 
@@ -941,6 +972,32 @@ func _register_builtin_strategies() -> void:
 		if revealed_count == 0:
 			result.success = false
 			result.notes.append("reveal found no hidden targets.")
+		return result
+	)
+
+	register_strategy(&"clear_fog", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		if GameState.current_battle == null:
+			result.success = false
+			result.notes.append("No active battle manager available.")
+			return result
+
+		var source := _resolve_target(context, params)
+		if source == null:
+			source = _resolve_effect_source_node(context)
+		var lane_id := -1
+		var slot_index := -1
+		if source != null and is_instance_valid(source):
+			lane_id = int(source.get("lane_id"))
+			slot_index = _resolve_entity_slot_index(source)
+		var clear_event: Variant = EventDataRef.create(source, null, null, PackedStringArray(["environment", "fog", "clear"]))
+		clear_event.core["source_entity_id"] = int(source.call("get_entity_id")) if source != null and source.has_method("get_entity_id") else -1
+		clear_event.core["lane_id"] = lane_id
+		clear_event.core["slot_index"] = slot_index
+		clear_event.core["radius_slots"] = float(params.get("radius_slots", 2.0))
+		clear_event.core["duration"] = float(params.get("duration", 4.0))
+		clear_event.core["clear_mode"] = StringName(params.get("clear_mode", &"radius"))
+		EventBus.push_event(&"environment.fog_clear_requested", clear_event)
 		return result
 	)
 

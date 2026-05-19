@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_harsh_sun.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Rule_environment_changed"]
+script = ExtResource("5_rule")
+rule_id = &"environment_changed"
+description = "environment.core should publish harsh sun profile"
+event_name = &"environment.changed"
+required_core_values = {
+"module_id": &"environment.core",
+"profile_id": &"env_day_harsh_sun",
+"sun_interval_scale": 0.5,
+"sun_value_scale": 1.25
+}
+
+[sub_resource type="Resource" id="Rule_harsh_sun_spawned"]
+script = ExtResource("5_rule")
+rule_id = &"harsh_sun_spawned"
+description = "harsh sun should spawn scaled natural sun twice in the validation window"
+event_name = &"sun.spawned"
+min_count = 2
+required_core_values = {
+"source_type": &"natural_sun",
+"value": 31
+}
+
+[sub_resource type="Resource" id="Rule_harsh_sun_collect"]
+script = ExtResource("5_rule")
+rule_id = &"harsh_sun_collect"
+description = "harsh sun natural drops should collect scaled values"
+event_name = &"resource.changed"
+min_count = 2
+required_core_values = {
+"reason": &"collect",
+"resource_id": &"sun",
+"delta": 31
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_cloudy_harsh_sun_validation"
+display_name = "Environment Harsh Sun Validation"
+description = "Phase 1 validates harsh sun natural sun cadence and value scaling."
+validation_time_limit = 1.4
+sun_auto_collect_delay = 0.05
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+validation_rules = [SubResource("Rule_environment_changed"), SubResource("Rule_harsh_sun_spawned"), SubResource("Rule_harsh_sun_collect")]
