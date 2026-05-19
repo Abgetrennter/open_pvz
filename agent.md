@@ -25,18 +25,11 @@ Do not default to old "phase 4 / phase 5 / phase 6 task-list" language when desc
 
 ## Default Read Order
 
-Before doing substantial coding or documentation work in this repo, read these docs first:
+Before doing substantial coding or documentation work in this repo, read these core entrypoints first:
 
-1. `README.md`
-2. `wiki/index.md`
-3. `wiki/01-overview/23-当前阶段与实现路线.md`
-4. `wiki/04-roadmap-reference/26-开发路线图.md`
-5. `wiki/02-runtime-protocol/11-编译链与Mechanic系统.md`
-6. `wiki/03-content-validation/32-验证矩阵.md`
-7. `wiki/05-governance/29-文档规范与维护约定.md`
-8. `wiki/05-governance/33-术语表.md`
-9. `wiki/05-governance/37-历史归档与退役文档索引.md`
-10. `wiki/decisions/README.md`
+1. `wiki/01-overview/03-15分钟上手路径.md`
+2. `wiki/01-overview/23-当前阶段与实现路线.md`
+3. `wiki/02-runtime-protocol/11-编译链与Mechanic系统.md`
 
 The wiki is physically organized by layer under:
 
@@ -53,14 +46,9 @@ Historical phase material no longer belongs to the current wiki narrative. Use t
 - retired wiki pages: `plans/archive/wiki-retired/`
 - future-direction drafts: `plans/draft/`
 
-If you are entering for a specific task, use this shorter route:
+For specific tasks, read only the relevant route below:
 
-- Project state and direction:
-  - `wiki/index.md`
-  - `wiki/01-overview/23-当前阶段与实现路线.md`
-  - `wiki/04-roadmap-reference/26-开发路线图.md`
-  - `wiki/01-overview/34-Open PVZ 系统版图与规划分层.md`
-- Runtime / protocol work:
+- Runtime / protocol:
   - `wiki/01-overview/00-架构总览.md`
   - `wiki/02-runtime-protocol/03-触发器系统.md`
   - `wiki/02-runtime-protocol/04-效果系统.md`
@@ -68,17 +56,32 @@ If you are entering for a specific task, use this shorter route:
   - `wiki/02-runtime-protocol/07-事件模型.md`
   - `wiki/02-runtime-protocol/08-连续行为模型.md`
   - `wiki/02-runtime-protocol/11-编译链与Mechanic系统.md`
-- Validation / workflow work:
+  - `wiki/02-runtime-protocol/14-战斗模式组织层.md`
+  - `wiki/02-runtime-protocol/15-战斗距离与棋盘度量.md`
+  - `wiki/02-runtime-protocol/16-帧率与仿真时间.md`
+  - `wiki/02-runtime-protocol/17-实体活跃性与空间查询.md`
+- Validation:
   - `wiki/03-content-validation/12-完整工作流.md`
   - `wiki/03-content-validation/15-验证清单.md`
   - `wiki/03-content-validation/32-验证矩阵.md`
-- Documentation / governance work:
+- Extension:
+  - `wiki/04-roadmap-reference/38-扩展系统总体规划.md`
+  - `wiki/04-roadmap-reference/42-通用扩展插槽机制.md`
+  - `wiki/04-roadmap-reference/43-扩展包边界与依赖规则.md`
+  - `wiki/04-roadmap-reference/44-素材包系统与本地私有包.md`
+  - `wiki/04-roadmap-reference/45-扩展包Manifest规范.md`
+- Content:
+  - `wiki/05-governance/35-模板编写约定.md`
+  - `wiki/05-governance/36-原版实体复刻工作流.md`
+  - `wiki/05-governance/33-术语表.md`
+- Visual / audio / ui:
+  - `plans/视觉表现层设计讨论.md`
+  - `plans/音频系统设计.md`
+  - `plans/UI 框架层设计方案.md`
+- Governance:
   - `wiki/05-governance/27-项目开发方法论.md`
   - `wiki/05-governance/29-文档规范与维护约定.md`
   - `wiki/05-governance/31-重大决策记录模板.md`
-  - `wiki/05-governance/33-术语表.md`
-  - `wiki/05-governance/35-模板编写约定.md`
-  - `wiki/05-governance/36-原版实体复刻工作流.md`
   - `wiki/05-governance/37-历史归档与退役文档索引.md`
 
 `wiki/05-governance/29-文档规范与维护约定.md` is the default governance source of truth if there is ambiguity about workflow, terminology, wiki structure, archive placement, or what docs must be updated together.
