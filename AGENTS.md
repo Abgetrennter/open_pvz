@@ -181,8 +181,8 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 ### 守卫检查
 
 ```powershell
-# 检查旧实体模型残留（禁止 EntityTemplate / TriggerBinding）
-pwsh tools/check_no_legacy_entity_model.ps1
+# 检查公开扩展发布边界
+pwsh tools/check_public_extension_release_guardrails.ps1
 
 # 运行时指标/时间违规由代码评审与验证场景检查：
 # 禁止 OS.get_ticks_* 和 Timer 用于游戏逻辑
