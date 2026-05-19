@@ -5,42 +5,45 @@ const VALIDATION_ENTRY_SCENE := "res://scenes/validation/minimal_battle_validati
 
 const GROUPS := [
 	{
-		"group_title": "可玩演示",
-		"group_summary": "完整的可玩关卡，包含玩家交互、经济循环和波次攻防。",
-		"color": Color("f2d25c"),
+		"group_title": "基础演示与验证",
+		"group_summary": "可玩关卡、最小验证场景和输入交互验证，覆盖引擎最基本的运行链和玩家操作路径。",
+		"color": Color("4db6ac"),
 		"items": [
 			{
 				"title": "MVP Demo",
 				"summary": "收集阳光、放置植物、抵御 3 波僵尸进攻。点击卡片选中，点击格子放置。R 重开，Esc 返回。",
 				"scene": "res://scenes/demo/demo_level.tscn",
 			},
-		],
-	},
-	{
-		"group_title": "引擎核心",
-		"group_summary": "事件链、archetype 装配与运行时编译链的基础展示。",
-		"color": Color("4db6ac"),
-		"items": [
 			{
 				"title": "最小验证场景",
 				"summary": "原始主干演示场景，包含直线、追踪和抛物线三种基础投射表现。",
 				"scene": "res://scenes/showcase/minimal_validation_showcase.tscn",
 			},
+			{
+				"title": "阳光点击验证",
+				"summary": "天降阳光后自动注入鼠标点击，验证点击收集事件链。",
+				"scene": "res://scenes/validation/sun_click_validation.tscn",
+			},
+			{
+				"title": "卡片放置验证",
+				"summary": "自动选中卡片并点击格子，验证卡片放置的完整流程。",
+				"scene": "res://scenes/validation/card_place_validation.tscn",
+			},
 		],
 	},
 	{
-		"group_title": "Mechanic-first 骨架",
-		"group_summary": "展示新 archetype / mechanic / compiler 骨架已经如何接回现有运行时主链，当前覆盖资源生产、直接伤害、投射物攻击、生命周期和基础僵尸路径。",
+		"group_title": "Archetype 编译链",
+		"group_summary": "展示 Archetype + Mechanic 编译链如何驱动实体实例化与行为运行，覆盖资源生产、直接伤害、投射物攻击、生命周期、状态阶段和基础僵尸路径。",
 		"color": Color("8e9aee"),
 		"items": [
 			{
-				"title": "产阳骨架展示",
-				"summary": "一个资源生产型 archetype 通过 Trigger + Payload skeleton mechanic 编译出 RuntimeTriggerSpec，并沿共享产阳链生成和收集阳光。",
+				"title": "产阳展示",
+				"summary": "一个资源生产型 archetype 通过 Trigger + Payload mechanic 编译出 RuntimeTriggerSpec，并沿共享产阳链生成和收集阳光。",
 				"scene": "res://scenes/showcase/archetype_sunflower_showcase.tscn",
 			},
 			{
-				"title": "生命周期骨架展示",
-				"summary": "一个 lifecycle archetype 通过 on_spawned + produce_sun skeleton mechanic 编译出运行时触发器，并在进入战场时立即执行一次效果。",
+				"title": "生命周期展示",
+				"summary": "一个 lifecycle archetype 通过 on_spawned + produce_sun mechanic 编译出运行时触发器，并在进入战场时立即执行一次效果。",
 				"scene": "res://scenes/showcase/archetype_lifecycle_showcase.tscn",
 			},
 			{
@@ -54,18 +57,18 @@ const GROUPS := [
 				"scene": "res://scenes/showcase/archetype_state_showcase.tscn",
 			},
 			{
-				"title": "攻击骨架展示",
-				"summary": "一个攻击型 archetype 通过 Trigger + Payload skeleton mechanic 编译出运行时 RuntimeTriggerSpec，并直接伤害和击杀目标。",
+				"title": "攻击展示",
+				"summary": "一个攻击型 archetype 通过 Trigger + Payload mechanic 编译出运行时 RuntimeTriggerSpec，并直接伤害和击杀目标。",
 				"scene": "res://scenes/showcase/archetype_attack_showcase.tscn",
 			},
 			{
-				"title": "投射物骨架展示",
-				"summary": "两个 projectile archetype 分别生成直线和抛物线攻击，展示第一版编译器已经接回共享 spawn_projectile 运行时。",
+				"title": "投射物展示",
+				"summary": "两个 projectile archetype 分别生成直线和抛物线攻击，展示编译器如何接入共享 spawn_projectile 运行时。",
 				"scene": "res://scenes/showcase/archetype_projectile_showcase.tscn",
 			},
 			{
-				"title": "僵尸骨架展示",
-				"summary": "一个 zombie archetype 通过 archetype 入口生成，并继续复用现有 bite 连续运行时。",
+				"title": "僵尸展示",
+				"summary": "一个 zombie archetype 通过 archetype 入口生成，并复用 bite 连续运行时。",
 				"scene": "res://scenes/showcase/archetype_zombie_showcase.tscn",
 			},
 			{
@@ -76,25 +79,8 @@ const GROUPS := [
 		],
 	},
 	{
-		"group_title": "投射体系统",
-		"group_summary": "高度带、终点爆炸、扫掠碰撞等投射体运行时的展示。",
-		"color": Color("4fc3f7"),
-		"items": [
-			{
-				"title": "高度命中规则",
-				"summary": "对比低高度投射物与高空目标的交互，观察高度带规则如何生效。",
-				"scene": "res://scenes/showcase/height_hit_showcase.tscn",
-			},
-			{
-				"title": "终点爆炸",
-				"summary": "观察投射体在终点命中后，如何衔接到范围爆炸伤害链。",
-				"scene": "res://scenes/showcase/terminal_explode_showcase.tscn",
-			},
-		],
-	},
-	{
 		"group_title": "内容样例",
-		"group_summary": "Epic C 内容扩展样例：各类植物与僵尸的攻防行为展示。",
+		"group_summary": "各类植物、僵尸与投射体的攻防行为展示：拦截、连发、抛投、高度命中和终点爆炸等。",
 		"color": Color("81c784"),
 		"items": [
 			{
@@ -121,6 +107,16 @@ const GROUPS := [
 				"title": "向日葵阳光生产",
 				"summary": "三条车道各一棵向日葵，以不同间隔和价值并行产出阳光，同时演示天降阳光和自动收集。",
 				"scene": "res://scenes/showcase/sunflower_sun_production_showcase.tscn",
+			},
+			{
+				"title": "高度命中规则",
+				"summary": "对比低高度投射物与高空目标的交互，观察高度带规则如何生效。",
+				"scene": "res://scenes/showcase/height_hit_showcase.tscn",
+			},
+			{
+				"title": "终点爆炸",
+				"summary": "观察投射体在终点命中后，如何衔接到范围爆炸伤害链。",
+				"scene": "res://scenes/showcase/terminal_explode_showcase.tscn",
 			},
 		],
 	},
@@ -172,8 +168,8 @@ const GROUPS := [
 		],
 	},
 	{
-		"group_title": "第五阶段错误技",
-		"group_summary": "第五阶段错误技总览：前 4 个场景对应提交 7617055 的正式级联样例，后 9 个场景用于展示扩展包新增的分裂、召唤、状态控制、击退、跳链、光环、延迟触发、延迟爆炸和标记能力。",
+		"group_title": "错误技与级联",
+		"group_summary": "展示错误技系统的级联与涌现效果：连锁爆炸、溅射、追踪反击、受伤反击、死亡爆炸和混合追踪弹幕。",
 		"color": Color("ef6c57"),
 		"items": [
 			{
@@ -196,22 +192,20 @@ const GROUPS := [
 				"summary": "两条 lane 上各自独立完成攻击与反击，验证 retaliation 链不会跨 lane 串线。",
 				"scene": "res://scenes/showcase/multi_lane_retaliation_cascade_showcase.tscn",
 			},
-		],
-	},
-	{
-		"group_title": "输入验证",
-		"group_summary": "验证鼠标点击交互的正确性：阳光收集、卡片放置等玩家输入路径。",
-		"color": Color("ffb74d"),
-		"items": [
 			{
-				"title": "阳光点击验证",
-				"summary": "天降阳光后自动注入鼠标点击，验证点击收集事件链。",
-				"scene": "res://scenes/validation/sun_click_validation.tscn",
+				"title": "受伤反击错误技",
+				"summary": "双连发射手持续压制 Reactive Bomber，观察 when_damaged 反击如何稳定回打两个事件源。",
+				"scene": "res://scenes/showcase/reactive_retaliation_chaos_showcase.tscn",
 			},
 			{
-				"title": "卡片放置验证",
-				"summary": "自动选中卡片并点击格子，验证卡片放置的完整流程。",
-				"scene": "res://scenes/validation/card_place_validation.tscn",
+				"title": "死亡爆炸错误技",
+				"summary": "基础射手击杀 Reactive Bomber 后，观察 on_death 爆炸如何同时命中两侧障碍植物。",
+				"scene": "res://scenes/showcase/death_blossom_chaos_showcase.tscn",
+			},
+			{
+				"title": "追踪弹幕错误技",
+				"summary": "地面追踪投弹手与空中拦截手同时开火，观察 ground/air 两类 tracking runtime 如何并行命中。",
+				"scene": "res://scenes/showcase/tracking_barrage_chaos_showcase.tscn",
 			},
 		],
 	},
