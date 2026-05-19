@@ -217,7 +217,22 @@ func _height_overlaps(candidate: Node, height_range: Vector2) -> bool:
 		var value: Variant = candidate.call("get_hit_height_range")
 		if value is Vector2:
 			candidate_range = value
+	var terrain_z := _terrain_elevation_for(candidate)
+	candidate_range = Vector2(terrain_z + candidate_range.x, terrain_z + candidate_range.y)
 	return height_range.y >= candidate_range.x and height_range.x <= candidate_range.y
+
+
+func _terrain_elevation_for(candidate: Node) -> float:
+	var lane_value: Variant = candidate.get("lane_id")
+	if not (lane_value is int):
+		return 0.0
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("get_battlefield_metrics"):
+		return 0.0
+	var metrics: Variant = battle.call("get_battlefield_metrics")
+	if metrics == null or not metrics.has_method("terrain_elevation_at"):
+		return 0.0
+	return float(metrics.call("terrain_elevation_at", int(lane_value), _node_ground_position(candidate).x))
 
 
 func _node_ground_position(node: Node) -> Vector2:

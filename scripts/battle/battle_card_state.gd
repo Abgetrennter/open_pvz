@@ -20,6 +20,9 @@ var _processed_request_indices: Dictionary = {}
 func setup(battle_node: Node, scenario: Resource) -> void:
 	battle = battle_node
 	board_slot_count = int(scenario.get("board_slot_count"))
+	var battlefield_preset: Variant = scenario.get("battlefield_preset")
+	if battlefield_preset != null and int(battlefield_preset.get("board_slot_count")) > 0:
+		board_slot_count = int(battlefield_preset.get("board_slot_count"))
 	if board_slot_count <= 0:
 		board_slot_count = 5
 	_card_defs.clear()

@@ -11,6 +11,9 @@ const BattleCardPlayRequestRef = preload("res://scripts/battle/card_play_request
 const BoardSlotCatalogRef = preload("res://scripts/battle/board_slot_catalog.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
 const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
+const LaneConfigRef = preload("res://scripts/battle/lane_config.gd")
+const LaneTerrainProfileRef = preload("res://scripts/battle/lane_terrain_profile.gd")
+const SpawnZoneConfigRef = preload("res://scripts/battle/spawn_zone_config.gd")
 const StatusApplicationRequestRef = preload("res://scripts/battle/status_application_request.gd")
 const EffectExecutionRequestRef = preload("res://scripts/battle/effect_execution_request.gd")
 const FieldObjectConfigRef = preload("res://scripts/battle/field_object_config.gd")
@@ -54,6 +57,8 @@ const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 		"event_name": &"game.tick",
 	},
 }
+const KNOWN_LANE_TYPES := [&"grass", &"pool", &"roof", &"dirt"]
+const KNOWN_TERRAIN_ELEVATION_MODES := [&"flat", &"linear", &"stepped"]
 
 const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"interval": true,
@@ -74,6 +79,7 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"on_hit_effect_params": true,
 	"projectile_template": true,
 	"flight_profile": true,
+	"height_reference": true,
 	"movement_mode": true,
 	"travel_duration": true,
 	"arc_height": true,
@@ -234,6 +240,10 @@ static func validate_projectile_flight_profile(profile: Resource) -> Array[Strin
 	var height_strategy := String(profile.height_strategy)
 	if not _allowed_height_strategies().has(height_strategy):
 		errors.append("ProjectileFlightProfile.height_strategy must be one of %s." % _join_strings(_allowed_height_strategies()))
+
+	var height_reference := String(profile.height_reference)
+	if not _allowed_height_references().has(height_reference):
+		errors.append("ProjectileFlightProfile.height_reference must be one of %s." % _join_strings(_allowed_height_references()))
 
 	var hit_strategy := String(profile.hit_strategy)
 	if not hit_strategy.is_empty() and not _allowed_hit_strategies().has(hit_strategy):
@@ -775,6 +785,21 @@ static func validate_battlefield_preset(battlefield_preset: Resource) -> Array[S
 		errors.append("BattlefieldPreset.board_slot_count must be > 0.")
 	if float(battlefield_preset.get("board_slot_spacing")) <= 0.0:
 		errors.append("BattlefieldPreset.board_slot_spacing must be > 0.")
+	var lane_count := int(battlefield_preset.get("lane_count"))
+	var lane_y_positions: Variant = battlefield_preset.get("lane_y_positions")
+	if lane_y_positions is Array and not Array(lane_y_positions).is_empty() and Array(lane_y_positions).size() != lane_count:
+		errors.append("BattlefieldPreset.lane_y_positions size must match lane_count when provided.")
+	if float(battlefield_preset.get("lane_spacing")) < 0.0:
+		errors.append("BattlefieldPreset.lane_spacing must be >= 0.")
+	var configured_lane_configs: Variant = battlefield_preset.get("lane_configs")
+	if configured_lane_configs is Array:
+		var seen_lanes: Dictionary = {}
+		for lane_config in configured_lane_configs:
+			errors.append_array(_validate_lane_config(lane_config, StringName(battlefield_preset.get("preset_id")), lane_count, seen_lanes))
+	var configured_spawn_zones: Variant = battlefield_preset.get("spawn_zones")
+	if configured_spawn_zones is Array:
+		for spawn_zone in configured_spawn_zones:
+			errors.append_array(_validate_spawn_zone_config(spawn_zone, StringName(battlefield_preset.get("preset_id")), lane_count))
 	var configured_slot_configs: Variant = battlefield_preset.get("board_slot_configs")
 	if configured_slot_configs is Array:
 		for slot_config in configured_slot_configs:
@@ -1151,6 +1176,73 @@ static func _validate_board_slot_config(slot_config: Resource, scenario_id: Stri
 	return errors
 
 
+static func _validate_lane_config(lane_config: Resource, scenario_id: StringName, lane_count: int, seen_lanes: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	if lane_config == null:
+		errors.append("BattlefieldPreset %s contains a null lane config." % String(scenario_id))
+		return errors
+	if lane_config.get_script() != LaneConfigRef:
+		errors.append("BattlefieldPreset %s lane_configs must use lane_config.gd." % String(scenario_id))
+		return errors
+	var lane_index := int(lane_config.get("lane_index"))
+	if lane_index < 0 or lane_index >= lane_count:
+		errors.append("BattlefieldPreset %s lane config lane_index must be within lane_count." % String(scenario_id))
+	if seen_lanes.has(lane_index):
+		errors.append("BattlefieldPreset %s lane config lane_index must be unique." % String(scenario_id))
+	seen_lanes[lane_index] = true
+	var lane_type := StringName(lane_config.get("lane_type"))
+	if not KNOWN_LANE_TYPES.has(lane_type):
+		errors.append("BattlefieldPreset %s lane_type must be one of grass, pool, roof, dirt." % String(scenario_id))
+	var slot_type := StringName(lane_config.get("slot_type_override"))
+	if slot_type != StringName() and not BoardSlotCatalogRef.is_known_slot_type(slot_type):
+		errors.append("BattlefieldPreset %s lane slot_type_override must be one of %s." % [
+			String(scenario_id),
+			", ".join(BoardSlotCatalogRef.list_slot_types()),
+		])
+	if not (lane_config.get("base_tags_override") is PackedStringArray):
+		errors.append("BattlefieldPreset %s lane base_tags_override must be a PackedStringArray." % String(scenario_id))
+	if not (lane_config.get("lane_traits") is PackedStringArray):
+		errors.append("BattlefieldPreset %s lane lane_traits must be a PackedStringArray." % String(scenario_id))
+	var terrain_profile: Variant = lane_config.get("terrain_profile")
+	if terrain_profile != null:
+		errors.append_array(_validate_lane_terrain_profile(terrain_profile, scenario_id))
+	return errors
+
+
+static func _validate_lane_terrain_profile(terrain_profile: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if terrain_profile == null:
+		return errors
+	if terrain_profile.get_script() != LaneTerrainProfileRef:
+		errors.append("BattlefieldPreset %s terrain_profile must use lane_terrain_profile.gd." % String(scenario_id))
+		return errors
+	var mode := StringName(terrain_profile.get("elevation_mode"))
+	if not KNOWN_TERRAIN_ELEVATION_MODES.has(mode):
+		errors.append("BattlefieldPreset %s terrain_profile.elevation_mode must be one of flat, linear, stepped." % String(scenario_id))
+	if float(terrain_profile.get("projection_y_scale")) <= 0.0:
+		errors.append("BattlefieldPreset %s terrain_profile.projection_y_scale must be > 0." % String(scenario_id))
+	if mode == &"stepped" and PackedFloat32Array(terrain_profile.get("slot_elevations")).is_empty():
+		errors.append("BattlefieldPreset %s terrain_profile.slot_elevations must not be empty when elevation_mode is stepped." % String(scenario_id))
+	return errors
+
+
+static func _validate_spawn_zone_config(spawn_zone: Resource, scenario_id: StringName, lane_count: int) -> Array[String]:
+	var errors: Array[String] = []
+	if spawn_zone == null:
+		errors.append("BattlefieldPreset %s contains a null spawn zone." % String(scenario_id))
+		return errors
+	if spawn_zone.get_script() != SpawnZoneConfigRef:
+		errors.append("BattlefieldPreset %s spawn_zones must use spawn_zone_config.gd." % String(scenario_id))
+		return errors
+	if int(spawn_zone.get("lane_id")) < 0 or int(spawn_zone.get("lane_id")) >= lane_count:
+		errors.append("BattlefieldPreset %s spawn zone lane_id must be within lane_count." % String(scenario_id))
+	if not (spawn_zone.get("zone_tags") is PackedStringArray):
+		errors.append("BattlefieldPreset %s spawn zone zone_tags must be a PackedStringArray." % String(scenario_id))
+	elif PackedStringArray(spawn_zone.get("zone_tags")).is_empty():
+		errors.append("BattlefieldPreset %s spawn zone zone_tags must not be empty." % String(scenario_id))
+	return errors
+
+
 static func _validate_status_application_request(status_request: Resource, scenario_id: StringName) -> Array[String]:
 	var errors: Array[String] = []
 	if status_request == null:
@@ -1385,6 +1477,10 @@ static func _normalize_param_value(value: Variant, param_def: Dictionary, errors
 
 static func _allowed_height_strategies() -> Array[String]:
 	return ["flat", "arc"]
+
+
+static func _allowed_height_references() -> Array[String]:
+	return ["terrain_follow", "launch_absolute", "ballistic_to_target"]
 
 
 static func _allowed_hit_strategies() -> Array[String]:

@@ -9,3 +9,8 @@ class_name BattlefieldPreset
 @export var board_slot_origin_x := 160.0
 @export var board_slot_spacing := 96.0
 @export var board_slot_configs: Array = []
+@export var lane_configs: Array = []
+@export var lane_y_positions: Array[float] = []
+@export var lane_origin_y := 0.0
+@export var lane_spacing := 0.0
+@export var spawn_zones: Array = []

@@ -7,8 +7,36 @@ const BoardSlotRef = preload("res://scripts/battle/board_slot.gd")
 const BoardSlotConfigRef = preload("res://scripts/battle/board_slot_config.gd")
 const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd")
 const BattlefieldMetricsRef = preload("res://scripts/battle/battlefield_metrics.gd")
+const LaneConfigRef = preload("res://scripts/battle/lane_config.gd")
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
 const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
+
+const LANE_TYPE_DEFAULTS := {
+	&"grass": {
+		"slot_type": &"ground",
+		"base_tags": ["ground", "supports_primary"],
+		"lane_traits": ["terrain.grass", "surface.ground"],
+		"visual_theme": &"grass",
+	},
+	&"pool": {
+		"slot_type": &"water",
+		"base_tags": ["water"],
+		"lane_traits": ["terrain.pool", "surface.water"],
+		"visual_theme": &"pool_water",
+	},
+	&"roof": {
+		"slot_type": &"roof",
+		"base_tags": ["roof"],
+		"lane_traits": ["terrain.roof", "terrain.high_ground", "surface.roof"],
+		"visual_theme": &"roof_tile",
+	},
+	&"dirt": {
+		"slot_type": &"dirt",
+		"base_tags": [],
+		"lane_traits": ["terrain.dirt", "placement.blocked"],
+		"visual_theme": &"dirt",
+	},
+}
 
 var battle: Node = null
 var board_slot_count := 5
@@ -18,6 +46,7 @@ var metrics: RefCounted = null
 
 var _slots: Dictionary = {}
 var _slot_configs: Array[Resource] = []
+var _lane_configs: Dictionary = {}
 
 
 func _upgrade_replacement_candidate_roles() -> Array[StringName]:
@@ -31,9 +60,15 @@ func setup(battle_node: Node, scenario: Resource) -> void:
 	board_slot_origin_x = _resolve_board_slot_origin_x(scenario, battlefield_preset)
 	board_slot_spacing = maxf(_resolve_board_slot_spacing(scenario, battlefield_preset), 1.0)
 	metrics = BattlefieldMetricsRef.new()
-	metrics.configure_from_battle_context(battle, board_slot_origin_x, board_slot_spacing)
+	metrics.configure_from_preset_and_battle(battle, battlefield_preset, board_slot_origin_x, board_slot_spacing)
 	_slot_configs.clear()
+	_lane_configs.clear()
 	if battlefield_preset != null:
+		var configured_lane_configs: Variant = battlefield_preset.get("lane_configs")
+		if configured_lane_configs is Array:
+			for lane_config in configured_lane_configs:
+				if lane_config != null and lane_config.get_script() == LaneConfigRef:
+					_lane_configs[int(lane_config.get("lane_index"))] = lane_config
 		for slot_config in battlefield_preset.board_slot_configs:
 			if slot_config is Resource:
 				_slot_configs.append(slot_config)
@@ -80,6 +115,7 @@ func get_debug_snapshot() -> Dictionary:
 			"occupied_slot_count": occupied_slots,
 			"occupant_count": total_occupants,
 			"slot_type_counts": slot_type_counts,
+			"lane_config_count": _lane_configs.size(),
 		},
 	}
 
@@ -195,6 +231,14 @@ func get_slot(lane_id: int, slot_index: int):
 	return _resolve_slot(lane_id, slot_index)
 
 
+func get_lane_config(lane_id: int) -> Resource:
+	return _lane_configs.get(lane_id, null)
+
+
+func get_lane_traits(lane_id: int) -> PackedStringArray:
+	return _resolve_lane_traits(lane_id)
+
+
 func get_debug_slot_lines(limit: int = 4) -> PackedStringArray:
 	var lines := PackedStringArray()
 	var slot_keys: Array = _slots.keys()
@@ -299,17 +343,21 @@ func _rebuild_slots() -> void:
 		lane_ids = [0, 1]
 	lane_ids.sort()
 	for lane_id in lane_ids:
+		var lane_defaults := _resolve_lane_defaults(lane_id)
+		var slot_type := StringName(lane_defaults.get("slot_type", &"ground"))
+		var base_tags := PackedStringArray(lane_defaults.get("base_tags", PackedStringArray()))
 		for slot_index in range(board_slot_count):
 			var slot = BoardSlotRef.new()
 			slot.configure(
 				lane_id,
 				slot_index,
 				metrics.slot_position(lane_id, slot_index) if metrics != null else Vector2(board_slot_origin_x + float(slot_index) * board_slot_spacing, float(battle.get_lane_y(lane_id))),
-				&"ground",
-				BoardSlotCatalogRef.default_tags_for(&"ground")
+				slot_type,
+				base_tags
 			)
 			_slots[_slot_key(lane_id, slot_index)] = slot
 	_apply_slot_configs()
+	_emit_slots_rebuilt()
 
 
 func _apply_slot_configs() -> void:
@@ -736,3 +784,79 @@ func _resolve_board_slot_spacing(scenario: Resource, battlefield_preset) -> floa
 	if battlefield_preset != null:
 		return float(battlefield_preset.board_slot_spacing)
 	return float(scenario.get("board_slot_spacing"))
+
+
+func _resolve_lane_defaults(lane_id: int) -> Dictionary:
+	var lane_config: Resource = _lane_configs.get(lane_id, null)
+	if lane_config == null:
+		return {
+			"slot_type": &"ground",
+			"base_tags": BoardSlotCatalogRef.default_tags_for(&"ground"),
+			"lane_traits": PackedStringArray(["terrain.grass", "surface.ground"]),
+			"visual_theme": &"grass",
+		}
+	var lane_type := StringName(lane_config.get("lane_type"))
+	var defaults: Dictionary = Dictionary(LANE_TYPE_DEFAULTS.get(lane_type, LANE_TYPE_DEFAULTS[&"grass"]))
+	var slot_type := StringName(defaults.get("slot_type", &"ground"))
+	var base_tags := PackedStringArray(defaults.get("base_tags", []))
+	var explicit_slot_type := StringName(lane_config.get("slot_type_override"))
+	if explicit_slot_type != StringName():
+		slot_type = explicit_slot_type
+	if not PackedStringArray(lane_config.get("base_tags_override")).is_empty():
+		base_tags = PackedStringArray(lane_config.get("base_tags_override"))
+	elif base_tags.is_empty() and slot_type != &"dirt":
+		base_tags = BoardSlotCatalogRef.default_tags_for(slot_type)
+	return {
+		"slot_type": slot_type,
+		"base_tags": base_tags,
+		"lane_traits": _resolve_lane_traits(lane_id),
+		"visual_theme": StringName(lane_config.get("visual_theme")) if StringName(lane_config.get("visual_theme")) != StringName() else StringName(defaults.get("visual_theme", StringName())),
+	}
+
+
+func _resolve_lane_traits(lane_id: int) -> PackedStringArray:
+	var lane_config: Resource = _lane_configs.get(lane_id, null)
+	if lane_config == null:
+		return PackedStringArray(["terrain.grass", "surface.ground"])
+	var lane_type := StringName(lane_config.get("lane_type"))
+	var defaults: Dictionary = Dictionary(LANE_TYPE_DEFAULTS.get(lane_type, LANE_TYPE_DEFAULTS[&"grass"]))
+	var traits := PackedStringArray(defaults.get("lane_traits", []))
+	var explicit_traits := PackedStringArray(lane_config.get("lane_traits"))
+	if not explicit_traits.is_empty():
+		traits = explicit_traits
+	return traits
+
+
+func _emit_slots_rebuilt() -> void:
+	var event_data: Variant = EventDataRef.create(null, null, null, PackedStringArray(["board", "terrain"]))
+	event_data.core["slot_count"] = _slots.size()
+	event_data.core["lane_config_count"] = _lane_configs.size()
+	var lane_traits: Dictionary = {}
+	var lane_slot_types: Dictionary = {}
+	var lane_base_tags: Dictionary = {}
+	var lane_y_positions: Dictionary = {}
+	for lane_id in battle.get_lane_ids():
+		var lane_index := int(lane_id)
+		var lane_defaults := _resolve_lane_defaults(lane_index)
+		lane_traits[lane_index] = _resolve_lane_traits(lane_index)
+		lane_slot_types[lane_index] = StringName(lane_defaults.get("slot_type", &"ground"))
+		lane_base_tags[lane_index] = PackedStringArray(lane_defaults.get("base_tags", PackedStringArray()))
+		lane_y_positions[lane_index] = float(battle.get_lane_y(lane_index))
+		event_data.core["lane_%d_slot_type" % lane_index] = StringName(lane_defaults.get("slot_type", &"ground"))
+		event_data.core["lane_%d_base_tags" % lane_index] = PackedStringArray(lane_defaults.get("base_tags", PackedStringArray()))
+		event_data.core["lane_%d_traits" % lane_index] = _resolve_lane_traits(lane_index)
+		event_data.core["lane_%d_base_tag_text" % lane_index] = ",".join(PackedStringArray(lane_defaults.get("base_tags", PackedStringArray())))
+		event_data.core["lane_%d_trait_text" % lane_index] = ",".join(_resolve_lane_traits(lane_index))
+		event_data.core["lane_%d_y" % lane_index] = float(battle.get_lane_y(lane_index))
+		var first_slot = _resolve_slot(lane_index, 0)
+		if first_slot != null:
+			event_data.core["lane_%d_slot_0_x" % lane_index] = float(first_slot.world_position.x)
+			event_data.core["lane_%d_slot_0_y" % lane_index] = float(first_slot.world_position.y)
+		if metrics != null and metrics.has_method("terrain_elevation_at_slot"):
+			for slot_index in range(board_slot_count):
+				event_data.core["lane_%d_terrain_slot_%d" % [lane_index, slot_index]] = float(metrics.call("terrain_elevation_at_slot", lane_index, slot_index))
+	event_data.core["lane_traits"] = lane_traits
+	event_data.core["lane_slot_types"] = lane_slot_types
+	event_data.core["lane_base_tags"] = lane_base_tags
+	event_data.core["lane_y_positions"] = lane_y_positions
+	EventBus.push_event(&"board.slots_rebuilt", event_data)

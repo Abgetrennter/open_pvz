@@ -1,0 +1,140 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=26 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/spawn_zone_config.gd" id="4_zone"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/wave_spawn_entry.gd" id="6_wave_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/wave_def.gd" id="7_wave"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="8_rule"]
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="9_zombie"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="10_height"]
+
+[sub_resource type="Resource" id="LaneConfig_grass"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"grass"
+
+[sub_resource type="Resource" id="LaneConfig_pool"]
+script = ExtResource("3_lane")
+lane_index = 1
+lane_type = &"pool"
+
+[sub_resource type="Resource" id="SpawnZone_ground"]
+script = ExtResource("4_zone")
+zone_id = &"ground_zone"
+lane_id = 0
+x = 700.0
+zone_tags = PackedStringArray("spawn.medium.ground")
+
+[sub_resource type="Resource" id="SpawnZone_water"]
+script = ExtResource("4_zone")
+zone_id = &"water_zone"
+lane_id = 1
+x = 720.0
+zone_tags = PackedStringArray("spawn.medium.water")
+
+[sub_resource type="Resource" id="BattlefieldPreset_spawn_zones"]
+script = ExtResource("2_preset")
+preset_id = &"spawn_zone_ground_water"
+display_name = "Spawn Zone Ground Water"
+lane_count = 2
+board_slot_count = 2
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+lane_configs = [SubResource("LaneConfig_grass"), SubResource("LaneConfig_pool")]
+spawn_zones = [SubResource("SpawnZone_ground"), SubResource("SpawnZone_water")]
+
+[sub_resource type="Resource" id="Zombie_ground"]
+script = ExtResource("9_zombie")
+archetype_id = &"inline_spawn_ground_zombie"
+display_name = "Inline Spawn Ground Zombie"
+hit_height_band = ExtResource("10_height")
+tags = PackedStringArray("archetype", "zombie", "spawn.medium.ground")
+max_health = 30
+hitbox_size = Vector2(40, 54)
+default_params = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Zombie_water"]
+script = ExtResource("9_zombie")
+archetype_id = &"inline_spawn_water_zombie"
+display_name = "Inline Spawn Water Zombie"
+hit_height_band = ExtResource("10_height")
+tags = PackedStringArray("archetype", "zombie", "spawn.medium.water")
+max_health = 30
+hitbox_size = Vector2(40, 54)
+default_params = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_ground"]
+script = ExtResource("5_spawn")
+archetype = SubResource("Zombie_ground")
+lane_id = 0
+x_position = 500.0
+
+[sub_resource type="Resource" id="Spawn_water"]
+script = ExtResource("5_spawn")
+archetype = SubResource("Zombie_water")
+lane_id = 1
+x_position = 500.0
+
+[sub_resource type="Resource" id="WaveSpawn_ground"]
+script = ExtResource("6_wave_spawn")
+spawn_time_offset = 0.0
+spawn_entry = SubResource("Spawn_ground")
+
+[sub_resource type="Resource" id="WaveSpawn_water"]
+script = ExtResource("6_wave_spawn")
+spawn_time_offset = 0.25
+spawn_entry = SubResource("Spawn_water")
+
+[sub_resource type="Resource" id="WaveDef_spawn_zones"]
+script = ExtResource("7_wave")
+wave_id = &"spawn_zone_wave"
+start_time = 0.25
+spawn_entries = [SubResource("WaveSpawn_ground"), SubResource("WaveSpawn_water")]
+
+[sub_resource type="Resource" id="Rule_ground_resolved"]
+script = ExtResource("8_rule")
+rule_id = &"ground_resolved"
+description = "ground zombie resolves to the ground spawn zone"
+event_name = &"spawn.resolved"
+required_core_values = {
+"lane_id": 0,
+"x_position": 700.0,
+"zone_id": &"ground_zone"
+}
+
+[sub_resource type="Resource" id="Rule_water_resolved"]
+script = ExtResource("8_rule")
+rule_id = &"water_resolved"
+description = "water zombie resolves to the water spawn zone"
+event_name = &"spawn.resolved"
+required_core_values = {
+"lane_id": 1,
+"x_position": 720.0,
+"zone_id": &"water_zone"
+}
+
+[sub_resource type="Resource" id="Rule_no_reject"]
+script = ExtResource("8_rule")
+rule_id = &"no_spawn_reject"
+description = "valid spawn zones do not reject wave entries"
+event_name = &"spawn.rejected"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"spawn_zone_ground_water_validation"
+display_name = "Spawn Zone Ground Water Validation"
+description = "Validates that spawn zones are selected by zombie spawn.medium tags rather than lane-specific zombie filters."
+validation_time_limit = 2.0
+battlefield_preset = SubResource("BattlefieldPreset_spawn_zones")
+defeat_conditions = PackedStringArray()
+wave_defs = [SubResource("WaveDef_spawn_zones")]
+validation_rules = [SubResource("Rule_ground_resolved"), SubResource("Rule_water_resolved"), SubResource("Rule_no_reject")]

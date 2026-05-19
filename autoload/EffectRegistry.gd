@@ -138,6 +138,10 @@ func _register_builtin_defs() -> void:
 		"type": "string_name",
 		"default": &"linear",
 	}, {
+		"name": "height_reference",
+		"type": "string_name",
+		"options": PackedStringArray(["terrain_follow", "launch_absolute", "ballistic_to_target"]),
+	}, {
 		"name": "distance",
 		"type": "float",
 		"min": 1.0,

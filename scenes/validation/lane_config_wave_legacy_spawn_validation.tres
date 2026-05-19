@@ -1,0 +1,86 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="4_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/wave_spawn_entry.gd" id="5_wave_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/wave_def.gd" id="6_wave"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="7_rule"]
+
+[sub_resource type="Resource" id="LaneConfig_grass"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"grass"
+
+[sub_resource type="Resource" id="BattlefieldPreset_lane_config"]
+script = ExtResource("2_preset")
+preset_id = &"lane_config_wave_legacy_spawn"
+display_name = "Lane Config Wave Legacy Spawn"
+lane_count = 1
+board_slot_count = 3
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+lane_configs = [SubResource("LaneConfig_grass")]
+
+[sub_resource type="Resource" id="Spawn_plant"]
+script = ExtResource("4_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 60,
+"interval": 0.6,
+"speed_slots_per_sec": 2.291667
+}
+
+[sub_resource type="Resource" id="Spawn_zombie"]
+script = ExtResource("4_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="WaveSpawn_zombie"]
+script = ExtResource("5_wave_spawn")
+spawn_time_offset = 0.0
+spawn_entry = SubResource("Spawn_zombie")
+
+[sub_resource type="Resource" id="WaveDef_legacy_spawn"]
+script = ExtResource("6_wave")
+wave_id = &"lane_config_legacy_spawn_wave"
+start_time = 0.25
+spawn_entries = [SubResource("WaveSpawn_zombie")]
+
+[sub_resource type="Resource" id="Rule_wave_spawned"]
+script = ExtResource("7_rule")
+rule_id = &"lane_config_wave_spawned"
+description = "LaneConfig-only presets keep legacy wave spawning for zombies without spawn.medium tags"
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_lane_dummy",
+"spawn_reason": &"wave_spawn",
+"wave_id": &"lane_config_legacy_spawn_wave"
+}
+
+[sub_resource type="Resource" id="Rule_no_reject"]
+script = ExtResource("7_rule")
+rule_id = &"lane_config_no_spawn_reject"
+description = "LaneConfig-only presets do not reject legacy wave entries without explicit spawn zones"
+event_name = &"spawn.rejected"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"lane_config_wave_legacy_spawn_validation"
+display_name = "Lane Config Wave Legacy Spawn Validation"
+description = "Validates that adding lane_configs alone does not require existing zombie archetypes to declare spawn.medium tags."
+validation_time_limit = 2.0
+battlefield_preset = SubResource("BattlefieldPreset_lane_config")
+defeat_conditions = PackedStringArray()
+spawns = [SubResource("Spawn_plant")]
+wave_defs = [SubResource("WaveDef_legacy_spawn")]
+validation_rules = [SubResource("Rule_wave_spawned"), SubResource("Rule_no_reject")]

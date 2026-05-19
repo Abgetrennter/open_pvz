@@ -251,6 +251,10 @@ func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName())
 	return _spawner.spawn_wave_entry(spawn_entry, wave_id)
 
 
+func spawn_resolved_wave_entry(spawn_entry: Resource, lane_id: int, x_position: float, wave_id: StringName = StringName()):
+	return _spawner.spawn_resolved_wave_entry(spawn_entry, lane_id, x_position, wave_id)
+
+
 func finalize_spawned_entity(entity: Node, lane_id: int, hit_height_band: Resource, trigger_instances: Array, source_node: Node = null, metadata: Dictionary = {}, emit_spawn_event: bool = true) -> void:
 	_spawner.finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata, emit_spawn_event)
 
@@ -746,6 +750,18 @@ func _rebuild_lane_config() -> void:
 		lane_count = int(battlefield_preset.get("lane_count"))
 	if lane_count <= 0:
 		lane_count = 2
+	if battlefield_preset != null:
+		var configured_lane_positions: Variant = battlefield_preset.get("lane_y_positions")
+		if configured_lane_positions is Array and not Array(configured_lane_positions).is_empty():
+			lane_y_map.clear()
+			for i in range(Array(configured_lane_positions).size()):
+				lane_y_map[i] = float(Array(configured_lane_positions)[i])
+			return
+		if float(battlefield_preset.get("lane_spacing")) > 0.0:
+			lane_y_map.clear()
+			for i in range(lane_count):
+				lane_y_map[i] = float(battlefield_preset.get("lane_origin_y")) + float(i) * float(battlefield_preset.get("lane_spacing"))
+			return
 	if lane_count == 2:
 		lane_y_map = {0: 220.0, 1: 320.0}
 		return

@@ -6,6 +6,7 @@ const SLOT_TYPE_DEFAULT_TAGS := {
 	&"water": ["water"],
 	&"roof": ["roof"],
 	&"air_only": ["air_only", "supports_air"],
+	&"dirt": [],
 }
 
 

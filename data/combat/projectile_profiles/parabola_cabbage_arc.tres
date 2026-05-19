@@ -7,6 +7,7 @@ script = ExtResource("1_flight")
 profile_id = &"parabola_cabbage_arc"
 move_mode = &"parabola"
 height_strategy = &"arc"
+height_reference = &"ballistic_to_target"
 peak_height = 120.0
 projection_scale = 1.0
 max_hit_height = 24.0

@@ -32,8 +32,16 @@ func spawn_projectile_from_effect(context, params: Dictionary, on_hit_effect = n
 	elif context.source_node != null and context.source_node is Node2D:
 		spawn_position = context.source_node.global_position + direction.normalized() * 34.0
 	var requested_lane := int(resolved_params.get("lane_id", -1))
+	if requested_lane < 0 and context.source_node != null and context.source_node.get("lane_id") is int:
+		requested_lane = int(context.source_node.get("lane_id"))
 	if requested_lane >= 0 and _battle != null and _battle.has_method("is_valid_lane") and bool(_battle.call("is_valid_lane", requested_lane)):
-		if _battle.has_method("get_lane_y"):
+		if _battle.has_method("get_battlefield_metrics"):
+			var metrics: Variant = _battle.call("get_battlefield_metrics")
+			if metrics != null and metrics.has_method("ground_position_for"):
+				spawn_position = Vector2(metrics.call("ground_position_for", requested_lane, spawn_position.x))
+			elif _battle.has_method("get_lane_y"):
+				spawn_position.y = float(_battle.call("get_lane_y", requested_lane))
+		elif _battle.has_method("get_lane_y"):
 			spawn_position.y = float(_battle.call("get_lane_y", requested_lane))
 
 	var burst_count := int(resolved_params.get("burst_count", 1))
@@ -103,6 +111,8 @@ func _spawn_projectile_burst(
 			emission_dir,
 			speed
 		)
+		if requested_lane >= 0:
+			movement_params["lane_id"] = requested_lane
 		projectile.launch(emission_dir, speed, context.source_node, on_hit_effect, damage, movement_params, {
 			"depth": int(context.runtime.get("depth", context.depth)),
 			"chain_id": context.chain_id,
@@ -214,6 +224,19 @@ func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName())
 	return _spawn_entry_internal(spawn_entry, {
 		"spawn_reason": &"wave_spawn",
 		"wave_id": wave_id,
+	})
+
+
+func spawn_resolved_wave_entry(spawn_entry: Resource, lane_id: int, x_position: float, wave_id: StringName = StringName()):
+	var resolved_entry = spawn_entry.duplicate(true) if spawn_entry != null and spawn_entry.has_method("duplicate") else spawn_entry
+	if resolved_entry == null:
+		return null
+	resolved_entry.lane_id = lane_id
+	resolved_entry.x_position = x_position
+	return _spawn_entry_internal(resolved_entry, {
+		"spawn_reason": &"wave_spawn",
+		"wave_id": wave_id,
+		"spawn_resolved": true,
 	})
 
 
@@ -377,4 +400,10 @@ func _build_board_slot_position(lane_id: int, slot_index: int) -> Vector2:
 
 
 func _build_spawn_entry_position(spawn_entry: Resource) -> Vector2:
-	return Vector2(float(spawn_entry.get("x_position")), float(_battle.get_lane_y(int(spawn_entry.get("lane_id")))))
+	var lane_id := int(spawn_entry.get("lane_id"))
+	var x_position := float(spawn_entry.get("x_position"))
+	if _battle != null and _battle.has_method("get_battlefield_metrics"):
+		var metrics: Variant = _battle.call("get_battlefield_metrics")
+		if metrics != null and metrics.has_method("ground_position_for"):
+			return Vector2(metrics.call("ground_position_for", lane_id, x_position))
+	return Vector2(x_position, float(_battle.get_lane_y(lane_id)))
