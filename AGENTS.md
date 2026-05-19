@@ -289,10 +289,38 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 - `02-runtime-protocol/` -- 编译链与 Mechanic 系统、触发器系统、效果系统、执行机制
 - `03-content-validation/` -- 验证矩阵和覆盖率
 - `04-roadmap-reference/` -- 参考实现、扩展系统规划、外部调研
-- `05-governance/` -- Archetype 编写约定、术语表、方法论
+- `05-governance/` -- 模板编写约定、术语表、方法论
 - `decisions/` -- ADR 决策记录（ADR-001~006）
 
 `plans/` 目录包含活跃阶段任务清单和设计草案；已完成计划归档到 `plans/archive/`。通用扩展插槽路线图与原草案已归档到 `plans/archive/extension-system/`。
+
+### 默认必读（3 篇）
+
+1. [wiki/01-overview/03-15分钟上手路径.md](wiki/01-overview/03-15分钟上手路径.md) -- 快速上手
+2. [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md) -- 唯一状态快照页
+3. [wiki/02-runtime-protocol/11-编译链与Mechanic系统.md](wiki/02-runtime-protocol/11-编译链与Mechanic系统.md) -- 编译链详解
+
+### 按任务类型读取
+
+**runtime（运行时与协议）**
+- [03-触发器系统](wiki/02-runtime-protocol/03-触发器系统.md) / [04-效果系统](wiki/02-runtime-protocol/04-效果系统.md) / [06-执行机制](wiki/02-runtime-protocol/06-执行机制.md) / [07-事件模型](wiki/02-runtime-protocol/07-事件模型.md) / [08-连续行为模型](wiki/02-runtime-protocol/08-连续行为模型.md) / [14-战斗模式组织层](wiki/02-runtime-protocol/14-战斗模式组织层.md) / [15-战斗距离与棋盘度量](wiki/02-runtime-protocol/15-战斗距离与棋盘度量.md) / [16-帧率与仿真时间](wiki/02-runtime-protocol/16-帧率与仿真时间.md) / [17-实体活跃性与空间查询](wiki/02-runtime-protocol/17-实体活跃性与空间查询.md)
+
+**validation（验证）**
+- [12-完整工作流](wiki/03-content-validation/12-完整工作流.md) / [15-验证清单](wiki/03-content-validation/15-验证清单.md) / [32-验证矩阵](wiki/03-content-validation/32-验证矩阵.md)
+
+**extension（扩展系统）**
+- [38-扩展系统总体规划](wiki/04-roadmap-reference/38-扩展系统总体规划.md) / [42-通用扩展插槽机制](wiki/04-roadmap-reference/42-通用扩展插槽机制.md) / [43-扩展包边界与依赖规则](wiki/04-roadmap-reference/43-扩展包边界与依赖规则.md) / [44-素材包系统与本地私有包](wiki/04-roadmap-reference/44-素材包系统与本地私有包.md) / [45-扩展包Manifest规范](wiki/04-roadmap-reference/45-扩展包Manifest规范.md)
+
+**content（内容创作）**
+- [35-模板编写约定](wiki/05-governance/35-模板编写约定.md) / [36-原版实体复刻工作流](wiki/05-governance/36-原版实体复刻工作流.md) / [33-术语表](wiki/05-governance/33-术语表.md)
+
+**visual / audio / ui**
+- [视觉表现层设计讨论](plans/视觉表现层设计讨论.md) / [音频系统设计](plans/音频系统设计.md) / [UI 框架层设计方案](plans/UI 框架层设计方案.md)
+
+**governance（治理）**
+- [27-项目开发方法论](wiki/05-governance/27-项目开发方法论.md) / [29-文档规范与维护约定](wiki/05-governance/29-文档规范与维护约定.md) / [31-重大决策记录模板](wiki/05-governance/31-重大决策记录模板.md) / [37-历史归档与退役文档索引](wiki/05-governance/37-历史归档与退役文档索引.md)
+
+> 重大变更前按需查阅对应的协议 / 验证文档，而非默认全量阅读。
 
 ## AI 使用指引
 
