@@ -1,11 +1,21 @@
 # GridItem 子系统设计草案
 
 > 日期：2026-05-19
-> 状态：概念草案，供设计评审与后续 spike 使用
+> 状态：概念草案（已按 2026-05-19 代码审查修订），供设计评审与后续 spike 使用
 > 关联主题：棋盘多样性、BoardSlot 角色占位、Mechanic-first 架构、战斗模式系统
-> 前置文档：棋盘多样性与环境系统设计草案（Phase 4 预留）
+> 前置文档：棋盘多样性与地形系统设计草案（Phase 4 预留）
 
 ---
+
+## 审查修订记录
+
+本次修订基于当前代码现状收紧了落地边界：
+
+- 新增 `GridItemRoot` 不再只是可选项。当前 `FieldObjectRoot.take_damage()` 是空实现，无法承接墓碑/罐子等可被攻击物件。
+- 阻挡型 GridItem 第一版建议同时占用 `grid_item` role 和现有 `blocker` role，复用当前放置验证与 Grave Buster 的 `placement_blocker` 目标路径。
+- 不再建议用粗粒度 `blocks_planting` tag 直接拒绝所有植物；这会把 Grave Buster 这类交互型植物一并拒绝。
+- GridItem 的生成入口改为 `BattleGridItemState + spawn_grid_item/remove_grid_item`，不要求现有 `spawn_entity` 直接支持 field_object。
+- 现有 `archetype_tombstone_blocker` 是 `plant + blocker` 的过渡资源，迁移为 GridItem 时必须保留专门兼容验证。
 
 ## 文档定位
 
@@ -20,7 +30,7 @@
 - GridItem 与 BoardSlot 角色占位系统的集成方式
 - 各 GridItem 类型如何通过 Archetype + Mechanic[] 组合表达行为
 - 新增子系统 `BattleGridItemState` 的职责
-- 与棋盘多样性草案的交叉依赖与接口约定
+- 与棋盘/地形、动态环境、生成系统、模式系统的正交边界
 - 分阶段实施路线
 
 本文不讨论：
@@ -58,7 +68,7 @@
 3. **影响放置规则**：GridItem 能阻止或允许植物放置（如墓碑阻止、罐子被打碎后恢复）
 4. **参与事件链**：GridItem 能发射和接收 EventBus 事件
 5. **可被扩展包定义**：新增 GridItem 类型只需 .tres 资源
-6. **与棋盘多样性草案正交**：两个系统可并行开发，不互相阻塞
+6. **与棋盘/环境/生成系统正交**：GridItem 是格子占位实体层，不承担地形、天气、生成入口或模式目标职责
 
 ---
 
@@ -66,7 +76,7 @@
 
 ### 方案 A：GridItem 作为 Archetype 驱动的实体（推荐）
 
-GridItem 继承 FieldObjectRoot（或新增 GridItemRoot），通过 `CombatArchetype + CombatMechanic[] → RuntimeSpec → EntityFactory` 实例化。行为由 Trigger + Effect 事件链或 Controller 连续行为驱动。
+GridItem 使用新增 `GridItemRoot`（继承 `FieldObjectRoot`），通过 `CombatArchetype + CombatMechanic[] → RuntimeSpec → EntityFactory` 实例化。行为由 Trigger + Effect 事件链或 Controller 连续行为驱动。
 
 **优势**：
 - 复用现有编译链、组件系统、事件链——不引入新代码路径
@@ -76,9 +86,10 @@ GridItem 继承 FieldObjectRoot（或新增 GridItemRoot），通过 `CombatArch
 - 扩展包可通过现有插槽机制定义新 GridItem
 
 **代价**：
-- EntityFactory 需要小改（识别 GridItem archetype 或返回通用 FieldObjectRoot）
-- validate_request 需要加 1 条 tag 检查
-- 新增 BattleGridItemState 子系统（约 100-150 行）
+- 需要新增 `GridItemRoot`，实现 HealthComponent 伤害转发、死亡释放格子和基础调试状态
+- EntityFactory 需要小改：`entity_kind = &"field_object"` 且 `placement_role = &"grid_item"` 时实例化 `GridItemRoot`
+- BattleGridItemState 需要负责双 role 绑定、移除和事件发射
+- ProtocolValidator 需要新增 `GridItemConfig` 与 `BattleScenario.grid_item_configs` 校验
 
 ### 方案 B：GridItem 作为纯 Resource 附着在 BoardSlot 上
 
@@ -93,9 +104,9 @@ GridItem 是一个数据对象（继承 Resource），存储在 BoardSlot 上作
 - 每种行为变化需要改代码——不可扩展
 - 与项目 Mechanic-first 哲学冲突
 
-### 推荐：方案 A
+### 推荐：方案 A'
 
-方案 A 的额外成本约 50 行代码，但获得完整的系统集成和可扩展性。方案 B 虽然更轻量，但每增加一个能力都需要改代码，长期成本更高。
+推荐采用“Archetype 驱动实体 + GridItemRoot + BattleGridItemState”的修订版方案 A'。方案 B 虽然更轻量，但每增加一个能力都需要改代码，长期成本更高。直接复用现有 `FieldObjectRoot` 也不够，因为它的 `take_damage()` 当前为空实现，墓碑和罐子无法被通用 damage 链销毁。
 
 ---
 
@@ -107,17 +118,19 @@ GridItem 是一个数据对象（继承 Resource），存储在 BoardSlot 上作
 BaseEntity (Node2D)
   └─ FieldObjectRoot              ← 现有，29 行
        ├─ LawnMower                ← 现有
-       └─ [GridItem 使用 FieldObjectRoot 或新增 GridItemRoot]
+       └─ GridItemRoot             ← 新增，格子物件通用根
 ```
 
-GridItem 的实体基类有两种选择：
+GridItem 第一版直接新增 `GridItemRoot`：
 
-| 选择 | 做法 | 适用场景 |
-|------|------|---------|
-| 直接用 FieldObjectRoot | GridItem archetype 的 entity_kind 保持 `&"field_object"` | GridItem 不需要额外字段 |
-| 新增 GridItemRoot | 继承 FieldObjectRoot，增加 `grid_x`/`grid_y` 字段 | GridItem 需要快速定位格子坐标 |
+| 职责 | 说明 |
+|------|------|
+| 保持 field_object 身份 | GridItem archetype 的 `entity_kind` 保持 `&"field_object"`，不新增 entity_kind |
+| 伤害转发 | `take_damage()` 转发给 HealthComponent，尊重 `is_damageable()` |
+| 死亡处理 | 连接 HealthComponent.died，发出标准 `entity.died` 后 queue_free，并通知 BattleGridItemState 释放格子 |
+| 格子状态 | `grid_lane_id` / `grid_slot_index` 仍写入 `entity_state`，不需要独立字段成为事实源 |
 
-推荐先直接用 FieldObjectRoot——`grid_x`/`grid_y` 可通过 `entity_state` 的 `set_state_value()` 存储，不需要类字段。如果后续发现性能瓶颈或便捷性问题，再提取 GridItemRoot。
+`FieldObjectRoot` 继续作为割草机等世界坐标物件的轻量基类，不承担格子生命周期和可破坏物件语义。
 
 ### 身份与 Liveness
 
@@ -133,7 +146,7 @@ GridItem 作为 field_object 类型，默认 liveness 为：
 | damageable | **false** | 默认不可被攻击 |
 | collidable | **false** | 默认不参与碰撞 |
 
-特定 GridItem 可通过 Mechanic 或 liveness override 修改。例如墓碑需要被攻击（damageable=true），由 State family 的 liveness_overrides 提供。
+特定 GridItem 可通过 Mechanic 或 liveness override 修改。例如墓碑需要被攻击（damageable=true），由 State family 的 liveness_overrides 或初始 liveness override 提供。注意：liveness 只决定能否受伤，真正扣血仍依赖 `GridItemRoot.take_damage()` 转发到 HealthComponent。
 
 ---
 
@@ -141,7 +154,7 @@ GridItem 作为 field_object 类型，默认 liveness 为：
 
 ### 角色占位
 
-GridItem 在 BoardSlot 上以 `"grid_item"` 角色注册。与现有角色共存：
+GridItem 在 BoardSlot 上以 `"grid_item"` 角色注册，作为身份 role。阻挡种植的 GridItem 第一版还应同时占用现有 `"blocker"` role，作为放置验证兼容适配。
 
 ```
 BoardSlot (lane=2, slot=3):
@@ -149,34 +162,40 @@ BoardSlot (lane=2, slot=3):
   role_occupants = {
     "primary":   Peashooter 实例,       ← 植物
     "grid_item": Tombstone 实例,        ← 格子物件
+    "blocker":   Tombstone 实例,        ← 阻挡型 GridItem 的兼容 role
   }
   role_granted_tags = {
     "primary":   ["plant"],
-    "grid_item": ["blocks_planting"],   ← 注入到 effective_tags
+    "grid_item": ["grid_item", "grave"],
+    "blocker":   ["placement_blocker"],
   }
-  effective_tags = ["ground", "supports_primary", "plant", "blocks_planting"]
+  effective_tags = ["ground", "supports_primary", "plant", "grid_item", "grave", "placement_blocker"]
 ```
 
 ### 放置验证
 
 GridItem 不走卡牌放置路径（`validate_request`）。它由 `BattleGridItemState` 直接管理格子绑定。
 
-GridItem 对植物放置的影响通过 **tag 注入**实现：
+GridItem 对植物放置的影响第一版通过 **现有 role 占位**实现：
 
 1. GridItem 被 `BattleGridItemState` 放置到格子上
-2. 调用 `slot.add_role_occupant("grid_item", entity, ["blocks_planting"])`
-3. `blocks_planting` 被注入到 `slot.get_effective_tags()`
-4. `validate_request` 新增检查：如果 `effective_tags` 包含 `blocks_planting` 且请求的 entity_kind 是 `"plant"`，拒绝放置
+2. 始终调用 `slot.add_role_occupant("grid_item", entity, granted_tags)`
+3. 如果该 GridItem 阻挡种植，再调用 `slot.add_role_occupant("blocker", entity, ["placement_blocker"])`
+4. 现有普通植物的 `required_empty_roles = ["blocker"]` 自然拒绝放置
+5. Grave Buster 这类交互型植物仍可通过 `required_present_archetypes` 和 `target_mode = placement_blocker` 找到目标
 
-**validate_request 改动**：约 3 行。不修改现有检查顺序，只在现有检查链中插入一条 tag 拒绝规则。
+**validate_request 改动**：第一版不新增粗粒度 `blocks_planting` 拒绝规则。若未来需要“阻止 primary 但允许 cover / support / 特定交互植物”的细粒度阻挡，应新增明确的 `required_absent_tags` / `required_grid_item_tags` / bypass 语义，而不是用一个 tag 拒绝所有 plant。
 
 ### 格子释放
 
 GridItem 被移除（被破坏、被打碎、过期）时：
-1. `slot.remove_role_occupant("grid_item")` ——自动清除 `blocks_planting` tag
-2. 格子恢复可种植状态
+1. `slot.remove_role_occupant("grid_item")`
+2. 如果同一实体占用了 `"blocker"` role，也同步 `slot.remove_role_occupant("blocker")`
+3. 格子恢复可种植状态
 
 BoardSlot 已有的 `_prune_invalid_occupants()` 会自动清理已销毁（`queue_free`）的实体，GridItem 无需额外清理逻辑。
+
+审查修订：不能只依赖 `_prune_invalid_occupants()` 做语义清理。`BattleGridItemState.remove_grid_item()` 应主动移除 role 并发出 `grid_item.removed`，否则验证和模式层难以观察“格子释放”。
 
 ---
 
@@ -188,12 +207,13 @@ BoardSlot 已有的 `_prune_invalid_occupants()` 会自动清理已销毁（`que
 |------|---|
 | max_health | 300 |
 | liveness | damageable=true（通过 liveness_override） |
-| granted_placement_tags | ["blocks_planting"] |
-| Mechanic | Trigger.periodically → Payload.spawn_entity(zombie) |
+| slot roles | `grid_item` + `blocker` |
+| granted_placement_tags | `["grid_item", "grave"]`；blocker role 额外授予 `["placement_blocker"]` |
+| Mechanic | Trigger.periodically → 请求生成系统从墓碑入口生成 zombie |
 
-行为：每 30 秒在附近格子生成一只僵尸。被植物攻击（伤害 300）后销毁，释放格子。
+行为：每 30 秒在墓碑所在格或附近入口请求生成一只僵尸。被植物攻击（伤害 300）后销毁，释放格子。
 
-需要的 effect：`spawn_entity`（通用——在指定位置生成实体，非投射物）
+需要的 effect / 事件：墓碑本体通过 `spawn_grid_item` 或场景 `GridItemConfig` 创建；墓碑周期产僵尸不直接绕过生成系统，建议发布 `spawn.requested` 或调用 `BattleSpawnResolver`，由 `SpawnZoneConfig` / 临时墓碑入口与 zombie 的 `required_spawn_tags` 匹配后再实例化。
 
 ### 弹坑 (Crater)
 
@@ -201,7 +221,8 @@ BoardSlot 已有的 `_prune_invalid_occupants()` 会自动清理已销毁（`que
 |------|---|
 | max_health | -1（不可被攻击） |
 | liveness | 全部默认（不可瞄准/攻击/碰撞） |
-| granted_placement_tags | ["blocks_planting"] |
+| slot roles | `grid_item` + `blocker` |
+| granted_placement_tags | `["grid_item", "crater"]`；blocker role 额外授予 `["placement_blocker"]` |
 | Mechanic | 无（纯占位） |
 
 行为：爆炸发生后占据格子，阻止种植。可设定定时移除（通过 State mechanic 的超时），或永久存在。
@@ -214,14 +235,16 @@ BoardSlot 已有的 `_prune_invalid_occupants()` 会自动清理已销毁（`que
 |------|---|
 | max_health | 100（可被攻击） |
 | liveness | damageable=true |
-| granted_placement_tags | ["blocks_planting"]（未打开时） |
+| slot roles | 未打开时 `grid_item` + `blocker` |
+| granted_placement_tags | `["grid_item", "vase", "concealed"]`；blocker role 额外授予 `["placement_blocker"]` |
 | Mechanic | Trigger.when_damaged → 条件(health<=0) → Effect.reveal_grid_item |
 
 罐子被打碎后：
 - 移除 "grid_item" 角色（释放格子）
-- 根据罐子内容（`default_params.content_archetype_id`）在原位放置植物或生成僵尸
+- 根据罐子内容（`default_params.content_archetype_id`）在原位放置植物、生成僵尸或产生阳光
+- 若内容是僵尸，应通过生成系统处理原位 spawn request；若内容是植物，应走放置/实例化路径并尊重释放后的 BoardSlot 状态
 
-需要的 effect：`reveal_grid_item`（将内容实体化 + 移除罐子自身）
+需要的 effect：`reveal_grid_item`（移除罐子自身 + 根据内容类型发起对应请求）。该 effect 不应直接内置 Vasebreaker 模式逻辑。
 
 ### 大脑 (Brain)
 
@@ -230,11 +253,11 @@ BoardSlot 已有的 `_prune_invalid_occupants()` 会自动清理已销毁（`que
 | max_health | 10（可被僵尸"攻击"/拾取） |
 | liveness | targetable=true, damageable=true |
 | granted_placement_tags | 无（不阻止种植——I,Zombie 模式中植物已预置） |
-| Mechanic | Trigger.on_death → Effect.score_brain |
+| Mechanic | Trigger.on_death → 发布 `grid_item.collected` / `objective.collected` |
 
-行为：僵尸接触大脑时大脑死亡，触发计分。I,Zombie 模式的胜负条件基于大脑计数。
+行为：僵尸接触大脑时大脑死亡，发出收集/目标事件。I, Zombie 模式的胜负条件由模式模块消费事件并计分。
 
-需要的 effect：`score_brain`（通知模式层计分）
+需要的 effect / 事件：优先使用通用 `emit_event` / `objective.collected` 路径。若新增 effect，应命名为通用目标事件 effect，而不是 `score_brain` 这类模式专用 effect。
 
 ### 梯子 (Ladder)
 
@@ -298,9 +321,11 @@ BattleFieldObjectState          BattleGridItemState
 GridItem 的生成不是通过卡牌放置，而是通过以下途径：
 
 1. **场景预配置**：BattleScenario 中的 `grid_item_configs`（类似 `field_object_configs`）
-2. **波次规则**：DayNightRuleModule 在夜间关卡中按规则生成墓碑
-3. **效果触发**：爆炸效果产生弹坑（`spawn_entity` effect 生成 crater archetype）
+2. **环境/模式规则**：动态环境或模式模块在满足条件时调用 `BattleGridItemState.spawn_grid_item_at()`，例如夜间墓碑规则
+3. **效果触发**：爆炸效果产生弹坑（`spawn_grid_item` effect 生成 crater archetype）
 4. **模式初始化**：Vasebreaker 模式在开局时随机填充罐子
+
+实现注意：`BattleGridItemState` 可以像 `BattleFieldObjectState` 一样直接使用 `EntityFactory.instantiate_spawn_entry()` 创建 `field_object`，再调用 `battle.finalize_spawned_entity()`。不要要求现有 `BattleSpawner._spawn_entry_internal()` 立刻支持 field_object，因为它当前只允许 plant / zombie。
 
 ### GridItemConfig 抽象定义
 
@@ -309,6 +334,7 @@ GridItemConfig:
   archetype_id: StringName          ← 哪种 GridItem
   lane_id: int                      ← 目标行
   slot_index: int                   ← 目标列
+  occupies_blocker_role: bool       ← 是否同步占用 blocker role
   spawn_overrides: Dictionary       ← 运行时参数覆盖
 ```
 
@@ -318,7 +344,7 @@ GridItemConfig:
 |------|------|
 | `setup(battle, scenario)` | 初始化，读取 grid_item_configs |
 | `spawn_grid_items(scenario)` | 从配置生成 GridItem 并绑定格子 |
-| `spawn_grid_item_at(archetype_id, lane_id, slot_index, overrides)` | 在指定格子生成 GridItem |
+| `spawn_grid_item_at(archetype_id, lane_id, slot_index, overrides, occupies_blocker_role)` | 在指定格子生成 GridItem |
 | `remove_grid_item(lane_id, slot_index)` | 移除指定格子的 GridItem |
 | `get_grid_item_at(lane_id, slot_index) → Node` | 查询格子上的 GridItem |
 | `get_all_grid_items() → Array` | 所有活跃 GridItem |
@@ -329,52 +355,70 @@ GridItemConfig:
 
 | Effect ID | 用途 | 参数 |
 |-----------|------|------|
-| `spawn_entity` | 在指定位置生成实体（非投射物） | entity_kind, archetype_id, lane_id, slot_index, spawn_mode(nearby_slot/exact) |
+| `spawn_grid_item` | 在指定格子生成 GridItem | archetype_id, lane_id, slot_index, occupies_blocker_role, spawn_overrides |
 | `reveal_grid_item` | 打开罐子：移除 grid_item 角色，在原位生成内容 | content_archetype_id |
-| `score_brain` | 通知模式层大脑被拾取 | （无额外参数） |
+| `emit_objective_event` / `emit_event` | 通知模式层某个 GridItem 目标被收集或触发 | event_name, payload |
 | `remove_grid_item` | 移除目标格子的 GridItem | lane_id, slot_index |
 | `teleport_entity` | 将实体传送到目标位置 | target_position |
 
 这些 effect 需要在 EffectRegistry 中注册，遵循 `RegistryBase + EffectDef` 体系。不新增 Registry。
 
+现有 `spawn_entity` 保持“生成 plant/zombie 等普通运行时实体”的职责。是否扩展到 field_object 另行评估，不作为 GridItem 第一版前置条件。
+
+审查修订：GridItem 触发普通实体生成时不应绕过生成系统。墓碑产僵尸、罐子释放僵尸等行为应形成 spawn request，由 `BattleSpawnResolver` / `SpawnZoneConfig` 或明确的原位生成策略处理。GridItem effect 只表达“请求生成”，不直接承担生成入口匹配规则。
+
 ---
 
-## 与棋盘多样性草案的交叉分析
+## 与其他系统的正交边界
 
 ### 系统关系
 
-| 维度 | 棋盘多样性草案 | GridItem 本草案 |
-|------|---------------|----------------|
-| 空间粒度 | 行级（LaneConfig） | 格级（BoardSlot role） |
-| 核心关注 | 地形差异（grass/pool/roof/dirt） | 格子物件（墓碑/罐子/弹坑） |
-| 数据来源 | BattlefieldPreset.lane_configs[] | CombatArchetype + GridItemConfig |
-| 运行时可变性 | 地形层固定；环境层可变 | GridItem 可被创建、破坏、变形 |
+| 维度 | 其他系统 | GridItem 本草案 |
+|------|----------|----------------|
+| 空间结构 | 棋盘/地形系统：`LaneConfig`、`BoardSlot`、`BattlefieldMetrics` | 只绑定已有 BoardSlot，不修改 lane/terrain |
+| 环境状态 | 动态环境系统：昼夜、天气、迷雾、可见度 | 可被环境/模式触发生成，但不持有环境规则 |
+| 生成入口 | 生成系统：`SpawnZoneConfig`、`BattleSpawnResolver` | 可发起 spawn request，但不匹配入口能力 |
+| 模式目标 | BattleMode / RuleModule：胜负、计分、模式专属流程 | 发事件，不直接计分或判断胜负 |
+| 数据来源 | BattlefieldPreset / EnvironmentProfile / SpawnZoneConfig | CombatArchetype + GridItemConfig |
+| 运行时可变性 | 地形层固定；环境/生成/模式可变 | GridItem 可被创建、破坏、变形 |
 
-两个系统**正交互不阻塞**。
+GridItem 基础设施是**格子占位实体层**：它操作 `BoardSlot role_occupants`、`role_granted_tags` 和自身实体生命周期，不承担地形、天气、生成入口或模式目标职责。
 
 ### 接口约定
 
 | 接口 | 提供方 | 消费方 | 用途 |
 |------|--------|--------|------|
-| `is_night: bool` | DayNightRuleModule (棋盘草案) | 墓碑生成逻辑 | 决定是否产墓碑 |
-| `get_lane_type(lane_id): StringName` | LaneConfig (棋盘草案) | GridItem 放置过滤 | 限制 GridItem 出现在特定行类型 |
-| `is_position_in_fog(pos): bool` | FogRuleModule (棋盘草案) | 罐子视觉 | 迷雾中隐藏罐子内容 |
-| `get_grid_item_at(lane, slot): Node` | BattleGridItemState (本草案) | FogRuleModule | 查询格子上的 GridItem |
+| `get_slot(lane, slot)` / `validate_slot_exists()` | BattleBoardState | BattleGridItemState | 绑定或释放格子 |
+| `lane_traits` / `slot.effective_tags` | 棋盘/地形系统 | GridItem 放置约束校验 | 限制 GridItem 出现在某类地形上，禁止依赖 `lane_type` |
+| `get_environment_state()` | 动态环境系统 | 模式/环境规则模块 | 决定是否请求生成墓碑等 GridItem |
+| `BattleSpawnResolver.resolve_spawn()` | 生成系统 | GridItem effect / RuleModule | 墓碑产僵尸、罐子释放僵尸时解析生成位置 |
+| `grid_item.spawned` / `grid_item.removed` / `grid_item.revealed` / `objective.collected` | BattleGridItemState / GridItem effect | BattleMode / Environment / Visual | 观察格子物件变化 |
+| `get_grid_item_at(lane, slot): Node` | BattleGridItemState | 规则/视觉/验证 | 查询格子上的 GridItem |
+
+关键约束：
+
+- 不再使用 `get_lane_type(lane_id)` 作为通用接口。`lane_type` 已降级为模板 ID，运行时应查询 `lane_traits`、slot tags 或 metrics。
+- `is_night` / `is_position_in_fog` 属于动态环境系统，不属于棋盘/地形系统。GridItem 基础设施不直接依赖它们。
+- GridItem 不直接修改 `LaneConfig`、`BattlefieldPreset`、`terrain_profile` 或环境状态。
+- GridItem 触发普通实体生成时，不直接决定生成入口，统一交给生成系统。
 
 ### 依赖关系
 
 ```
-棋盘草案 Phase 1 (LaneConfig)     GridItem Phase 1 (基础设施)
-  不依赖                            不依赖
-        ↓                                ↓
-棋盘草案 Phase 2 (DayNight)       GridItem Phase 2 (墓碑)
-  不依赖 GridItem                    依赖 DayNight（墓碑生成规则）
-        ↓                                ↓
-棋盘草案 Phase 3 (Roof/Fog)       GridItem Phase 3 (高级类型)
-  不依赖 GridItem                    传送门可能依赖 Fog 接口
+棋盘/地形 Phase 1 (BoardSlot/LaneConfig)    GridItem Phase 1 (基础设施)
+  提供 BoardSlot / slot tags                  依赖 BoardSlot 绑定 API
+        ↓                                           ↓
+生成系统 Phase 2 (SpawnResolver)              GridItem Phase 2 (墓碑/罐子生成内容)
+  提供 spawn request 解析                       产僵尸时依赖 SpawnResolver
+        ↓                                           ↓
+动态环境 Phase 2/3 (昼夜/迷雾)                GridItem 具体玩法规则
+  可决定何时请求生成墓碑                       不进入 GridItem 基础设施
+        ↓                                           ↓
+模式系统 (Vasebreaker / I, Zombie)            GridItem 高级类型
+  消费 GridItem 事件计分/胜负                  发事件，不直接判断胜负
 ```
 
-**核心结论**：两个系统的基础层可以并行开发。墓碑的占格和被破坏逻辑不依赖棋盘草案，但"夜间生成墓碑"的规则依赖 DayNightRuleModule。
+**核心结论**：GridItem 基础层正交，可以在 BoardSlot API 稳定后独立实现。墓碑“占格和被破坏”属于 GridItem；“夜晚是否生成墓碑”属于环境/模式规则；“墓碑产出的僵尸从哪里出现”属于生成系统。
 
 ---
 
@@ -387,8 +431,8 @@ GridItemConfig:
 本草案完成后，棋盘草案 Phase 4 的预留可更新为：
 
 - GridItem 不是纯 Resource，而是 Archetype 驱动的实体
-- GridItem 通过 BoardSlot 的 `"grid_item"` role 占位，不是附加属性
-- 阻止种植通过 `granted_placement_tags: ["blocks_planting"]` 注入 effective_tags
+- GridItem 通过 BoardSlot 的 `"grid_item"` role 标记身份，不是附加属性
+- 阻挡型 GridItem 第一版同时占用 `"blocker"` role，复用现有放置验证
 - 行为由 Mechanic 组合表达，不需要 item_type 枚举
 
 ---
@@ -400,19 +444,25 @@ GridItemConfig:
 **最小可验证单元**。弹坑是最简单的 GridItem（纯占位，无行为）。
 
 改动范围：
+- GridItemRoot 新建（继承 FieldObjectRoot，转发 HealthComponent 伤害，死亡时通知释放格子）
 - BattleGridItemState 新建（生成、格子绑定、销毁）
 - GridItemConfig 资源定义
-- validate_request 加 1 条 `blocks_planting` 检查
+- BattleScenario 增加 `grid_item_configs`
+- ProtocolValidator 增加 GridItemConfig 校验
+- 阻挡型 GridItem 使用 `grid_item + blocker` 双 role，不新增 `blocks_planting` 硬拒绝规则
 - archetype_crater .tres（纯占位，无 Mechanic）
 - smoke 验证场景
 
 ### Phase 2：墓碑
 
 改动范围：
-- `spawn_entity` effect 注册
-- archetype_tombstone .tres（有血量、periodically trigger + spawn_entity）
+- `spawn_grid_item` / `remove_grid_item` effect 注册（如果 Phase 1 未注册）
+- archetype_tombstone_grid_item .tres（有血量、periodically trigger + spawn request）
 - liveness override 使墓碑 damageable
-- DayNightRuleModule 联动（可选，如棋盘草案未完成则用场景配置）
+- Grave Buster 兼容：保留 `placement_blocker` 目标路径，或新增 `placement_grid_item` 后同步迁移资源
+- 现有 `archetype_tombstone_blocker` 是 plant/blocker 过渡资源，迁移时不得删除旧验证，需新增等价 GridItem 验证
+- 与 `BattleSpawnResolver` 联动：墓碑产僵尸时由生成系统解析入口
+- 动态环境/模式联动（可选）：夜间生成墓碑由环境或模式模块发起，不写入 GridItem 基础设施
 - 验证场景
 
 ### Phase 3：罐子
@@ -420,14 +470,14 @@ GridItemConfig:
 改动范围：
 - `reveal_grid_item` effect 注册
 - archetype_scary_pot .tres（有血量、when_damaged trigger + reveal）
-- 罐子内容实体化逻辑
+- 罐子内容实体化请求：植物走放置/实例化路径，僵尸走生成系统，阳光走经济/掉落路径
 - 罐子未开/已开的状态切换
 - 验证场景
 
 ### Phase 4：高级类型
 
 改动范围：
-- 大脑（score_brain effect + I,Zombie 模式联动）
+- 大脑（通用 objective/grid_item 事件 + I, Zombie 模式消费）
 - 传送门（teleport_entity effect + 成对绑定）
 - 梯子（mark 方案，Controller 联动）
 - 冰路（slot mark 方案，Controller 联动）
@@ -440,22 +490,28 @@ GridItemConfig:
 - 不新增 Registry
 - 不新增 entity_kind（GridItem 使用 `&"field_object"` 或通过 EntityFactory 识别）
 - 不修改 LaneConfig 或 BattlefieldPreset（与棋盘草案解耦）
+- 不依赖 `lane_type` 做运行时判断；如需限制地形，查询 `lane_traits`、slot tags 或 metrics
+- 不承载动态环境规则；昼夜、天气、迷雾由动态环境系统或模式模块处理
+- 不承载生成入口匹配；墓碑/罐子产僵尸必须走 spawn request + `BattleSpawnResolver`
+- 不承载模式计分/胜负；GridItem 只发事件，模式模块消费事件
 - 不实现 GridItem 的视觉表现（由 VisualProfile 系统驱动）
 - 不实现 GridItem 的卡牌化（GridItem 不走手牌放置路径）
+- 不在第一版扩展 `spawn_entity` 以支持 field_object；GridItem 生成走专用 `spawn_grid_item`
+- 不用单一 `blocks_planting` tag 拒绝所有 plant 放置
 
 ---
 
 ## 开放问题
 
-1. **GridItemRoot 是否需要独立类？** 建议先用 FieldObjectRoot，`grid_x`/`grid_y` 通过 `set_state_value` 存储。如果发现频繁查询格子坐标导致性能问题，再提取 GridItemRoot。
+1. **GridItemRoot 是否需要独立类？** 本次审查后建议第一版就新增。原因是 `FieldObjectRoot.take_damage()` 当前为空，不能支撑可破坏 GridItem；格子坐标仍通过 `set_state_value` 存储。
 
-2. **`blocks_planting` 的拒绝粒度？** 当前设计是"只要有 blocks_planting 就拒绝所有植物"。是否需要更细粒度（如"阻止一级放置但不阻止 cover"）？建议先做最简版本。
+2. **阻挡粒度如何表达？** 第一版用 `blocker` role 表达“阻挡普通放置”。若未来需要“阻止 primary 但允许 cover/support/特定交互植物”，再补 `required_absent_tags`、`required_grid_item_tags` 或 placement bypass 语义。
 
 3. **罐子变形的原子性？** 罐子被打碎后需要在同一帧完成"移除 grid_item → 释放格子 → 放置内容实体"。是否需要事务性保证？建议通过 Effect 链的顺序执行保证。
 
 4. **传送门的成对绑定？** 传送门如何知道自己的 partner 在哪？建议通过 `default_params.partner_lane` + `default_params.partner_slot` 存储，`BattleGridItemState` 在运行时解析。
 
-5. **EntityFactory 如何识别 GridItem？** 当前 `_instantiate_field_object()` 按 archetype_id switch。建议：如果 archetype 的 entity_kind 是 `"field_object"` 且 placement_role 是 `"grid_item"`，直接返回 FieldObjectRoot（不需要 switch）。
+5. **EntityFactory 如何识别 GridItem？** 当前 `_instantiate_field_object()` 按 archetype_id switch。建议：如果 archetype 的 `entity_kind == &"field_object"` 且 `placement_role == &"grid_item"`，返回 `GridItemRoot`；割草机继续走专用 `LawnMower`，其他 field_object 回退 `FieldObjectRoot`。
 
 ---
 
@@ -463,11 +519,11 @@ GridItemConfig:
 
 | 文件 | 用途 |
 |------|------|
-| `scripts/entities/field_object_root.gd` | GridItem 的基类（29 行） |
+| `scripts/entities/field_object_root.gd` | GridItemRoot 的父类；当前 `take_damage()` 为空，不能直接作为可破坏 GridItem |
 | `scripts/entities/lawn_mower.gd` | 现有 FieldObject 实现参考（158 行） |
 | `scripts/battle/board_slot.gd` | 角色占位 API（130 行） |
 | `scripts/battle/battle_board_state.gd` | validate_request 检查链（734 行，关键行 223-281） |
 | `scripts/battle/battle_field_object_state.gd` | 现有场物件管理参考（105 行） |
 | `scripts/battle/entity_factory.gd` | 实体实例化（652 行，关键行 152-183） |
 | `scripts/core/defs/combat_archetype.gd` | Archetype 定义（27 行） |
-| `plans/draft/棋盘多样性与环境系统设计草案.md` | 棋盘草案（Phase 4 预留 GridItem） |
+| `plans/draft/棋盘多样性与地形系统设计草案.md` | 棋盘草案（Phase 4 预留 GridItem） |
