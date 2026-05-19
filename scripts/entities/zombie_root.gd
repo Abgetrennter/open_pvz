@@ -6,8 +6,20 @@ class_name ZombieRoot
 @onready var health_component: Variant = get_node_or_null("HealthComponent")
 @onready var hitbox_component: Variant = get_node_or_null("HitboxComponent")
 
-const BODY_COLOR := Color("8b7f6b")
-const OUTLINE_COLOR := Color("2d241b")
+# ── Fallback visual constants (per archetype tag category) ──────────
+# Priority order: boss > explode > tank > air > fast > ranged > basic
+
+const CATEGORY_COLORS := {
+	&"boss":      {"body": Color("4a3a2a"), "outline": Color("1a1008")},  # dark
+	&"explode":   {"body": Color("8a3a2a"), "outline": Color("3a1008")},  # red-brown
+	&"tank":      {"body": Color("5a5a5a"), "outline": Color("1a1a1a")},  # gray
+	&"air":       {"body": Color("5a8aaa"), "outline": Color("1a3a5a")},  # sky blue
+	&"fast":      {"body": Color("9a8a5a"), "outline": Color("3a2a10")},  # yellow-brown
+	&"ranged":    {"body": Color("8a6a4a"), "outline": Color("3a2010")},  # orange-brown
+	&"basic":     {"body": Color("8b7f6b"), "outline": Color("2d241b")},  # brown (default)
+	&"special":   {"body": Color("7a6a8a"), "outline": Color("2a1a3a")},  # purple-gray (fallback)
+}
+
 const HEALTH_GOOD := Color("72d66f")
 const HEALTH_BAD := Color("c44a3d")
 
@@ -122,19 +134,123 @@ func take_damage(
 
 
 func _draw() -> void:
-	var body_color := BODY_COLOR if not _is_dying else BODY_COLOR.darkened(0.25)
-	draw_rect(Rect2(Vector2(-18, -34), Vector2(36, 54)), body_color)
-	draw_rect(Rect2(Vector2(-18, -34), Vector2(36, 54)), OUTLINE_COLOR, false, 2.0)
-	draw_rect(Rect2(Vector2(-14, -48), Vector2(28, 12)), body_color.darkened(0.1))
-	draw_circle(Vector2(-5, -42), 2.0, OUTLINE_COLOR)
-	draw_circle(Vector2(5, -42), 2.0, OUTLINE_COLOR)
-	_draw_health_bar(120 if health_component == null else health_component.current_health, 120 if health_component == null else health_component.max_health)
+	if get_node_or_null("VisualActorComponent") != null:
+		return
+
+	var category: StringName = _resolve_fallback_category()
+	var colors: Dictionary = CATEGORY_COLORS.get(category, CATEGORY_COLORS[&"special"])
+	var body_color: Color = colors["body"] if not _is_dying else colors["body"].darkened(0.25)
+	var outline_color: Color = colors["outline"]
+	var head_color: Color = body_color.darkened(0.1)
+
+	# ── Category-specific body dimensions ──
+	var bw: float = 18.0  # half-width
+	var bh_top: float = -34.0
+	var bh_bot: float = 20.0
+	match category:
+		&"boss":   bw = 24.0; bh_top = -44.0; bh_bot = 22.0
+		&"tank":   bw = 22.0; bh_top = -36.0
+		&"air":    bw = 14.0; bh_top = -28.0; bh_bot = 12.0
+		&"fast":   bw = 14.0; bh_top = -30.0; bh_bot = 14.0
+		&"explode": bw = 16.0
+
+	# Body
+	draw_rect(Rect2(Vector2(-bw, bh_top), Vector2(bw * 2, bh_bot - bh_top)), body_color)
+	draw_rect(Rect2(Vector2(-bw, bh_top), Vector2(bw * 2, bh_bot - bh_top)), outline_color, false, 2.0)
+
+	# ── Head / top marker per category ──
+	match category:
+		&"boss":
+			# Large head with crown-like spikes
+			draw_rect(Rect2(Vector2(-bw + 2, bh_top - 14), Vector2(bw * 2 - 4, 16)), head_color.darkened(0.15), true)
+			var pts: PackedVector2Array = [Vector2(-8, bh_top - 14), Vector2(0, bh_top - 24), Vector2(8, bh_top - 14)]
+			draw_colored_polygon(pts, head_color.lightened(0.1))
+			draw_polyline(pts, outline_color, 1.5, true)
+			draw_circle(Vector2(-4, bh_top - 7), 2.0, outline_color)
+			draw_circle(Vector2(4, bh_top - 7), 2.0, outline_color)
+
+		&"tank":
+			# Heavy bucket-like head
+			draw_rect(Rect2(Vector2(-bw + 2, bh_top - 12), Vector2(bw * 2 - 4, 14)), head_color, true)
+			draw_line(Vector2(-bw + 2, bh_top), Vector2(bw - 2, bh_top), outline_color, 3.0)
+			draw_circle(Vector2(-4, bh_top - 6), 2.0, outline_color)
+			draw_circle(Vector2(4, bh_top - 6), 2.0, outline_color)
+
+		&"air":
+			# Floating, wings
+			draw_circle(Vector2(0, bh_top - 4), 7.0, head_color)
+			draw_circle(Vector2(0, bh_top - 4), 7.0, outline_color, false, 1.5)
+			# wings
+			draw_line(Vector2(-bw, bh_top + 4), Vector2(-bw - 10, bh_top - 4), outline_color, 2.0)
+			draw_line(Vector2(bw, bh_top + 4), Vector2(bw + 10, bh_top - 4), outline_color, 2.0)
+			draw_circle(Vector2(-2, bh_top - 5), 1.5, outline_color)
+			draw_circle(Vector2(2, bh_top - 5), 1.5, outline_color)
+
+		&"fast":
+			# Lean, tilted forward
+			draw_rect(Rect2(Vector2(-bw + 1, bh_top - 10), Vector2(bw * 2 - 2, 12)), head_color, true)
+			# speed lines
+			draw_line(Vector2(-bw - 4, bh_top + 6), Vector2(-bw - 10, bh_top + 8), outline_color, 1.5)
+			draw_line(Vector2(-bw - 4, bh_top + 10), Vector2(-bw - 8, bh_top + 14), outline_color, 1.5)
+			draw_circle(Vector2(-3, bh_top - 4), 1.5, outline_color)
+			draw_circle(Vector2(3, bh_top - 4), 1.5, outline_color)
+
+		&"ranged":
+			# Aiming pose, projectile arc indicator
+			draw_rect(Rect2(Vector2(-bw + 2, bh_top - 10), Vector2(bw * 2 - 4, 12)), head_color, true)
+			draw_arc(Vector2(bw + 6, bh_top), 8.0, deg_to_rad(20.0), deg_to_rad(160.0), 8, outline_color, 1.5)
+			draw_circle(Vector2(-3, bh_top - 4), 1.5, outline_color)
+			draw_circle(Vector2(3, bh_top - 4), 1.5, outline_color)
+
+		&"explode":
+			# Red bomb marker
+			draw_rect(Rect2(Vector2(-bw + 2, bh_top - 8), Vector2(bw * 2 - 4, 10)), head_color.darkened(0.2), true)
+			var cx: float = 0.0; var cy: float = bh_top - 8
+			for i: int in range(6):
+				var a := deg_to_rad(float(i * 60 - 90))
+				var r_outer := 8.0 if i % 2 == 0 else 4.0
+				draw_line(Vector2(cx + cos(a) * 3, cy + sin(a) * 3), Vector2(cx + cos(a) * r_outer, cy + sin(a) * r_outer), outline_color, 1.5)
+			draw_circle(Vector2(-2, bh_top - 2), 1.5, outline_color)
+			draw_circle(Vector2(2, bh_top - 2), 1.5, outline_color)
+
+		_:
+			# Default head (standard zombie)
+			draw_rect(Rect2(Vector2(-bw + 4, bh_top - 12), Vector2(bw * 2 - 8, 14)), head_color, true)
+			draw_circle(Vector2(-4, bh_top - 6), 2.0, outline_color)
+			draw_circle(Vector2(4, bh_top - 6), 2.0, outline_color)
+
+	_draw_health_bar(120 if health_component == null else health_component.current_health, 120 if health_component == null else health_component.max_health, bw)
+
+# ── Fallback visual helpers ──────────────────────────────────────────
+
+func _resolve_fallback_category() -> StringName:
+	if _has_any_tag(["boss", "heavy"]):
+		return &"boss"
+	if _has_any_tag(["explode", "reactive"]):
+		return &"explode"
+	if _has_any_tag(["armored", "tank", "metal"]):
+		return &"tank"
+	if _has_any_tag(["air", "scout"]):
+		return &"air"
+	if _has_any_tag(["fast", "runner"]):
+		return &"fast"
+	if _has_any_tag(["ranged", "special_attack"]):
+		return &"ranged"
+	return &"basic"
+
+func _has_any_tag(candidates: Array) -> bool:
+	for t: String in candidates:
+		if StringName(t) in tags:
+			return true
+	return false
 
 
-func _draw_health_bar(current: int, maximum: int) -> void:
+func _draw_health_bar(current: int, maximum: int, half_width: float = 18.0) -> void:
 	var ratio: float = 1.0 if maximum <= 0 else clamp(float(current) / float(maximum), 0.0, 1.0)
-	draw_rect(Rect2(Vector2(-22, -58), Vector2(44, 6)), Color(0.1, 0.1, 0.1, 0.85))
-	draw_rect(Rect2(Vector2(-22, -58), Vector2(44 * ratio, 6)), HEALTH_BAD.lerp(HEALTH_GOOD, ratio))
+	var bar_w: float = half_width * 2.0 + 4.0
+	var bar_top: float = -58.0
+	draw_rect(Rect2(Vector2(-half_width - 2, bar_top), Vector2(bar_w, 6)), Color(0.1, 0.1, 0.1, 0.85))
+	draw_rect(Rect2(Vector2(-half_width - 2, bar_top), Vector2(bar_w * ratio, 6)), HEALTH_BAD.lerp(HEALTH_GOOD, ratio))
 
 
 func _on_health_changed(_amount: int) -> void:
