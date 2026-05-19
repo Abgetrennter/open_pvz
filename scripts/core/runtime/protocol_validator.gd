@@ -14,6 +14,7 @@ const BattlefieldPresetRef = preload("res://scripts/battle/battlefield_preset.gd
 const StatusApplicationRequestRef = preload("res://scripts/battle/status_application_request.gd")
 const EffectExecutionRequestRef = preload("res://scripts/battle/effect_execution_request.gd")
 const FieldObjectConfigRef = preload("res://scripts/battle/field_object_config.gd")
+const GridItemConfigRef = preload("res://scripts/battle/grid_item_config.gd")
 const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
 const WaveDefRef = preload("res://scripts/battle/wave_def.gd")
 const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
@@ -25,6 +26,7 @@ const BattleInputProfileRef = preload("res://scripts/battle/mode/battle_input_pr
 const BattleObjectiveDefRef = preload("res://scripts/battle/mode/battle_objective_def.gd")
 const BattleRuleModuleRef = preload("res://scripts/battle/mode/battle_rule_module.gd")
 const BattleModeInputRequestRef = preload("res://scripts/battle/mode/battle_mode_input_request.gd")
+const BattleEnvironmentProfileRef = preload("res://scripts/battle/environment/battle_environment_profile.gd")
 const BattleModeModuleRegistryRef = preload("res://scripts/battle/mode/battle_mode_module_registry.gd")
 const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 	&"attack": {
@@ -385,6 +387,8 @@ static func _can_validate_native_archetype(archetype: Resource) -> bool:
 		return false
 	if not archetype.mechanics.is_empty():
 		return true
+	if StringName(archetype.entity_kind) == &"field_object" and StringName(archetype.placement_role) == &"grid_item":
+		return archetype.hitbox_size != Vector2.ZERO
 	if archetype.max_health <= 0:
 		return false
 	if archetype.hitbox_size == Vector2.ZERO:
@@ -534,10 +538,53 @@ static func validate_battle_rule_module(rule_module: Resource) -> Array[String]:
 		errors.append("BattleRuleModule.params must be a Dictionary.")
 	if not (rule_module.get("tags") is PackedStringArray):
 		errors.append("BattleRuleModule.tags must be a PackedStringArray.")
-	var registry := BattleModeModuleRegistryRef.new()
+	var registry: Variant = BattleModeModuleRegistryRef.new()
 	var module_id := StringName(rule_module.get("module_id"))
 	if module_id != StringName() and not registry.has_handler(module_id):
 		errors.append("BattleRuleModule.module_id %s must be registered in BattleModeModuleRegistry." % String(module_id))
+	if module_id == &"environment.core":
+		var module_params: Dictionary = Dictionary(rule_module.get("params")) if rule_module.get("params") is Dictionary else {}
+		for error in validate_battle_environment_profile(module_params.get("environment_profile")):
+			errors.append("BattleRuleModule environment.core: %s" % error)
+	return errors
+
+
+static func validate_battle_environment_profile(environment_profile: Resource) -> Array[String]:
+	var errors: Array[String] = []
+	if environment_profile == null:
+		errors.append("environment_profile is required.")
+		return errors
+	if environment_profile.get_script() != BattleEnvironmentProfileRef:
+		errors.append("environment_profile must use battle_environment_profile.gd.")
+		return errors
+	if StringName(environment_profile.get("profile_id")) == StringName():
+		errors.append("profile_id must not be empty.")
+	if not (environment_profile.get("initial_conditions") is PackedStringArray):
+		errors.append("initial_conditions must be a PackedStringArray.")
+	if not (environment_profile.get("natural_sun_enabled") is bool):
+		errors.append("natural_sun_enabled must be bool.")
+	if float(environment_profile.get("natural_sun_interval_seconds")) <= 0.0:
+		errors.append("natural_sun_interval_seconds must be > 0.")
+	if int(environment_profile.get("natural_sun_value")) <= 0:
+		errors.append("natural_sun_value must be > 0.")
+	if float(environment_profile.get("sun_interval_scale")) <= 0.0:
+		errors.append("sun_interval_scale must be > 0.")
+	if float(environment_profile.get("sun_value_scale")) < 0.0:
+		errors.append("sun_value_scale must be >= 0.")
+	if float(environment_profile.get("light_level")) < 0.0:
+		errors.append("light_level must be >= 0.")
+	if not (environment_profile.get("fog_enabled") is bool):
+		errors.append("fog_enabled must be bool.")
+	if float(environment_profile.get("fog_max_alpha")) < 0.0 or float(environment_profile.get("fog_max_alpha")) > 1.0:
+		errors.append("fog_max_alpha must be between 0 and 1.")
+	if float(environment_profile.get("fog_alpha_step")) < 0.0 or float(environment_profile.get("fog_alpha_step")) > 1.0:
+		errors.append("fog_alpha_step must be between 0 and 1.")
+	if float(environment_profile.get("fog_clear_default_radius_slots")) < 0.0:
+		errors.append("fog_clear_default_radius_slots must be >= 0.")
+	if float(environment_profile.get("fog_clear_default_duration")) < 0.0:
+		errors.append("fog_clear_default_duration must be >= 0.")
+	if not (environment_profile.get("timeline") is Array):
+		errors.append("timeline must be an Array.")
 	return errors
 
 
@@ -700,6 +747,11 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 	if configured_field_object_configs is Array:
 		for field_object_config in configured_field_object_configs:
 			errors.append_array(_validate_field_object_config(field_object_config, scenario.scenario_id))
+
+	var configured_grid_item_configs: Variant = scenario.get("grid_item_configs")
+	if configured_grid_item_configs is Array:
+		for grid_item_config in configured_grid_item_configs:
+			errors.append_array(_validate_grid_item_config(grid_item_config, scenario.scenario_id, scenario, resolved_board_slot_count))
 
 	for validation_rule in scenario.validation_rules:
 		errors.append_array(_validate_battle_validation_rule(validation_rule, scenario.scenario_id))
@@ -1200,6 +1252,46 @@ static func _validate_field_object_config(field_object_config: Resource, scenari
 					errors.append("BattleScenario %s field object config archetype %s must have entity_kind field_object." % [String(scenario_id), String(archetype_id)])
 	if int(field_object_config.get("lane_id")) < 0:
 		errors.append("BattleScenario %s field object config lane_id must be >= 0." % String(scenario_id))
+	return errors
+
+
+static func _validate_grid_item_config(grid_item_config: Resource, scenario_id: StringName, scenario: Resource, board_slot_count: int) -> Array[String]:
+	var errors: Array[String] = []
+	if grid_item_config == null:
+		errors.append("BattleScenario %s contains a null grid item config." % String(scenario_id))
+		return errors
+	if grid_item_config.get_script() != GridItemConfigRef:
+		errors.append("BattleScenario %s grid_item_configs must use grid_item_config.gd." % String(scenario_id))
+		return errors
+	var archetype_id := StringName(grid_item_config.get("archetype_id"))
+	if archetype_id == StringName():
+		errors.append("BattleScenario %s grid item config must define archetype_id." % String(scenario_id))
+	elif not SceneRegistry.has_archetype(archetype_id):
+		errors.append("BattleScenario %s grid item config references unknown archetype_id %s." % [String(scenario_id), String(archetype_id)])
+	else:
+		var archetype = SceneRegistry.get_archetype(archetype_id)
+		if archetype != null:
+			for error in validate_combat_archetype(archetype):
+				errors.append("BattleScenario %s grid item config archetype: %s" % [String(scenario_id), error])
+			if StringName(archetype.get("entity_kind")) != &"field_object":
+				errors.append("BattleScenario %s grid item config archetype %s must have entity_kind field_object." % [String(scenario_id), String(archetype_id)])
+			if StringName(archetype.get("placement_role")) != &"grid_item":
+				errors.append("BattleScenario %s grid item config archetype %s must have placement_role grid_item." % [String(scenario_id), String(archetype_id)])
+	if int(grid_item_config.get("lane_id")) < 0:
+		errors.append("BattleScenario %s grid item config lane_id must be >= 0." % String(scenario_id))
+	var slot_index := int(grid_item_config.get("slot_index"))
+	if slot_index < 0:
+		errors.append("BattleScenario %s grid item config slot_index must be >= 0." % String(scenario_id))
+	elif slot_index >= board_slot_count:
+		errors.append("BattleScenario %s grid item config slot_index must be < board_slot_count." % String(scenario_id))
+	var lane_count := int(scenario.get("lane_count")) if scenario != null else 0
+	if lane_count > 0 and int(grid_item_config.get("lane_id")) >= lane_count:
+		errors.append("BattleScenario %s grid item config lane_id must be < lane_count." % String(scenario_id))
+	var spawn_overrides: Variant = grid_item_config.get("spawn_overrides")
+	if not (spawn_overrides is Dictionary):
+		errors.append("BattleScenario %s grid item config spawn_overrides must be a Dictionary." % String(scenario_id))
+	else:
+		errors.append_array(_validate_entity_runtime_params("field_object", Dictionary(spawn_overrides), "BattleScenario %s grid item spawn_overrides" % String(scenario_id)))
 	return errors
 
 

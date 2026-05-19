@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"original.blover.clear_fog"
+display_name = "Original Blover Clear Fog"
+family = &"Payload"
+type_id = &"core.clear_fog"
+priority = 25
+tags = PackedStringArray("original", "blover", "fog", "environment")
+params = {
+"clear_mode": &"full_board",
+"duration": 0.5,
+"radius_slots": 64.0
+}

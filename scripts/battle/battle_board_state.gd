@@ -191,6 +191,10 @@ func get_slot_world_position(lane_id: int, slot_index: int) -> Vector2:
 	return slot.world_position
 
 
+func get_slot(lane_id: int, slot_index: int):
+	return _resolve_slot(lane_id, slot_index)
+
+
 func get_debug_slot_lines(limit: int = 4) -> PackedStringArray:
 	var lines := PackedStringArray()
 	var slot_keys: Array = _slots.keys()

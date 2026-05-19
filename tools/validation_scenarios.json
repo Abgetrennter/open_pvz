@@ -330,6 +330,12 @@
     "layers": ["core"]
   },
   {
+    "id": "grid_item_crater_validation",
+    "scenario": "res://scenes/validation/grid_item_crater_validation.tres",
+    "description": "Validates the first GridItem slice through a crater that blocks placement, is removed by effect, and then allows placement.",
+    "layers": ["smoke", "core"]
+  },
+  {
     "id": "wave_flow_validation",
     "scenario": "res://scenes/validation/wave_flow_validation.tres",
     "description": "Validates the first-stage battle flow, including phase changes, wave start/completion, wave spawns, and battle victory.",
@@ -864,5 +870,53 @@
     "scenario": "res://scenes/validation/ui_theme_switch_validation.tres",
     "description": "Validates that UIThemeProfile.default() loads correctly and theme fields are accessible.",
     "layers": ["smoke"]
+  },
+  {
+    "id": "environment_sunny_natural_sun_validation",
+    "scenario": "res://scenes/validation/environment_sunny_natural_sun_validation.tres",
+    "description": "Validates environment.core initialization and sunny natural sun generation.",
+    "layers": ["smoke", "core"]
+  },
+  {
+    "id": "environment_cloudy_natural_sun_validation",
+    "scenario": "res://scenes/validation/environment_cloudy_natural_sun_validation.tres",
+    "description": "Validates cloudy weather slows natural sun cadence and reduces natural sun value.",
+    "layers": ["core"]
+  },
+  {
+    "id": "environment_cloudy_harsh_sun_validation",
+    "scenario": "res://scenes/validation/environment_cloudy_harsh_sun_validation.tres",
+    "description": "Validates harsh sun speeds natural sun cadence and increases natural sun value.",
+    "layers": ["core"]
+  },
+  {
+    "id": "environment_night_no_natural_sun_validation",
+    "scenario": "res://scenes/validation/environment_night_no_natural_sun_validation.tres",
+    "description": "Validates night disables natural sun while preserving scripted sun_drop_entries.",
+    "layers": ["core"]
+  },
+  {
+    "id": "environment_day_night_timeline_validation",
+    "scenario": "res://scenes/validation/environment_day_night_timeline_validation.tres",
+    "description": "Validates day/night timeline transitions and environment state reapplication.",
+    "layers": ["core"]
+  },
+  {
+    "id": "environment_day_nocturnal_sleep_validation",
+    "scenario": "res://scenes/validation/environment_day_nocturnal_sleep_validation.tres",
+    "description": "Validates day environment liveness override for nocturnal entities.",
+    "layers": ["core"]
+  },
+  {
+    "id": "environment_night_nocturnal_awake_validation",
+    "scenario": "res://scenes/validation/environment_night_nocturnal_awake_validation.tres",
+    "description": "Validates night environment keeps nocturnal entities active.",
+    "layers": ["core"]
+  },
+  {
+    "id": "environment_state_query_validation",
+    "scenario": "res://scenes/validation/environment_state_query_validation.tres",
+    "description": "Validates environment state registration and economy application through the mode module path.",
+    "layers": ["core"]
   }
 ]

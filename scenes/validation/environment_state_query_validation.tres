@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_cloudy.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Rule_environment_changed"]
+script = ExtResource("5_rule")
+rule_id = &"environment_changed"
+description = "cloudy environment should expose state values through environment.changed"
+event_name = &"environment.changed"
+required_core_values = {
+"module_id": &"environment.core",
+"profile_id": &"env_day_cloudy",
+"sun_interval_scale": 2.0,
+"sun_value_scale": 0.8,
+"light_level": 0.75
+}
+
+[sub_resource type="Resource" id="Rule_environment_applied"]
+script = ExtResource("5_rule")
+rule_id = &"environment_applied"
+description = "environment state should be registered and applied to economy"
+event_name = &"battle.mode_rule_applied"
+required_core_values = {
+"module_id": &"environment.core",
+"source_event": &"on_battle_start",
+"behavior": &"environment_applied_to_economy",
+"profile_id": &"env_day_cloudy",
+"natural_sun_enabled": true
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_state_query_validation"
+display_name = "Environment State Query Validation"
+description = "Validates that environment.core exposes profile state and applies it through battle runtime."
+validation_time_limit = 1.0
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+validation_rules = [SubResource("Rule_environment_changed"), SubResource("Rule_environment_applied")]

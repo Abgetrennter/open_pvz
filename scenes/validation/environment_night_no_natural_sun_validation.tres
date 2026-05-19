@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_night_clear.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Script" path="res://scripts/battle/sun_drop_entry.gd" id="6_sun_drop"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="SunDropEntry_scheduled"]
+script = ExtResource("6_sun_drop")
+at_time = 0.4
+lane_id = 0
+x_position = 260.0
+value = 25
+source_type = &"sky_drop"
+auto_collect_delay = 0.05
+
+[sub_resource type="Resource" id="Rule_environment_changed"]
+script = ExtResource("5_rule")
+rule_id = &"environment_changed"
+description = "night profile should initialize with natural sun disabled"
+event_name = &"environment.changed"
+required_core_values = {
+"module_id": &"environment.core",
+"profile_id": &"env_night_clear",
+"natural_sun_enabled": false
+}
+
+[sub_resource type="Resource" id="Rule_no_natural_sun"]
+script = ExtResource("5_rule")
+rule_id = &"no_natural_sun"
+description = "night profile should not spawn natural sun"
+event_name = &"sun.spawned"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_type": &"natural_sun"
+}
+
+[sub_resource type="Resource" id="Rule_scheduled_sky_drop"]
+script = ExtResource("5_rule")
+rule_id = &"scheduled_sky_drop"
+description = "scheduled sun_drop_entries should still spawn at night"
+event_name = &"sun.spawned"
+required_core_values = {
+"source_type": &"sky_drop",
+"value": 25
+}
+
+[sub_resource type="Resource" id="Rule_scheduled_collect"]
+script = ExtResource("5_rule")
+rule_id = &"scheduled_collect"
+description = "scheduled drops should collect normally at night"
+event_name = &"resource.changed"
+required_core_values = {
+"reason": &"collect",
+"resource_id": &"sun",
+"delta": 25
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_night_no_natural_sun_validation"
+display_name = "Environment Night No Natural Sun Validation"
+description = "Validates night disables natural sun without changing scripted sun_drop_entries."
+validation_time_limit = 1.2
+sun_auto_collect_delay = 0.05
+sun_drop_entries = [SubResource("SunDropEntry_scheduled")]
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+validation_rules = [SubResource("Rule_environment_changed"), SubResource("Rule_no_natural_sun"), SubResource("Rule_scheduled_sky_drop"), SubResource("Rule_scheduled_collect")]

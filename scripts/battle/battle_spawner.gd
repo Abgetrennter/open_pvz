@@ -227,6 +227,9 @@ func spawn_scenario() -> void:
 	var field_object_state: Node = _battle.get_field_object_state()
 	if field_object_state != null:
 		field_object_state.spawn_field_objects(active_scenario)
+	var grid_item_state: Node = _battle.get_grid_item_state()
+	if grid_item_state != null:
+		grid_item_state.spawn_grid_items(active_scenario)
 
 
 func finalize_spawned_entity(

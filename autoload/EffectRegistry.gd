@@ -418,6 +418,64 @@ func _register_builtin_defs() -> void:
 	spawn_entity.allow_extra_children = false
 	register_def(spawn_entity)
 
+	var spawn_grid_item = EffectDefRef.new()
+	spawn_grid_item.id = &"spawn_grid_item"
+	spawn_grid_item.tags = PackedStringArray(["grid_item", "spawn"])
+	var spawn_grid_item_param_defs: Array[Dictionary] = [{
+		"name": "archetype_id",
+		"type": "string_name",
+	}, {
+		"name": "lane_id",
+		"type": "int",
+		"min": 0,
+		"max": 32,
+	}, {
+		"name": "slot_index",
+		"type": "int",
+		"min": 0,
+		"max": 64,
+	}, {
+		"name": "occupies_blocker_role",
+		"type": "bool",
+		"default": false,
+	}, {
+		"name": "spawn_overrides",
+		"type": "dictionary",
+		"default": {},
+	}]
+	spawn_grid_item.param_defs = spawn_grid_item_param_defs
+	spawn_grid_item.allow_extra_params = false
+	spawn_grid_item.allow_extra_children = false
+	register_def(spawn_grid_item)
+
+	var remove_grid_item = EffectDefRef.new()
+	remove_grid_item.id = &"remove_grid_item"
+	remove_grid_item.tags = PackedStringArray(["grid_item", "lifecycle"])
+	var remove_grid_item_param_defs: Array[Dictionary] = [{
+		"name": "lane_id",
+		"type": "int",
+		"min": 0,
+		"max": 32,
+	}, {
+		"name": "slot_index",
+		"type": "int",
+		"min": 0,
+		"max": 64,
+	}, {
+		"name": "target_mode",
+		"type": "string_name",
+		"default": &"lane_slot",
+		"options": PackedStringArray(["lane_slot", "context_target", "owner", "source", "event_target"]),
+	}, {
+		"name": "reason",
+		"type": "string_name",
+		"default": &"effect_remove_grid_item",
+	}]
+	remove_grid_item.param_defs = remove_grid_item_param_defs
+	remove_grid_item.allow_extra_params = false
+	remove_grid_item.allow_extra_children = false
+	register_def(remove_grid_item)
+
 	var replace_entity = EffectDefRef.new()
 	replace_entity.id = &"replace_entity"
 	replace_entity.tags = PackedStringArray(["transform", "replacement", "lifecycle"])
@@ -559,6 +617,37 @@ func _register_builtin_defs() -> void:
 	reveal.allow_extra_params = false
 	reveal.allow_extra_children = false
 	register_def(reveal)
+
+	var clear_fog = EffectDefRef.new()
+	clear_fog.id = &"clear_fog"
+	clear_fog.tags = PackedStringArray(["environment", "fog", "control"])
+	var clear_fog_param_defs: Array[Dictionary] = [{
+		"name": "target_mode",
+		"type": "string_name",
+		"default": &"owner",
+		"options": PackedStringArray(["owner", "source", "context_target", "event_source", "event_target"]),
+	}, {
+		"name": "radius_slots",
+		"type": "float",
+		"min": 0.0,
+		"max": 64.0,
+		"default": 2.0,
+	}, {
+		"name": "duration",
+		"type": "float",
+		"min": 0.0,
+		"max": 60.0,
+		"default": 4.0,
+	}, {
+		"name": "clear_mode",
+		"type": "string_name",
+		"default": &"radius",
+		"options": PackedStringArray(["radius", "full_board"]),
+	}]
+	clear_fog.param_defs = clear_fog_param_defs
+	clear_fog.allow_extra_params = false
+	clear_fog.allow_extra_children = false
+	register_def(clear_fog)
 	_register_builtin_strategies()
 
 
@@ -713,6 +802,59 @@ func _register_builtin_strategies() -> void:
 		if spawned_entity == null:
 			result.success = false
 			result.notes.append("Entity spawn failed.")
+		return result
+	)
+
+	register_strategy(&"spawn_grid_item", func(_context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var grid_item_state := _resolve_grid_item_state()
+		if grid_item_state == null:
+			result.success = false
+			result.notes.append("No grid item state available.")
+			return result
+
+		var spawned_entity: Node = grid_item_state.call(
+			"spawn_grid_item_at",
+			StringName(params.get("archetype_id", StringName())),
+			int(params.get("lane_id", -1)),
+			int(params.get("slot_index", -1)),
+			Dictionary(params.get("spawn_overrides", {})).duplicate(true),
+			bool(params.get("occupies_blocker_role", false))
+		)
+		if spawned_entity == null:
+			result.success = false
+			result.notes.append("Grid item spawn failed.")
+		return result
+	)
+
+	register_strategy(&"remove_grid_item", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var grid_item_state := _resolve_grid_item_state()
+		if grid_item_state == null:
+			result.success = false
+			result.notes.append("No grid item state available.")
+			return result
+
+		var removed := false
+		var target_mode := StringName(params.get("target_mode", &"lane_slot"))
+		if target_mode == &"lane_slot":
+			removed = bool(grid_item_state.call(
+				"remove_grid_item",
+				int(params.get("lane_id", -1)),
+				int(params.get("slot_index", -1)),
+				StringName(params.get("reason", &"effect_remove_grid_item"))
+			))
+		else:
+			var target := _resolve_target(context, params)
+			if target != null and is_instance_valid(target):
+				removed = bool(grid_item_state.call(
+					"remove_grid_item_for_entity",
+					target,
+					StringName(params.get("reason", &"effect_remove_grid_item"))
+				))
+		if not removed:
+			result.success = false
+			result.notes.append("Grid item remove target missing or invalid.")
 		return result
 	)
 
@@ -944,6 +1086,32 @@ func _register_builtin_strategies() -> void:
 		return result
 	)
 
+	register_strategy(&"clear_fog", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		if GameState.current_battle == null:
+			result.success = false
+			result.notes.append("No active battle manager available.")
+			return result
+
+		var source := _resolve_target(context, params)
+		if source == null:
+			source = _resolve_effect_source_node(context)
+		var lane_id := -1
+		var slot_index := -1
+		if source != null and is_instance_valid(source):
+			lane_id = int(source.get("lane_id"))
+			slot_index = _resolve_entity_slot_index(source)
+		var clear_event: Variant = EventDataRef.create(source, null, null, PackedStringArray(["environment", "fog", "clear"]))
+		clear_event.core["source_entity_id"] = int(source.call("get_entity_id")) if source != null and source.has_method("get_entity_id") else -1
+		clear_event.core["lane_id"] = lane_id
+		clear_event.core["slot_index"] = slot_index
+		clear_event.core["radius_slots"] = float(params.get("radius_slots", 2.0))
+		clear_event.core["duration"] = float(params.get("duration", 4.0))
+		clear_event.core["clear_mode"] = StringName(params.get("clear_mode", &"radius"))
+		EventBus.push_event(&"environment.fog_clear_requested", clear_event)
+		return result
+	)
+
 
 func _resolve_target(context, params: Dictionary) -> Node:
 	var target_mode := StringName(params.get("target_mode", &"context_target"))
@@ -1172,6 +1340,15 @@ func _resolve_replacement_granted_tags(archetype_id: StringName) -> PackedString
 	if archetype != null and archetype.get("granted_placement_tags") != null:
 		return PackedStringArray(archetype.get("granted_placement_tags"))
 	return PackedStringArray()
+
+
+func _resolve_grid_item_state() -> Node:
+	if GameState.current_battle == null or not is_instance_valid(GameState.current_battle):
+		return null
+	if not GameState.current_battle.has_method("get_grid_item_state"):
+		return null
+	var state: Variant = GameState.current_battle.call("get_grid_item_state")
+	return state if state is Node else null
 
 
 func _resolve_slots_distance(params: Dictionary, slots_key: String, default_world: float) -> float:

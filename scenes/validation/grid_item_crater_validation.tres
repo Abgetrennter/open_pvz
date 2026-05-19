@@ -1,0 +1,138 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/grid_item_config.gd" id="2_grid_config"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="3_card_def"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="4_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/effect_execution_request.gd" id="5_effect_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_rule"]
+
+[sub_resource type="Resource" id="GridItemConfig_crater"]
+script = ExtResource("2_grid_config")
+archetype_id = &"archetype_crater"
+lane_id = 0
+slot_index = 1
+occupies_blocker_role = true
+
+[sub_resource type="Resource" id="CardDef_blocked_shooter"]
+script = ExtResource("3_card_def")
+card_id = &"blocked_shooter_card"
+display_name = "Blocked Shooter Card"
+archetype_id = &"archetype_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="CardDef_allowed_shooter"]
+script = ExtResource("3_card_def")
+card_id = &"allowed_shooter_card"
+display_name = "Allowed Shooter Card"
+archetype_id = &"archetype_basic_shooter"
+sun_cost = 25
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_blocked"]
+script = ExtResource("4_card_request")
+at_time = 0.25
+card_id = &"blocked_shooter_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="EffectRequest_remove_crater"]
+script = ExtResource("5_effect_request")
+at_time = 0.5
+effect_id = &"remove_grid_item"
+params = {
+"lane_id": 0,
+"reason": &"validation_remove_crater",
+"slot_index": 1,
+"target_mode": &"lane_slot"
+}
+
+[sub_resource type="Resource" id="BattleCardPlayRequest_allowed"]
+script = ExtResource("4_card_request")
+at_time = 0.75
+card_id = &"allowed_shooter_card"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Rule_grid_item_spawned"]
+script = ExtResource("6_rule")
+rule_id = &"grid_item_spawned"
+description = "crater grid item is spawned into the configured lane and slot"
+event_name = &"grid_item.spawned"
+required_core_values = {
+"archetype_id": &"archetype_crater",
+"lane_id": 0,
+"occupies_blocker_role": true,
+"slot_index": 1
+}
+
+[sub_resource type="Resource" id="Rule_placement_rejected"]
+script = ExtResource("6_rule")
+rule_id = &"placement_rejected"
+description = "placement into a crater blocker slot is rejected"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"blocked_shooter_card",
+"lane_id": 0,
+"reason": &"required_empty_role_occupied",
+"slot_index": 1
+}
+
+[sub_resource type="Resource" id="Rule_grid_item_removed"]
+script = ExtResource("6_rule")
+rule_id = &"grid_item_removed"
+description = "remove_grid_item clears the crater from the board slot"
+event_name = &"grid_item.removed"
+required_core_values = {
+"archetype_id": &"archetype_crater",
+"lane_id": 0,
+"reason": &"validation_remove_crater",
+"slot_index": 1
+}
+
+[sub_resource type="Resource" id="Rule_placement_accepted"]
+script = ExtResource("6_rule")
+rule_id = &"placement_accepted_after_remove"
+description = "placement succeeds after the crater grid item is removed"
+event_name = &"placement.accepted"
+required_core_values = {
+"card_id": &"allowed_shooter_card",
+"lane_id": 0,
+"slot_index": 1
+}
+
+[sub_resource type="Resource" id="Rule_no_damage"]
+script = ExtResource("6_rule")
+rule_id = &"no_damage"
+description = "crater lifecycle is not represented as combat damage"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_no_death"]
+script = ExtResource("6_rule")
+rule_id = &"no_death"
+description = "crater lifecycle is not represented as entity death"
+event_name = &"entity.died"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"grid_item_crater_validation"
+display_name = "Grid Item Crater Validation"
+description = "Validates the first GridItem slice: a crater occupies the blocker role, rejects placement, can be removed by effect, and then allows placement."
+goals = PackedStringArray("Spawn a crater GridItem into a board slot.", "Reject placement while the crater occupies blocker.", "Remove the crater through remove_grid_item.", "Accept placement after the GridItem is removed.", "Confirm the GridItem lifecycle does not use damage or death events.")
+validation_time_limit = 1.5
+initial_sun = 100
+board_slot_count = 3
+lane_count = 1
+card_defs = [SubResource("CardDef_blocked_shooter"), SubResource("CardDef_allowed_shooter")]
+card_play_requests = [SubResource("BattleCardPlayRequest_blocked"), SubResource("BattleCardPlayRequest_allowed")]
+effect_execution_requests = [SubResource("EffectRequest_remove_crater")]
+grid_item_configs = [SubResource("GridItemConfig_crater")]
+validation_rules = [SubResource("Rule_grid_item_spawned"), SubResource("Rule_placement_rejected"), SubResource("Rule_grid_item_removed"), SubResource("Rule_placement_accepted"), SubResource("Rule_no_damage"), SubResource("Rule_no_death")]
+spawns = []

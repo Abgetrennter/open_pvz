@@ -58,6 +58,7 @@ var _visual_validation_probe: Node = null
 var _infrastructure_validation_probe: Node = null
 var _spatial_index: Variant = SpatialIndexRef.new()
 var _last_tick_budget_warning_time := -999999.0
+var _environment_state: RefCounted = null
 
 
 func _ready() -> void:
@@ -114,6 +115,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func reset_battle() -> void:
 	_tick_accumulator = 0.0
 	_runtime_frame_counter = 0
+	_environment_state = null
 	_subsystem_host.clear_runtime_entities(_entity_root, _collectible_root)
 	GameState.begin_battle(self)
 	EventBus.clear()
@@ -578,6 +580,14 @@ func _get_field_object_state() -> Node:
 	return get_field_object_state()
 
 
+func get_grid_item_state() -> Node:
+	return _subsystem_host.get_grid_item_state()
+
+
+func _get_grid_item_state() -> Node:
+	return get_grid_item_state()
+
+
 func get_economy_state() -> Node:
 	return _subsystem_host.get_economy_state()
 
@@ -600,6 +610,14 @@ func get_mode_host() -> Node:
 
 func _get_mode_host() -> Node:
 	return get_mode_host()
+
+
+func set_environment_state(state: RefCounted) -> void:
+	_environment_state = state
+
+
+func get_environment_state() -> RefCounted:
+	return _environment_state
 
 
 func _dispatch_mode_tick(game_time: float) -> void:

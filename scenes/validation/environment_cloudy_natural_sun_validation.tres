@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_cloudy.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Rule_environment_changed"]
+script = ExtResource("5_rule")
+rule_id = &"environment_changed"
+description = "environment.core should publish cloudy profile values"
+event_name = &"environment.changed"
+required_core_values = {
+"module_id": &"environment.core",
+"profile_id": &"env_day_cloudy",
+"sun_interval_scale": 2.0,
+"sun_value_scale": 0.8
+}
+
+[sub_resource type="Resource" id="Rule_cloudy_sun_spawned"]
+script = ExtResource("5_rule")
+rule_id = &"cloudy_sun_spawned"
+description = "cloudy natural sun should spawn once in the validation window with scaled value"
+event_name = &"sun.spawned"
+min_count = 1
+max_count = 1
+required_core_values = {
+"source_type": &"natural_sun",
+"value": 20
+}
+
+[sub_resource type="Resource" id="Rule_cloudy_sun_collect"]
+script = ExtResource("5_rule")
+rule_id = &"cloudy_sun_collect"
+description = "cloudy natural sun should collect scaled value once"
+event_name = &"resource.changed"
+min_count = 1
+max_count = 1
+required_core_values = {
+"reason": &"collect",
+"resource_id": &"sun",
+"delta": 20
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_cloudy_natural_sun_validation"
+display_name = "Environment Cloudy Natural Sun Validation"
+description = "Validates cloudy weather slows natural sun cadence and reduces natural sun value."
+validation_time_limit = 2.0
+sun_auto_collect_delay = 0.05
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+validation_rules = [SubResource("Rule_environment_changed"), SubResource("Rule_cloudy_sun_spawned"), SubResource("Rule_cloudy_sun_collect")]

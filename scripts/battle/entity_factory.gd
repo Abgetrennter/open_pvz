@@ -5,7 +5,7 @@ const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd"
 const PlantRootRef = preload("res://scripts/entities/plant_root.gd")
 const ZombieRootRef = preload("res://scripts/entities/zombie_root.gd")
 const FieldObjectRootRef = preload("res://scripts/entities/field_object_root.gd")
-const LawnMowerRef = preload("res://scripts/entities/lawn_mower.gd")
+const GridItemRootRef = preload("res://scripts/entities/grid_item_root.gd")
 const ProjectileRootRef = preload("res://scripts/entities/projectile_root.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const TriggerInstanceRef = preload("res://scripts/core/runtime/trigger_instance.gd")
@@ -176,9 +176,8 @@ func _instantiate_builtin_root(entity_kind: StringName, template = null):
 
 func _instantiate_field_object(template):
 	if template is CombatArchetypeRef:
-		match StringName(template.archetype_id):
-			&"archetype_lawn_mower", &"archetype_lawn_mower_skeleton":
-				return LawnMowerRef.new()
+		if StringName(template.placement_role) == &"grid_item":
+			return GridItemRootRef.new()
 	return FieldObjectRootRef.new()
 
 

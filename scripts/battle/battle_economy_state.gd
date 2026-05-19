@@ -9,8 +9,14 @@ var battle: Node = null
 var collectible_root: Node = null
 var auto_collect_delay := -1.0
 var active_suns: Dictionary = {}
+var natural_sun_enabled := false
+var natural_sun_interval_seconds := 8.0
+var natural_sun_value := 25
+var natural_sun_interval_scale := 1.0
+var natural_sun_value_scale := 1.0
 
 var _next_sun_id := 1
+var _next_natural_sun_drop_time := -1.0
 var _scheduled_drops: Array[Resource] = []
 var _scheduled_spends: Array[Resource] = []
 var _processed_drop_indices: Dictionary = {}
@@ -28,6 +34,12 @@ func setup(battle_node: Node, collectible_parent: Node, scenario: Resource) -> v
 	_processed_spend_indices.clear()
 	active_suns.clear()
 	_next_sun_id = 1
+	natural_sun_enabled = false
+	natural_sun_interval_seconds = 8.0
+	natural_sun_value = 25
+	natural_sun_interval_scale = 1.0
+	natural_sun_value_scale = 1.0
+	_next_natural_sun_drop_time = -1.0
 
 	var configured_drops: Variant = scenario.get("sun_drop_entries")
 	if configured_drops is Array:
@@ -64,12 +76,40 @@ func get_debug_snapshot() -> Dictionary:
 		"values": {
 			"current_sun": current_sun,
 			"active_sun_count": active_suns.size(),
+			"natural_sun_enabled": natural_sun_enabled,
+			"natural_sun_interval_seconds": natural_sun_interval_seconds,
+			"natural_sun_value": natural_sun_value,
+			"natural_sun_interval_scale": natural_sun_interval_scale,
+			"natural_sun_value_scale": natural_sun_value_scale,
+			"next_natural_sun_drop_time": _next_natural_sun_drop_time,
 		},
 	}
 
 
 func get_current_sun() -> int:
 	return current_sun
+
+
+func configure_natural_sun(base_interval_seconds: float, base_value: int) -> void:
+	natural_sun_interval_seconds = maxf(base_interval_seconds, 0.1)
+	natural_sun_value = maxi(base_value, 1)
+	_reschedule_natural_sun(GameState.current_time)
+
+
+func set_natural_sun_enabled(enabled: bool) -> void:
+	if natural_sun_enabled == enabled:
+		return
+	natural_sun_enabled = enabled
+	_reschedule_natural_sun(GameState.current_time)
+
+
+func set_natural_sun_interval_scale(scale: float) -> void:
+	natural_sun_interval_scale = maxf(scale, 0.01)
+	_reschedule_natural_sun(GameState.current_time)
+
+
+func set_natural_sun_value_scale(scale: float) -> void:
+	natural_sun_value_scale = maxf(scale, 0.0)
 
 
 func try_spend_sun(cost: int, reason: StringName = &"manual_spend", source_node: Node = null, metadata: Dictionary = {}) -> bool:
@@ -144,6 +184,7 @@ func spawn_sun(position: Vector2, value: int, source_node: Node = null, source_t
 func _on_game_tick(event_data: Variant) -> void:
 	var game_time := float(event_data.core.get("game_time", GameState.current_time))
 	_process_scheduled_drops(game_time)
+	_process_natural_sun_drops(game_time)
 	_process_scheduled_spends(game_time)
 
 
@@ -168,6 +209,20 @@ func _process_scheduled_drops(game_time: float) -> void:
 			lane_id,
 			float(drop_entry.get("auto_collect_delay"))
 		)
+
+
+func _process_natural_sun_drops(game_time: float) -> void:
+	if not natural_sun_enabled:
+		return
+	if _next_natural_sun_drop_time < 0.0:
+		_reschedule_natural_sun(game_time)
+	if game_time + 0.001 < _next_natural_sun_drop_time:
+		return
+	var lane_id := _resolve_natural_sun_lane()
+	var spawn_position := _resolve_natural_sun_position(lane_id)
+	var resolved_value := maxi(int(round(float(natural_sun_value) * natural_sun_value_scale)), 1)
+	spawn_sun(spawn_position, resolved_value, null, &"natural_sun", lane_id)
+	_reschedule_natural_sun(game_time)
 
 
 func _process_scheduled_spends(game_time: float) -> void:
@@ -207,3 +262,32 @@ func _lane_y(lane_id: int) -> float:
 	if battle != null and is_instance_valid(battle):
 		return float(battle.get_lane_y(lane_id))
 	return 220.0 + lane_id * 100.0
+
+
+func _reschedule_natural_sun(game_time: float) -> void:
+	if not natural_sun_enabled:
+		_next_natural_sun_drop_time = -1.0
+		return
+	_next_natural_sun_drop_time = game_time + _natural_sun_interval()
+
+
+func _natural_sun_interval() -> float:
+	return maxf(natural_sun_interval_seconds * natural_sun_interval_scale, 0.1)
+
+
+func _resolve_natural_sun_lane() -> int:
+	if battle != null and is_instance_valid(battle) and battle.has_method("get_lane_ids"):
+		var lane_ids := PackedInt32Array(battle.call("get_lane_ids"))
+		if not lane_ids.is_empty():
+			return int(lane_ids[0])
+	return 0
+
+
+func _resolve_natural_sun_position(lane_id: int) -> Vector2:
+	var x_position := 260.0
+	if battle != null and is_instance_valid(battle) and battle.has_method("get_battlefield_metrics"):
+		var metrics: Variant = battle.call("get_battlefield_metrics")
+		if metrics != null:
+			var snapshot: Dictionary = metrics.call("snapshot") if metrics.has_method("snapshot") else {}
+			x_position = float(snapshot.get("slot_origin_x", 160.0)) + float(snapshot.get("slot_spacing", 96.0))
+	return Vector2(x_position, _lane_y(lane_id))

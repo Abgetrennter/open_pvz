@@ -91,6 +91,10 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "target_exclude_tags",
 		"type": "packed_string_array",
+	}, {
+		"name": "respect_visibility",
+		"type": "bool",
+		"default": false,
 	}]
 	periodically.id = &"periodically"
 	periodically.event_name = &"game.tick"
@@ -166,6 +170,10 @@ func _register_builtin_defs() -> void:
 		"min": 0.0,
 		"max": 30.0,
 		"default": 0.0,
+	}, {
+		"name": "respect_visibility",
+		"type": "bool",
+		"default": false,
 	}]
 	proximity.id = &"proximity"
 	proximity.event_name = &"game.tick"
@@ -217,6 +225,7 @@ func _register_builtin_strategies() -> void:
 			"target_tags": PackedStringArray(condition_values.get("target_tags", PackedStringArray())),
 			"target_priority_tags": PackedStringArray(condition_values.get("target_priority_tags", PackedStringArray())),
 			"target_exclude_tags": PackedStringArray(condition_values.get("target_exclude_tags", PackedStringArray())),
+			"respect_visibility": bool(condition_values.get("respect_visibility", false)),
 		}
 		if condition_values.has("scan_range_slots"):
 			detection_params["scan_range_slots"] = float(condition_values.get("scan_range_slots"))
@@ -278,6 +287,7 @@ func _register_builtin_strategies() -> void:
 		var detection_params := {
 			"scan_range": scan_range,
 			"target_tags": PackedStringArray(condition_values.get("target_tags", PackedStringArray())),
+			"respect_visibility": bool(condition_values.get("respect_visibility", false)),
 		}
 		if condition_values.has("scan_range_slots"):
 			detection_params["scan_range_slots"] = float(condition_values.get("scan_range_slots"))

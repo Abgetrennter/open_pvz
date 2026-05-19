@@ -128,7 +128,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -143,7 +143,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -155,7 +155,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 180.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -167,7 +167,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 4000.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets.slice(0, 1),
@@ -179,7 +179,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 64.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params))
+		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -195,6 +195,7 @@ func _scan_enemies(
 	target_tags: PackedStringArray = PackedStringArray(),
 	target_priority_tags: PackedStringArray = PackedStringArray(),
 	target_exclude_tags: PackedStringArray = PackedStringArray(),
+	respect_visibility: bool = false,
 ) -> Array:
 	if source == null or not (source is Node2D):
 		return []
@@ -215,7 +216,8 @@ func _scan_enemies(
 		"filter": func(candidate): return candidate != source \
 			and candidate.has_method("take_damage") \
 			and not _node_has_any_tag(candidate, target_exclude_tags) \
-			and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
+			and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))) \
+			and (not respect_visibility or _is_candidate_visible(candidate)),
 		"sort_by_distance": true,
 	}
 	if not lane_ids.is_empty():
@@ -242,6 +244,19 @@ func _empty_result() -> Dictionary:
 		"targets": [],
 		"primary_target": null,
 	}
+
+
+func _is_candidate_visible(candidate: Node) -> bool:
+	if candidate == null or GameState.current_battle == null:
+		return true
+	if not GameState.current_battle.has_method("get_environment_state"):
+		return true
+	var environment_state: Variant = GameState.current_battle.call("get_environment_state")
+	if environment_state == null or not environment_state.has_method("is_position_visible"):
+		return true
+	var lane_id := int(candidate.get("lane_id"))
+	var position := _node_ground_position(candidate)
+	return bool(environment_state.call("is_position_visible", lane_id, position.x))
 
 
 func _resolve_target_tags(params: Dictionary) -> PackedStringArray:

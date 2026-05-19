@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="BattleEnvironmentProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/environment/battle_environment_profile.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+profile_id = &"env_night_clear"
+initial_conditions = PackedStringArray("night", "clear")
+natural_sun_enabled = false
+natural_sun_interval_seconds = 0.8
+natural_sun_value = 25
+sun_interval_scale = 1.0
+sun_value_scale = 1.0
+light_level = 0.35
+visual_environment_id = &"night_clear"
+audio_environment_id = &"night_clear"
