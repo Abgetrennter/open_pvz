@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CombatArchetype" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_archetype.gd" id="1_archetype"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_crater"
+entity_kind = &"field_object"
+display_name = "Crater"
+tags = PackedStringArray("archetype", "field_object", "grid_item", "crater", "placement_blocker")
+placement_role = &"grid_item"
+granted_placement_tags = PackedStringArray("grid_item", "crater")
+max_health = -1
+hitbox_size = Vector2(40, 40)

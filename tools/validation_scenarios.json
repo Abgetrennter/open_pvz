@@ -330,6 +330,12 @@
     "layers": ["core"]
   },
   {
+    "id": "grid_item_crater_validation",
+    "scenario": "res://scenes/validation/grid_item_crater_validation.tres",
+    "description": "Validates the first GridItem slice through a crater that blocks placement, is removed by effect, and then allows placement.",
+    "layers": ["smoke", "core"]
+  },
+  {
     "id": "wave_flow_validation",
     "scenario": "res://scenes/validation/wave_flow_validation.tres",
     "description": "Validates the first-stage battle flow, including phase changes, wave start/completion, wave spawns, and battle victory.",

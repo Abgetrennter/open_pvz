@@ -581,6 +581,14 @@ func _get_field_object_state() -> Node:
 	return get_field_object_state()
 
 
+func get_grid_item_state() -> Node:
+	return _subsystem_host.get_grid_item_state()
+
+
+func _get_grid_item_state() -> Node:
+	return get_grid_item_state()
+
+
 func get_economy_state() -> Node:
 	return _subsystem_host.get_economy_state()
 

@@ -4,6 +4,8 @@ class_name FieldObjectRoot
 const BODY_COLOR := Color("8a8a6a")
 const OUTLINE_COLOR := Color("3a3a2a")
 
+@onready var controller_component: Variant = get_node_or_null("ControllerComponent")
+
 
 func _ready() -> void:
 	entity_kind = &"field_object"
@@ -20,6 +22,12 @@ func take_damage(
 	_runtime_overrides: Dictionary = {}
 ) -> void:
 	pass
+
+
+func simulation_step(delta: float) -> void:
+	super(delta)
+	if controller_component != null and controller_component.has_method("physics_process_controllers"):
+		controller_component.call("physics_process_controllers", delta)
 
 
 func _draw() -> void:
