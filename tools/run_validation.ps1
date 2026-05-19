@@ -5,6 +5,7 @@ param(
 	[string]$RunLabel = "",
 	[switch]$EnableRuntimeSnapshots,
 	[int]$RuntimeSnapshotInterval = 30,
+	[string[]]$ExtraUserArgs = @(),
 	[switch]$PassThru
 )
 
@@ -76,6 +77,11 @@ $GodotArgs = @(
 if ($EnableRuntimeSnapshots) {
 	$GodotArgs += "--runtime-snapshot-log"
 	$GodotArgs += "--runtime-snapshot-interval=$RuntimeSnapshotInterval"
+}
+foreach ($ExtraArg in $ExtraUserArgs) {
+	if (-not [string]::IsNullOrWhiteSpace($ExtraArg)) {
+		$GodotArgs += $ExtraArg
+	}
 }
 
 $Output = & $GodotExe @GodotArgs 2>&1

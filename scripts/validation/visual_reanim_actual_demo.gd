@@ -1,6 +1,8 @@
 extends Node2D
 
-const PROFILE_PATH := "res://vendor/out_files/_openpvz_import/peashooter_composite/visual_profile.tres"
+const VisualProfileDemoLoaderRef = preload("res://scripts/validation/visual_profile_demo_loader.gd")
+
+const PROFILE_ID := &"classic_original.entity.plant.peashooter.visual"
 const VIEWPORT_SIZE := Vector2(960.0, 540.0)
 const BOARD_ORIGIN := Vector2(120.0, 135.0)
 const SLOT_COUNT := 9
@@ -27,7 +29,8 @@ var _peas: Array[Dictionary] = []
 func _ready() -> void:
 	_create_status_label()
 	_load_actor()
-	_set_status("Peashooter composite actor 演示：body/head/anim_stem 已封装在 actor scene，demo 只调用 play_action(shooting)。")
+	if _actor != null:
+		_set_status("Peashooter composite actor 演示：body/head/anim_stem 已封装在 actor scene，demo 只调用 play_action(shooting)。")
 
 
 func _process(delta: float) -> void:
@@ -89,21 +92,17 @@ func _create_status_label() -> void:
 
 
 func _load_actor() -> void:
-	if not ResourceLoader.exists(PROFILE_PATH):
-		_set_status("未找到 composite visual profile：%s\n请先运行 Peashooter reanim 导入并生成 composite 输出。" % PROFILE_PATH)
+	var result := VisualProfileDemoLoaderRef.load_actor_scene(PROFILE_ID)
+	var packed_scene := result.get("actor_scene", null) as PackedScene
+	if packed_scene == null:
+		_set_status("%s\n请启用本地私有素材包：--include-classic-original-assets。" % String(result.get("error", "")))
 		return
-
-	var profile := ResourceLoader.load(PROFILE_PATH)
-	if profile == null or profile.get("actor_scene") == null:
-		_set_status("composite visual profile 无法加载 actor_scene：%s" % PROFILE_PATH)
-		return
-	var packed_scene := profile.get("actor_scene") as PackedScene
 
 	var instance := packed_scene.instantiate()
 	_actor = instance as Node2D
 	if _actor == null:
 		instance.queue_free()
-		_set_status("composite actor 根节点不是 Node2D：%s" % PROFILE_PATH)
+		_set_status("composite actor 根节点不是 Node2D：%s" % String(result.get("source", "")))
 		return
 
 	_actor.position = _slot_position(PLANT_LANE, PLANT_SLOT)

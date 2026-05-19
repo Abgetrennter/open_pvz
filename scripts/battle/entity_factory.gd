@@ -628,7 +628,12 @@ func _try_mount_visual_actor(entity: Node, archetype) -> void:
 		profile_id = StringName(archetype.visual_profile_id)
 	if profile_id == StringName():
 		return
-	var profile_def = VisualProfileRegistry.get_def(profile_id)
+	var profile_def = null
+	var asset_registry := _get_asset_registry()
+	if asset_registry != null and asset_registry.has_method("resolve_visual_profile"):
+		profile_def = asset_registry.call("resolve_visual_profile", profile_id)
+	if profile_def == null:
+		profile_def = VisualProfileRegistry.get_def(profile_id)
 	if profile_def == null:
 		push_warning("EntityFactory: visual profile '%s' not found, skipping visual actor mount." % String(profile_id))
 		return
@@ -636,3 +641,12 @@ func _try_mount_visual_actor(entity: Node, archetype) -> void:
 	visual_actor.name = "VisualActorComponent"
 	entity.add_child(visual_actor)
 	visual_actor.bind_profile(profile_def, entity)
+	if entity.has_method("queue_redraw"):
+		entity.call("queue_redraw")
+
+
+func _get_asset_registry() -> Node:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.get_node_or_null("AssetRegistry")

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "format": "openpvz.asset_index.v1",
+  "pack_id": "classic_original_assets",
+  "generated_by": "tools/reanim_importer/reanim_generate_composites.gd",
+  "assets": {
+    "classic_original.entity.plant.example.visual": {
+      "kind": "visual_profile",
+      "path": "data/combat/visual_profiles/plants/example.tres",
+      "profile": "data/combat/visual_profiles/plants/example.tres",
+      "actor_scene": "actors/example/actor.tscn",
+      "source": {
+        "reanim": "sources/reanim/Example.reanim",
+        "resources": "sources/properties/resources.xml"
+      },
+      "generated": {
+        "raw_actor_scene": "generated/raw/example/actor.tscn",
+        "import_report": "generated/reports/example.import_report.json",
+        "composite_report": "generated/reports/example.composite_report.json"
+      },
+      "semantic": {
+        "states": {
+          "idle": "idle"
+        },
+        "actions": {
+          "shoot": {
+            "animation": "shooting",
+            "next_state": "idle"
+          }
+        },
+        "animation_aliases": {},
+        "overlays": [],
+        "suppressed_tracks": []
+      }
+    }
+  },
+  "visual_profiles": {
+    "classic_original.entity.plant.example.visual": "data/combat/visual_profiles/plants/example.tres"
+  }
+}

@@ -11,6 +11,7 @@
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_peashooter"
 display_name = "Peashooter"
+visual_profile_id = &"classic_original.entity.plant.peashooter.visual"
 projectile_template = ExtResource("6_projectile_template")
 projectile_flight_profile = ExtResource("5_profile")
 hit_height_band = ExtResource("4_height")

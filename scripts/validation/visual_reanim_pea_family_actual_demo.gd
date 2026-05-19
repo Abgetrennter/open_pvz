@@ -1,5 +1,8 @@
 extends Node2D
 
+const VisualProfileDemoLoaderRef = preload("res://scripts/validation/visual_profile_demo_loader.gd")
+
+@export var profile_id: StringName = StringName()
 @export_file("*.tres") var profile_path := ""
 @export var display_name := "Pea Family"
 @export var status_text := ""
@@ -30,6 +33,8 @@ var _peas: Array[Dictionary] = []
 func _ready() -> void:
 	_create_status_label()
 	_load_actor()
+	if _actor == null:
+		return
 	if status_text == "":
 		_set_status("%s composite actor 演示：body/head attachment 封装在 actor scene，demo 只调用 play_action(shooting)。" % display_name)
 	else:
@@ -101,21 +106,19 @@ func _create_status_label() -> void:
 
 
 func _load_actor() -> void:
-	if profile_path == "" or not ResourceLoader.exists(profile_path):
-		_set_status("未找到 composite visual profile：%s\n请先运行 reanim 导入并生成 composite 输出。" % profile_path)
+	var result := VisualProfileDemoLoaderRef.load_actor_scene(profile_id, profile_path)
+	var packed_scene := result.get("actor_scene", null) as PackedScene
+	if packed_scene == null:
+		if profile_id != StringName():
+			_set_status("%s\n请启用包含该 profile id 的素材包。" % String(result.get("error", "")))
+		else:
+			_set_status("%s\n请先运行 reanim 导入并生成 composite 输出。" % String(result.get("error", "")))
 		return
-
-	var profile := ResourceLoader.load(profile_path)
-	if profile == null or profile.get("actor_scene") == null:
-		_set_status("composite visual profile 无法加载 actor_scene：%s" % profile_path)
-		return
-
-	var packed_scene := profile.get("actor_scene") as PackedScene
 	var instance := packed_scene.instantiate()
 	_actor = instance as Node2D
 	if _actor == null:
 		instance.queue_free()
-		_set_status("composite actor 根节点不是 Node2D：%s" % profile_path)
+		_set_status("composite actor 根节点不是 Node2D：%s" % String(result.get("source", "")))
 		return
 
 	_actor.position = _slot_position(plant_lane, plant_slot)

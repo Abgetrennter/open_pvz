@@ -1,22 +1,21 @@
 extends Node2D
 
-const ACTOR_SCENE_PATH := "res://vendor/out_files/_openpvz_import/sunflower/actor.tscn"
+const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
+const VisualProfileDemoLoaderRef = preload("res://scripts/validation/visual_profile_demo_loader.gd")
+
+const PROFILE_ID := &"classic_original.entity.plant.sunflower.visual"
+const PRIVATE_CLASSIC_PACK_ID := &"classic_original_assets"
 const VIEWPORT_SIZE := Vector2(960.0, 540.0)
 const BOARD_ORIGIN := Vector2(120.0, 135.0)
 const SLOT_COUNT := 9
 const LANE_COUNT := 5
 const OPENPVZ_SLOT_SPACING := 80.0
 const OPENPVZ_LANE_SPACING := 60.0
-const ORIGINAL_SLOT_WIDTH := 80.0
-const ACTOR_SCALE_VALUE := OPENPVZ_SLOT_SPACING / ORIGINAL_SLOT_WIDTH
-const ACTOR_ANCHOR_OFFSET := Vector2(-42.0, -96.0)
 const PLANT_SLOT := 2
 const PLANT_LANE := 2
 const SOURCE_FPS := 12.0
 const IDLE_START_FRAME := 4
 const IDLE_END_FRAME := 28
-const BLINK1_TEXTURE_PATH := "res://vendor/out_files/reanim/SunFlower_blink1.png"
-const BLINK2_TEXTURE_PATH := "res://vendor/out_files/reanim/SunFlower_blink2.png"
 const BLINK_HEAD_OFFSET := Vector2(12.8, 6.2)
 const BLINK_INTERVAL_SECONDS := 2.4
 const BLINK_FRAME_SECONDS := 1.0 / SOURCE_FPS
@@ -44,7 +43,8 @@ var _suns: Array[Dictionary] = []
 func _ready() -> void:
 	_create_status_label()
 	_load_actor()
-	_set_status("Reanim Sunflower 实际演示：slot_spacing=80，actor scale=%.2f，周期性产阳视觉。" % ACTOR_SCALE_VALUE)
+	if _actor != null:
+		_set_status("Reanim Sunflower 实际演示：通过 VisualProfileRegistry 加载私有素材包 profile，周期性产阳视觉。")
 
 
 func _process(delta: float) -> void:
@@ -96,24 +96,21 @@ func _create_status_label() -> void:
 
 
 func _load_actor() -> void:
-	if not ResourceLoader.exists(ACTOR_SCENE_PATH):
-		_set_status("未找到导入产物：%s\n请先运行 reanim_import_one.gd 生成 Sunflower actor。" % ACTOR_SCENE_PATH)
-		return
-
-	var packed_scene := ResourceLoader.load(ACTOR_SCENE_PATH) as PackedScene
+	var result := VisualProfileDemoLoaderRef.load_actor_scene(PROFILE_ID)
+	var packed_scene := result.get("actor_scene", null) as PackedScene
 	if packed_scene == null:
-		_set_status("导入产物无法作为 PackedScene 加载：%s" % ACTOR_SCENE_PATH)
+		_set_status("%s\n请启用本地私有素材包：--include-classic-original-assets。" % String(result.get("error", "")))
 		return
 
 	var instance := packed_scene.instantiate()
 	_actor = instance as Node2D
 	if _actor == null:
 		instance.queue_free()
-		_set_status("导入产物根节点不是 Node2D：%s" % ACTOR_SCENE_PATH)
+		_set_status("导入产物根节点不是 Node2D：%s" % String(result.get("source", "")))
 		return
 
-	_actor.position = _slot_position(PLANT_LANE, PLANT_SLOT) + ACTOR_ANCHOR_OFFSET
-	_actor.scale = Vector2.ONE * ACTOR_SCALE_VALUE
+	_actor.position = _slot_position(PLANT_LANE, PLANT_SLOT)
+	_actor.scale = Vector2.ONE
 	add_child(_actor)
 
 	_animation_player = _find_animation_player(_actor)
@@ -179,8 +176,8 @@ func _update_idle_subrange(delta: float) -> void:
 func _configure_blink_overlay() -> void:
 	if _actor == null:
 		return
-	_head_sprite = _actor.get_node_or_null("anim_idle") as Sprite2D
-	_blink_track_sprite = _actor.get_node_or_null("anim_blink") as Sprite2D
+	_head_sprite = _find_node_by_name(_actor, "anim_idle") as Sprite2D
+	_blink_track_sprite = _find_node_by_name(_actor, "anim_blink") as Sprite2D
 	if _head_sprite == null or _blink_track_sprite == null:
 		return
 	_blink_track_sprite.visible = false
@@ -188,9 +185,9 @@ func _configure_blink_overlay() -> void:
 	_blink_sprite.name = "BlinkOverlay"
 	_blink_sprite.centered = false
 	_blink_sprite.visible = false
-	_actor.add_child(_blink_sprite)
-	_blink1_texture = _load_texture(BLINK1_TEXTURE_PATH)
-	_blink2_texture = _load_texture(BLINK2_TEXTURE_PATH)
+	_head_sprite.get_parent().add_child(_blink_sprite)
+	_blink1_texture = _load_texture(_private_source_texture_path("SunFlower_blink1.png"))
+	_blink2_texture = _load_texture(_private_source_texture_path("SunFlower_blink2.png"))
 
 
 func _update_blink_overlay(delta: float) -> void:
@@ -221,12 +218,31 @@ func _show_blink_frame(texture: Texture2D, y_offset: float) -> void:
 
 
 func _load_texture(path: String) -> Texture2D:
+	if path.is_empty():
+		return null
 	if ResourceLoader.exists(path):
 		return ResourceLoader.load(path) as Texture2D
 	var image := Image.new()
 	if image.load(ProjectSettings.globalize_path(path)) != OK:
 		return null
 	return ImageTexture.create_from_image(image)
+
+
+func _private_source_texture_path(file_name: String) -> String:
+	for pack in ExtensionPackCatalogRef.list_enabled_packs(&"visual_profiles"):
+		if StringName(pack.get("pack_id", StringName())) == PRIVATE_CLASSIC_PACK_ID:
+			return String(pack.get("root_path", "")).path_join("sources/reanim/%s" % file_name)
+	return ""
+
+
+func _find_node_by_name(root: Node, node_name: String) -> Node:
+	if root.name == node_name:
+		return root
+	for child in root.get_children():
+		var found := _find_node_by_name(child, node_name)
+		if found != null:
+			return found
+	return null
 
 
 func _spawn_sun() -> void:

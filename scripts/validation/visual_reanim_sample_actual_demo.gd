@@ -1,5 +1,7 @@
 extends Node2D
 
+const VisualProfileDemoLoaderRef = preload("res://scripts/validation/visual_profile_demo_loader.gd")
+
 const VIEWPORT_SIZE := Vector2(960.0, 540.0)
 const BOARD_ORIGIN := Vector2(120.0, 135.0)
 const SLOT_COUNT := 9
@@ -10,6 +12,7 @@ const PLANT_SLOT := 2
 const PLANT_LANE := 2
 
 @export var actor_scene_path := ""
+@export var profile_id: StringName = StringName()
 @export var profile_path := ""
 @export var display_name := ""
 @export var status_text := ""
@@ -33,7 +36,8 @@ var _blast_elapsed := 999.0
 func _ready() -> void:
 	_create_status_label()
 	_load_actor()
-	_set_status(status_text)
+	if _actor != null:
+		_set_status(status_text)
 	_start_demo()
 
 
@@ -123,24 +127,14 @@ func _load_actor() -> void:
 
 
 func _load_actor_scene() -> PackedScene:
-	if profile_path != "":
-		if not ResourceLoader.exists(profile_path):
-			_set_status("未找到 visual profile：%s\n请先运行 reanim_generate_composites.gd 生成 composite 输出。" % profile_path)
-			return null
-		var profile := ResourceLoader.load(profile_path)
-		if profile == null or profile.get("actor_scene") == null:
-			_set_status("visual profile 无法加载 actor_scene：%s" % profile_path)
-			return null
-		return profile.get("actor_scene") as PackedScene
-
-	if not ResourceLoader.exists(actor_scene_path):
-		_set_status("未找到导入产物：%s\n请先运行 reanim_import_one.gd 生成 actor。" % actor_scene_path)
+	var result := VisualProfileDemoLoaderRef.load_actor_scene(profile_id, profile_path, actor_scene_path)
+	if result.get("actor_scene", null) == null:
+		if profile_id != StringName():
+			_set_status("%s\n请启用包含该 profile id 的素材包。" % String(result.get("error", "")))
+		else:
+			_set_status("%s\n请先运行对应 reanim 导入。" % String(result.get("error", "")))
 		return null
-
-	var packed_scene := ResourceLoader.load(actor_scene_path) as PackedScene
-	if packed_scene == null:
-		_set_status("导入产物无法作为 PackedScene 加载：%s" % actor_scene_path)
-	return packed_scene
+	return result.get("actor_scene", null) as PackedScene
 
 
 func _find_animation_player(root: Node) -> AnimationPlayer:

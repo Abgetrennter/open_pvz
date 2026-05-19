@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the local private classic asset pack is enabled"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_private_profiles"]
+script = ExtResource("2_rule")
+rule_id = &"classic_original_visual_profiles_registered"
+description = "VisualProfileRegistry should expose the private classic original visual profiles"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"pack_id": &"classic_original_assets",
+"probe": &"private_classic_assets",
+"result": &"passed"
+}
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_no_profile_issues"]
+script = ExtResource("2_rule")
+rule_id = &"no_visual_profile_protocol_issues"
+description = "private classic visual profile loading should not emit visual profile protocol issues"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"visual_profiles"
+}
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_private_classic_asset_pack_smoke"
+display_name = "Visual Private Classic Asset Pack Smoke"
+description = "Verify that the ignored local classic_original_assets pack can be enabled explicitly and registered through VisualProfileRegistry."
+goals = PackedStringArray("Verify local private asset packs are disabled from public runs but can be enabled with an explicit CLI flag.", "Verify VisualProfileRegistry registers classic original plant profiles from the private pack.", "Verify private profile loading does not emit visual profile protocol issues.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_private_profiles"), SubResource("Rule_no_profile_issues")]

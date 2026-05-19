@@ -1,0 +1,15 @@
+{
+  "pack_id": "public_private_reference_pack",
+  "pack_type": "asset_pack",
+  "publish_policy": "public",
+  "enabled_by_default": false,
+  "register": [
+    "visual_profiles"
+  ],
+  "capabilities": [
+    "visual_profiles"
+  ],
+  "metadata": {
+    "forbidden_reference": "res://vendor/out_files/_openpvz_import/peashooter/actor.tscn"
+  }
+}

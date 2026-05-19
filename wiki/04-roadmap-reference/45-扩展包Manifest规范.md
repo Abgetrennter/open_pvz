@@ -195,7 +195,9 @@ collection_pack
 }
 ```
 
-当前 `AssetRegistry` 尚未实现，因此第一版 `asset_index` 只作为设计目标，不应阻塞 `visual_profiles` 等现有 slot 注册。
+当前最小 `AssetRegistry` 已启用 `visual_profile` 解析，但 `visual_profiles` 等现有 slot 注册仍保留为兼容和回退路径。
+
+原版私有素材包当前采用 `openpvz.asset_index.v1` 过渡格式：`assets` 保存正式逻辑 ID 条目，`visual_profiles` 保留为兼容字段。条目至少包含 `kind`、`path`，视觉条目可附带 `actor_scene`、`source`、`generated` 和 `semantic` 元数据。该索引由 `AssetIndexCatalog` 读取，由 `AssetRegistry.resolve_visual_profile()` 作为运行时入口消费。
 
 ---
 
@@ -291,6 +293,5 @@ collection_pack
 1. 当前继续支持最小 `extension.json`。
 2. 新包开始填写 `pack_type`、`namespace`、`publish_policy`、`entry_points`。
 3. 加载器逐步读取 `local_extensions`、`dependencies`、`load_priority`。
-4. `AssetRegistry` 落地后启用 `asset_index`。
+4. `AssetRegistry` 已先落地 `visual_profile` 最小解析；后续再扩展 `asset_index` 的主题覆盖、音频、FX 和包依赖策略。
 5. `collection_pack` 落地后启用 `collection_index` 和包组合入口。
-

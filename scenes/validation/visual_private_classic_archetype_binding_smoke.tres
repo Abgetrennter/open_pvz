@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_peashooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_peashooter"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_sunflower"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_sunflower"
+lane_id = 0
+x_position = 240.0
+
+[sub_resource type="Resource" id="Spawn_threepeater"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_threepeater"
+lane_id = 0
+x_position = 320.0
+
+[sub_resource type="Resource" id="Spawn_chomper"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_chomper"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_squash"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_original_squash"
+lane_id = 1
+x_position = 240.0
+
+[sub_resource type="Resource" id="Rule_entities_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"classic_original_entities_spawned"
+description = "all migrated original plant archetypes should spawn while the local private asset pack is enabled"
+event_name = &"entity.spawned"
+min_count = 5
+
+[sub_resource type="Resource" id="Rule_private_bindings"]
+script = ExtResource("3_rule")
+rule_id = &"classic_original_archetype_visual_bindings"
+description = "the migrated original plant archetypes should mount private classic visual actor components"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"pack_id": &"classic_original_assets",
+"probe": &"private_classic_archetype_bindings",
+"result": &"passed"
+}
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_no_profile_issues"]
+script = ExtResource("3_rule")
+rule_id = &"no_visual_profile_protocol_issues"
+description = "private classic archetype binding should not emit visual profile protocol issues"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"visual_profiles"
+}
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_private_classic_archetype_binding_smoke"
+display_name = "Visual Private Classic Archetype Binding Smoke"
+description = "Verify that migrated original plant archetypes mount private classic visual actors when the ignored local asset pack is enabled explicitly."
+goals = PackedStringArray("Verify Peashooter, Sunflower, Threepeater, Chomper, and Squash carry private visual profile ids.", "Verify EntityFactory mounts VisualActorComponent from VisualProfileRegistry when the private pack is enabled.", "Verify private visual binding does not emit visual profile protocol issues.")
+validation_time_limit = 3.0
+lane_count = 2
+validation_rules = [SubResource("Rule_entities_spawned"), SubResource("Rule_private_bindings"), SubResource("Rule_no_profile_issues")]
+spawns = [SubResource("Spawn_peashooter"), SubResource("Spawn_sunflower"), SubResource("Spawn_threepeater"), SubResource("Spawn_chomper"), SubResource("Spawn_squash")]

@@ -9,6 +9,7 @@
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_squash"
 display_name = "Squash"
+visual_profile_id = &"classic_original.entity.plant.squash.visual"
 hit_height_band = ExtResource("4_height")
 entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "original", "squash", "instant", "explode")

@@ -374,7 +374,7 @@
   {
     "id": "extension_manifest_guardrail_validation",
     "scenario": "res://scenes/validation/extension_manifest_guardrail_validation.tres",
-    "description": "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids.",
+    "description": "Validates extension manifest guardrails during extension pack scan, including malformed manifests and private asset publication boundaries.",
     "layers": ["smoke", "guardrail"]
   },
   {
@@ -838,6 +838,20 @@
     "scenario": "res://scenes/validation/visual_extension_pack_smoke.tres",
     "description": "Validates that new visual register kinds (visual_cues, visual_fx, audio_cues, visual_profiles) are accepted by ExtensionPackCatalog and battle runs normally.",
     "layers": ["smoke"]
+  },
+  {
+    "id": "visual_private_classic_asset_pack_smoke",
+    "scenario": "res://scenes/validation/visual_private_classic_asset_pack_smoke.tres",
+    "description": "Validates that the ignored local classic_original_assets pack can be explicitly enabled and consumed through VisualProfileRegistry.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
+    "id": "visual_private_classic_archetype_binding_smoke",
+    "scenario": "res://scenes/validation/visual_private_classic_archetype_binding_smoke.tres",
+    "description": "Validates that migrated original plant archetypes mount private classic visual profiles when the local asset pack is enabled.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
   },
   {
     "id": "visual_action_types_smoke",

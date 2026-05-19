@@ -4,7 +4,7 @@
 
 ## OVERVIEW
 
-16 个 autoload 单例：2 个核心服务（EventBus、GameState）、12 个注册表（10 继承 RegistryBase）、1 个场景索引、1 个调试服务。
+17 个 autoload 单例：2 个核心服务（EventBus、GameState）、12 个注册表（10 继承 RegistryBase）、1 个素材解析服务、1 个场景索引、1 个调试服务。
 
 ## WHERE TO LOOK
 
@@ -26,6 +26,7 @@
 | `VisualFxRegistry.gd` | RegistryBase | 视觉特效注册与分发 |
 | `VisualProfileRegistry.gd` | RegistryBase | 角色视觉外观档案注册 |
 | `AudioCueRegistry.gd` | RegistryBase | 音频提示注册与分发 |
+| `AssetRegistry.gd` | Node | 素材索引解析：从已启用 asset_pack 的 `asset_index.json` 解析逻辑表现 ID |
 
 ## EXECUTION CHAIN
 
@@ -58,6 +59,7 @@ autoload/
 ├── MechanicFamilyRegistry.gd # family 注册（独立 Node，不继承 RegistryBase）
 ├── MechanicTypeRegistry.gd   # type 注册（独立 Node）
 ├── *Registry.gd              # 其余 10 个注册表，均继承 RegistryBase
+├── AssetRegistry.gd          # 运行时素材索引解析服务（v1：visual_profile）
 └── CLAUDE.md                 # 本文件
 ```
 

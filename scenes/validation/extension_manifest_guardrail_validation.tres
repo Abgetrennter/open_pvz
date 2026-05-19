@@ -8,7 +8,7 @@ script = ExtResource("2_rule")
 rule_id = &"extension_manifest_protocol_issues"
 description = "invalid extension manifests should be rejected during extension pack scan"
 event_name = &"protocol.issue"
-min_count = 5
+min_count = 8
 required_core_values = {
 "scope": &"extension_manifest"
 }
@@ -33,7 +33,7 @@ max_count = 0
 script = ExtResource("1_scenario")
 scenario_id = &"extension_manifest_guardrail_validation"
 display_name = "Extension Manifest Guardrail Validation"
-description = "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, and blank pack ids."
-goals = PackedStringArray("Verify invalid extension manifests emit protocol.issue events during extension pack scan.", "Verify invalid manifest fixtures never proceed into projectile or damage runtime behavior.")
+description = "Validates extension manifest guardrails during extension pack scan, including missing manifest files, invalid JSON, bad register shapes, unsupported register kinds, blank pack ids, and private asset publication boundaries."
+goals = PackedStringArray("Verify invalid extension manifests emit protocol.issue events during extension pack scan.", "Verify public packs cannot declare original/private generated assets or reference private roots.", "Verify invalid manifest fixtures never proceed into projectile or damage runtime behavior.")
 validation_time_limit = 0.5
 validation_rules = [SubResource("BattleValidationRule_manifest_issues"), SubResource("BattleValidationRule_no_projectiles"), SubResource("BattleValidationRule_no_damage")]

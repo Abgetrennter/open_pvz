@@ -1,0 +1,26 @@
+{
+  "pack_id": "openpvz_placeholder_assets",
+  "pack_type": "asset_pack",
+  "version": "0.1.0",
+  "display_name": "OpenPVZ Placeholder Assets",
+  "description": "Public placeholder visual profiles used when local private classic assets are unavailable.",
+  "namespace": "openpvz_placeholder",
+  "trust_level": "data_only",
+  "publish_policy": "public",
+  "contains_original_assets": false,
+  "generated_from_private_source": false,
+  "enabled_by_default": true,
+  "register": [
+    "visual_profiles"
+  ],
+  "capabilities": [
+    "visual_profiles"
+  ],
+  "entry_points": {
+    "visual_root": "data/combat"
+  },
+  "tags": [
+    "placeholder",
+    "public"
+  ]
+}

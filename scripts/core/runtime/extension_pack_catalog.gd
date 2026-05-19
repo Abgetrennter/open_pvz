@@ -2,6 +2,7 @@ extends RefCounted
 class_name ExtensionPackCatalog
 
 const EXTENSION_ROOT_DIR := "res://extensions"
+const LOCAL_EXTENSION_ROOT_DIR := "res://local_extensions"
 const EXTENSION_MANIFEST_FIXTURE_ROOT_DIR := "res://extensions_manifest_fixtures"
 const MANIFEST_FILE_NAME := "extension.json"
 const ALLOWED_REGISTER_KINDS := {
@@ -22,9 +23,30 @@ const ALLOWED_TRUST_LEVELS := {
 	&"rule_extended": true,
 	&"trusted_runtime": true,
 }
+const ALLOWED_PACK_TYPES := {
+	&"rule_pack": true,
+	&"content_pack": true,
+	&"asset_pack": true,
+	&"collection_pack": true,
+}
+const ALLOWED_PUBLISH_POLICIES := {
+	&"public": true,
+	&"local_private": true,
+}
 const MANIFEST_GUARDRAIL_SCENARIO_IDS := {
 	&"extension_manifest_guardrail_validation": true,
 }
+const PRIVATE_REFERENCE_MARKERS := [
+	"res://vendor/out_files",
+	"vendor/out_files",
+	"res://local_extensions",
+	"local_extensions",
+]
+const PUBLIC_PACKAGE_FORBIDDEN_EXTENSIONS := [
+	".reanim",
+]
+
+static var _session_enabled_pack_ids: Dictionary = {}
 
 
 static func list_enabled_packs(register_kind: StringName = StringName()) -> Array[Dictionary]:
@@ -34,8 +56,14 @@ static func list_enabled_packs(register_kind: StringName = StringName()) -> Arra
 	return packs
 
 
+static func enable_pack_for_current_session(pack_id: StringName) -> void:
+	if pack_id == StringName():
+		return
+	_session_enabled_pack_ids[pack_id] = true
+
+
 static func _list_scan_roots() -> Array[String]:
-	var roots: Array[String] = [EXTENSION_ROOT_DIR]
+	var roots: Array[String] = [EXTENSION_ROOT_DIR, LOCAL_EXTENSION_ROOT_DIR]
 	if _should_include_manifest_fixture_root():
 		roots.append(EXTENSION_MANIFEST_FIXTURE_ROOT_DIR)
 	return roots
@@ -140,6 +168,18 @@ static func _load_manifest(root_path: String, fallback_pack_id: String) -> Dicti
 	if not capabilities_error.is_empty():
 		_record_manifest_issue(capabilities_error)
 		return {}
+	var package_boundary_error := _validate_package_boundary_fields(manifest, pack_id)
+	if not package_boundary_error.is_empty():
+		_record_manifest_issue(package_boundary_error)
+		return {}
+	var private_reference_error := _validate_public_manifest_references(manifest, pack_id)
+	if not private_reference_error.is_empty():
+		_record_manifest_issue(private_reference_error)
+		return {}
+	var public_file_error := _validate_public_package_files(root_path, manifest)
+	if not public_file_error.is_empty():
+		_record_manifest_issue(public_file_error)
+		return {}
 	return manifest
 
 
@@ -159,6 +199,8 @@ static func _pack_enabled(manifest: Dictionary, root_path: String) -> bool:
 	if bool(manifest.get("enabled_by_default", false)):
 		return true
 	var pack_id := StringName(manifest.get("pack_id", StringName()))
+	if _session_enabled_pack_ids.has(pack_id):
+		return true
 	for raw_arg in OS.get_cmdline_user_args():
 		var arg := String(raw_arg)
 		if arg.begins_with("--include-extension-pack="):
@@ -213,7 +255,101 @@ static func _validate_string_array_field(manifest: Dictionary, field_name: Strin
 	return ""
 
 
+static func _validate_package_boundary_fields(manifest: Dictionary, pack_id: StringName) -> String:
+	if manifest.has("pack_type"):
+		var pack_type := StringName(manifest.get("pack_type", StringName()))
+		if pack_type == StringName() or not ALLOWED_PACK_TYPES.has(pack_type):
+			return "Extension pack %s manifest pack_type must be one of asset_pack, collection_pack, content_pack, rule_pack." % String(pack_id)
+		manifest["pack_type"] = pack_type
+
+	var publish_policy := StringName(manifest.get("publish_policy", &"public"))
+	if publish_policy == StringName() or not ALLOWED_PUBLISH_POLICIES.has(publish_policy):
+		return "Extension pack %s manifest publish_policy must be one of public, local_private." % String(pack_id)
+	manifest["publish_policy"] = publish_policy
+
+	if publish_policy != &"local_private":
+		if bool(manifest.get("contains_original_assets", false)):
+			return "Extension pack %s manifest contains_original_assets requires publish_policy local_private." % String(pack_id)
+		if bool(manifest.get("generated_from_private_source", false)):
+			return "Extension pack %s manifest generated_from_private_source requires publish_policy local_private." % String(pack_id)
+	return ""
+
+
+static func _validate_public_manifest_references(manifest: Dictionary, pack_id: StringName) -> String:
+	if StringName(manifest.get("publish_policy", &"public")) != &"public":
+		return ""
+	var bad_reference := _find_private_reference_in_value(manifest)
+	if bad_reference.is_empty():
+		return ""
+	return "Extension pack %s public manifest must not reference private path %s." % [String(pack_id), bad_reference]
+
+
+static func _find_private_reference_in_value(value: Variant) -> String:
+	if value is String or value is StringName:
+		var text := String(value).replace("\\", "/")
+		for marker in PRIVATE_REFERENCE_MARKERS:
+			if text.contains(String(marker)):
+				return String(marker)
+		return ""
+	if value is Dictionary:
+		for key in (value as Dictionary).keys():
+			var key_result := _find_private_reference_in_value(key)
+			if not key_result.is_empty():
+				return key_result
+			var value_result := _find_private_reference_in_value((value as Dictionary)[key])
+			if not value_result.is_empty():
+				return value_result
+	if value is Array:
+		for item in value:
+			var item_result := _find_private_reference_in_value(item)
+			if not item_result.is_empty():
+				return item_result
+	return ""
+
+
+static func _validate_public_package_files(root_path: String, manifest: Dictionary) -> String:
+	if StringName(manifest.get("publish_policy", &"public")) != &"public":
+		return ""
+	var pack_id := StringName(manifest.get("pack_id", StringName()))
+	var forbidden_file := _find_forbidden_public_package_file(root_path)
+	if forbidden_file.is_empty():
+		return ""
+	return "Extension pack %s public package must not contain private source file %s." % [String(pack_id), forbidden_file]
+
+
+static func _find_forbidden_public_package_file(root_path: String) -> String:
+	var absolute_path := ProjectSettings.globalize_path(root_path)
+	var directory := DirAccess.open(absolute_path)
+	if directory == null:
+		return ""
+	directory.list_dir_begin()
+	while true:
+		var entry_name := directory.get_next()
+		if entry_name.is_empty():
+			break
+		if entry_name.begins_with("."):
+			continue
+		var full_path := root_path.path_join(entry_name)
+		if directory.current_is_dir():
+			var nested := _find_forbidden_public_package_file(full_path)
+			if not nested.is_empty():
+				directory.list_dir_end()
+				return nested
+			continue
+		var lower_name := entry_name.to_lower()
+		for extension in PUBLIC_PACKAGE_FORBIDDEN_EXTENSIONS:
+			if lower_name.ends_with(String(extension)):
+				directory.list_dir_end()
+				return full_path
+	directory.list_dir_end()
+	return ""
+
+
 static func _record_manifest_issue(message: String) -> void:
 	printerr(message)
-	if typeof(DebugService) != TYPE_NIL and DebugService.has_method("record_protocol_issue"):
-		DebugService.record_protocol_issue(&"extension_manifest", message, &"error")
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return
+	var debug_service := tree.root.get_node_or_null("DebugService")
+	if debug_service != null and debug_service.has_method("record_protocol_issue"):
+		debug_service.record_protocol_issue(&"extension_manifest", message, &"error")

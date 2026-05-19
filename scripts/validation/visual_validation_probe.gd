@@ -6,6 +6,22 @@ const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pa
 const VisualCueDefRef = preload("res://scripts/core/defs/visual_cue_def.gd")
 const UIThemeProfileRef = preload("res://scripts/ui/theme/ui_theme_profile.gd")
 
+const PRIVATE_CLASSIC_PACK_ID := &"classic_original_assets"
+const PRIVATE_CLASSIC_PROFILE_IDS := [
+	&"classic_original.entity.plant.peashooter.visual",
+	&"classic_original.entity.plant.sunflower.visual",
+	&"classic_original.entity.plant.threepeater.visual",
+	&"classic_original.entity.plant.chomper.visual",
+	&"classic_original.entity.plant.squash.visual",
+]
+const PRIVATE_CLASSIC_ARCHETYPE_TO_PROFILE := {
+	&"archetype_original_peashooter": &"classic_original.entity.plant.peashooter.visual",
+	&"archetype_original_sunflower": &"classic_original.entity.plant.sunflower.visual",
+	&"archetype_original_threepeater": &"classic_original.entity.plant.threepeater.visual",
+	&"archetype_original_chomper": &"classic_original.entity.plant.chomper.visual",
+	&"archetype_original_squash": &"classic_original.entity.plant.squash.visual",
+}
+
 var _battle: Node = null
 var _emitted: Dictionary = {}
 var _guardrail_attempted := false
@@ -28,6 +44,10 @@ func _process(_delta: float) -> void:
 
 	_probe_registries()
 	_probe_extension_register_kinds()
+	if scenario_id == &"visual_private_classic_asset_pack_smoke":
+		_probe_private_classic_asset_pack()
+	if scenario_id == &"visual_private_classic_archetype_binding_smoke":
+		_probe_private_classic_archetype_bindings()
 	_probe_stage_layers()
 	_probe_visual_log()
 	_probe_ui_theme()
@@ -63,6 +83,92 @@ func _probe_extension_register_kinds() -> void:
 			return
 	_emitted[&"extension_register_kinds"] = true
 	_emit_probe(&"extension_register_kinds", &"passed")
+
+
+func _probe_private_classic_asset_pack() -> void:
+	if _emitted.has(&"private_classic_asset_pack"):
+		return
+	var enabled_pack := _find_enabled_private_classic_pack()
+	if enabled_pack.is_empty():
+		return
+	var loaded_count := 0
+	for profile_id in PRIVATE_CLASSIC_PROFILE_IDS:
+		if not VisualProfileRegistry.has(profile_id):
+			return
+		var profile := VisualProfileRegistry.get_def(profile_id)
+		if profile == null or profile.get("actor_scene") == null:
+			return
+		var asset_registry := _get_asset_registry()
+		if asset_registry == null:
+			return
+		if not bool(asset_registry.call("has_asset", profile_id, &"visual_profile")):
+			return
+		var asset_profile := asset_registry.call("resolve_visual_profile", profile_id) as Resource
+		if asset_profile == null or asset_profile.get("actor_scene") == null:
+			return
+		loaded_count += 1
+	_emitted[&"private_classic_asset_pack"] = true
+	_emit_probe(&"private_classic_assets", &"passed", {
+		"pack_id": PRIVATE_CLASSIC_PACK_ID,
+		"profile_count": loaded_count,
+	})
+
+
+func _probe_private_classic_archetype_bindings() -> void:
+	if _emitted.has(&"private_classic_archetype_bindings"):
+		return
+	var enabled_pack := _find_enabled_private_classic_pack()
+	if enabled_pack.is_empty():
+		return
+
+	var found_archetypes: Dictionary = {}
+	var bound_count := 0
+	for entity in _battle.get_runtime_combat_entities():
+		if entity == null or not is_instance_valid(entity):
+			continue
+		var archetype_id := StringName(entity.get("archetype_id"))
+		if not PRIVATE_CLASSIC_ARCHETYPE_TO_PROFILE.has(archetype_id):
+			continue
+		found_archetypes[archetype_id] = true
+		var expected_profile_id: StringName = PRIVATE_CLASSIC_ARCHETYPE_TO_PROFILE[archetype_id]
+		var visual_actor: Node = entity.get_node_or_null("VisualActorComponent")
+		if visual_actor == null:
+			return
+		if not VisualProfileRegistry.has(expected_profile_id):
+			return
+		if not visual_actor.has_method("get_actor_root"):
+			return
+		if visual_actor.call("get_actor_root") == null:
+			return
+		if not visual_actor.has_method("get_profile_source"):
+			return
+		var profile_source: Dictionary = visual_actor.call("get_profile_source")
+		if StringName(profile_source.get("pack_id", StringName())) != PRIVATE_CLASSIC_PACK_ID:
+			return
+		if StringName(profile_source.get("id", StringName())) != expected_profile_id:
+			return
+		bound_count += 1
+
+	for archetype_id in PRIVATE_CLASSIC_ARCHETYPE_TO_PROFILE.keys():
+		if not found_archetypes.has(archetype_id):
+			return
+
+	_emitted[&"private_classic_archetype_bindings"] = true
+	_emit_probe(&"private_classic_archetype_bindings", &"passed", {
+		"pack_id": PRIVATE_CLASSIC_PACK_ID,
+		"bound_count": bound_count,
+	})
+
+
+func _find_enabled_private_classic_pack() -> Dictionary:
+	for pack in ExtensionPackCatalogRef.list_enabled_packs(&"visual_profiles"):
+		if StringName(pack.get("pack_id", StringName())) == PRIVATE_CLASSIC_PACK_ID:
+			return pack
+	return {}
+
+
+func _get_asset_registry() -> Node:
+	return get_node_or_null("/root/AssetRegistry")
 
 
 func _probe_stage_layers() -> void:

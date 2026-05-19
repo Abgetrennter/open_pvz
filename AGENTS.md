@@ -65,6 +65,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `VisualFxRegistry` | 视觉特效注册与分发 |
 | `VisualProfileRegistry` | 视觉外观档案注册 |
 | `AudioCueRegistry` | 音频提示注册与分发 |
+| `AssetRegistry` | 素材索引解析：从已启用 asset_pack 的 `asset_index.json` 解析逻辑表现 ID（v1 支持 visual_profile） |
 
 ### 战斗运行时子系统
 
@@ -183,8 +184,8 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 # 检查旧实体模型残留（禁止 EntityTemplate / TriggerBinding）
 pwsh tools/check_no_legacy_entity_model.ps1
 
-# 检查运行时指标/时间违规（禁止 OS.get_ticks_* 和 Timer 用于游戏逻辑）
-pwsh tools/check_runtime_metrics_time_guardrails.ps1
+# 运行时指标/时间违规由代码评审与验证场景检查：
+# 禁止 OS.get_ticks_* 和 Timer 用于游戏逻辑
 ```
 
 ## 编码规范

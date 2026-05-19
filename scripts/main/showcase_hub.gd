@@ -221,6 +221,11 @@ const GROUPS := [
 		"color": Color("ba68c8"),
 		"items": [
 			{
+				"title": "原版植物正式匹配展示",
+				"summary": "从正式 CombatArchetype.visual_profile_id 读取私有素材包 profile，展示当前已接入的 Peashooter、Sunflower、ThreePeater、Chomper、Squash。",
+				"scene": "res://scenes/validation/visual_private_classic_archetype_gallery.tscn",
+			},
+			{
 				"title": "Reanim 豌豆射手预览",
 				"summary": "加载 reanim_import_one.gd 生成的 Peashooter actor，并轮播 idle、shooting 等导入动画。",
 				"scene": "res://scenes/validation/visual_reanim_import_preview.tscn",

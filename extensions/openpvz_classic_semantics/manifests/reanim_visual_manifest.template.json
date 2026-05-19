@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "notes": [
+    "Public template only. Do not put private source paths in this file.",
+    "Copy this shape to a local private asset pack manifest for real private imports."
+  ],
+  "entries": [
+    {
+      "id": "peashooter",
+      "profile_id": "classic_original.entity.plant.peashooter.visual",
+      "raw_actor_scene": "__PRIVATE_ASSET_PACK_ROOT__/generated/raw/peashooter/actor.tscn",
+      "out_dir": "__PRIVATE_ASSET_PACK_ROOT__/actors/peashooter",
+      "actor_anchor_offset": [-42.0, -78.0],
+      "initial_state": "idle",
+      "state_animation_map": {
+        "idle": "idle"
+      },
+      "action_animation_map": {
+        "shoot": {
+          "animation": "shooting",
+          "next_state": "idle"
+        }
+      },
+      "part_slots": {},
+      "overlay_bindings": [],
+      "action_recipes": {}
+    }
+  ]
+}

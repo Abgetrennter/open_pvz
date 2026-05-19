@@ -47,6 +47,8 @@ func simulation_step(delta: float) -> void:
 
 
 func _draw() -> void:
+	if get_node_or_null("VisualActorComponent") != null:
+		return
 	draw_rect(Rect2(Vector2(-18, -28), Vector2(36, 44)), BODY_COLOR)
 	draw_rect(Rect2(Vector2(-18, -28), Vector2(36, 44)), OUTLINE_COLOR, false, 2.0)
 	draw_circle(Vector2(0, -34), 12.0, BODY_COLOR.lightened(0.15))

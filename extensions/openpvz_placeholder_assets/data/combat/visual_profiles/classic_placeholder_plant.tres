@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="VisualProfileDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/visual_profile_def.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+id = &"openpvz_placeholder.entity.plant.classic.visual"
+tags = PackedStringArray("placeholder", "classic", "plant")
+state_animation_map = {
+&"idle": &"idle"
+}
+z_policy = {
+"layer": &"plant"
+}

@@ -79,6 +79,19 @@ func get_actor_root() -> Node2D:
 	return _actor_root
 
 
+func get_profile_def() -> Resource:
+	return _profile_def
+
+
+func get_profile_source() -> Dictionary:
+	if _profile_def == null or not _profile_def.has_meta(&"asset_registry_source"):
+		return {}
+	var source: Variant = _profile_def.get_meta(&"asset_registry_source")
+	if source is Dictionary:
+		return Dictionary(source).duplicate(true)
+	return {}
+
+
 func play_animation(animation_name: StringName) -> bool:
 	if animation_name == StringName():
 		return false

@@ -47,11 +47,21 @@ $ScenarioManifest = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
 $RequestedLayers = @(
 	$Layers | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object { [string]$_ }
 )
+$IncludesLocalPrivate = $RequestedLayers -contains "local_private"
 if ($RequestedLayers.Count -gt 0) {
 	$ScenarioManifest = @(
 		$ScenarioManifest | Where-Object {
 			$EntryLayers = Get-EntryLayers $_
-			@($EntryLayers | Where-Object { $RequestedLayers -contains $_ }).Count -gt 0
+			$MatchesRequestedLayer = @($EntryLayers | Where-Object { $RequestedLayers -contains $_ }).Count -gt 0
+			$IsLocalPrivate = @($EntryLayers | Where-Object { $_ -eq "local_private" }).Count -gt 0
+			$MatchesRequestedLayer -and ($IncludesLocalPrivate -or -not $IsLocalPrivate)
+		}
+	)
+} else {
+	$ScenarioManifest = @(
+		$ScenarioManifest | Where-Object {
+			$EntryLayers = Get-EntryLayers $_
+			@($EntryLayers | Where-Object { $_ -eq "local_private" }).Count -eq 0
 		}
 	)
 }
@@ -70,11 +80,20 @@ $WorkItems = @()
 $WorkIndex = 0
 foreach ($Entry in $ScenarioManifest) {
 	$RunLabel = if ($Entry.id) { [string]$Entry.id } else { [System.IO.Path]::GetFileNameWithoutExtension([string]$Entry.scenario) }
+	$ExtraUserArgs = @()
+	if ($Entry.PSObject.Properties.Name -contains "extra_user_args" -and $null -ne $Entry.extra_user_args) {
+		foreach ($ExtraArg in @($Entry.extra_user_args)) {
+			if (-not [string]::IsNullOrWhiteSpace([string]$ExtraArg)) {
+				$ExtraUserArgs += [string]$ExtraArg
+			}
+		}
+	}
 	$WorkItems += [pscustomobject]@{
 		Index = $WorkIndex
 		Scenario = [string]$Entry.scenario
 		RunLabel = $RunLabel
 		Layers = @(Get-EntryLayers $Entry)
+		ExtraUserArgs = $ExtraUserArgs
 	}
 	$WorkIndex += 1
 }
@@ -107,6 +126,7 @@ function Start-ValidationJob {
 			[bool]$EnableRuntimeSnapshots,
 			[int]$RuntimeSnapshotInterval,
 			[string[]]$Layers,
+			[string[]]$ExtraUserArgs,
 			[int]$Index
 		)
 
@@ -117,7 +137,8 @@ function Start-ValidationJob {
 			-RunLabel $RunLabel `
 			-PassThru `
 			-EnableRuntimeSnapshots:$EnableRuntimeSnapshots `
-			-RuntimeSnapshotInterval $RuntimeSnapshotInterval
+			-RuntimeSnapshotInterval $RuntimeSnapshotInterval `
+			-ExtraUserArgs $ExtraUserArgs
 
 		if ($null -eq $Result) {
 			$Result = [pscustomobject]@{
@@ -144,6 +165,7 @@ function Start-ValidationJob {
 		$EnableRuntimeSnapshots,
 		$RuntimeSnapshotInterval,
 		$WorkItem.Layers,
+		$WorkItem.ExtraUserArgs,
 		$WorkItem.Index
 	)
 }

@@ -1,6 +1,6 @@
 extends Node2D
 
-const RAW_ACTOR_SCENE_PATH := "res://vendor/out_files/_openpvz_import/peashooter/actor.tscn"
+@export_file("*.tscn") var raw_actor_scene_path := "res://vendor/out_files/_openpvz_import/peashooter/actor.tscn"
 const ACTOR_ANCHOR_OFFSET := Vector2(-44.0, -96.0)
 const OPENPVZ_SLOT_SPACING := 80.0
 const ORIGINAL_SLOT_WIDTH := 80.0
@@ -93,13 +93,13 @@ func get_anchor(anchor_name: StringName) -> Node2D:
 
 
 func _load_parts() -> void:
-	if not ResourceLoader.exists(RAW_ACTOR_SCENE_PATH):
-		push_warning("Peashooter raw reanim actor is missing: %s" % RAW_ACTOR_SCENE_PATH)
+	if not ResourceLoader.exists(raw_actor_scene_path):
+		push_warning("Peashooter raw reanim actor is missing: %s" % raw_actor_scene_path)
 		return
 
-	var raw_actor_scene := ResourceLoader.load(RAW_ACTOR_SCENE_PATH) as PackedScene
+	var raw_actor_scene := ResourceLoader.load(raw_actor_scene_path) as PackedScene
 	if raw_actor_scene == null:
-		push_warning("Peashooter raw reanim actor could not be loaded: %s" % RAW_ACTOR_SCENE_PATH)
+		push_warning("Peashooter raw reanim actor could not be loaded: %s" % raw_actor_scene_path)
 		return
 
 	_body_actor = _instantiate_part(raw_actor_scene, "Body")

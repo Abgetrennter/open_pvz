@@ -6,4 +6,5 @@
 *.uid
 .claude/
 vendor/out_files/*
+local_extensions/
 artifacts/legacy_probe/20260512_210245_legacy_entity_model_protocol_probe/godot.log

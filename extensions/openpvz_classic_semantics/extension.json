@@ -1,0 +1,23 @@
+{
+  "pack_id": "openpvz_classic_semantics",
+  "pack_type": "asset_pack",
+  "version": "0.1.0",
+  "display_name": "OpenPVZ Classic Semantics",
+  "description": "Public templates and semantic notes for local private classic reanim asset imports. Contains no original assets or generated private derivatives.",
+  "namespace": "openpvz_classic",
+  "trust_level": "data_only",
+  "publish_policy": "public",
+  "contains_original_assets": false,
+  "generated_from_private_source": false,
+  "enabled_by_default": false,
+  "register": [],
+  "capabilities": [],
+  "entry_points": {
+    "semantic_templates": "manifests"
+  },
+  "tags": [
+    "classic",
+    "semantics",
+    "public"
+  ]
+}

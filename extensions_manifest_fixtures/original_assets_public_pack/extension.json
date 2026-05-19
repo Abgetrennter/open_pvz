@@ -1,0 +1,13 @@
+{
+  "pack_id": "original_assets_public_pack",
+  "pack_type": "asset_pack",
+  "publish_policy": "public",
+  "contains_original_assets": true,
+  "enabled_by_default": false,
+  "register": [
+    "visual_profiles"
+  ],
+  "capabilities": [
+    "visual_profiles"
+  ]
+}
