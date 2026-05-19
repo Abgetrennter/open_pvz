@@ -974,6 +974,12 @@
     "layers": ["core"]
   },
   {
+    "id": "environment_day_nocturnal_on_place_guard_validation",
+    "scenario": "res://scenes/validation/environment_day_nocturnal_on_place_guard_validation.tres",
+    "description": "Validates day environment sleep is applied before nocturnal instant on_place payloads fire.",
+    "layers": ["core"]
+  },
+  {
     "id": "environment_night_nocturnal_awake_validation",
     "scenario": "res://scenes/validation/environment_night_nocturnal_awake_validation.tres",
     "description": "Validates night environment wake path for nocturnal entities.",

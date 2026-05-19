@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_day_sunny.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_iceshroom.tres" id="6_ice_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="7_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="8_spawn"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Req_iceshroom"]
+script = ExtResource("7_card_request")
+at_time = 0.05
+card_id = &"card_original_iceshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("8_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 260.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_nocturnal_sleep"]
+script = ExtResource("5_rule")
+rule_id = &"ice_day_sleep_before_on_place"
+description = "Day environment should make Ice-shroom sleep before placement lifecycle payloads can run."
+event_name = &"environment.nocturnal_state_applied"
+required_core_values = {
+"target_archetype_id": &"archetype_original_iceshroom",
+"phase": &"day",
+"sleeping": true,
+"triggers": false,
+"controllers": false
+}
+
+[sub_resource type="Resource" id="Rule_no_ice_damage"]
+script = ExtResource("5_rule")
+rule_id = &"no_ice_on_place_damage"
+description = "Sleeping Ice-shroom should not run its on_place explosion in day environment."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("explode", "placement.accepted")
+required_core_values = {
+"source_archetype_id": &"archetype_original_iceshroom",
+"target_archetype_id": &"archetype_basic_walker"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"environment_day_nocturnal_on_place_guard_validation"
+display_name = "Environment Day Nocturnal On-place Guard Validation"
+description = "Validates day environment sleep is applied before nocturnal instant on_place payloads fire."
+validation_time_limit = 2.0
+initial_sun = 1000
+lane_count = 1
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+card_defs = [ExtResource("6_ice_card")]
+card_play_requests = [SubResource("Req_iceshroom")]
+validation_rules = [SubResource("Rule_nocturnal_sleep"), SubResource("Rule_no_ice_damage")]
+spawns = [SubResource("Spawn_target")]

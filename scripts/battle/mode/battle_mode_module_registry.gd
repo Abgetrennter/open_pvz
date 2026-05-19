@@ -83,6 +83,11 @@ func _handler_environment_core(action: StringName, battle: Node, module: Resourc
 			if event_data == null:
 				return
 			match event_name:
+				&"placement.accepted":
+					var entity: Node = event_data.core.get("target_node", null)
+					_apply_nocturnal_environment_to_entity(module, environment_state, entity)
+					_try_register_entity_fog_source(module, environment_state, entity, event_data)
+					_gate_lifecycle_event_if_triggers_disabled(entity, event_data)
 				&"entity.spawned":
 					var entity: Node = event_data.core.get("target_node", null)
 					_apply_nocturnal_environment_to_entity(module, environment_state, entity)
@@ -314,6 +319,20 @@ func _emit_nocturnal_state_applied(module: Resource, entity: Node, phase: String
 	event_data.core["triggers"] = not sleeping
 	event_data.core["controllers"] = not sleeping
 	EventBus.push_event(&"environment.nocturnal_state_applied", event_data)
+
+
+func _gate_lifecycle_event_if_triggers_disabled(entity: Node, event_data: Variant) -> void:
+	if entity == null or not is_instance_valid(entity):
+		return
+	if not entity.has_method("is_liveness_enabled") or bool(entity.call("is_liveness_enabled", &"triggers")):
+		return
+	if not entity.has_method("get_entity_id"):
+		return
+	var gated_targets := PackedInt32Array(event_data.core.get("liveness_gated_target_ids", PackedInt32Array()))
+	var entity_id := int(entity.call("get_entity_id"))
+	if not gated_targets.has(entity_id):
+		gated_targets.append(entity_id)
+	event_data.core["liveness_gated_target_ids"] = gated_targets
 
 
 func _register_existing_fog_sources(battle: Node, module: Resource, environment_state: Variant) -> void:
