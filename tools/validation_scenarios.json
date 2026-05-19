@@ -282,6 +282,72 @@
     "layers": ["core"]
   },
   {
+    "id": "lane_config_default_compat_validation",
+    "scenario": "res://scenes/validation/lane_config_default_compat_validation.tres",
+    "description": "Validates that empty lane_configs keep the legacy all-ground board behavior.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "lane_config_pool_slots_validation",
+    "scenario": "res://scenes/validation/lane_config_pool_slots_validation.tres",
+    "description": "Validates lane type template expansion for grass and pool rows.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "lane_config_dirt_reject_validation",
+    "scenario": "res://scenes/validation/lane_config_dirt_reject_validation.tres",
+    "description": "Validates that dirt lanes expose no placement tags and reject ordinary ground placement.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "lane_y_positions_metrics_validation",
+    "scenario": "res://scenes/validation/lane_y_positions_metrics_validation.tres",
+    "description": "Validates that explicit lane_y_positions drive board metrics and slot positions.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "lane_config_wave_legacy_spawn_validation",
+    "scenario": "res://scenes/validation/lane_config_wave_legacy_spawn_validation.tres",
+    "description": "Validates that lane_configs alone keep legacy wave spawning for existing zombies without spawn.medium tags.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "terrain_profile_linear_metrics_validation",
+    "scenario": "res://scenes/validation/terrain_profile_linear_metrics_validation.tres",
+    "description": "Validates that linear terrain profiles drive BattlefieldMetrics slot positions and elevation samples.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "terrain_profile_stepped_metrics_validation",
+    "scenario": "res://scenes/validation/terrain_profile_stepped_metrics_validation.tres",
+    "description": "Validates that stepped terrain profiles drive BattlefieldMetrics slot positions and elevation samples.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "projectile_terrain_absolute_z_validation",
+    "scenario": "res://scenes/validation/projectile_terrain_absolute_z_validation.tres",
+    "description": "Validates terrain-follow projectile hit checks using absolute z on sloped terrain.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "spawn_zone_ground_water_validation",
+    "scenario": "res://scenes/validation/spawn_zone_ground_water_validation.tres",
+    "description": "Validates spawn zone resolution by zombie spawn.medium tags for ground and water lanes.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "spawn_zone_invalid_lane_guard_validation",
+    "scenario": "res://scenes/validation/spawn_zone_invalid_lane_guard_validation.tres",
+    "description": "Validates that spawn zones referencing invalid lanes emit protocol issues.",
+    "layers": ["guardrail", "terrain"]
+  },
+  {
+    "id": "spawn_requirement_missing_guard_validation",
+    "scenario": "res://scenes/validation/spawn_requirement_missing_guard_validation.tres",
+    "description": "Validates that strict spawn zone scenarios reject zombies without spawn.medium requirements.",
+    "layers": ["guardrail", "terrain"]
+  },
+  {
     "id": "roof_slot_validation",
     "scenario": "res://scenes/validation/roof_slot_validation.tres",
     "description": "Validates that roof slots require a surface container before a primary plant can be placed.",

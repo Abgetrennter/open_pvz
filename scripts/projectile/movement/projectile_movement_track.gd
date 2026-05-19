@@ -33,11 +33,18 @@ func physics_process_projectile_move(delta: float):
 			var weight: float = clamp(turn_rate * delta, 0.0, 1.0)
 			direction = direction.slerp(desired_direction, weight).normalized()
 
-	var current_position := previous_position + direction * speed * delta
-	_apply_projectile_motion_state(current_position, flight_height)
+	var current_position := _advance_ground_position(previous_position, direction * speed * delta)
+	var current_height := _resolve_current_height(current_position)
+	_apply_projectile_motion_state(current_position, current_height)
 	if projectile.has_method("set_state_value"):
 		projectile.call("set_state_value", &"velocity", direction * speed)
 		projectile.call("set_state_value", &"speed", speed)
 		projectile.call("set_state_value", &"tracking_target", -1 if target_node == null or not target_node.has_method("get_entity_id") else int(target_node.call("get_entity_id")))
 		projectile.call("sync_runtime_state")
-	return _build_move_result(previous_position, current_position, previous_height, flight_height, true)
+	return _build_move_result(previous_position, current_position, previous_height, current_height, true)
+
+
+func _resolve_current_height(ground_position: Vector2) -> float:
+	if height_reference == &"launch_absolute":
+		return _launch_absolute_height(ground_position)
+	return _terrain_follow_height(ground_position)

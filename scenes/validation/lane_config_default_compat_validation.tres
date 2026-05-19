@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="BattlefieldPreset_default"]
+script = ExtResource("2_preset")
+preset_id = &"lane_config_default_compat"
+display_name = "Lane Config Default Compat"
+lane_count = 2
+board_slot_count = 2
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+
+[sub_resource type="Resource" id="Rule_slots_rebuilt"]
+script = ExtResource("3_rule")
+rule_id = &"default_ground_rows"
+description = "missing lane_configs keeps every lane on ground slot defaults"
+event_name = &"board.slots_rebuilt"
+required_core_values = {
+"lane_0_base_tag_text": "ground,supports_primary",
+"lane_0_slot_type": &"ground",
+"lane_1_base_tag_text": "ground,supports_primary",
+"lane_1_slot_type": &"ground",
+"lane_config_count": 0,
+"slot_count": 4
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"lane_config_default_compat_validation"
+display_name = "Lane Config Default Compat Validation"
+description = "Validates that an empty lane_configs preset preserves the legacy all-ground board behavior."
+validation_time_limit = 0.5
+validation_fixed_step_count = 1
+validation_finish_after_fixed_steps = true
+battlefield_preset = SubResource("BattlefieldPreset_default")
+validation_rules = [SubResource("Rule_slots_rebuilt")]

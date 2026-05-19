@@ -34,6 +34,8 @@ var _hit_strategy: StringName = &"overlap"
 var _terminal_hit_strategy: StringName = &"impact_hitbox"
 var _ground_position := Vector2.ZERO
 var _height := 0.0
+var _terrain_z := 0.0
+var _absolute_z := 0.0
 var _max_hit_height := 24.0
 var _projection_scale := 1.0
 var _flight_profile_id: StringName = StringName()
@@ -121,6 +123,9 @@ func launch(
 			assign_lane(source_lane)
 	else:
 		team = &"neutral"
+	var requested_lane: Variant = movement_params.get("lane_id", null)
+	if requested_lane is int and int(requested_lane) >= 0:
+		assign_lane(int(requested_lane))
 	_ensure_movement_component(StringName(movement_params.get("move_mode", &"linear")))
 	_ground_position = global_position
 	_height = 0.0
@@ -161,6 +166,8 @@ func launch(
 	set_state_value(&"terminal_hit_strategy", _terminal_hit_strategy)
 	set_state_value(&"ground_position", _ground_position)
 	set_state_value(&"height", _height)
+	set_state_value(&"height_above_ground", _height)
+	_update_height_state_values()
 	set_state_value(&"max_hit_height", _max_hit_height)
 	set_state_value(&"projection_scale", _projection_scale)
 	set_state_value(&"profile_id", _flight_profile_id)
@@ -197,6 +204,11 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 	var hit_event = EventDataRef.create(owner_entity, target, damage, PackedStringArray(["projectile"]), hit_runtime)
 	hit_event.core["move_mode"] = _move_mode
 	hit_event.core["profile_id"] = _flight_profile_id
+	hit_event.core["projectile_height_above_ground"] = _height
+	hit_event.core["projectile_terrain_z"] = _terrain_z
+	hit_event.core["projectile_absolute_z"] = _absolute_z
+	hit_event.core["target_terrain_z"] = _terrain_elevation_for_candidate(target)
+	hit_event.core["target_absolute_height_range"] = _candidate_absolute_height_range(target)
 	if terminal_reason != StringName():
 		hit_event.core["terminal_reason"] = terminal_reason
 	set_state_value(&"terminal_reason", terminal_reason)
@@ -227,7 +239,7 @@ func _on_hitbox_overlap(target: Node) -> void:
 		return
 	if _is_ignored_target(target):
 		return
-	if not _matches_height_range(target, _height, _height):
+	if not _matches_height_range(target, _absolute_z, _absolute_z):
 		return
 	_on_hit(target, &"overlap")
 
@@ -285,7 +297,7 @@ func _find_terminal_hit_target() -> Node:
 		"team_exclude": team,
 		"center": _ground_position,
 		"radius": _impact_radius + _spatial_hitbox_padding(),
-		"height_range": Vector2(_height, _height),
+		"height_range": Vector2(_absolute_z, _absolute_z),
 		"filter": func(candidate): return _is_projectile_hit_candidate(candidate),
 		"sort_by_distance": true,
 	})
@@ -315,6 +327,8 @@ func _find_segment_hit_target(start_position: Vector2, end_position: Vector2, pr
 	var x_min := minf(start_position.x, end_position.x) - maxf(_impact_radius, _collision_padding)
 	var x_max := maxf(start_position.x, end_position.x) + maxf(_impact_radius, _collision_padding)
 	var center := (start_position + end_position) * 0.5
+	var previous_absolute_z := _absolute_z_at(start_position, previous_height)
+	var current_absolute_z := _absolute_z_at(end_position, current_height)
 	var query_padding := maxf(_impact_radius, _collision_padding) + _spatial_hitbox_padding()
 	var radius := start_position.distance_to(end_position) * 0.5 + query_padding
 	var candidates: Array = battle.call("spatial_query", {
@@ -323,12 +337,12 @@ func _find_segment_hit_target(start_position: Vector2, end_position: Vector2, pr
 		"radius": radius,
 		"x_min": x_min - _spatial_hitbox_padding(),
 		"x_max": x_max + _spatial_hitbox_padding(),
-		"height_range": Vector2(minf(previous_height, current_height), maxf(previous_height, current_height)),
+		"height_range": Vector2(minf(previous_absolute_z, current_absolute_z), maxf(previous_absolute_z, current_absolute_z)),
 		"filter": func(candidate): return _is_projectile_hit_candidate(candidate),
 	})
 	for candidate in candidates:
 		var candidate_node := candidate as Node2D
-		if not _matches_height_range(candidate_node, previous_height, current_height):
+		if not _matches_height_range(candidate_node, previous_absolute_z, current_absolute_z):
 			continue
 		var candidate_hitbox := candidate_node.get_node_or_null("HitboxComponent")
 		var intersects := false
@@ -366,7 +380,7 @@ func _is_projectile_hit_candidate(candidate: Variant) -> bool:
 
 
 func _matches_terminal_hit_target(candidate_node: Node2D) -> bool:
-	if not _matches_height_range(candidate_node, _height, _height):
+	if not _matches_height_range(candidate_node, _absolute_z, _absolute_z):
 		return false
 	match _terminal_hit_strategy:
 		&"impact_hitbox":
@@ -481,6 +495,18 @@ func get_height() -> float:
 	return _height
 
 
+func get_height_above_ground() -> float:
+	return _height
+
+
+func get_terrain_elevation() -> float:
+	return _terrain_z
+
+
+func get_absolute_z() -> float:
+	return _absolute_z
+
+
 func get_hit_height_range() -> Vector2:
 	return Vector2(0.0, _max_hit_height)
 
@@ -488,9 +514,11 @@ func get_hit_height_range() -> Vector2:
 func set_projected_motion_state(ground_position: Vector2, height: float) -> void:
 	_ground_position = ground_position
 	_height = maxf(height, 0.0)
+	_update_height_state_values()
 	_apply_projected_transform()
 	set_state_value(&"ground_position", _ground_position)
 	set_state_value(&"height", _height)
+	set_state_value(&"height_above_ground", _height)
 	set_state_value(&"projected_position", global_position)
 	queue_redraw()
 
@@ -505,17 +533,56 @@ func _candidate_ground_position(candidate: Node2D) -> Vector2:
 	return candidate.global_position
 
 
-func _matches_height_range(candidate: Node, previous_height: float, current_height: float) -> bool:
-	var min_hit_height := 0.0
-	var max_hit_height := 24.0
+func _matches_height_range(candidate: Node, previous_absolute_z: float, current_absolute_z: float) -> bool:
+	var candidate_range := _candidate_absolute_height_range(candidate)
+	var segment_min_height := minf(previous_absolute_z, current_absolute_z)
+	var segment_max_height := maxf(previous_absolute_z, current_absolute_z)
+	return segment_max_height >= candidate_range.x and segment_min_height <= candidate_range.y
+
+
+func _candidate_absolute_height_range(candidate: Node) -> Vector2:
+	var hit_range := Vector2(0.0, 24.0)
 	if candidate != null and candidate.has_method("get_hit_height_range"):
-		var hit_range: Variant = candidate.call("get_hit_height_range")
-		if hit_range is Vector2:
-			min_hit_height = hit_range.x
-			max_hit_height = hit_range.y
-	var segment_min_height := minf(previous_height, current_height)
-	var segment_max_height := maxf(previous_height, current_height)
-	return segment_max_height >= min_hit_height and segment_min_height <= max_hit_height
+		var value: Variant = candidate.call("get_hit_height_range")
+		if value is Vector2:
+			hit_range = value
+	var terrain_z := _terrain_elevation_for_candidate(candidate)
+	return Vector2(terrain_z + hit_range.x, terrain_z + hit_range.y)
+
+
+func _terrain_elevation_for_candidate(candidate: Node) -> float:
+	if candidate == null:
+		return 0.0
+	var lane_value: Variant = candidate.get("lane_id")
+	if not (lane_value is int):
+		return 0.0
+	var ground_position := Vector2.ZERO
+	if candidate is Node2D:
+		ground_position = _candidate_ground_position(candidate as Node2D)
+	else:
+		return 0.0
+	return _terrain_elevation_at(int(lane_value), ground_position.x)
+
+
+func _absolute_z_at(ground_position: Vector2, height_above_ground: float) -> float:
+	return _terrain_elevation_at(lane_id, ground_position.x) + height_above_ground
+
+
+func _update_height_state_values() -> void:
+	_terrain_z = _terrain_elevation_at(lane_id, _ground_position.x)
+	_absolute_z = _terrain_z + _height
+	set_state_value(&"terrain_z", _terrain_z)
+	set_state_value(&"absolute_z", _absolute_z)
+
+
+func _terrain_elevation_at(query_lane_id: int, x: float) -> float:
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("get_battlefield_metrics"):
+		return 0.0
+	var metrics: Variant = battle.call("get_battlefield_metrics")
+	if metrics == null or not metrics.has_method("terrain_elevation_at"):
+		return 0.0
+	return float(metrics.call("terrain_elevation_at", query_lane_id, x))
 
 
 func _projectile_color() -> Color:

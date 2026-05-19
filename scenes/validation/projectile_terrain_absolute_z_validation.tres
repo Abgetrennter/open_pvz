@@ -1,0 +1,88 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/lane_terrain_profile.gd" id="4_profile"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_rule"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/linear_ground.tres" id="7_linear_ground"]
+
+[sub_resource type="Resource" id="TerrainProfile_linear"]
+script = ExtResource("4_profile")
+profile_id = &"projectile_linear_slope"
+elevation_mode = &"linear"
+base_elevation = 0.0
+elevation_per_slot = 24.0
+
+[sub_resource type="Resource" id="LaneConfig_roof"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"roof"
+terrain_profile = SubResource("TerrainProfile_linear")
+
+[sub_resource type="Resource" id="BattlefieldPreset_projectile"]
+script = ExtResource("2_preset")
+preset_id = &"projectile_terrain_absolute_z"
+display_name = "Projectile Terrain Absolute Z"
+lane_count = 1
+board_slot_count = 6
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+lane_y_positions = Array[float]([240.0])
+lane_configs = [SubResource("LaneConfig_roof")]
+
+[sub_resource type="Resource" id="Spawn_shooter"]
+script = ExtResource("5_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+projectile_flight_profile_override = ExtResource("7_linear_ground")
+spawn_overrides = {
+"damage": 20,
+"interval": 1.2,
+"speed_slots_per_sec": 2.291667,
+"start_delay": 0.2
+}
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("5_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 640.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_projectile_spawn"]
+script = ExtResource("6_rule")
+rule_id = &"terrain_projectile_spawn"
+description = "terrain-follow projectile should spawn on sloped terrain"
+event_name = &"projectile.spawned"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_ground"
+}
+
+[sub_resource type="Resource" id="Rule_projectile_hit"]
+script = ExtResource("6_rule")
+rule_id = &"terrain_projectile_hit"
+description = "terrain-follow projectile should compare hits in absolute z"
+event_name = &"projectile.hit"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"profile_id": &"linear_ground",
+"target_absolute_height_range": Vector2(120, 144),
+"target_terrain_z": 120.0,
+"target_lane": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"projectile_terrain_absolute_z_validation"
+display_name = "Projectile Terrain Absolute Z Validation"
+description = "Validates that terrain-follow linear projectiles use terrain elevation plus height-above-ground for hit comparisons."
+validation_time_limit = 4.5
+battlefield_preset = SubResource("BattlefieldPreset_projectile")
+validation_rules = [SubResource("Rule_projectile_spawn"), SubResource("Rule_projectile_hit")]
+spawns = [SubResource("Spawn_shooter"), SubResource("Spawn_target")]

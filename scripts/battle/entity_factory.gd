@@ -468,6 +468,7 @@ func _is_spawn_projectile_override_key(key: Variant) -> bool:
 	return str(key) in [
 		"projectile_template",
 		"flight_profile",
+		"height_reference",
 		"movement_mode",
 		"travel_duration",
 		"arc_height",

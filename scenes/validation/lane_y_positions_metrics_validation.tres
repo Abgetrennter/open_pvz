@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="BattlefieldPreset_lane_y"]
+script = ExtResource("2_preset")
+preset_id = &"lane_y_positions_metrics"
+display_name = "Lane Y Positions Metrics"
+lane_count = 2
+board_slot_count = 2
+board_slot_origin_x = 150.0
+board_slot_spacing = 80.0
+lane_y_positions = Array[float]([180.0, 260.0])
+
+[sub_resource type="Resource" id="Rule_lane_y"]
+script = ExtResource("3_rule")
+rule_id = &"explicit_lane_y"
+description = "explicit lane_y_positions drive slot positions"
+event_name = &"board.slots_rebuilt"
+required_core_values = {
+"lane_0_slot_0_x": 150.0,
+"lane_0_slot_0_y": 180.0,
+"lane_0_y": 180.0,
+"lane_1_slot_0_y": 260.0,
+"lane_1_y": 260.0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"lane_y_positions_metrics_validation"
+display_name = "Lane Y Positions Metrics Validation"
+description = "Validates that BattlefieldPreset.lane_y_positions feeds BattleManager lane geometry and BattlefieldMetrics slot positions."
+validation_time_limit = 0.5
+validation_fixed_step_count = 1
+validation_finish_after_fixed_steps = true
+battlefield_preset = SubResource("BattlefieldPreset_lane_y")
+validation_rules = [SubResource("Rule_lane_y")]

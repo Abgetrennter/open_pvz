@@ -1,0 +1,72 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="4_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="5_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="6_rule"]
+
+[sub_resource type="Resource" id="LaneConfig_dirt"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"dirt"
+
+[sub_resource type="Resource" id="BattlefieldPreset_dirt"]
+script = ExtResource("2_preset")
+preset_id = &"lane_config_dirt_reject"
+display_name = "Lane Config Dirt Reject"
+lane_count = 1
+board_slot_count = 2
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+lane_configs = [SubResource("LaneConfig_dirt")]
+
+[sub_resource type="Resource" id="CardDef_ground"]
+script = ExtResource("4_card")
+card_id = &"ground_card"
+display_name = "Ground Card"
+archetype_id = &"archetype_basic_shooter"
+sun_cost = 0
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray("ground")
+
+[sub_resource type="Resource" id="Request_ground_on_dirt"]
+script = ExtResource("5_request")
+at_time = 0.25
+card_id = &"ground_card"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Rule_dirt_row"]
+script = ExtResource("6_rule")
+rule_id = &"dirt_row"
+description = "dirt row expands to dirt slot type with empty placement tags"
+event_name = &"board.slots_rebuilt"
+required_core_values = {
+"lane_0_base_tag_text": "",
+"lane_0_slot_type": &"dirt"
+}
+
+[sub_resource type="Resource" id="Rule_reject"]
+script = ExtResource("6_rule")
+rule_id = &"ground_rejected"
+description = "regular ground card is rejected on dirt"
+event_name = &"placement.rejected"
+required_core_values = {
+"card_id": &"ground_card",
+"reason": &"slot_tag_mismatch",
+"slot_type": &"dirt"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"lane_config_dirt_reject_validation"
+display_name = "Lane Config Dirt Reject Validation"
+description = "Validates that dirt lanes have no placement tags and reject ordinary primary placement."
+validation_time_limit = 1.0
+initial_sun = 10
+battlefield_preset = SubResource("BattlefieldPreset_dirt")
+card_defs = [SubResource("CardDef_ground")]
+card_play_requests = [SubResource("Request_ground_on_dirt")]
+validation_rules = [SubResource("Rule_dirt_row"), SubResource("Rule_reject")]

@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="LaneConfig_grass"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"grass"
+
+[sub_resource type="Resource" id="LaneConfig_pool"]
+script = ExtResource("3_lane")
+lane_index = 1
+lane_type = &"pool"
+
+[sub_resource type="Resource" id="BattlefieldPreset_pool"]
+script = ExtResource("2_preset")
+preset_id = &"lane_config_pool_slots"
+display_name = "Lane Config Pool Slots"
+lane_count = 2
+board_slot_count = 2
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+lane_configs = [SubResource("LaneConfig_grass"), SubResource("LaneConfig_pool")]
+
+[sub_resource type="Resource" id="Rule_slots_rebuilt"]
+script = ExtResource("4_rule")
+rule_id = &"pool_and_grass_rows"
+description = "pool lane expands to water while grass lane expands to ground"
+event_name = &"board.slots_rebuilt"
+required_core_values = {
+"lane_0_base_tag_text": "ground,supports_primary",
+"lane_0_slot_type": &"ground",
+"lane_1_base_tag_text": "water",
+"lane_1_slot_type": &"water",
+"lane_config_count": 2,
+"slot_count": 4
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"lane_config_pool_slots_validation"
+display_name = "Lane Config Pool Slots Validation"
+description = "Validates that lane type templates expand into slot_type and placement tags before runtime consumption."
+validation_time_limit = 0.5
+validation_fixed_step_count = 1
+validation_finish_after_fixed_steps = true
+battlefield_preset = SubResource("BattlefieldPreset_pool")
+validation_rules = [SubResource("Rule_slots_rebuilt")]

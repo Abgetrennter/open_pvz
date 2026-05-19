@@ -1,0 +1,103 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=21 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/spawn_zone_config.gd" id="4_zone"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/wave_spawn_entry.gd" id="6_wave_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/wave_def.gd" id="7_wave"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="8_rule"]
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="9_zombie"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="10_height"]
+
+[sub_resource type="Resource" id="LaneConfig_grass"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"grass"
+
+[sub_resource type="Resource" id="SpawnZone_ground"]
+script = ExtResource("4_zone")
+zone_id = &"ground_zone"
+lane_id = 0
+x = 700.0
+zone_tags = PackedStringArray("spawn.medium.ground")
+
+[sub_resource type="Resource" id="BattlefieldPreset_spawn_requirements"]
+script = ExtResource("2_preset")
+preset_id = &"spawn_requirement_missing_guard"
+display_name = "Spawn Requirement Missing Guard"
+lane_count = 1
+board_slot_count = 1
+lane_configs = [SubResource("LaneConfig_grass")]
+spawn_zones = [SubResource("SpawnZone_ground")]
+
+[sub_resource type="Resource" id="Zombie_missing_requirement"]
+script = ExtResource("9_zombie")
+archetype_id = &"inline_spawn_missing_requirement_zombie"
+display_name = "Inline Spawn Missing Requirement Zombie"
+hit_height_band = ExtResource("10_height")
+tags = PackedStringArray("archetype", "zombie")
+max_health = 30
+hitbox_size = Vector2(40, 54)
+default_params = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_missing_requirement"]
+script = ExtResource("5_spawn")
+archetype = SubResource("Zombie_missing_requirement")
+lane_id = 0
+x_position = 500.0
+
+[sub_resource type="Resource" id="WaveSpawn_missing_requirement"]
+script = ExtResource("6_wave_spawn")
+spawn_time_offset = 0.0
+spawn_entry = SubResource("Spawn_missing_requirement")
+
+[sub_resource type="Resource" id="WaveDef_missing_requirement"]
+script = ExtResource("7_wave")
+wave_id = &"missing_requirement_wave"
+start_time = 0.25
+spawn_entries = [SubResource("WaveSpawn_missing_requirement")]
+
+[sub_resource type="Resource" id="Rule_rejected"]
+script = ExtResource("8_rule")
+rule_id = &"spawn_rejected"
+description = "zombie without spawn.medium tag is rejected by strict spawn resolver"
+event_name = &"spawn.rejected"
+required_core_values = {
+"reason": &"missing_required_spawn_tags",
+"wave_id": &"missing_requirement_wave"
+}
+
+[sub_resource type="Resource" id="Rule_protocol_issue"]
+script = ExtResource("8_rule")
+rule_id = &"protocol_issue"
+description = "missing spawn requirement is reported as protocol issue"
+event_name = &"protocol.issue"
+required_core_values = {
+"scope": &"battle_spawn_resolver"
+}
+
+[sub_resource type="Resource" id="Rule_no_spawn"]
+script = ExtResource("8_rule")
+rule_id = &"no_spawn"
+description = "rejected wave entry does not spawn an entity"
+event_name = &"entity.spawned"
+min_count = 0
+max_count = 0
+required_core_values = {
+"spawn_reason": &"wave_spawn"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"spawn_requirement_missing_guard_validation"
+display_name = "Spawn Requirement Missing Guard Validation"
+description = "Validates that strict spawn zone scenarios require zombie archetypes to declare a spawn.medium tag."
+validation_time_limit = 1.2
+battlefield_preset = SubResource("BattlefieldPreset_spawn_requirements")
+defeat_conditions = PackedStringArray()
+wave_defs = [SubResource("WaveDef_missing_requirement")]
+validation_rules = [SubResource("Rule_rejected"), SubResource("Rule_protocol_issue"), SubResource("Rule_no_spawn")]

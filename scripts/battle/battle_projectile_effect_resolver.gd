@@ -123,6 +123,7 @@ func _movement_params_from_flight_profile(flight_profile: Resource) -> Dictionar
 		"profile_id": StringName(flight_profile.get("profile_id")),
 		"move_mode": StringName(flight_profile.get("move_mode")),
 		"height_strategy": StringName(flight_profile.get("height_strategy")),
+		"height_reference": StringName(flight_profile.get("height_reference")),
 		"flight_height": float(flight_profile.get("flight_height")),
 		"arc_height": float(flight_profile.get("peak_height")),
 		"projection_scale": float(flight_profile.get("projection_scale")),

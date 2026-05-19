@@ -3,6 +3,9 @@ class_name WaveRunner
 
 const WaveDefRef = preload("res://scripts/battle/wave_def.gd")
 const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
+const BattleSpawnResolverRef = preload("res://scripts/battle/battle_spawn_resolver.gd")
+const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
+const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 
 var battle: Node = null
 var flow_state: Node = null
@@ -17,6 +20,7 @@ var _started_waves: Dictionary = {}
 var _completed_waves: Dictionary = {}
 var _spawned_entry_indices: Dictionary = {}
 var _spawned_entities: Dictionary = {}
+var _spawn_resolver: RefCounted = BattleSpawnResolverRef.new()
 
 
 func setup(battle_node: Node, flow_state_node: Node, scenario: Resource) -> void:
@@ -38,6 +42,8 @@ func setup(battle_node: Node, flow_state_node: Node, scenario: Resource) -> void
 	_completed_waves.clear()
 	_spawned_entry_indices.clear()
 	_spawned_entities.clear()
+	var battlefield_preset: Variant = scenario.get("battlefield_preset")
+	_spawn_resolver.setup(battle, battlefield_preset)
 
 	var configured_wave_defs: Variant = scenario.get("wave_defs")
 	if configured_wave_defs is Array:
@@ -126,7 +132,7 @@ func _spawn_due_entries(game_time: float) -> void:
 			if game_time + 0.001 < scheduled_time:
 				continue
 			var spawn_entry: Resource = wave_spawn_entry.get("spawn_entry")
-			var spawned_entity = battle.spawn_wave_entry(spawn_entry, wave_id)
+			var spawned_entity = _spawn_wave_entry(spawn_entry, wave_id)
 			var wave_entities: Array = Array(_spawned_entities.get(wave_id, []))
 			if spawned_entity != null:
 				wave_entities.append(spawned_entity)
@@ -226,3 +232,42 @@ func _is_protected_target_missing() -> bool:
 			continue
 		return false
 	return true
+
+
+func _spawn_wave_entry(spawn_entry: Resource, wave_id: StringName):
+	var archetype = CombatContentResolverRef.resolve_spawn_entry_archetype(spawn_entry)
+	var resolution: Dictionary = _spawn_resolver.resolve_spawn(spawn_entry, archetype)
+	if not bool(resolution.get("ok", false)):
+		_report_spawn_rejected(spawn_entry, wave_id, StringName(resolution.get("reason", StringName())))
+		return null
+	var lane_id := int(resolution.get("lane_id"))
+	var x_position := float(resolution.get("x"))
+	_emit_spawn_resolved(spawn_entry, wave_id, lane_id, x_position, StringName(resolution.get("zone_id", StringName())))
+	if battle.has_method("spawn_resolved_wave_entry"):
+		return battle.call("spawn_resolved_wave_entry", spawn_entry, lane_id, x_position, wave_id)
+	return battle.spawn_wave_entry(spawn_entry, wave_id)
+
+
+func _emit_spawn_resolved(spawn_entry: Resource, wave_id: StringName, lane_id: int, x_position: float, zone_id: StringName) -> void:
+	var event_data: Variant = EventDataRef.create(null, null, null, PackedStringArray(["spawn", "resolved"]))
+	event_data.core["wave_id"] = wave_id
+	event_data.core["lane_id"] = lane_id
+	event_data.core["x_position"] = x_position
+	event_data.core["zone_id"] = zone_id
+	if spawn_entry != null:
+		event_data.core["archetype_id"] = StringName(spawn_entry.get("archetype_id"))
+	EventBus.push_event(&"spawn.resolved", event_data)
+
+
+func _report_spawn_rejected(spawn_entry: Resource, wave_id: StringName, reason: StringName) -> void:
+	var message := "Wave %s spawn entry rejected: %s." % [String(wave_id), String(reason)]
+	if battle != null and battle.has_method("report_protocol_issues"):
+		var errors: Array[String] = [message]
+		battle.call("report_protocol_issues", errors, &"battle_spawn_resolver")
+	var event_data: Variant = EventDataRef.create(null, null, null, PackedStringArray(["spawn", "reject"]))
+	event_data.core["wave_id"] = wave_id
+	event_data.core["reason"] = reason
+	if spawn_entry != null:
+		event_data.core["archetype_id"] = StringName(spawn_entry.get("archetype_id"))
+		event_data.core["lane_id"] = int(spawn_entry.get("lane_id"))
+	EventBus.push_event(&"spawn.rejected", event_data)

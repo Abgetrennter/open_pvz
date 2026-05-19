@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/lane_terrain_profile.gd" id="4_profile"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="TerrainProfile_linear"]
+script = ExtResource("4_profile")
+profile_id = &"linear_roof_sample"
+elevation_mode = &"linear"
+base_elevation = 10.0
+elevation_per_slot = 15.0
+projection_y_scale = 0.5
+
+[sub_resource type="Resource" id="LaneConfig_roof"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"roof"
+terrain_profile = SubResource("TerrainProfile_linear")
+
+[sub_resource type="Resource" id="BattlefieldPreset_linear"]
+script = ExtResource("2_preset")
+preset_id = &"terrain_profile_linear_metrics"
+display_name = "Terrain Profile Linear Metrics"
+lane_count = 1
+board_slot_count = 3
+board_slot_origin_x = 100.0
+board_slot_spacing = 50.0
+lane_y_positions = Array[float]([240.0])
+lane_configs = [SubResource("LaneConfig_roof")]
+
+[sub_resource type="Resource" id="Rule_linear_slot_y"]
+script = ExtResource("5_rule")
+rule_id = &"linear_slot_y"
+description = "linear terrain profile exposes logical elevation and applies projection scale to slot y"
+event_name = &"board.slots_rebuilt"
+required_core_values = {
+"lane_0_slot_0_y": 235.0,
+"lane_0_terrain_slot_0": 10.0,
+"lane_0_terrain_slot_1": 25.0,
+"lane_0_terrain_slot_2": 40.0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"terrain_profile_linear_metrics_validation"
+display_name = "Terrain Profile Linear Metrics Validation"
+description = "Validates that linear LaneTerrainProfile sampling feeds BattlefieldMetrics slot positions."
+validation_time_limit = 0.5
+validation_fixed_step_count = 1
+validation_finish_after_fixed_steps = true
+battlefield_preset = SubResource("BattlefieldPreset_linear")
+validation_rules = [SubResource("Rule_linear_slot_y")]

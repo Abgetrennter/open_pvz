@@ -10,6 +10,8 @@ var _lead_time_scale := 1.0
 var travel_duration := 0.6
 var arc_height := 72.0
 var elapsed_time := 0.0
+var _start_terrain_z := 0.0
+var _target_terrain_z := 0.0
 
 
 func configure_movement(params: Dictionary) -> void:
@@ -23,6 +25,10 @@ func configure_movement(params: Dictionary) -> void:
 	travel_duration = max(float(params.get("travel_duration", 0.6)), 0.01)
 	arc_height = float(params.get("arc_height", 72.0))
 	elapsed_time = 0.0
+	start_position = _ground_position_for_lane_x(start_position.x, start_position.y)
+	target_position = _ground_position_for_lane_x(target_position.x, target_position.y)
+	_start_terrain_z = _terrain_elevation_at(start_position)
+	_target_terrain_z = _terrain_elevation_at(target_position)
 	_apply_projectile_motion_state(start_position, 0.0)
 
 
@@ -36,7 +42,7 @@ func physics_process_projectile_move(delta: float):
 	_update_target_position()
 	var progress: float = clamp(elapsed_time / travel_duration, 0.0, 1.0)
 	var base_position: Vector2 = start_position.lerp(target_position, progress)
-	var current_height := 4.0 * arc_height * progress * (1.0 - progress)
+	var current_height := _resolve_current_height(base_position, progress)
 	_apply_projectile_motion_state(base_position, current_height)
 	if projectile.has_method("set_state_value"):
 		projectile.call("set_state_value", &"travel_progress", progress)
@@ -66,6 +72,19 @@ func _update_target_position() -> void:
 				live_offset = live_offset.normalized() * _dynamic_target_adjustment
 
 	target_position = live_target_position + live_offset
+	_target_terrain_z = _terrain_elevation_at(target_position)
+
+
+func _resolve_current_height(ground_position: Vector2, progress: float) -> float:
+	var arc_offset := 4.0 * arc_height * progress * (1.0 - progress)
+	match height_reference:
+		&"ballistic_to_target":
+			var absolute_z := lerpf(_start_terrain_z, _target_terrain_z, progress) + arc_offset
+			return _height_above_ground_for_absolute(ground_position, absolute_z)
+		&"launch_absolute":
+			return _height_above_ground_for_absolute(ground_position, _launch_terrain_z + arc_offset)
+		_:
+			return arc_offset
 
 
 func _estimate_target_velocity() -> Vector2:
