@@ -46,6 +46,8 @@
         "placement_compile_validation",
         "placement_runtime_spec_validation",
         "field_object_mower_validation",
+        "field_object_mower_contact_guard_validation",
+        "field_object_mower_enemy_only_guard_validation",
         "battlefield_phase6_validation"
       ],
       "showcases": []

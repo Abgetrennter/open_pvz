@@ -96,6 +96,18 @@
     "layers": ["core"]
   },
   {
+    "id": "field_object_mower_contact_guard_validation",
+    "scenario": "res://scenes/validation/field_object_mower_contact_guard_validation.tres",
+    "description": "Validates that a lawn mower does not activate until an enemy enters contact range.",
+    "layers": ["core"]
+  },
+  {
+    "id": "field_object_mower_enemy_only_guard_validation",
+    "scenario": "res://scenes/validation/field_object_mower_enemy_only_guard_validation.tres",
+    "description": "Validates that a lawn mower does not activate on nearby non-zombie entities.",
+    "layers": ["core"]
+  },
+  {
     "id": "archetype_multi_payload_validation",
     "scenario": "res://scenes/validation/archetype_multi_payload_validation.tres",
     "description": "Validates that a single trigger mechanic compiles and executes multiple payload mechanics independently.",

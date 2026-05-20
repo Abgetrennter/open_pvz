@@ -325,15 +325,16 @@ func _node_has_any_tag(node: Node, tags: PackedStringArray) -> bool:
 
 
 func _resolve_scan_range(owner: Node, params: Dictionary, default_world: float) -> float:
+	var resolved_default := float(params.get("scan_range", default_world))
 	var metrics := _get_battlefield_metrics()
 	if metrics != null and metrics.has_method("resolve_range"):
 		var origin_x := 0.0
 		if owner is Node2D:
 			origin_x = _node_ground_position(owner).x
-		return float(metrics.call("resolve_range", params, "scan_range_slots", default_world, origin_x))
+		return float(metrics.call("resolve_range", params, "scan_range_slots", resolved_default, origin_x))
 	if params.has("scan_range_slots"):
 		return float(params.get("scan_range_slots")) * 96.0
-	return default_world
+	return resolved_default
 
 
 func _get_battlefield_metrics() -> RefCounted:

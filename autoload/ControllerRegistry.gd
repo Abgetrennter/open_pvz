@@ -104,7 +104,7 @@ func _register_builtin_strategies() -> void:
 		var detection_radius: float = _resolve_slots_distance(params, "detection_radius_slots", 50.0)
 		var sweep_state: String = String(blackboard.get("mower_state", "idle"))
 		if sweep_state == "idle":
-			var detection_result: Dictionary = DetectionRegistry.evaluate(&"lane_forward", owner, {"scan_range": detection_radius})
+			var detection_result: Dictionary = DetectionRegistry.evaluate(&"lane_forward", owner, {"scan_range": detection_radius, "target_tags": PackedStringArray(["zombie"])})
 			if bool(detection_result.get("has_target", false)):
 				blackboard["mower_state"] = "triggered"
 				var activated_event: Variant = EventDataRef.create(owner, owner, null, PackedStringArray(["field_object", "activated"]))
@@ -115,7 +115,7 @@ func _register_builtin_strategies() -> void:
 		elif sweep_state == "triggered":
 			var owner_2d: Node2D = owner as Node2D
 			owner_2d.position.x += move_speed * delta
-			var detection_result: Dictionary = DetectionRegistry.evaluate(&"lane_forward", owner, {"scan_range": 20.0})
+			var detection_result: Dictionary = DetectionRegistry.evaluate(&"lane_forward", owner, {"scan_range": 20.0, "target_tags": PackedStringArray(["zombie"])})
 			for target in Array(detection_result.get("targets", [])):
 				if target == null or not is_instance_valid(target):
 					continue
