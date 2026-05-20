@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenPVZ Draft to Plan"
+  short_description: "Turn drafts into scoped plans"
+  default_prompt: "Use $openpvz-draft-to-plan to turn this OpenPVZ draft into an implementation plan."

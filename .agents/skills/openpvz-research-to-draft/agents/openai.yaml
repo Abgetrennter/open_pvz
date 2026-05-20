@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenPVZ Research to Draft"
+  short_description: "Research a direction and write a draft"
+  default_prompt: "Use $openpvz-research-to-draft to research this OpenPVZ direction and write a draft."

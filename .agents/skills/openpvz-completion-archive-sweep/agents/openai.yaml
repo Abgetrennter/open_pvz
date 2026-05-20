@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenPVZ Completion Archive Sweep"
+  short_description: "Audit completion, docs, archive, and git"
+  default_prompt: "Use $openpvz-completion-archive-sweep to audit whether this completed OpenPVZ feature is documented, archived, committed, and pushed."

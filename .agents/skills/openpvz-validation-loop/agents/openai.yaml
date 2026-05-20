@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenPVZ Validation Loop"
+  short_description: "Run validations and fix failures"
+  default_prompt: "Use $openpvz-validation-loop to run OpenPVZ validations and triage failures."
