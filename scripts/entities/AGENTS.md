@@ -1,6 +1,6 @@
 # scripts/entities -- 实体类型
 
-> 所有运行时实体根节点。`BaseEntity` 派生 `PlantRoot` / `ZombieRoot` / `ProjectileRoot` / `FieldObjectRoot` → `LawnMower`。每个实体携带 `EntityState`（RefCounted）做状态追踪。
+> 所有运行时实体根节点。`BaseEntity` 派生 `PlantRoot` / `ZombieRoot` / `ProjectileRoot` / `FieldObjectRoot` / `GridItemRoot`。每个实体携带 `EntityState`（RefCounted）做状态追踪。
 
 ## WHERE TO LOOK
 
@@ -11,7 +11,8 @@
 | `zombie_root.gd` | `ZombieRoot` | BaseEntity | team="zombie"，move_speed + 自动移动 + take_damage |
 | `projectile_root.gd` | `ProjectileRoot` | BaseEntity | 飞行状态 / 3D→2D 投影 / 命中检测（swept_segment / terminal / overlap）/ on_hit 效果链 |
 | `field_object_root.gd` | `FieldObjectRoot` | BaseEntity | team="field_object"，默认不参与 targetable/damageable/collidable |
-| `lawn_mower.gd` | `LawnMower` | FieldObjectRoot | idle→triggered→expired 状态机，扫掠同车道僵尸 |
+| `grid_item_root.gd` | `GridItemRoot` | FieldObjectRoot | 格子物件根节点，维护 BoardSlot 绑定和移除释放 |
+| `lawn_mower.gd` | -- | FieldObjectRoot | 已退役兼容脚本；割草机正式路径为 `FieldObjectRoot + Controller.core.sweep` |
 
 ## CORE INTERFACES
 

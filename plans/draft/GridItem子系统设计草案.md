@@ -16,7 +16,7 @@
 - 不再建议用粗粒度 `blocks_planting` tag 直接拒绝所有植物；这会把 Grave Buster 这类交互型植物一并拒绝。
 - GridItem 的生成入口改为 `BattleGridItemState + spawn_grid_item/remove_grid_item`，不要求现有 `spawn_entity` 直接支持 field_object。
 - 现有 `archetype_tombstone_blocker` 是 `plant + blocker` 的过渡资源，迁移为 GridItem 时必须保留专门兼容验证。
-- 割草机不再作为 `EntityFactory` 的专用 root 特判保留；目标形态是普通 `field_object + Controller.core.sweep`，视觉由 VisualProfile / 视觉层负责。
+- 割草机不再作为 `EntityFactory` 的专用 root 特判保留；当前形态是普通 `field_object + Controller.core.sweep`，视觉由 VisualProfile / 视觉层负责。
 - 原版墓碑/罐子不走普通伤害链。墓碑由 Grave Buster 这类专门交互通过 effect 移除；罐子由 Vasebreaker 模式输入或专用 effect reveal；`damageable=true` 只作为扩展能力。
 
 ## 文档定位
@@ -144,7 +144,7 @@ GridItem 第一版直接新增 `GridItemRoot`：
 - `EntityFactory` 对普通 field_object 默认返回 `FieldObjectRoot`
 - 割草机行为由 `Controller.core.sweep` 驱动
 - 割草机外观由 VisualProfile / 视觉层绘制，不由 `LawnMower._draw()` 承担
-- 现有 `scripts/entities/lawn_mower.gd` 只作为历史实现参考，后续可在验证通过后退役
+- 现有 `scripts/entities/lawn_mower.gd` 已退役为兼容脚本，不再承载割草机规则
 
 这条决策使 `field_object` 的根节点选择保持一致：只有格子物件因生命周期和可破坏语义需要 `GridItemRoot`，不再为单个世界物件保留硬编码分支。
 
@@ -560,7 +560,7 @@ GridItem 基础设施是**格子占位实体层**：它操作 `BoardSlot role_oc
 | 文件 | 用途 |
 |------|------|
 | `scripts/entities/field_object_root.gd` | GridItemRoot 的父类；不承担格子绑定和主动释放语义 |
-| `scripts/entities/lawn_mower.gd` | 割草机历史专用 root；目标是降级为普通 field_object 后退役 |
+| `scripts/entities/lawn_mower.gd` | 已退役兼容脚本；割草机规则由普通 field_object + `Controller.core.sweep` 承载 |
 | `autoload/ControllerRegistry.gd` | `core.sweep` 已承载割草机运行时行为，降级后继续复用 |
 | `scripts/battle/board_slot.gd` | 角色占位 API（130 行） |
 | `scripts/battle/battle_board_state.gd` | validate_request 检查链（734 行，关键行 223-281） |

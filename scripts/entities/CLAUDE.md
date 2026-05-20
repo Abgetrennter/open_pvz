@@ -4,7 +4,7 @@
 
 ## 模块职责
 
-定义引擎中所有实体的根节点类型。采用继承链：`BaseEntity` -> `PlantRoot` / `ZombieRoot` / `ProjectileRoot`。每个实体附带 `EntityState`（RefCounted）用于状态追踪。
+定义引擎中所有实体的根节点类型。采用继承链：`BaseEntity` -> `PlantRoot` / `ZombieRoot` / `ProjectileRoot` / `FieldObjectRoot` / `GridItemRoot`。每个实体附带 `EntityState`（RefCounted）用于状态追踪。
 
 ## 关键文件
 
@@ -15,7 +15,8 @@
 | `zombie_root.gd` | `ZombieRoot` | BaseEntity | 僵尸根节点。team = "zombie"，包含 move_speed、自动移动逻辑、take_damage 接口 |
 | `projectile_root.gd` | `ProjectileRoot` | BaseEntity | 抛射体根节点。管理飞行状态、3D-2D 投影、命中检测（swept_segment / terminal / overlap）、on_hit 效果链 |
 | `field_object_root.gd` | `FieldObjectRoot` | BaseEntity | 场上物件根节点。team = "field_object"，默认不参与 targetable / damageable / collidable 外视维度 |
-| `lawn_mower.gd` | `LawnMower` | FieldObjectRoot | 割草机：idle → triggered → expired 状态机，检测同车道僵尸并扫掠击杀 |
+| `grid_item_root.gd` | `GridItemRoot` | FieldObjectRoot | 格子物件根节点。维护 BoardSlot 绑定、移除释放和 GridItem 调试状态 |
+| `lawn_mower.gd` | -- | FieldObjectRoot | 已退役兼容脚本。割草机正式运行时由普通 FieldObjectRoot 挂载 `Controller.core.sweep` |
 
 ## 核心接口
 

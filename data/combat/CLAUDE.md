@@ -49,11 +49,13 @@ data/combat/
 
 | 模板 ID | 文件 | 类型 |
 |---------|------|------|
-| `field_object_lawn_mower` | field_objects/field_object_lawn_mower.tres | 割草机 |
+| `archetype_lawn_mower` | field_objects/archetype_lawn_mower.tres | 割草机；普通 `field_object`，行为由 `Controller.core.sweep` 驱动 |
+| `archetype_lawn_mower_skeleton` | field_objects/archetype_lawn_mower_skeleton.tres | 割草机骨架验证资源；普通 `field_object`，行为由 `Controller.core.sweep` 驱动 |
+| `archetype_crater` | field_objects/archetype_crater.tres | GridItem / placement blocker |
 
 ## Archetype 编写约定
 
-- 命名：`plant_role_variant` / `zombie_role_variant` / `projectile_type`
+- 命名：`plant_role_variant` / `zombie_role_variant` / `field_object_name`
 - 字段顺序：Identity -> Node/Component -> Combat -> Projectile -> Behavior
 - 正式实体只允许使用 `CombatArchetype + CombatMechanic[]`
 - 放置约束通过 `placement_role`, `required_placement_tags`, `granted_placement_tags` 控制
