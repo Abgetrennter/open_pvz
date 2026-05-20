@@ -11,7 +11,7 @@ var _current_sun := 0
 var _cooldown_ready_times: Dictionary = {}
 
 
-func panel_setup(battle: Node, scenario: Resource, theme: UIThemeProfile = null) -> void:
+func panel_setup(battle: Node, scenario: Resource, theme: Resource = null) -> void:
 	super.panel_setup(battle, scenario, theme)
 	_card_defs.clear()
 	_card_slots.clear()

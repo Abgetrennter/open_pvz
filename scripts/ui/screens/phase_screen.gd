@@ -8,7 +8,7 @@ var _subscriptions: Array[Dictionary] = []
 var _active_tweens: Array[Tween] = []
 
 
-func screen_setup(battle: Node, theme: UIThemeProfile = null) -> void:
+func screen_setup(battle: Node, theme: Resource = null) -> void:
 	super.screen_setup(battle, theme)
 	_flow_state = null
 	if battle != null and is_instance_valid(battle):

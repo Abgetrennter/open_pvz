@@ -1,15 +1,17 @@
 extends Control
 class_name UIPanelBase
 
+const UIThemeProfileRef = preload("res://scripts/ui/theme/ui_theme_profile.gd")
+
 var _battle: Node = null
 var _subscriptions: Array[Dictionary] = []
 var _active_tweens: Array[Tween] = []
-var _theme_profile: UIThemeProfile = null
+var _theme_profile: Resource = null
 
 
-func panel_setup(battle: Node, _scenario: Resource, theme: UIThemeProfile = null) -> void:
+func panel_setup(battle: Node, _scenario: Resource, theme: Resource = null) -> void:
 	_battle = battle
-	_theme_profile = theme if theme != null else UIThemeProfile.default()
+	_theme_profile = theme if theme != null else UIThemeProfileRef.default()
 
 
 func panel_teardown() -> void:
@@ -49,7 +51,7 @@ func _kill_active_tweens() -> void:
 	_active_tweens.clear()
 
 
-func _get_theme() -> UIThemeProfile:
+func _get_theme() -> Resource:
 	return _theme_profile
 
 

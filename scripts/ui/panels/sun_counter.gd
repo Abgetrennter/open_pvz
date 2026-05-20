@@ -6,7 +6,7 @@ var _label: Label = null
 var _icon: ColorRect = null
 
 
-func panel_setup(battle: Node, scenario: Resource, theme: UIThemeProfile = null) -> void:
+func panel_setup(battle: Node, scenario: Resource, theme: Resource = null) -> void:
 	super.panel_setup(battle, scenario, theme)
 	_current_sun = _resolve_initial_sun(scenario)
 	_build_ui()

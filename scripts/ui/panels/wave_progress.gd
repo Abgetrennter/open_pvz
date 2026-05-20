@@ -7,7 +7,7 @@ var _label: Label = null
 var _is_final := false
 
 
-func panel_setup(battle: Node, scenario: Resource, theme: UIThemeProfile = null) -> void:
+func panel_setup(battle: Node, scenario: Resource, theme: Resource = null) -> void:
 	super.panel_setup(battle, scenario, theme)
 	_total_waves = 0
 	_current_wave = 0
