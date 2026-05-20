@@ -6,7 +6,7 @@
 - 事实来源：`vendor/de-pvz/`（原版反编译）、`vendor/PVZ-Godot-Dream/`（参考实现）、本项目代码与 wiki
 - 可作为当前实现依据：是（分析结论），否（需设计审批后执行）
 
-> 维护注记（2026-05-20）：本文的研究结论仍可用；基础设施执行口径已由 `plans/draft/zombie-infrastructure-protocol-supplement.md` 和正式 wiki 回写收口。旧文中的 `ArmorLayerDef / armor_layers` 统一按 `HealthLayerDef / health_layers` 理解；`core.vault/core.bounce` 只表示后续复杂 Movement type 需求，v1 已落地类型为 `core.walk` 与 `core.leap_once`。
+> 维护注记（2026-05-20）：本文的研究结论仍可用；基础设施执行口径已由 `plans/archive/zombie-infrastructure-2026-05/zombie-infrastructure-protocol-supplement.md` 和正式 wiki 回写收口。旧文中的 `ArmorLayerDef / armor_layers` 统一按 `HealthLayerDef / health_layers` 理解；`core.vault/core.bounce` 只表示后续复杂 Movement type 需求，v1 已落地类型为 `core.walk` 与 `core.leap_once`。
 
 ---
 
