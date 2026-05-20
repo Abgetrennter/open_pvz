@@ -12,11 +12,12 @@
 
 - 正式 archetype 资源覆盖 plants / zombies / field_objects。
 - 验证场景分层覆盖 smoke / core / extension / guardrail / showcase，具体数量见 `tools/validation_scenarios.json`。
-- Mechanic 一级 family 已冻结为 `10` 个；当前正文已按 `10/10` 建立正式编译覆盖理解。
+- Mechanic 一级 family 已冻结为 `11` 个；当前正文已按 `11/11` 建立正式编译覆盖理解，其中 `Movement` 来自 ADR-008。
 - `EntityTemplate / TriggerBinding` 已从运行时、正式内容入口、扩展模板和验证主线中移除；历史记录只允许留在归档叙述中。
 - `ProjectileTemplate` 继续保留为抛射体内容资源，不再与实体旧作者模型并列为顶层入口。
 - battle 模式组织层 v1 已经进入主干：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef` 已具备运行时主链和批量验证入口。
 - 规则基础设施第二轮已完成：多维 liveness、`SpatialIndex` / `spatial_query`、`height_range` 过滤和 tick budget 监控已经进入主干。
+- 僵尸基础设施协议 Wave 0 已完成：HealthLayer、damage_layer_policy、Movement v1、State side-effects、exposure/weight 过滤已经进入主干。
 
 一句话判断：
 

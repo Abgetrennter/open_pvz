@@ -48,5 +48,6 @@ func _register_builtin_families() -> void:
 		&"Lifecycle",
 		&"Placement",
 		&"Controller",
+		&"Movement",
 	]:
 		register_family(family_name)

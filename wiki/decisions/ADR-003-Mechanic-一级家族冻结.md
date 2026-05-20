@@ -12,6 +12,7 @@
   - [触发器系统](../02-runtime-protocol/03-触发器系统.md)
   - [效果系统](../02-runtime-protocol/04-效果系统.md)
   - [连续行为模型](../02-runtime-protocol/08-连续行为模型.md)
+  - [ADR-008 Movement 一级家族新增](ADR-008-Movement-一级家族新增.md)
 - 关联实现：
   - 未来新增 `MechanicFamilyRegistry`
   - 未来新增 `MechanicTypeRegistry`
@@ -20,7 +21,7 @@
 
 ## 1. 决策摘要
 
-`Mechanic-first` 架构正式冻结 10 个一级 family：
+`Mechanic-first` 架构初始冻结 10 个一级 family：
 
 - `Trigger`
 - `Targeting`
@@ -35,6 +36,8 @@
 
 后续新增能力优先走现有 family 下的 `type` 和 `param`。  
 新增一级 family 必须走新的 ADR，扩展包默认不得新增一级 family。
+
+2026-05-20，ADR-008 已按本规则接受并新增第 11 个一级 family `Movement`。当前正式 family 清单以 [编译链与 Mechanic 系统](../02-runtime-protocol/11-编译链与Mechanic系统.md) 为准。
 
 ## 2. 背景与问题
 

@@ -14,5 +14,6 @@ hitbox_radius = 9.0
 default_params = {
 "damage": 20,
 "speed_slots_per_sec": 3.125,
+"target_exposure_states": PackedStringArray("flying"),
 "turn_rate": 8.0
 }

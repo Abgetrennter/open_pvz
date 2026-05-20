@@ -14,5 +14,6 @@ params = {
 "amount": 1800,
 "radius_slots": 41.666667,
 "target_mode": &"enemies_in_radius",
+"target_exposure_states": PackedStringArray("flying"),
 "target_tags": PackedStringArray("air")
 }

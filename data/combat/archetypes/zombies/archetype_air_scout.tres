@@ -13,6 +13,8 @@ entity_kind = &"zombie"
 tags = PackedStringArray("archetype", "zombie", "independent", "air", "scout")
 required_components = PackedStringArray("TriggerComponent", "MovementComponent")
 max_health = 270
+initial_exposure_state = &"flying"
+weight_class = &"normal"
 hitbox_size = Vector2(40, 54)
 default_params = {
 "move_speed_slots_per_sec": 0.416667

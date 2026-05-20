@@ -67,7 +67,6 @@ func simulation_step(delta: float) -> void:
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
 	_attack_target = _find_attack_target()
 	var movement_scale := get_effective_movement_scale()
-	var effective_move_speed := _resolve_move_speed() * movement_scale
 
 	if movement_component != null:
 		movement_component.velocity = Vector2.ZERO
@@ -87,18 +86,12 @@ func simulation_step(delta: float) -> void:
 			return
 		_try_attack()
 	elif movement_component != null:
-		if not is_liveness_enabled(&"movement"):
-			set_state_value(&"velocity", Vector2.ZERO)
-			set_state_value(&"speed", 0.0)
-			sync_runtime_state()
-			return
-		movement_component.velocity = Vector2.LEFT * effective_move_speed
-		movement_component.physics_process_movement(self, delta)
+		_process_forward_movement(delta, _resolve_move_speed())
 		set_state_value(&"attack_target_id", -1)
 		if movement_scale < 0.999:
 			_emit_status_effect_observed(&"movement_scaled", {
 				"movement_scale": movement_scale,
-				"effective_move_speed": effective_move_speed,
+				"effective_move_speed": _resolve_move_speed() * movement_scale,
 			})
 
 
@@ -219,7 +212,12 @@ func _draw() -> void:
 			draw_circle(Vector2(-4, bh_top - 6), 2.0, outline_color)
 			draw_circle(Vector2(4, bh_top - 6), 2.0, outline_color)
 
-	_draw_health_bar(120 if health_component == null else health_component.current_health, 120 if health_component == null else health_component.max_health, bw)
+	var drawn_health := 120
+	var drawn_max_health := 120
+	if health_component != null:
+		drawn_health = int(health_component.call("get_total_health")) if health_component.has_method("get_total_health") else int(health_component.current_health)
+		drawn_max_health = int(health_component.call("get_total_max_health")) if health_component.has_method("get_total_max_health") else int(health_component.max_health)
+	_draw_health_bar(drawn_health, drawn_max_health, bw)
 
 # ── Fallback visual helpers ──────────────────────────────────────────
 
@@ -284,7 +282,7 @@ func _find_attack_target() -> Node:
 		"radius": attack_range,
 		"x_min": global_position.x - attack_range,
 		"x_max": global_position.x,
-		"filter": func(candidate): return candidate != self and candidate.has_method("take_damage") and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
+		"filter": func(candidate): return candidate != self and candidate.has_method("take_damage") and _matches_default_attack_exposure(candidate) and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
 		"sort_by_distance": true,
 		"max_results": 1,
 	})
@@ -314,7 +312,6 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 	var resolved_attack_range := float(params.get("attack_range", attack_range))
 	_attack_cooldown = max(_attack_cooldown - delta, 0.0)
 	var movement_scale := get_effective_movement_scale()
-	var effective_move_speed := resolved_move_speed * movement_scale
 	if movement_component != null:
 		movement_component.velocity = Vector2.ZERO
 	_attack_target = _find_attack_target_with_range(resolved_attack_range)
@@ -335,18 +332,12 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 			_attack_cooldown = resolved_attack_interval
 			_attack_target.call("take_damage", resolved_attack_damage, self, PackedStringArray(["bite"]))
 	elif movement_component != null:
-		if not is_liveness_enabled(&"movement"):
-			set_state_value(&"velocity", Vector2.ZERO)
-			set_state_value(&"speed", 0.0)
-			sync_runtime_state()
-			return
-		movement_component.velocity = Vector2.LEFT * effective_move_speed
-		movement_component.physics_process_movement(self, delta)
+		_process_forward_movement(delta, resolved_move_speed)
 		set_state_value(&"attack_target_id", -1)
 		if movement_scale < 0.999:
 			_emit_status_effect_observed(&"movement_scaled", {
 				"movement_scale": movement_scale,
-				"effective_move_speed": effective_move_speed,
+				"effective_move_speed": resolved_move_speed * movement_scale,
 			})
 
 
@@ -357,6 +348,22 @@ func on_controllers_disabled(_delta: float) -> void:
 	set_state_value(&"velocity", Vector2.ZERO)
 	set_state_value(&"speed", 0.0)
 	sync_runtime_state()
+
+
+func _process_forward_movement(delta: float, base_move_speed: float) -> void:
+	if movement_component == null:
+		return
+	if not is_liveness_enabled(&"movement"):
+		set_state_value(&"velocity", Vector2.ZERO)
+		set_state_value(&"speed", 0.0)
+		sync_runtime_state()
+		return
+	var fallback_velocity := Vector2.LEFT * base_move_speed
+	if movement_component.has_method("physics_process_entity_movement"):
+		movement_component.call("physics_process_entity_movement", self, delta, fallback_velocity, &"legacy.zombie_walk", true)
+	else:
+		movement_component.velocity = fallback_velocity * get_effective_movement_scale()
+		movement_component.physics_process_movement(self, delta)
 
 
 func _find_attack_target_with_range(resolved_attack_range: float) -> Node:
@@ -370,11 +377,19 @@ func _find_attack_target_with_range(resolved_attack_range: float) -> Node:
 		"radius": resolved_attack_range,
 		"x_min": global_position.x - resolved_attack_range,
 		"x_max": global_position.x,
-		"filter": func(candidate): return candidate != self and candidate.has_method("take_damage") and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
+		"filter": func(candidate): return candidate != self and candidate.has_method("take_damage") and _matches_default_attack_exposure(candidate) and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
 		"sort_by_distance": true,
 		"max_results": 1,
 	})
 	return null if targets.is_empty() else targets[0]
+
+
+func _matches_default_attack_exposure(candidate: Node) -> bool:
+	if candidate == null:
+		return false
+	if candidate.has_method("get_exposure_state"):
+		return StringName(candidate.call("get_exposure_state")) == &"ground"
+	return true
 
 
 func is_runtime_alive() -> bool:

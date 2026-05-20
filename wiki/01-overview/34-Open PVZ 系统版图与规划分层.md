@@ -87,7 +87,7 @@
 | Archetype + Mechanic 编译链 | 引擎运行时层 | 已进入稳定主干 | 正式运行时入口已收口到 archetype-only |
 | Trigger / Effect 运行时 | 引擎运行时层 | 已进入稳定主干 | 继续作为共享离散执行链使用 |
 | Controller / State / Lifecycle | 引擎运行时层 | 已进入稳定主干 | 已由 ADR-004 确认为正式能力位 |
-| 10 个一级 family 边界 | 引擎运行时层 | 已冻结并完成第一轮正式收口 | 当前正文按 `10/10` family 正式编译覆盖理解 |
+| 11 个一级 family 边界 | 引擎运行时层 | 已冻结并完成第一轮正式收口 | 当前正文按 `11/11` family 正式编译覆盖理解；`Movement` 由 ADR-008 新增 |
 | 阳光、棋盘、卡片、波次 | 战斗玩法层 | 已进入主干 | 都已有正式验证入口 |
 | battle 模式组织层 | 战斗玩法层 | 已进入主干 | 已具备 mode host、input profile、rule module、objective 与批量回归 |
 | 正式 archetype 资源 | 正式内容与扩展层 | 已形成 v1 基线 | plants / zombies / field_objects |

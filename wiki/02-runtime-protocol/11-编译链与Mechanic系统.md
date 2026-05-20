@@ -2,7 +2,7 @@
 
 - 状态：当前事实
 
-> 本文描述当前正式内容入口如何从 `Archetype + Mechanic[]` 编译为运行时可消费的 `RuntimeSpec`。决策边界来自 [ADR-002](../decisions/ADR-002-顶层作者模型与编译链.md)、[ADR-003](../decisions/ADR-003-Mechanic-一级家族冻结.md)、[ADR-004](../decisions/ADR-004-连续行为-状态与生命周期正式化.md)、[ADR-005](../decisions/ADR-005-扩展包接入与迁移策略.md)。
+> 本文描述当前正式内容入口如何从 `Archetype + Mechanic[]` 编译为运行时可消费的 `RuntimeSpec`。决策边界来自 [ADR-002](../decisions/ADR-002-顶层作者模型与编译链.md)、[ADR-003](../decisions/ADR-003-Mechanic-一级家族冻结.md)、[ADR-004](../decisions/ADR-004-连续行为-状态与生命周期正式化.md)、[ADR-005](../decisions/ADR-005-扩展包接入与迁移策略.md) 和 [ADR-008](../decisions/ADR-008-Movement-一级家族新增.md)。
 
 ---
 
@@ -11,7 +11,7 @@
 本文主要回答：
 
 - 当前唯一正式作者入口是什么。
-- 10 个一级 family 如何理解。
+- 11 个一级 family 如何理解。
 - 编译链如何把 archetype 变成 `RuntimeSpec`。
 - 旧实体模型的归档边界是什么。
 
@@ -49,7 +49,7 @@ Mechanic 负责定义：
 
 ---
 
-## 10 个冻结 family
+## 11 个冻结 family
 
 当前冻结的一级 family 为：
 
@@ -63,6 +63,7 @@ Mechanic 负责定义：
 8. `Lifecycle`
 9. `Placement`
 10. `Controller`
+11. `Movement`
 
 当前正文统一按下面口径理解：
 
@@ -74,9 +75,11 @@ Mechanic 负责定义：
 
 ---
 
+`Movement` 是 ADR-008 接受后的唯一新增 family，v1 只冻结 `core.walk` 与 `core.leap_once`。`hop_cycle`、`tunnel`、`drive`、`submerge` 等复杂 type 只作为后续批次登记项，不能先塞进 `ZombieRoot`、`Controller` 或 `BattleManager` 特判。
+
 ## 当前编译覆盖判断
 
-当前正文按 `10/10` family 已建立正式编译覆盖理解：
+当前正文按 `11/11` family 已建立正式编译覆盖理解：
 
 - `Trigger`
 - `Targeting`
@@ -88,6 +91,7 @@ Mechanic 负责定义：
 - `Lifecycle`
 - `Placement`
 - `Controller`
+- `Movement`
 
 其中 `Placement` 当前已完成第一轮正式收口：
 
@@ -157,6 +161,10 @@ EntityFactory.instantiate_runtime_spec()
 - controller specs
 - state specs
 - placement spec
+- movement spec
+- health layers
+- initial exposure state
+- weight class
 - mechanic runtime state
 
 ### 注册中心
@@ -167,6 +175,7 @@ EntityFactory.instantiate_runtime_spec()
 - `MechanicTypeRegistry`
 - `MechanicCompilerRegistry`
 - `ProjectileMovementRegistry`
+- `MovementRegistry`
 - `ControllerRegistry`
 - `DetectionRegistry`
 - `TriggerRegistry`

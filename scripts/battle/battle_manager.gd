@@ -526,7 +526,21 @@ func _try_spawn_infrastructure_validation_probe() -> void:
 	if active_scenario == null:
 		return
 	var scenario_id: String = String(active_scenario.scenario_id)
-	if not scenario_id.begins_with("spatial_index_"):
+	var infrastructure_prefixes := [
+		"spatial_index_",
+		"health_layer_",
+		"damage_layer_policy_",
+		"movement_",
+		"state_side_effect_",
+		"hit_policy_exposure_",
+		"force_weight_",
+	]
+	var should_spawn := false
+	for prefix in infrastructure_prefixes:
+		if scenario_id.begins_with(prefix):
+			should_spawn = true
+			break
+	if not should_spawn:
 		return
 	_infrastructure_validation_probe = InfrastructureValidationProbeRef.new()
 	_infrastructure_validation_probe.name = "InfrastructureValidationProbe"

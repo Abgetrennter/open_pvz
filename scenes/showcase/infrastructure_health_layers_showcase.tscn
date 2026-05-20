@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/infrastructure_protocol_showcase.gd" id="1_showcase"]
+
+[node name="InfrastructureHealthLayersShowcase" type="Node2D"]
+script = ExtResource("1_showcase")
+showcase_mode = "health_layers"
+showcase_title = "HealthLayer 多层承伤展示"
+showcase_summary = "观察 attachment、shield、helm、body 如何按固定顺序承接伤害，并在过伤时继续向下一层路由。"

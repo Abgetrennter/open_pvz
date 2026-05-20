@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-05-20** — 僵尸基础设施协议 Wave 0 落地：HealthLayer、damage_layer_policy、Movement family v1、State side-effects、exposure/weight 过滤与 13 个专项验证进入主干
 - **2026-05-11** — init-deep 全仓扫描：补充 autoload 清单（16 个）、模块索引（视觉/UI/输入/demo/验证）、反模式章节、守卫脚本命令、扩展包 AGENTS.md
 - **2026-05-10** — 原版植物 E 批补齐 Gloom-shroom、Cattail、Winter Melon、Spikerock、Gold Magnet 单体验证，验证 manifest 扩展到 145 场景
 - **2026-05-09** — 规则基础设施第二轮完成：多维 liveness、`SpatialIndex` / `BattleManager.spatial_query(params)`、`height_range` 过滤、tick budget 监控与专项验证进入主干，验证基线扩展到 140 场景
@@ -17,7 +18,7 @@
 
 Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规则"成为核心玩法驱动力。项目已完成旧实体作者模型归档，正式运行时唯一入口是 **Mechanic-first** 架构：`CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory`。
 
-当前阶段：**Mechanic-first 主链已完成三阶段，通用扩展插槽 v1 与规则基础设施第二轮已落地**。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)、[wiki/04-roadmap-reference/42-通用扩展插槽机制.md](wiki/04-roadmap-reference/42-通用扩展插槽机制.md)、[wiki/02-runtime-protocol/17-实体活跃性与空间查询.md](wiki/02-runtime-protocol/17-实体活跃性与空间查询.md) 和 [wiki/decisions/](wiki/decisions/README.md)。
+当前阶段：**Mechanic-first 主链已完成三阶段，通用扩展插槽 v1、规则基础设施第二轮与僵尸基础设施协议 Wave 0 已落地**。详见 [wiki/01-overview/23-当前阶段与实现路线.md](wiki/01-overview/23-当前阶段与实现路线.md)、[wiki/04-roadmap-reference/42-通用扩展插槽机制.md](wiki/04-roadmap-reference/42-通用扩展插槽机制.md)、[wiki/02-runtime-protocol/17-实体活跃性与空间查询.md](wiki/02-runtime-protocol/17-实体活跃性与空间查询.md) 和 [wiki/decisions/](wiki/decisions/README.md)。
 
 ## 架构总览
 
@@ -25,8 +26,8 @@ Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规
 
 1. **语义事件层** -- "发生了什么"。事件如 `game.tick`、`entity.damaged`、`entity.died`、`projectile.hit` 通过 `EventBus`（autoload）流转。
 2. **行为效果层** -- "该做什么"。`EffectDef` -> `EffectNode`，由 `EffectExecutor` 执行。效果是原子化、可组合、可嵌套的（最大深度 5）。注册于 `EffectRegistry`。
-3. **编译装配层** -- "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。10 个冻结 Mechanic family，49 个内置 type。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`，扩展包可通过 `MechanicCompilerDef` 在现有 family 下新增 type。
-4. **连续行为层** -- "持续对象如何更新"。抛射体使用 3D 逻辑 + 2D 投影；Projectile movement 通过 `ProjectileMovementRegistry` 分发，Controller（bite / sweep 等）通过 `ControllerComponent` 每帧执行。命中时重新进入事件链。
+3. **编译装配层** -- "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。11 个冻结 Mechanic family，Movement 来自 ADR-008 且 v1 只实现 `core.walk` / `core.leap_once`。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`，扩展包可通过 `MechanicCompilerDef` 在现有 family 下新增 type。
+4. **连续行为层** -- "持续对象如何更新"。抛射体使用 3D 逻辑 + 2D 投影；Projectile movement 通过 `ProjectileMovementRegistry` 分发；实体自主运动通过 `MovementRegistry` + `MovementComponent` 分发和积分；Controller（bite / sweep 等）通过 `ControllerComponent` 每帧执行。命中时重新进入事件链。
 
 ### 执行链
 
@@ -42,7 +43,7 @@ Archetype + Mechanic[] -> NormalizedMechanicSet -> RuntimeSpec -> EntityFactory 
 
 **连续行为链**（每帧）：
 ```
-_physics_process -> ControllerComponent -> ControllerRegistry -> Controller Strategy
+_physics_process -> MovementComponent -> MovementRegistry -> ControllerComponent -> ControllerRegistry -> Controller Strategy
 ```
 
 ### 全局单例 (Autoloads)
@@ -52,7 +53,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `EventBus` | 事件分发，优先级订阅，历史追踪（最多 256 条） |
 | `DebugService` | 集中式日志：事件/触发器/效果/运行时快照/协议问题 |
 | `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/`，支持 archetype 查询 |
-| `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
+| `MechanicFamilyRegistry` | Mechanic 一级 family 注册（11 个冻结 family） |
 | `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id，委托 MechanicCompiler 注册内置 type） |
 | `MechanicCompilerRegistry` | Mechanic per-type 编译器 callable 注册与分发 |
 | `DetectionRegistry` | 目标发现策略注册（6 内置 detection：always / lane_forward / lane_backward / proximity / radius_around / global_track，继承 RegistryBase） |
@@ -60,6 +61,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `EffectRegistry` | 效果定义与策略注册（damage / spawn_projectile / explode / apply_status / produce_sun / spawn_entity，继承 RegistryBase） |
 | `ControllerRegistry` | Controller 策略注册（core.bite / core.sweep / core.ground_damage / core.projectile_transform，继承 RegistryBase） |
 | `ProjectileMovementRegistry` | 抛射体 movement 定义注册与组件创建（core.linear / core.parabola / core.track，支持扩展包 movement，继承 RegistryBase） |
+| `MovementRegistry` | 实体自主运动定义注册与命令生成（core.walk / core.leap_once，继承 RegistryBase） |
 | `GameState` | 游戏状态管理（当前战斗、100Hz 仿真时间、实体 ID 分配、battle_seed） |
 | `VisualCueRegistry` | 视觉提示注册与分发 |
 | `VisualFxRegistry` | 视觉特效注册与分发 |
@@ -84,7 +86,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 
 ```mermaid
 graph TD
-    Root["Open PVZ (根)"] --> Autoload["autoload/ (16 个全局单例)"]
+    Root["Open PVZ (根)"] --> Autoload["autoload/ (18 个全局单例)"]
     Root --> Scripts["scripts"]
     Root --> Data["data/combat"]
     Root --> Scenes["scenes"]
@@ -125,8 +127,8 @@ graph TD
 
 | 模块路径 | 语言 | 文件数 | 职责概述 |
 |----------|------|--------|----------|
-| `autoload/` | GDScript | 12 | 全局单例：事件总线、注册表、编译器分发、ProjectileMovement 分发、游戏状态 |
-| `scripts/core/defs/` | GDScript | 15 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, DetectionDef, ControllerDef, ProjectileTemplate, ProjectileMovementDef, MechanicCompilerDef 等 |
+| `autoload/` | GDScript | 18 | 全局单例：事件总线、注册表、编译器分发、ProjectileMovement / Movement 分发、游戏状态 |
+| `scripts/core/defs/` | GDScript | 17 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, DetectionDef, ControllerDef, ProjectileTemplate, ProjectileMovementDef, MovementDef, HealthLayerDef, MechanicCompilerDef 等 |
 | `scripts/core/runtime/` | GDScript | 16 | 运行时：MechanicCompiler, RuntimeSpec, RuntimeTriggerSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
 | `scripts/battle/` | GDScript | 41 | 战斗协调：BattleManager, EntityFactory（archetype-only）, 经济/棋盘/卡片/波次子系统, 模式层 |
 | `scripts/entities/` | GDScript | 6 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot 等 |
@@ -139,7 +141,7 @@ graph TD
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
 | `data/combat/archetypes/` | .tres | 97 | Archetype 资源（85 植物 + 10 僵尸 + 2 场上物件） |
 | `data/combat/` | .tres | 270 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
-| `scenes/validation/` | .tres/.tscn | 140 | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 的 145 个场景为准 |
+| `scenes/validation/` | .tres/.tscn | -- | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 为准 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |
 | `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
@@ -172,7 +174,7 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 
 批量验证说明：`run_all_validations.ps1` 在批处理层做受控并行调度，单场景执行仍复用 `run_validation.ps1`；每个场景输出目录独立，最终 `summary.json` / `summary.txt` 按 manifest 原始顺序汇总。
 
-场景定义：`tools/validation_scenarios.json`（145 个场景，分层 smoke / core / extension / guardrail / showcase）
+场景定义：`tools/validation_scenarios.json`（以文件为准，分层 smoke / core / extension / guardrail / showcase）
 场景资源：`scenes/validation/`
 结果输出：`artifacts/validation/`
 
@@ -252,7 +254,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 
 第一轮协议冻结已生效。未经设计审批，不得修改以下语义：
 
-**Mechanic family（10 个冻结，新增需 ADR）：** Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller
+**Mechanic family（11 个冻结，新增需 ADR）：** Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller / Movement
 
 **触发器：** `periodically` (game.tick)、`when_damaged` (entity.damaged)、`on_death` (entity.died)
 **效果：** `damage`、`spawn_projectile`、`explode`
@@ -263,9 +265,9 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 
 通用扩展插槽 v1 已落地，正式文档见 [wiki/04-roadmap-reference/42-通用扩展插槽机制.md](wiki/04-roadmap-reference/42-通用扩展插槽机制.md)。
 
-- 已开放 slot：`projectile_movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`
-- 所有 registry 统一继承 `RegistryBase`（`autoload/` 中 6 个 autoload：`ProjectileMovementRegistry`、`MechanicCompilerRegistry`、`EffectRegistry`、`TriggerRegistry`、`DetectionRegistry`、`ControllerRegistry`）
-- 新增贡献项资源：`ProjectileMovementDef`、`MechanicCompilerDef`、`TriggerDef`、`DetectionDef`、`ControllerDef`，统一继承 `RegistryContributorDef`（统一字段 `id`、`tags`、`param_defs`）
+- 已开放 slot：`projectile_movement`、`movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`
+- 所有 registry 统一继承 `RegistryBase`（`autoload/` 中 7 个 autoload：`ProjectileMovementRegistry`、`MovementRegistry`、`MechanicCompilerRegistry`、`EffectRegistry`、`TriggerRegistry`、`DetectionRegistry`、`ControllerRegistry`）
+- 新增贡献项资源：`ProjectileMovementDef`、`MovementDef`、`MechanicCompilerDef`、`TriggerDef`、`DetectionDef`、`ControllerDef`，统一继承 `RegistryContributorDef`（统一字段 `id`、`tags`、`param_defs`）
 - 运行时代码 slot 需要 `trust_level = "trusted_runtime"`
 - 扩展包不得注册或覆盖 `core.*`
 - 扩展包不得新增 Mechanic family，只能在冻结 family 下新增 type
@@ -331,6 +333,6 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 - 新增扩展能力时优先走通用插槽：定义 contributor Resource、接入 registry、补 smoke/guardrail validation，再更新 wiki
 - 新增扩展点必须走 `RegistryBase + RegistryConfig + ContributorDef`，不再允许独立实现注册逻辑
 - 调试时使用 `DebugService` 记录，不要用 `print`
-- 抛射体基础飞行配置通过 `ProjectileFlightProfile` Resource 驱动；新增 movement 类型通过 `ProjectileMovementDef + ProjectileMovementRegistry` 接入
+- 抛射体基础飞行配置通过 `ProjectileFlightProfile` Resource 驱动；新增 projectile movement 类型通过 `ProjectileMovementDef + ProjectileMovementRegistry` 接入；新增实体自主运动类型通过 `MovementDef + MovementRegistry` 接入
 - 所有随机行为走确定性随机协议（battle_seed 派生链 + ShuffleBag）
 - `vendor/` 目录为参考实现，不要直接修改或依赖

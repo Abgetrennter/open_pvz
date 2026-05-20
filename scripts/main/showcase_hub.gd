@@ -79,6 +79,33 @@ const GROUPS := [
 		],
 	},
 	{
+		"group_title": "僵尸基础设施协议",
+		"group_summary": "把 HealthLayer、damage_layer_policy、Movement v1 与 exposure/weight 这些底层协议做成小型动态面板，方便肉眼检查规则边界。",
+		"color": Color("d9a441"),
+		"items": [
+			{
+				"title": "HealthLayer 多层承伤",
+				"summary": "展示 attachment、shield、helm、body 按固定顺序承接伤害，过伤继续向下一层路由。",
+				"scene": "res://scenes/showcase/infrastructure_health_layers_showcase.tscn",
+			},
+			{
+				"title": "DamageLayerPolicy 绕盾",
+				"summary": "展示 bypass_layer_kinds=[shield] 的投手类伤害绕过 shield，但仍被 helm/body 承接。",
+				"scene": "res://scenes/showcase/infrastructure_damage_policy_showcase.tscn",
+			},
+			{
+				"title": "Movement 跳跃 Z 轴",
+				"summary": "展示 core.leap_once 的逻辑 Z 轴、airborne 暴露态、ground_contact 和落地反馈。",
+				"scene": "res://scenes/showcase/infrastructure_movement_leap_showcase.tscn",
+			},
+			{
+				"title": "Exposure 命中边界",
+				"summary": "展示默认 ground 命中，以及 flying、underground、airborne 必须显式 opt-in 的协议边界。",
+				"scene": "res://scenes/showcase/infrastructure_exposure_showcase.tscn",
+			},
+		],
+	},
+	{
 		"group_title": "内容样例",
 		"group_summary": "各类植物、僵尸与投射体的攻防行为展示：拦截、连发、抛投、高度命中和终点爆炸等。",
 		"color": Color("81c784"),

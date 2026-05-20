@@ -2,10 +2,10 @@
 
 ## TL;DR
 
-> **Quick Summary**: 复刻 25 个 PVZ1 冒险模式常规僵尸，遵循植物移植方案的 Mechanic-first 架构。前置开发分层血量系统，然后按出场关卡和行为复杂度分 5 批（A-E）推进，每批含验证场景。
+> **Quick Summary**: 复刻 25 个 PVZ1 冒险模式常规僵尸，遵循植物移植方案的 Mechanic-first 架构。Wave 0 基础设施已先行落地：HealthLayer、DamageLayerPolicy、Movement v1、State side-effects、exposure/weight 过滤；后续按出场关卡和行为复杂度分 5 批（A-E）推进，每批含验证场景。
 > 
 > **Deliverables**:
-> - 1 个分层血量系统（ArmorLayerDef + HealthComponent 扩展 + 验证）
+> - 1 个僵尸基础设施协议包（HealthLayerDef + damage_layer_policy + Movement v1 + exposure/weight + 验证）
 > - 25 个原版僵尸 Archetype（`archetype_original_*`）
 > - 对应的 CombatMechanic 资源（复用骨架 + 按需新增）
 > - 25 个单僵尸验证场景 + 5 个批次验证场景
@@ -13,7 +13,7 @@
 > 
 > **Estimated Effort**: XL
 > **Parallel Execution**: YES - 6 waves
-> **Critical Path**: Wave 0 (分层血量) → Batch A (基础近战) → Batch B (特殊移动) → Batch C (水面) → Batch D (复杂行为) → Batch E (巨人) → Final Verification
+> **Critical Path**: Wave 0 (基础设施，已完成) → Batch A (基础近战) → Batch B (特殊移动) → Batch C (水面) → Batch D (复杂行为) → Batch E (巨人) → Final Verification
 
 ---
 
@@ -37,12 +37,12 @@
 
 ### Metis Review
 **Identified Gaps** (addressed):
-- **分层血量设计细节未定**：在 Wave 0 任务中明确设计决策（过伤传递、标签绕过、body-as-layer）
+- **分层血量设计已收口**：Wave 0 已落地 `HealthLayerDef`、layer 路由、过伤、layer destroyed 事件与 shield bypass 策略
 - **Ducky Tube 与水面放置**：记录为协议缺口，Batch C 内处理
 - **Imp/Backup Dancer 被召唤依赖**：作为独立任务，由父僵尸的 spawn_entity 效果触发
 - **验证场景中僵尸不需要 CardDef**：僵尸通过 BattleSpawnEntry 生成，验证场景直接用 spawn
 - **Zomboni 冰道效果**：记录为协议缺口，当前方案中 Zomboni 只实现碾压行为，冰道标记为延后
-- **Screen Door 方向性挡弹**：在分层血量系统中以标签标记 shield 方向性，具体路由逻辑后续迭代
+- **Screen Door 方向性挡弹**：在 HealthLayer 中以 material tag 标记 shield 方向性，具体路由逻辑后续迭代
 
 ---
 
@@ -58,11 +58,11 @@
 - `scenes/validation/zombie_original_*.tres` × 25 + 批次验证 × 5
 - `tools/validation_scenarios.json` 更新（新增 ~30 个条目）
 - `tools/formal_content_validation_map.json` 更新（新增 zombie_original 分组）
-- 分层血量系统：`scripts/core/defs/armor_layer_def.gd` + `scripts/components/health_component.gd` 扩展 + 验证
+- 基础设施协议：`scripts/core/defs/health_layer_def.gd`、`autoload/MovementRegistry.gd`、`HealthComponent`、`MovementComponent`、`StateComponent`、暴露态/重量过滤 + 验证
 
 ### Definition of Done
 - [ ] 所有 25 个原版僵尸有对应 archetype 且可被 WaveRunner 正确生成
-- [ ] 分层血量系统正确处理 body/helm/shield 层的伤害路由
+- [x] Wave 0 基础设施正确处理 body/helm/shield/attachment 层路由、damage_layer_policy、Movement v1、State side-effects、exposure/weight 过滤
 - [ ] 每个僵尸至少 1 个单体验证场景通过
 - [ ] 每批至少 1 个批次验证场景通过
 - [ ] `pwsh tools/run_all_validations.ps1` 全量通过
@@ -78,9 +78,9 @@
 ### Must NOT Have (Guardrails)
 - **禁止为单个僵尸硬编码业务逻辑**：不得编写 `ConeheadZombieAI`、`GargantuarLogic` 这类命名
 - **禁止 BattleManager 特判**：不得为特定僵尸在 BattleManager 中添加 if/switch 分支
-- **禁止绕过分层血量系统**：不得为有护甲僵尸使用单层 max_health 合并值
+- **禁止绕过 HealthLayer 系统**：不得为有护甲僵尸使用单层 max_health 合并值
 - **禁止修改现有测试僵尸**：basic_walker、bucket_tank 等保持不变
-- **禁止新增 Mechanic family**：只能在 10 个冻结 family 下新增 type
+- **除 ADR-008 已接受的 `Movement` 外禁止新增 Mechanic family**：后续新增 family 必须另走 ADR
 - **禁止使用 `print()` 替代 DebugService**
 - **Zomboni 冰道效果不在本轮实现**：只实现碾压行为，冰道标记为协议缺口延后
 - **Screen Door 方向性挡弹不做完整实现**：以标签标记，具体路由逻辑后续迭代
@@ -114,9 +114,12 @@ Evidence saved to `.sisyphus/evidence/task-{N}-{scenario-slug}.{ext}`.
 ### Parallel Execution Waves
 
 ```
-Wave 0 (Start Immediately — foundation):
-├── Task 0: 分层血量系统 [deep]
-└── (blocks all subsequent tasks with layered HP zombies)
+Wave 0 (Completed — foundation):
+├── Task 0a: HealthLayer v1 [done]
+├── Task 0b: DamageLayerPolicy v1 [done]
+├── Task 0c: Movement v1 [done]
+├── Task 0d: State side-effects v1 [done]
+└── Task 0e: Exposure / Weight v1 [done]
 
 Wave 1 / Batch A (After Wave 0 — basic melee, MAX PARALLEL):
 ├── Task 1: Basic Zombie [quick]
@@ -200,7 +203,7 @@ Max Concurrent: 8 (Wave 4)
 
 ### Agent Dispatch Summary
 
-- **Wave 0**: 1 task — T0 → `deep`
+- **Wave 0**: infrastructure completed — HealthLayer / DamageLayerPolicy / Movement / State side-effects / Exposure-Weight
 - **Wave 1 / Batch A**: 4 tasks — T1-T4 → `quick`
 - **Wave 2 / Batch B**: 4 tasks — T5,T6 → `quick`, T7 → `unspecified-high`, T8 → `deep`
 - **Wave 3 / Batch C**: 4 tasks — T9 → `quick`, T10-T12 → `deep`
@@ -215,112 +218,36 @@ Max Concurrent: 8 (Wave 4)
 > Implementation + Validation = ONE Task. Never separate.
 > EVERY task MUST have: Recommended Agent Profile + Parallelization info + QA Scenarios.
 
-- [ ] 0. **分层血量系统（Layered Health）**
+- [x] 0. **僵尸基础设施协议包（Wave 0）**
 
-  **What to do**:
-  - 在 `scripts/core/defs/` 下新建 `armor_layer_def.gd`：定义 ArmorLayerDef Resource（字段：`layer_id: StringName`、`max_health: int`、`armor_type: StringName`（如 CONE/PAIL/DOOR/FOOTBALL/PAPER/LADDER/DIGGER）、`tags: PackedStringArray`）
-  - 扩展 `scripts/core/defs/combat_archetype.gd`：新增 `armor_layers: Array[ArmorLayerDef]` 字段（默认空数组，向后兼容）
-  - 扩展 `scripts/components/health_component.gd`：
-    - 新增 `armor_layers: Array[Dictionary]` 内部表示（每层 current_hp / max_hp / armor_type / tags / alive）
-    - 修改 `take_damage()`：先从最外层护甲扣减，过伤传递到下一层，最终传递到 body（视为最内层）
-    - 新增信号 `armor_layer_destroyed(layer_id: StringName)`
-    - 新增方法 `get_total_health() -> int`、`get_total_max_health() -> int`（用于血条显示）
-    - 保持向后兼容：无 armor_layers 时行为与当前完全一致
-  - 更新 `scripts/battle/entity_factory.gd`：从 archetype.armor_layers 初始化 HealthComponent 的分层配置
-  - 更新 `scripts/core/runtime/entity_state.gd`：同步 armor 层状态（可选，用于快照）
-  - 更新 `scripts/entities/zombie_root.gd`：
-    - `_draw_health_bar()` 使用 `get_total_health()` / `get_total_max_health()` 显示总血量
-    - 监听 `armor_layer_destroyed` 信号触发视觉变化（可标记为协议缺口延后实现具体视觉）
-  - 创建验证场景 `scenes/validation/layered_health_validation.tres`：
-    - 测试用例 1：无护甲实体受 100 伤害，body 从 270 → 170
-    - 测试用例 2：Conehead 配置（body 270 + helm 370），受 200 伤害后 helm 从 370 → 170，body 不变
-    - 测试用例 3：Conehead 配置，受 500 伤害后 helm 370 消亡，body 从 270 → 140（过伤传递）
-    - 测试用例 4：Buckethead 配置（body 270 + helm 1100），helm 消亡后触发 `armor_layer_destroyed` 事件
-  - 更新 `tools/validation_scenarios.json` 添加 `layered_health_validation`
+  **已落地范围**:
+  - `HealthLayerDef` + `CombatArchetype.health_layers` + `RuntimeSpec.health_layers`，支持 `attachment -> shield -> helm -> body` 路由、过伤、`absorb_only/spill_to_next` 和 `health.layer_destroyed`。
+  - `damage_layer_policy` 已接入 `Effect.damage`、`Effect.spawn_projectile`、`ProjectileTemplate.default_params` 和 projectile runtime overrides；v1 支持 `bypass_layer_kinds` 与 `spillover`。
+  - ADR-008 已接受；新增 `Movement` family、`MovementRegistry`、`MovementDef`、`RuntimeSpec.movement_spec`，v1 只实现 `core.walk` 与 `core.leap_once`。
+  - `MovementComponent` 成为默认位置积分点，按 `State override -> Movement base -> Status modifier -> Effect impulse -> integrate` 合并命令，并同步 `height / height_velocity / ground_contact / exposure_state`。
+  - `StateComponent` transition side-effects 已支持 `set_movement`、`submit_movement_override`、`set_height_band`、`set_runtime_params`、`emit_event`，可按 `event_name` 与 `required_layer_id` 过滤 `health.layer_destroyed`。
+  - `CombatArchetype.initial_exposure_state` 与 `weight_class` 已接入，HitPolicy/Effect 使用 `target_exposure_states`，默认只命中 `ground`。
 
-  **Must NOT do**:
-  - 不得破坏现有单层 HP 行为（无 armor_layers 时完全兼容）
-  - 不得创建僵尸专属组件（分层血量是通用能力）
-  - 不得修改现有测试僵尸的 HP 值
-  - 不得在此任务中实现 Screen Door 方向性挡弹（后续迭代）
-  - 不得在此任务中实现 Magnet-shroom 吸取金属护甲（后续迭代）
+  **验证入口**:
+  - `health_layer_helm_routing_validation`
+  - `health_layer_shield_routing_validation`
+  - `health_layer_attachment_routing_validation`
+  - `damage_layer_policy_bypass_shield_validation`
+  - `movement_walk_validation`
+  - `movement_command_merge_validation`
+  - `movement_leap_z_axis_validation`
+  - `movement_interrupt_validation`
+  - `state_side_effect_set_movement_validation`
+  - `hit_policy_exposure_ground_default_validation`
+  - `hit_policy_exposure_flying_validation`
+  - `hit_policy_exposure_hidden_validation`
+  - `force_weight_filter_validation`
 
-  **Recommended Agent Profile**:
-  - **Category**: `deep`
-    - Reason: 涉及多个核心组件的扩展，需要理解现有 HealthComponent、EntityFactory、EntityState 的完整链路
-  - **Skills**: []
-  - **Skills Evaluated but Omitted**:
-    - `playwright`: 不涉及浏览器 UI
-
-  **Parallelization**:
-  - **Can Run In Parallel**: NO
-  - **Parallel Group**: Wave 0 (solo)
-  - **Blocks**: Tasks 3, 4, 5, 6, 7 (所有有分层血量的僵尸)
-  - **Blocked By**: None (can start immediately)
-
-  **References**:
-
-  **Pattern References**:
-  - `scripts/components/health_component.gd` — 当前 54 行，需扩展分层逻辑
-  - `scripts/core/defs/combat_archetype.gd` — 需新增 armor_layers 字段
-  - `scripts/battle/entity_factory.gd:_resolve_max_health()` — 需支持分层 HP 初始化
-  - `scripts/entities/zombie_root.gd:take_damage()` — 需适配分层伤害
-  - `scripts/entities/zombie_root.gd:_draw_health_bar()` — 需使用总血量
-
-  **API/Type References**:
-  - `autoload/EffectRegistry.gd` — damage/explode 效果直接调用 take_damage()，无需修改（分层路由在 HealthComponent 内部处理）
-  - `scripts/core/runtime/entity_state.gd` — EntityState 快照，可选扩展
-
-  **External References**:
-  - `vendor/de-pvz/Lawn/Zombie.h` — Zombie 类的 mBodyHealth/mHelmHealth/mShieldHealth/mFlyingHealth 字段定义（分层 HP 的原版参考）
-
-  **WHY Each Reference Matters**:
-  - `health_component.gd` 是核心扩展目标，分层路由逻辑的实现位置
-  - `combat_archetype.gd` 需新增 armor_layers 配置字段
-  - `entity_factory.gd` 负责从配置创建运行时组件
-  - `zombie_root.gd` 是最终消费层，需适配血条和伤害显示
-  - `de-pvz/Zombie.h` 提供原版分层 HP 的设计参考
-
-  **Acceptance Criteria**:
-
-  **QA Scenarios (MANDATORY):**
-
-  ```
-  Scenario: 单层 HP 向后兼容
-    Tool: Bash (pwsh tools/run_validation.ps1)
-    Preconditions: 无 armor_layers 的实体（如 archetype_basic_walker）
-    Steps:
-      1. pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/zombie_roster_attack_validation.tres"
-      2. 检查结果文件 validation_report.json 中 "verdict" 字段
-    Expected Result: verdict = "passed"，现有测试僵尸行为不受影响
-    Failure Indicators: verdict = "failed"，或任何现有验证场景出现新的失败
-    Evidence: .sisyphus/evidence/task-0-backward-compat.txt
-
-  Scenario: 分层护甲扣减（Conehead 配置）
-    Tool: Bash (pwsh tools/run_validation.ps1)
-    Preconditions: 分层血量验证场景 layered_health_validation.tres 已创建
-    Steps:
-      1. pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/layered_health_validation.tres"
-      2. 检查验证规则：200 伤害后 helm HP 370→170，body 不变
-    Expected Result: verdict = "passed"，entity.damaged 事件的 tags 包含 "helm"
-    Failure Indicators: helm 未扣减，或 body 提前扣减
-    Evidence: .sisyphus/evidence/task-0-layered-cone.txt
-
-  Scenario: 过伤传递（500 伤害击穿 Conehead helm）
-    Tool: Bash (pwsh tools/run_validation.ps1)
-    Preconditions: 同上
-    Steps:
-      1. 运行验证场景，发送 500 伤害
-      2. 检查 helm 消亡（370→0）+ body 承接过伤（270→140）
-    Expected Result: armor_layer_destroyed 事件触发，body HP = 140
-    Failure Indicators: 过伤未传递（body 仍为 270），或伤害总和不等于 500
-    Evidence: .sisyphus/evidence/task-0-overkill.txt
-  ```
-
-  **Commit**: YES
-  - Message: `feat(health): add layered health system for zombie armor`
-  - Files: `armor_layer_def.gd`, `health_component.gd`, `combat_archetype.gd`, `entity_factory.gd`, `zombie_root.gd`, `layered_health_validation.tres`
-  - Pre-commit: `pwsh tools/run_all_validations.ps1 -Layers smoke,core`
+  **后续复刻约束**:
+  - 有护甲、门板、气球、报纸、梯子等可击破部件的僵尸必须使用 `health_layers`，不得把总 HP 合并进 body。
+  - 投手类绕过门板/盾牌时使用 `damage_layer_policy.bypass_layer_kinds=["shield"]`，不得在 projectile 或 zombie 代码里特判。
+  - 新增僵尸运动默认使用 `Movement` mechanic；`hop_cycle/tunnel/drive/submerge` 只能在对应批次补设计与验证，不得塞进 `ZombieRoot` 或 `Controller` 特判。
+  - `flying/submerged/underground/airborne` 必须显式 opt-in 到 `target_exposure_states`，默认攻击只命中 `ground`。
 
 - [ ] 1. **Basic Zombie（普通僵尸）**
 
@@ -446,13 +373,13 @@ Max Concurrent: 8 (Wave 4)
   **What to do**:
   - 创建 `data/combat/archetypes/zombies/archetype_original_conehead.tres`
     - max_health: 270（body）
-    - armor_layers: [ArmorLayerDef(layer_id=&"cone", max_health=370, armor_type=&"CONE")]
+    - health_layers: [HealthLayerDef(layer_id=&"cone", layer_kind=&"helm", max_health=370, armor_type=&"CONE")]
     - move_speed_slots_per_sec: 0.28
     - mechanics: 复用 bite_controller
     - tags: `["archetype", "zombie", "original", "conehead", "armored"]`
   - 创建验证场景 `scenes/validation/zombie_original_conehead_validation.tres`：
     - 验证总 HP = 640（body 270 + cone 370）
-    - 验证 cone 先吸收伤害，消亡后 armor_layer_destroyed 事件
+    - 验证 cone 先吸收伤害，消亡后 `health.layer_destroyed` 事件
     - 验证过伤传递
   - 添加到 `tools/validation_scenarios.json`
 
@@ -467,7 +394,7 @@ Max Concurrent: 8 (Wave 4)
   - **Can Run In Parallel**: YES (with Tasks 1, 2, 4)
   - **Parallel Group**: Wave 1
   - **Blocks**: None
-  - **Blocked By**: Task 0（依赖分层血量系统）
+  - **Blocked By**: Task 0（依赖 HealthLayer 基础设施）
 
   **References**:
   - `data/combat/archetypes/zombies/archetype_original_basic_zombie.tres`（Task 1，结构模板）
@@ -484,7 +411,7 @@ Max Concurrent: 8 (Wave 4)
       1. 运行 zombie_original_conehead_validation
       2. 验证 200 伤害后 cone 370→170，body 仍为 270
       3. 验证 500 伤害后 cone 消亡，body 270→140
-    Expected Result: verdict = "passed"，armor_layer_destroyed 事件在 cone 消亡时触发
+    Expected Result: verdict = "passed"，`health.layer_destroyed` 事件在 cone 消亡时触发
     Evidence: .sisyphus/evidence/task-3-conehead.txt
   ```
 
@@ -495,7 +422,7 @@ Max Concurrent: 8 (Wave 4)
   **What to do**:
   - 创建 `data/combat/archetypes/zombies/archetype_original_buckethead.tres`
     - max_health: 270（body）
-    - armor_layers: [ArmorLayerDef(layer_id=&"bucket", max_health=1100, armor_type=&"PAIL", tags=["metal"])]
+    - health_layers: [HealthLayerDef(layer_id=&"bucket", layer_kind=&"helm", max_health=1100, armor_type=&"PAIL", material_tags=["metal"])]
     - move_speed_slots_per_sec: 0.28
     - tags: `["archetype", "zombie", "original", "buckethead", "armored", "metal"]`
   - 创建验证场景（同 Conehead 模式，但更高 HP）
@@ -540,7 +467,7 @@ Max Concurrent: 8 (Wave 4)
   **What to do**:
   - 创建 `data/combat/archetypes/zombies/archetype_original_football.tres`
     - max_health: 270（body）
-    - armor_layers: [ArmorLayerDef(layer_id=&"football_helm", max_health=1400, armor_type=&"FOOTBALL", tags=["metal"])]
+    - health_layers: [HealthLayerDef(layer_id=&"football_helm", layer_kind=&"helm", max_health=1400, armor_type=&"FOOTBALL", material_tags=["metal"])]
     - move_speed_slots_per_sec: 0.67（高速）
     - hitbox_size: 适当增大
     - tags: `["archetype", "zombie", "original", "football", "armored", "metal", "fast"]`
@@ -558,7 +485,7 @@ Max Concurrent: 8 (Wave 4)
   - **Can Run In Parallel**: YES (with Tasks 6, 7, 8)
   - **Parallel Group**: Wave 2
   - **Blocks**: None
-  - **Blocked By**: Task 0（分层血量）
+  - **Blocked By**: Task 0（HealthLayer 基础设施）
 
   **References**:
   - `vendor/de-pvz/Lawn/Zombie.cpp` — ZOMBIE_FOOTBALL: body=270, helm=1400(FOOTBALL), speed=0.66-0.68
@@ -585,7 +512,7 @@ Max Concurrent: 8 (Wave 4)
   **What to do**:
   - 创建 `data/combat/archetypes/zombies/archetype_original_screen_door.tres`
     - max_health: 270（body）
-    - armor_layers: [ArmorLayerDef(layer_id=&"door_shield", max_health=1100, armor_type=&"DOOR", tags=["metal", "shield", "directional"])]
+    - health_layers: [HealthLayerDef(layer_id=&"door_shield", layer_kind=&"shield", max_health=1100, armor_type=&"DOOR", material_tags=["metal", "shield", "directional"])]
     - move_speed_slots_per_sec: 0.28
     - tags: `["archetype", "zombie", "original", "screen_door", "armored", "shield", "metal"]`
   - 创建验证场景（验证高护甲）
@@ -631,12 +558,12 @@ Max Concurrent: 8 (Wave 4)
   **What to do**:
   - 创建 `data/combat/archetypes/zombies/archetype_original_newspaper.tres`
     - max_health: 270（body）
-    - armor_layers: [ArmorLayerDef(layer_id=&"newspaper", max_health=150, armor_type=&"PAPER")]
+    - health_layers: [HealthLayerDef(layer_id=&"newspaper", layer_kind=&"shield", max_health=150, armor_type=&"PAPER")]
     - move_speed_slots_per_sec: 0.28（正常），speed_rage: 0.90（报纸被毁后）
     - 新增 mechanic `mechanic_original_newspaper_rage.tres`：
       - 使用 `Trigger/core.when_damaged` 监听
-      - 条件：`armor_layer_destroyed` 事件且 layer_id == "newspaper"
-      - 效果：修改 move_speed_slots_per_sec 为 0.90（速度激增约 3 倍）
+      - 条件：`health.layer_destroyed` 事件且 layer_id == "newspaper"
+      - 效果：通过 State side-effect 提交 movement override，把 `move_speed_slots_per_sec` 改为 0.90（速度激增约 3 倍）
     - tags: `["archetype", "zombie", "original", "newspaper", "armored", "rage"]`
   - 创建验证场景：
     - 验证报纸吸收 150 伤害后消亡
@@ -649,7 +576,7 @@ Max Concurrent: 8 (Wave 4)
 
   **Recommended Agent Profile**:
   - **Category**: `unspecified-high`
-    - Reason: 需要新增 mechanic 实现速度变化触发，涉及 armor_layer_destroyed 事件的消费
+    - Reason: 需要新增 mechanic 实现速度变化触发，涉及 `health.layer_destroyed` 事件和 movement override
   - **Skills**: []
 
   **Parallelization**:
@@ -695,10 +622,10 @@ Max Concurrent: 8 (Wave 4)
     - move_speed_slots_per_sec: 0.67（跳跃前高速）
     - 新增 mechanic `mechanic_original_pole_vaulter_vault.tres`：
       - 使用 `Trigger/core.proximity`（扫描前方近距离植物）
-      - 效果：触发跳跃——zombie 跳过第一个植物，落地后速度变为 0.90（弃杆后极快）
+      - 效果：触发跳跃——使用 Movement/State 组合让 zombie 跳过第一个植物，落地后速度变为 0.90（弃杆后极快）
       - 跳跃后切换为普通 bite 行为
-    - **协议缺口**：跳跃翻越行为需要新的 Controller 或 Movement 模式
-      - 最小实现：使用 State mechanic（`core.arming` 类似模式）实现"跳跃中"状态
+    - **协议缺口**：完整翻越位移窗口需要在 `Movement.core.leap_once` 基础上补 Pole Vaulter 专项设计
+      - 最小实现：使用 Movement + State mechanic 实现"跳跃中"状态
       - 跳跃中：无敌 + 快速向前移动 + 不可被攻击
       - 跳跃结束：恢复正常 + 速度永久改变为 0.90
     - tags: `["archetype", "zombie", "original", "pole_vaulter", "jumper"]`
@@ -707,11 +634,11 @@ Max Concurrent: 8 (Wave 4)
 
   **Must NOT do**:
   - 不得硬编码跳跃逻辑到 BattleManager
-  - 不得为撑杆跳创建新的 Mechanic family
+  - 不得为撑杆跳创建新的 Mechanic family；必须复用 ADR-008 的 `Movement`
 
   **Recommended Agent Profile**:
   - **Category**: `deep`
-    - Reason: 需要设计新的跳跃行为模式，可能需要扩展 Controller 或 State 系统
+    - Reason: 需要在 Movement v1 基础上设计翻越触发、状态切换和速度覆盖
   - **Skills**: []
 
   **Parallelization**:
@@ -724,7 +651,7 @@ Max Concurrent: 8 (Wave 4)
   - `vendor/de-pvz/Lawn/Zombie.cpp` — ZOMBIE_POLEVAULTER: body=500, pre_vault speed=0.66-0.68, post_vault speed=0.89-0.91
   - `data/combat/mechanics/mechanic_original_chomper_proximity.tres` — proximity trigger 参考
   - `scripts/core/defs/combat_mechanic.gd` — Mechanic family/type 定义
-  - `scripts/components/controller_component.gd` — Controller 组件
+  - `scripts/components/movement_component.gd` — Movement 组件
 
   **Acceptance Criteria**:
 
@@ -950,11 +877,11 @@ Max Concurrent: 8 (Wave 4)
   **What to do**:
   - 创建 `data/combat/archetypes/zombies/archetype_original_balloon.tres`
     - max_health: 270（body）
-    - armor_layers: [ArmorLayerDef(layer_id=&"balloon", max_health=20, armor_type=&"BALLOON")]
+    - health_layers: [HealthLayerDef(layer_id=&"balloon", layer_kind=&"attachment", max_health=20, armor_type=&"BALLOON")]
     - move_speed_slots_per_sec: 0.28（飞行速度）
     - hit_height_band: air_unit_low（飞行状态）
     - 新增 mechanic `mechanic_original_balloon_pop.tres`：
-      - 监听 `armor_layer_destroyed`（balloon 消亡）
+      - 监听 `health.layer_destroyed`（balloon 消亡）
       - 效果：切换 height_band 为 ground_unit，恢复正常步行
     - **协议缺口记录**：Cactus/Blover 弹出气球的特定交互需要在植物端实现
     - tags: `["archetype", "zombie", "original", "balloon", "flying"]`
@@ -1050,7 +977,7 @@ Max Concurrent: 8 (Wave 4)
   **What to do**:
   - 创建 `data/combat/archetypes/zombies/archetype_original_digger.tres`
     - max_health: 270（body）
-    - armor_layers: [ArmorLayerDef(layer_id=&"digger_helm", max_health=100, armor_type=&"DIGGER")]
+    - health_layers: [HealthLayerDef(layer_id=&"digger_helm", layer_kind=&"helm", max_health=100, armor_type=&"DIGGER")]
     - move_speed_slots_per_sec: 0.67（地下穿行速度）
     - **协议缺口**：地下穿行需要新的 Movement 模式
       - 最小实现：使用 State mechanic 实现两个阶段
@@ -1104,10 +1031,10 @@ Max Concurrent: 8 (Wave 4)
     - max_health: 500
     - move_speed_slots_per_sec: 0.45
     - **协议缺口**：弹跳翻越需要类似 Pole Vault 的跳跃机制，但为持续性
-      - 最小实现：使用 Controller family，新增 type `core.bounce`
+      - 最小实现：使用 Movement family，后续新增 `hop_cycle` type
       - 行为：每接近一个植物时自动跳过
       - 跳跃次数：无限（直到被 Magnet-shroom 吸走弹簧，标记为后续迭代）
-    - 新增 mechanic `mechanic_original_pogo_bounce.tres`（Controller: core.bounce）
+    - 新增 mechanic `mechanic_original_pogo_hop.tres`（Movement: hop_cycle，后续专项设计）
     - tags: `["archetype", "zombie", "original", "pogo", "jumper"]`
   - 创建验证场景
   - 添加到 `tools/validation_scenarios.json`
@@ -1249,7 +1176,7 @@ Max Concurrent: 8 (Wave 4)
   **What to do**:
   - 创建 `data/combat/archetypes/zombies/archetype_original_ladder.tres`
     - max_health: 500（body）
-    - armor_layers: [ArmorLayerDef(layer_id=&"ladder", max_health=500, armor_type=&"LADDER")]
+    - health_layers: [HealthLayerDef(layer_id=&"ladder", layer_kind=&"attachment", max_health=500, armor_type=&"LADDER")]
     - move_speed_slots_per_sec: 0.80（携带梯子时极快）
     - **协议缺口**：架梯越墙需要实体交互机制
       - 最小实现：梯子作为 shield 层（标准分层血量处理）
@@ -1356,7 +1283,7 @@ Max Concurrent: 8 (Wave 4)
       - 效果：`Payload/core.spawn_entity` 生成 4 个 Backup Dancer（上/下/左/右各一个）
       - 首次停止后触发一次召唤（可使用 on_spawned + delay 实现）
     - 新增 mechanic `mechanic_original_dancing_controller.tres`：
-      - 使用 Controller family，moonwalk 行为（向后移动到舞台中央，然后开始召唤）
+      - 使用 Movement + State side-effects 表达 moonwalk 行为（向后移动到舞台中央，然后开始召唤）
       - 到达指定位置后停止移动
     - tags: `["archetype", "zombie", "original", "dancing", "spawner"]`
   - 创建验证场景
@@ -1620,7 +1547,7 @@ Max Concurrent: 8 (Wave 4)
 
 ## Commit Strategy
 
-- **Wave 0**: `feat(health): add layered health system for zombie armor` — armor_layer_def.gd, health_component.gd, entity_factory.gd, related files
+- **Wave 0**: `feat(zombie): add infrastructure protocol supplements` — health_layer_def.gd, MovementRegistry, HealthComponent, MovementComponent, StateComponent, EffectRegistry, validation scenes
 - **Batch A**: `feat(zombies): add original batch A — basic melee zombies` — 4 archetypes + mechanics + validations
 - **Batch B**: `feat(zombies): add original batch B — movement/shield zombies` — 4 archetypes + mechanics + validations
 - **Batch C**: `feat(zombies): add original batch C — pool/water zombies` — 4 archetypes + mechanics + validations
@@ -1643,7 +1570,7 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/zombie_original
 # Expected: PASS
 
 # 分层血量验证
-pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/layered_health_validation.tres"
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/health_layer_helm_routing_validation.tres"
 # Expected: PASS
 
 # 守卫检查

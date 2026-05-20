@@ -14,7 +14,9 @@
 | `detection_def.gd` | DetectionDef | 目标发现 contributor：id / tags / param_defs |
 | `controller_def.gd` | ControllerDef | Controller contributor：id / tags / param_defs |
 | `projectile_template.gd` | ProjectileTemplate | 抛射体内容：template_id / flight_profile / hitbox_radius |
-| `projectile_movement_def.gd` | ProjectileMovementDef | movement contributor：id / tags / param_defs |
+| `projectile_movement_def.gd` | ProjectileMovementDef | projectile movement contributor：id / tags / param_defs |
+| `movement_def.gd` | MovementDef | entity movement contributor：id / tags / param_defs / strategy_script |
+| `health_layer_def.gd` | HealthLayerDef | 多层 HP 定义：layer_id / layer_kind / max_health / route_order |
 | `mechanic_compiler_def.gd` | MechanicCompilerDef | 扩展编译器 contributor |
 | `height_band.gd` | HeightBand | 高度段：band_id / min_height / max_height |
 | `movement_contribution_def.gd` | MovementContributionDef | 运动贡献定义 |
@@ -33,7 +35,7 @@
 | `mechanic_compiler.gd` | MechanicCompiler | **1335 行**。编译入口 `compile_spawn_entry()`，49 内置 type，binding group 配对，per-type dispatch 到各 compiler callable |
 | `protocol_validator.gd` | ProtocolValidator | **1553 行**。15 个 static validate_*() 方法，`FROZEN_TRIGGER_BEHAVIOR_SPECS` 守卫冻结语义，所有定义必经此验证 |
 | `effect_executor.gd` | EffectExecutor | 递归执行 EffectNode 树，最大深度 5，调用 EffectRegistry 策略 |
-| `extension_pack_catalog.gd` | ExtensionPackCatalog | 扩展包加载：扫描 `extensions/`，`ALLOWED_REGISTER_KINDS`(7 种)、`ALLOWED_TRUST_LEVELS`、guardrail 场景校验 |
+| `extension_pack_catalog.gd` | ExtensionPackCatalog | 扩展包加载：扫描 `extensions/`，`ALLOWED_REGISTER_KINDS`、`ALLOWED_TRUST_LEVELS`、guardrail 场景校验 |
 | `runtime_spec.gd` | RuntimeSpec | 编译产物：从 archetype + mechanics 生成的完整运行时规格 |
 | `runtime_trigger_spec.gd` | RuntimeTriggerSpec | 编译后触发器：trigger_id / event_name / condition_values / effect_root |
 | `normalized_mechanic_set.gd` | NormalizedMechanicSet | Mechanic 去重归并，按 family 分组 |
@@ -53,13 +55,13 @@
 |------|-----|--------|
 | `registry_base.gd` | RegistryBase | 统一基类。register_def() / unregister() / has() / get_def() / list_ids() / rebuild_registry()。内置 hook：`_register_builtin_defs()` / `_validate_def_specific()` / `_on_def_registered()`。扩展包扫描 `_register_extension_defs()` |
 | `registry_config.gd` | RegistryConfig | 配置：slot_id / def_script / register_kind / extension_dir / required_trust / allow_core_override |
-| `registry_contributor_def.gd` | RegistryContributorDef | 统一 contributor Resource：id / tags / param_defs。TriggerDef/EffectDef/DetectionDef/ControllerDef/ProjectileMovementDef/MechanicCompilerDef 均继承此类 |
+| `registry_contributor_def.gd` | RegistryContributorDef | 统一 contributor Resource：id / tags / param_defs。TriggerDef/EffectDef/DetectionDef/ControllerDef/ProjectileMovementDef/MovementDef/MechanicCompilerDef 均继承此类 |
 
 ## KEY INTERFACES
 
 **验证链**：`ProtocolValidator.validate_combat_archetype()` -> `validate_combat_mechanic()` (per mechanic) -> 类型/边界/脚本检查 -> 返回 issues[]。所有 archetype 在 `EntityFactory` 实例化前必经此链。
 
-**编译链**：`MechanicCompiler.compile_spawn_entry(spawn_entry, archetype)` -> `NormalizedMechanicSet` -> per-family binding group 配对 -> per-type compiler dispatch -> `RuntimeSpec`（含 `RuntimeTriggerSpec[]`、stats、flags）。
+**编译链**：`MechanicCompiler.compile_spawn_entry(spawn_entry, archetype)` -> `NormalizedMechanicSet` -> per-family binding group 配对 -> per-type compiler dispatch -> `RuntimeSpec`（含 `RuntimeTriggerSpec[]`、stats、flags、movement_spec、health_layers、exposure/weight）。
 
 **注册链**：autoload 单例继承 `RegistryBase`，实现 `_make_registry_config()` 和 `_register_builtin_defs()`。扩展包 def 经 `ExtensionPackCatalog` 扫描后调用 `register_def(def, source)`，走 `_validate_common()` + `_validate_def_specific()` + 信任检查 + `core.*` 保护。
 

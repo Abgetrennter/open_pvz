@@ -56,6 +56,12 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 		params[key] = merged_spawn_params[key]
 	if not params.has("max_health") and runtime_spec.get("max_health") is int and int(runtime_spec.max_health) > 0:
 		params["max_health"] = int(runtime_spec.max_health)
+	if runtime_spec.health_layers is Array and not Array(runtime_spec.health_layers).is_empty():
+		params["health_layers"] = Array(runtime_spec.health_layers).duplicate(true)
+	if not params.has("initial_exposure_state") and runtime_spec.get("initial_exposure_state") != null:
+		params["initial_exposure_state"] = StringName(runtime_spec.initial_exposure_state)
+	if not params.has("weight_class") and runtime_spec.get("weight_class") != null:
+		params["weight_class"] = StringName(runtime_spec.weight_class)
 	if not params.has("hitbox_size") and runtime_spec.get("hitbox_size") is Vector2 and runtime_spec.hitbox_size != Vector2.ZERO:
 		params["hitbox_size"] = runtime_spec.hitbox_size
 	if runtime_spec.get("hit_height_band") != null:
@@ -80,6 +86,8 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 		entity.call("set_state_value", &"mechanic_runtime_states", runtime_spec.mechanic_runtime_states)
 	if runtime_spec.controller_specs is Array and not Array(runtime_spec.controller_specs).is_empty():
 		_bind_runtime_controllers(entity, Array(runtime_spec.controller_specs))
+	if runtime_spec.movement_spec is Dictionary and not Dictionary(runtime_spec.movement_spec).is_empty():
+		_bind_runtime_movement(entity, Dictionary(runtime_spec.movement_spec))
 	if runtime_spec.state_specs is Array and not Array(runtime_spec.state_specs).is_empty():
 		_bind_runtime_states(entity, Array(runtime_spec.state_specs))
 	var trigger_instances: Array = []
@@ -190,7 +198,7 @@ func _ensure_archetype_components(entity: Node, entity_kind: StringName, templat
 	if bool(config.get("movement_component", false)):
 		_ensure_named_child(entity, "MovementComponent", func(): return _make_movement_component())
 	var resolved_max_health := _resolve_max_health(entity_kind, template, params)
-	_ensure_health_component(entity, resolved_max_health)
+	_ensure_health_component(entity, resolved_max_health, Array(params.get("health_layers", [])))
 	var resolved_hitbox_size := _resolve_hitbox_size(entity_kind, template, params)
 	_ensure_passive_hitbox(entity, resolved_hitbox_size)
 	if bool(config.get("debug_view_component", false)):
@@ -230,10 +238,12 @@ func _ensure_named_child(parent: Node, child_name: String, builder: Callable) ->
 	return child
 
 
-func _ensure_health_component(entity: Node, max_health: int) -> void:
+func _ensure_health_component(entity: Node, max_health: int, health_layers: Array = []) -> void:
 	var component := _ensure_named_child(entity, "HealthComponent", func(): return _make_health_component(max_health))
 	if component != null and component.has_method("set"):
 		component.set("max_health", max_health)
+		if not health_layers.is_empty() and component.has_method("configure_health_layers"):
+			component.call("configure_health_layers", health_layers)
 
 
 func _ensure_passive_hitbox(entity: Node, size: Vector2) -> void:
@@ -336,6 +346,16 @@ func _apply_archetype_metadata(entity: Node, template) -> void:
 	if template is CombatArchetypeRef and template.archetype_id != StringName():
 		entity.set("archetype_id", template.archetype_id)
 		entity.set("tags", PackedStringArray(template.tags))
+		entity.set("initial_exposure_state", StringName(template.initial_exposure_state))
+		entity.set("weight_class", StringName(template.weight_class))
+		if entity.has_method("set_exposure_state"):
+			entity.call("set_exposure_state", StringName(template.initial_exposure_state))
+		elif entity.has_method("set"):
+			entity.set("initial_exposure_state", StringName(template.initial_exposure_state))
+		if entity.has_method("set_weight_class"):
+			entity.call("set_weight_class", StringName(template.weight_class))
+		elif entity.has_method("set"):
+			entity.set("weight_class", StringName(template.weight_class))
 		if entity.has_method("set_state_value"):
 			entity.call("set_state_value", &"archetype_id", template.archetype_id)
 			entity.call("set_state_value", &"archetype_tags", template.tags)
@@ -427,7 +447,16 @@ func _build_effect_node_from_spec(
 func _is_direct_effect_override_key(effect_id: StringName, key: Variant) -> bool:
 	if effect_id != &"damage" and effect_id != &"explode":
 		return false
-	return ["amount", "target_mode", "radius", "radius_slots", "lane_id", "target_tags"].has(str(key))
+	return [
+		"amount",
+		"target_mode",
+		"radius",
+		"radius_slots",
+		"lane_id",
+		"target_tags",
+		"target_exposure_states",
+		"damage_layer_policy",
+	].has(str(key))
 
 
 func _merge_projectile_spec_params(
@@ -491,6 +520,8 @@ func _is_spawn_projectile_override_key(key: Variant) -> bool:
 		"burst_interval",
 		"spread_count",
 		"spread_angle",
+		"target_exposure_states",
+		"damage_layer_policy",
 	]
 
 
@@ -510,6 +541,11 @@ func _build_spec_on_hit_effect_node(effect_root, params: Dictionary):
 		effect_id = &"damage"
 		if not effect_params.has("target_mode"):
 			effect_params["target_mode"] = &"context_target"
+	if effect_id == &"damage":
+		if params.has("target_exposure_states") and not effect_params.has("target_exposure_states"):
+			effect_params["target_exposure_states"] = params.get("target_exposure_states")
+		if params.get("damage_layer_policy", null) is Dictionary and not effect_params.has("damage_layer_policy"):
+			effect_params["damage_layer_policy"] = Dictionary(params.get("damage_layer_policy")).duplicate(true)
 	var on_hit_effect_def = EffectRegistry.get_def(effect_id)
 	var supports_amount := false
 	if on_hit_effect_def != null and on_hit_effect_def.has_method("get_param_def"):
@@ -605,6 +641,12 @@ func _bind_runtime_states(entity: Node, state_specs: Array) -> void:
 		state_component.call("bind_state_specs", state_specs)
 
 
+func _bind_runtime_movement(entity: Node, movement_spec: Dictionary) -> void:
+	var movement_component := _ensure_named_child(entity, "MovementComponent", func(): return _make_movement_component())
+	if movement_component != null and movement_component.has_method("bind_movement_spec"):
+		movement_component.call("bind_movement_spec", movement_spec)
+
+
 func _make_minimal_archetype_for_root(runtime_spec) -> Resource:
 	var archetype = CombatArchetypeRef.new()
 	archetype.root_scene = runtime_spec.root_scene
@@ -615,6 +657,9 @@ func _make_minimal_archetype_for_root(runtime_spec) -> Resource:
 	archetype.required_components = PackedStringArray(runtime_spec.required_components)
 	archetype.optional_components = PackedStringArray(runtime_spec.optional_components)
 	archetype.max_health = runtime_spec.max_health
+	archetype.health_layers = Array(runtime_spec.health_layers).duplicate(true)
+	archetype.initial_exposure_state = StringName(runtime_spec.initial_exposure_state)
+	archetype.weight_class = StringName(runtime_spec.weight_class)
 	archetype.hitbox_size = runtime_spec.hitbox_size
 	return archetype
 

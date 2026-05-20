@@ -147,6 +147,11 @@ func _on_state_event(event_data, event_name: StringName) -> void:
 			var event_state_id := StringName(_event_core(event_data).get("state_id", StringName()))
 			if event_state_id != required_state:
 				continue
+		var required_layer_id := StringName(transition.get("required_layer_id", StringName()))
+		if required_layer_id != StringName():
+			var event_layer_id := StringName(_event_core(event_data).get("layer_id", StringName()))
+			if event_layer_id != required_layer_id:
+				continue
 		var from_state := StringName(transition.get("from_state", current_state))
 		if current_state != from_state:
 			continue
@@ -223,8 +228,117 @@ func _execute_transition(transition: Dictionary, reason: Dictionary = {}) -> boo
 	_processed_transition_ids[transition_id] = true
 	_apply_state_liveness_override(current_state)
 	_sync_owner_state()
+	_apply_transition_side_effects(owner, transition)
 	_emit_state_entered(owner, current_state)
 	return true
+
+
+func _apply_transition_side_effects(owner: Node, transition: Dictionary) -> void:
+	if owner == null or not is_instance_valid(owner):
+		return
+	var side_effects: Variant = transition.get("side_effects", [])
+	if side_effects is Dictionary:
+		_apply_transition_side_effect(owner, Dictionary(side_effects))
+	elif side_effects is Array:
+		for side_effect in Array(side_effects):
+			if side_effect is Dictionary:
+				_apply_transition_side_effect(owner, Dictionary(side_effect))
+
+
+func _apply_transition_side_effect(owner: Node, side_effect: Dictionary) -> void:
+	var effect_type := StringName(side_effect.get("type", StringName()))
+	if effect_type == StringName():
+		for key in [&"set_movement", &"set_height_band", &"set_runtime_params", &"emit_event", &"submit_movement_override"]:
+			if side_effect.has(key):
+				effect_type = key
+				break
+	match effect_type:
+		&"set_movement":
+			var movement_spec: Dictionary = {}
+			var raw_spec: Variant = side_effect.get("spec", side_effect.get("set_movement", {}))
+			if raw_spec is Dictionary:
+				movement_spec = Dictionary(raw_spec).duplicate(true)
+			if owner.has_method("set_movement_spec"):
+				owner.call("set_movement_spec", movement_spec)
+		&"submit_movement_override":
+			var command: Dictionary = {}
+			var raw_command: Variant = side_effect.get("command", side_effect.get("submit_movement_override", {}))
+			if raw_command is Dictionary:
+				command = Dictionary(raw_command).duplicate(true)
+			if owner.has_method("submit_movement_override"):
+				owner.call("submit_movement_override", command)
+		&"set_height_band":
+			_apply_height_side_effect(owner, side_effect.get("height_band", side_effect.get("set_height_band", {})))
+		&"set_runtime_params":
+			var raw_params: Variant = side_effect.get("params", side_effect.get("set_runtime_params", {}))
+			if raw_params is Dictionary:
+				_apply_runtime_params(owner, Dictionary(raw_params))
+		&"emit_event":
+			_emit_side_effect_event(owner, side_effect.get("event", side_effect.get("emit_event", {})))
+		_:
+			pass
+
+
+func _apply_height_side_effect(owner: Node, raw_value: Variant) -> void:
+	if raw_value is Resource:
+		if owner.has_method("apply_height_band"):
+			owner.call("apply_height_band", raw_value)
+		return
+	if not (raw_value is Dictionary):
+		return
+	var height_params := Dictionary(raw_value)
+	if height_params.has("hit_height_range") and owner.has_method("set_hit_height_range"):
+		var hit_range: Variant = height_params.get("hit_height_range")
+		if hit_range is Vector2:
+			owner.call("set_hit_height_range", float(hit_range.x), float(hit_range.y))
+	var height := float(height_params.get("height", owner.call("get_height") if owner.has_method("get_height") else 0.0))
+	var height_velocity := float(height_params.get("height_velocity", owner.call("get_height_velocity") if owner.has_method("get_height_velocity") else 0.0))
+	var ground_contact := bool(height_params.get("ground_contact", owner.call("is_ground_contact") if owner.has_method("is_ground_contact") else true))
+	var exposure_state := StringName(height_params.get("exposure_state", owner.call("get_exposure_state") if owner.has_method("get_exposure_state") else &"ground"))
+	if owner.has_method("set_motion_state"):
+		owner.call("set_motion_state", height, height_velocity, ground_contact, exposure_state, &"state_side_effect", StringName())
+
+
+func _apply_runtime_params(owner: Node, params: Dictionary) -> void:
+	for key: Variant in params.keys():
+		var state_key := StringName(key)
+		if owner.has_method("set_state_value"):
+			owner.call("set_state_value", state_key, params[key])
+		if _owner_has_property(owner, String(key)):
+			owner.set(String(key), params[key])
+	if owner.has_method("sync_runtime_state"):
+		owner.call("sync_runtime_state")
+
+
+func _emit_side_effect_event(owner: Node, raw_event: Variant) -> void:
+	var event_name := StringName()
+	var tags := PackedStringArray(["state", "side_effect"])
+	var core: Dictionary = {}
+	if raw_event is Dictionary:
+		var event_def := Dictionary(raw_event)
+		event_name = StringName(event_def.get("event_name", StringName()))
+		if event_def.get("tags", null) is PackedStringArray:
+			tags = PackedStringArray(event_def.get("tags"))
+		elif event_def.get("tags", null) is Array:
+			tags = PackedStringArray(event_def.get("tags"))
+		if event_def.get("core", null) is Dictionary:
+			core = Dictionary(event_def.get("core")).duplicate(true)
+	elif raw_event != null:
+		event_name = StringName(raw_event)
+	if event_name == StringName():
+		return
+	var event_data: Variant = preload("res://scripts/core/runtime/event_data.gd").create(owner, owner, null, tags)
+	for key: Variant in core.keys():
+		event_data.core[key] = core[key]
+	event_data.core["state_id"] = current_state
+	EventBus.push_event(event_name, event_data)
+
+
+func _owner_has_property(owner: Node, property_name: String) -> bool:
+	for property_info in owner.get_property_list():
+		if property_info is Dictionary and String(property_info.get("name", "")) == property_name:
+			return true
+	return false
 
 
 func _state_liveness_source(state_id: StringName) -> StringName:

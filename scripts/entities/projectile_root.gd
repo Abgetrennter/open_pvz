@@ -33,7 +33,6 @@ var _collision_padding := 10.0
 var _hit_strategy: StringName = &"overlap"
 var _terminal_hit_strategy: StringName = &"impact_hitbox"
 var _ground_position := Vector2.ZERO
-var _height := 0.0
 var _terrain_z := 0.0
 var _absolute_z := 0.0
 var _max_hit_height := 24.0
@@ -43,6 +42,7 @@ var _ignored_entity_ids: PackedInt32Array = PackedInt32Array()
 var _pierce_hit_entity_ids: Array = []
 var _max_penetrations := 5
 var _pierce_count := 0
+var _target_exposure_states := PackedStringArray(["ground"])
 
 
 func _ready() -> void:
@@ -126,6 +126,10 @@ func launch(
 	var requested_lane: Variant = movement_params.get("lane_id", null)
 	if requested_lane is int and int(requested_lane) >= 0:
 		assign_lane(int(requested_lane))
+	_target_exposure_states = _normalize_target_exposure_states(movement_params.get(
+		"target_exposure_states",
+		runtime_overrides.get("target_exposure_states", PackedStringArray(["ground"]))
+	))
 	_ensure_movement_component(StringName(movement_params.get("move_mode", &"linear")))
 	_ground_position = global_position
 	_height = 0.0
@@ -164,6 +168,7 @@ func launch(
 	set_state_value(&"collision_padding", _collision_padding)
 	set_state_value(&"hit_strategy", _hit_strategy)
 	set_state_value(&"terminal_hit_strategy", _terminal_hit_strategy)
+	set_state_value(&"target_exposure_states", _target_exposure_states)
 	set_state_value(&"ground_position", _ground_position)
 	set_state_value(&"height", _height)
 	set_state_value(&"height_above_ground", _height)
@@ -221,11 +226,11 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 		context.target_node = target
 		EffectExecutorRef.execute_node(on_hit_effect, context)
 	elif target != null and target.has_method("take_damage"):
-		target.call("take_damage", damage, owner_entity, PackedStringArray(["projectile"]), {
-			"depth": int(hit_event.runtime.get("depth", 1)) + 1,
-			"chain_id": str(hit_event.runtime.get("chain_id", "")),
-			"origin_event_name": &"projectile.hit",
-		})
+		var direct_runtime := hit_runtime.duplicate(true)
+		direct_runtime["depth"] = int(hit_event.runtime.get("depth", 1)) + 1
+		direct_runtime["chain_id"] = str(hit_event.runtime.get("chain_id", ""))
+		direct_runtime["origin_event_name"] = &"projectile.hit"
+		target.call("take_damage", damage, owner_entity, PackedStringArray(["projectile"]), direct_runtime)
 
 	set_status(&"consumed")
 	sync_runtime_state()
@@ -375,6 +380,8 @@ func _is_projectile_hit_candidate(candidate: Variant) -> bool:
 	if not (candidate is Node2D):
 		return false
 	if candidate.has_method("is_collidable") and not bool(candidate.call("is_collidable")):
+		return false
+	if not _matches_target_exposure(candidate):
 		return false
 	return true
 
@@ -599,6 +606,25 @@ func _is_ignored_target(target: Node) -> bool:
 	if target == null or not target.has_method("get_entity_id"):
 		return false
 	return _ignored_entity_ids.has(int(target.call("get_entity_id")))
+
+
+func _matches_target_exposure(target: Variant) -> bool:
+	if _target_exposure_states.is_empty():
+		return true
+	var exposure_state := &"ground"
+	if target is Node and target.has_method("get_exposure_state"):
+		exposure_state = StringName(target.call("get_exposure_state"))
+	return _target_exposure_states.has(String(exposure_state))
+
+
+func _normalize_target_exposure_states(raw_states: Variant) -> PackedStringArray:
+	if raw_states is PackedStringArray:
+		return PackedStringArray(raw_states)
+	if raw_states is Array:
+		return PackedStringArray(raw_states)
+	if raw_states is String or raw_states is StringName:
+		return PackedStringArray([String(raw_states)])
+	return PackedStringArray(["ground"])
 
 
 func _movement_component_count() -> int:

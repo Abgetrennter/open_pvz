@@ -12,7 +12,7 @@ The project startup scene is a lightweight showcase hub:
 Use that hub to enter a showcase scene with buttons instead of changing the
 project default startup repeatedly.
 
-## Scene List (31 scenes)
+## Scene List (35 scenes)
 
 All of them use `BattleManager` directly and keep restart enabled with `R`.
 Each showcase scene also supports `Esc` to return to the showcase hub.
@@ -34,6 +34,13 @@ Each showcase scene also supports `Esc` to return to the showcase hub.
 - `archetype_projectile_showcase.tscn` — Linear + parabola projectile compilation
 - `archetype_zombie_showcase.tscn` — Zombie archetype + bite runtime
 - `archetype_mower_showcase.tscn` — Field object mower via sweep controller
+
+### Zombie Infrastructure Protocol (4 scenes)
+
+- `infrastructure_health_layers_showcase.tscn` — HealthLayer routing across attachment/shield/helm/body
+- `infrastructure_damage_policy_showcase.tscn` — DamageLayerPolicy bypassing shield while respecting helm/body
+- `infrastructure_movement_leap_showcase.tscn` — Movement.core.leap_once logical Z / airborne / landing visualization
+- `infrastructure_exposure_showcase.tscn` — Exposure / HitPolicy default ground targeting and explicit opt-in states
 
 ### Content Samples (7 scenes)
 

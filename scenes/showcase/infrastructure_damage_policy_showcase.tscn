@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/infrastructure_protocol_showcase.gd" id="1_showcase"]
+
+[node name="InfrastructureDamagePolicyShowcase" type="Node2D"]
+script = ExtResource("1_showcase")
+showcase_mode = "damage_policy"
+showcase_title = "DamageLayerPolicy 绕盾展示"
+showcase_summary = "蓝色弹道代表 damage_layer_policy.bypass_layer_kinds=[shield]，用于展示投手类伤害绕过 shield、仍命中 helm/body。"

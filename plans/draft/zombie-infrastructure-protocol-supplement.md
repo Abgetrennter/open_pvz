@@ -1,12 +1,15 @@
 # 原版僵尸复刻基础设施与协议补充草案
 
-- 状态：设计草案
+- 状态：归档候选（已实现）
 - 日期：2026-05-20
+- 实现完成：2026-05-20
 - 关联文档：
   - `plans/draft/zombie-replication.md`
   - `plans/zombie-design-research-report.md`
   - `wiki/decisions/ADR-008-Movement-一级家族新增.md`
 - 目标：补齐原版僵尸复刻前需要先冻结或最小实现的运行时协议，避免后续把特殊僵尸逻辑写进 `ZombieRoot`、`Controller` 或 `BattleManager` 特判。
+
+> 实现状态：本草案对应的 HealthLayer、damage_layer_policy、Movement v1、State side-effects、exposure/weight 协议已落地，并已回写 ADR-008、runtime wiki 与验证矩阵。归档前本文仅保留为实施记录，不再作为并行事实源；当前事实以代码、wiki 正文与 `tools/validation_scenarios.json` 为准。
 
 ## 1. 总体结论
 

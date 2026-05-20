@@ -30,6 +30,7 @@ lane_id = 1
 x_position = 420.0
 hit_height_band_override = ExtResource("4_air_medium")
 spawn_overrides = {
+"initial_exposure_state": &"flying",
 "move_speed_slots_per_sec": 0.0
 }
 

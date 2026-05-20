@@ -1,6 +1,6 @@
 # ADR-008 Movement 一级家族新增
 
-- 状态：提议中
+- 状态：已接受（v1 已落地）
 - 日期：2026-05-20
 - 作者：Sisyphus / Abget
 - 关联阶段：原版僵尸复刻
@@ -11,13 +11,16 @@
   - [连续行为模型](../02-runtime-protocol/08-连续行为模型.md)
   - [原版实体复刻工作流](../05-governance/36-原版实体复刻工作流.md)
 - 关联实现：
-  - `scripts/entities/zombie_root.gd`（运动逻辑需重构）
-  - `scripts/components/movement_component.gd`（需扩展）
-  - `scripts/battle/entity_factory.gd`（编译链需接入）
-  - 未来新增 `MovementRegistry` autoload
-  - 未来新增 `MovementComponent` 增强或替代
+  - `autoload/MovementRegistry.gd`
+  - `scripts/entities/zombie_root.gd`
+  - `scripts/components/movement_component.gd`
+  - `scripts/battle/entity_factory.gd`
+  - `scripts/core/runtime/mechanic_compiler.gd`
 - 关联验证：
-  - Movement type 策略专项验证
+  - `movement_walk_validation`
+  - `movement_command_merge_validation`
+  - `movement_leap_z_axis_validation`
+  - `movement_interrupt_validation`
   - 现有 zombie 验证场景回归
   - 僵尸原型行为验证
 
@@ -84,7 +87,7 @@ movement_component.velocity = Vector2.LEFT * effective_move_speed
 
 1. 为自主移动实体提供正式的运动控制能力位。
 2. 将运动关注点从 Controller/ZombieRoot 中分离出来。
-3. 支持 7+ 种运动 type，覆盖原版 PVZ 25 种僵尸的运动需求。
+3. 先冻结 `core.walk` 与 `core.leap_once` 两个 v1 type，作为后续原版 PVZ 复杂僵尸运动的公共基础设施。
 4. 与现有 State/Controller/Lifecycle 组合使用，不破坏已冻结的 10 个 family。
 5. 为 EntityFactory 编译链新增 Movement 编译路径。
 
@@ -177,20 +180,14 @@ Movement
 
 ### 6.3 初始 type 清单
 
-定义以下 `core.*` type：
+v1 只接受并实现以下 `core.*` type：
 
 | type_id | 语义 | 适用僵尸 | 关键参数 |
 |---------|------|---------|---------|
 | `core.walk` | 标准地面左行 | 大部分僵尸 | `move_speed_slots_per_sec`, `direction` (默认 -1) |
-| `core.vault` | 单次跳越（瞬发位移+无敌窗口） | Pole Vaulter, Dolphin Rider | `jump_distance_slots`, `invulnerable_duration`, `post_vault_speed` |
-| `core.bounce` | 周期弹越障碍 | Pogo | `bounce_height`, `bounce_interval`, `can_bounce_over_tags` |
-| `core.tunnel` | 地下穿行（不可攻击） | Digger | `tunnel_speed`, `emerge_x`, `post_emerge_speed`, `post_emerge_direction` (+1) |
-| `core.fly` | 空中飞行 | Balloon | `fly_speed`, `fly_height_band` (air_unit_low) |
-| `core.drive` | 碾压前进（接触伤害+减速曲线） | Zamboni | `initial_speed`, `deceleration_curve`, `crush_damage` |
-| `core.reverse_walk` | 反向步行 | Yeti (逃跑阶段) | `move_speed_slots_per_sec`, `direction` (+1) |
-| `core.submerge` | 潜水移动 | Snorkel | `submerge_speed`, `surface_range` |
+| `core.leap_once` | 单次跳跃高度变化与落地事件 | Pole Vaulter / Dolphin Rider 后续复刻的基础设施 | `move_speed_slots_per_sec`, `direction`, `jump_velocity`, `gravity` |
 
-> 注：初始 type 清单是**建议范围**，实施时可根据编译链实际需求微调。type 可在实施阶段按需扩展。
+后续只登记、不在 v1 实现：`hop_cycle` / `tunnel` / `drive` / `submerge` / `reverse_walk`。这些 type 需要在对应僵尸批次中补独立设计与验证，不得提前塞进 `Controller` 或 `ZombieRoot` 特判。
 
 ### 6.4 Movement 与 State 的协作
 
@@ -210,7 +207,7 @@ State: approaching → fleeing (Yeti)
   → Movement: walk → reverse_walk (speed=0.80)
 ```
 
-实现方式：State transition 定义中新增可选字段 `movement_override`：
+实现方式：State transition 定义 `side_effects`，其中 `set_movement` 可替换当前 movement spec：
 
 ```gdscript
 {
@@ -218,10 +215,13 @@ State: approaching → fleeing (Yeti)
   "to_state": "emerged",
   "trigger": "event",
   "event_name": "entity.state_entered",
-  "movement_override": {
-    "type": "core.walk",
-    "params": {"move_speed_slots_per_sec": 0.12, "direction": 1}
-  }
+  "side_effects": [{
+    "type": "set_movement",
+    "spec": {
+      "movement_id": "core.walk",
+      "params": {"move_speed_slots_per_sec": 0.12, "direction": Vector2.RIGHT}
+    }
+  }]
 }
 ```
 
@@ -230,13 +230,14 @@ State: approaching → fleeing (Yeti)
 | 僵尸 | Movement | Controller | State |
 |------|----------|------------|-------|
 | Normal | `core.walk` | `core.bite` | — |
-| Pole Vaulter | `core.vault` → `core.walk` | `core.bite` (post-vault) | vaulting → walking |
-| Pogo | `core.bounce` | — (bounce 本身是运动) | bouncing → grounded (magnet) |
-| Digger | `core.tunnel` → `core.walk(dir=+1)` | `core.bite` (post-emerge) | underground → emerged |
-| Balloon | `core.fly` → `core.walk` | `core.bite` (post-land) | flying → grounded |
-| Zamboni | `core.drive` | — (drive 包含碾压) | — |
-| Snorkel | `core.submerge` → `core.walk` | `core.bite` (surfaced) | submerged → surfaced |
-| Yeti | `core.walk` → `core.reverse_walk` | `core.bite` | calm → fleeing |
+| Normal | `core.walk` | `core.bite` | — |
+| Pole Vaulter | v1 先用 `core.leap_once` 表达单次跳跃高度与落地；完整 vault 位移窗口后续单独设计 | `core.bite` (post-vault) | vaulting → walking |
+| Pogo | 后续 `hop_cycle` | — | bouncing → grounded (magnet) |
+| Digger | 后续 `tunnel` → `core.walk(dir=+1)` | `core.bite` (post-emerge) | underground → emerged |
+| Balloon | attachment 破坏后通过 State side-effect 切回 `core.walk` | `core.bite` (post-land) | flying → grounded |
+| Zamboni | 后续 `drive` + Controller/Effect 接触结算 | — | — |
+| Snorkel | 后续 `submerge` → `core.walk` | `core.bite` (surfaced) | submerged → surfaced |
+| Yeti | `core.walk` + state 参数覆盖；反向运动 type 后续登记 | `core.bite` | calm → fleeing |
 
 ### 6.6 编译链扩展
 
@@ -246,7 +247,7 @@ Movement 编译在 EntityFactory 中的位置：
 CombatArchetype + CombatMechanic[]
   → NormalizedMechanicSet
   → RuntimeSpec
-    + movement_spec: {type_id, params, transitions[]}
+    + movement_spec: {movement_id, params}
     + trigger_specs[]
     + controller_specs[]
     + state_specs[]
@@ -254,16 +255,15 @@ CombatArchetype + CombatMechanic[]
   → EntityFactory.instantiate_runtime_spec()
     → 绑定 MovementComponent specs
     → 绑定 ControllerComponent specs
-    → 绑定 StateComponent specs (含 movement_override)
+    → 绑定 StateComponent specs (含 side_effects)
 ```
 
 MechanicCompiler 为 Movement family 注册编译 callable：
 
 ```gdscript
 # 在 MechanicCompilerRegistry._register_builtin_compilers() 中
-register_compiler("Movement.core.walk", _compile_walk_movement)
-register_compiler("Movement.core.vault", _compile_vault_movement)
-# ... 以此类推
+register_compiler("Movement.core.walk", _compile_movement_walk)
+register_compiler("Movement.core.leap_once", _compile_movement_leap_once)
 ```
 
 ### 6.7 MovementRegistry
@@ -291,14 +291,14 @@ register_compiler("Movement.core.vault", _compile_vault_movement)
 | `scripts/entities/zombie_root.gd` | simulation_step 重构：优先使用 Movement 输出，fallback 硬编码 |
 | `scripts/components/movement_component.gd` | 扩展：支持 direction、mode、MovementRegistry 策略驱动 |
 | `scripts/battle/entity_factory.gd` | 编译链接入 movement_spec |
-| `scripts/components/state_component.gd` | 扩展：_execute_transition 支持 movement_override |
+| `scripts/components/state_component.gd` | 扩展：_execute_transition 支持 `side_effects` 中的 `set_movement` / `submit_movement_override` |
 
 ### Resource
 
 | 文件 | 影响 |
 |------|------|
-| `data/combat/mechanics/*.tres` | 新增 Movement mechanic 资源 |
-| `data/combat/archetypes/zombies/*.tres` | 新增 movement 字段引用 |
+| `data/combat/mechanics/*.tres` | 后续原版僵尸可新增 Movement mechanic 资源 |
+| `data/combat/archetypes/zombies/*.tres` | 后续原版僵尸可引用 Movement mechanic |
 | `project.godot` | 新增 MovementRegistry autoload |
 
 ### 验证
@@ -306,8 +306,9 @@ register_compiler("Movement.core.vault", _compile_vault_movement)
 | 场景 | 类型 |
 |------|------|
 | `movement_walk_validation.tres` | smoke：验证 core.walk 左行 |
-| `movement_vault_validation.tres` | core：验证跳越位移+无敌+速度切换 |
-| `movement_regression_validation.tres` | smoke：现有僵尸行为不变 |
+| `movement_command_merge_validation.tres` | core：验证 State override / base / status / impulse 合并顺序 |
+| `movement_leap_z_axis_validation.tres` | core：验证 core.leap_once 的高度、airborne、ground_contact 与 landed 事件 |
+| `movement_interrupt_validation.tres` | core：验证 liveness/status 暂停运动 |
 | 各僵尸原型行为验证 | core |
 
 ### 文档
@@ -330,8 +331,8 @@ register_compiler("Movement.core.vault", _compile_vault_movement)
 
 ### 阶段 2（僵尸原型）
 
-5. 实现 `core.vault`、`core.bounce`、`core.tunnel` 等特殊 type
-6. StateComponent 扩展 movement_override 支持
+5. 后续在对应僵尸批次中分别设计 `hop_cycle`、`tunnel`、`drive`、`submerge` 等特殊 type
+6. StateComponent 使用 `side_effects` 驱动 movement 切换或运行时参数变化
 7. 逐个僵尸原型创建 archetype + 验证场景
 
 ### 兼容期
@@ -352,11 +353,12 @@ pwsh tools/run_all_validations.ps1
 
 ### Movement smoke 测试
 
-新增 3 个验证场景：
+新增 4 个验证场景：
 
 1. `movement_walk_validation`：僵尸使用 `Movement.core.walk` 从右向左移动，到达目标 x 位置
-2. `movement_vault_validation`：僵尸使用 `Movement.core.vault` 跳越障碍物
-3. `movement_regression_validation`：无 movement_spec 的僵尸（basic_walker）行为与当前一致
+2. `movement_command_merge_validation`：验证 movement 命令合并顺序稳定
+3. `movement_leap_z_axis_validation`：验证 `Movement.core.leap_once` 同步逻辑 Z 轴、暴露态、接地状态与落地事件
+4. `movement_interrupt_validation`：验证 movement 可被 liveness/status 暂停且不绕过组件积分点
 
 ### 完成信号
 
@@ -364,7 +366,7 @@ pwsh tools/run_all_validations.ps1
 2. MovementRegistry autoload 正常注册
 3. Movement mechanic 可编译到 RuntimeSpec
 4. 现有僵尸验证回归通过
-5. 至少 1 个新 Movement type 有验证场景覆盖
+5. `core.walk` 与 `core.leap_once` 均有验证场景覆盖
 
 ## 10. 风险与未决项
 
@@ -383,13 +385,13 @@ pwsh tools/run_all_validations.ps1
 
 ## 11. 后续动作
 
-1. 在 `MechanicFamilyRegistry._register_builtin_families()` 中新增 `Movement`
-2. 新增 `autoload/MovementRegistry.gd`，继承 RegistryBase
-3. 在 `combat_mechanic.gd` 的 `ALLOWED_FAMILIES` 中新增 Movement
-4. 实现 `Movement.core.walk` 策略和编译 callable
-5. 扩展 `ZombieRoot.simulation_step()` 以消费 Movement 输出
-6. 新增 smoke 验证场景
-7. 回写 wiki 文档更新 family 数量
+1. `MechanicFamilyRegistry._register_builtin_families()` 已新增 `Movement`
+2. `autoload/MovementRegistry.gd` 已新增并继承 RegistryBase
+3. `combat_mechanic.gd` 的 `ALLOWED_FAMILIES` 已新增 Movement
+4. `Movement.core.walk` 与 `Movement.core.leap_once` 策略和编译 callable 已落地
+5. `ZombieRoot.simulation_step()` 已优先消费 MovementComponent，缺省实体保留兼容 fallback
+6. Movement smoke/core 验证场景已进入 manifest
+7. wiki 正文已回写 family 数量与 Movement 边界
 
 ## 12. 文档影响矩阵
 

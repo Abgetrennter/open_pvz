@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/infrastructure_protocol_showcase.gd" id="1_showcase"]
+
+[node name="InfrastructureExposureShowcase" type="Node2D"]
+script = ExtResource("1_showcase")
+showcase_mode = "exposure"
+showcase_title = "Exposure / HitPolicy 命中展示"
+showcase_summary = "展示默认 target_exposure_states=[ground]，以及 flying、underground、airborne 需要显式 opt-in 的命中边界。"

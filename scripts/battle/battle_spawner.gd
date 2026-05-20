@@ -113,11 +113,16 @@ func _spawn_projectile_burst(
 		)
 		if requested_lane >= 0:
 			movement_params["lane_id"] = requested_lane
-		projectile.launch(emission_dir, speed, context.source_node, on_hit_effect, damage, movement_params, {
+		var runtime_overrides := {
 			"depth": int(context.runtime.get("depth", context.depth)),
 			"chain_id": context.chain_id,
 			"origin_event_name": context.event_name,
-		})
+		}
+		if resolved_params.get("damage_layer_policy", null) is Dictionary:
+			runtime_overrides["damage_layer_policy"] = Dictionary(resolved_params.get("damage_layer_policy")).duplicate(true)
+		if resolved_params.has("target_exposure_states"):
+			runtime_overrides["target_exposure_states"] = resolved_params.get("target_exposure_states")
+		projectile.launch(emission_dir, speed, context.source_node, on_hit_effect, damage, movement_params, runtime_overrides)
 		if requested_lane >= 0 and projectile.has_method("assign_lane"):
 			projectile.call("assign_lane", requested_lane)
 		var entity_root: Node2D = _battle.get_entity_root()

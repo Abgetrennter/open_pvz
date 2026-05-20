@@ -34,6 +34,8 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.consume_self": &"Payload",
 		&"core.reveal": &"Payload",
 		&"core.clear_fog": &"Payload",
+		&"core.walk": &"Movement",
+		&"core.leap_once": &"Movement",
 		&"core.bite": &"Controller",
 		&"core.sweep": &"Controller",
 		&"core.ground_damage": &"Controller",
@@ -109,6 +111,16 @@ static func register_builtin_mechanic_types() -> void:
 			_compile_state_sleeping,
 			{"compiler_version": COMPILER_VERSION, "family": &"State"}
 		)
+		MechanicCompilerRegistry.register_compiler_callable(
+			&"core.walk",
+			_compile_movement_walk,
+			{"compiler_version": COMPILER_VERSION, "family": &"Movement"}
+		)
+		MechanicCompilerRegistry.register_compiler_callable(
+			&"core.leap_once",
+			_compile_movement_leap_once,
+			{"compiler_version": COMPILER_VERSION, "family": &"Movement"}
+		)
 		_register_targeting_callables()
 		_register_trajectory_callables()
 		_register_hit_policy_callables()
@@ -145,6 +157,7 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 	runtime_spec.trigger_specs = _compile_trigger_payload_specs(normalized, archetype)
 	runtime_spec.controller_specs = _compile_controller_specs(normalized, archetype)
 	runtime_spec.state_specs = _compile_state_specs(normalized, archetype)
+	runtime_spec.movement_spec = _compile_movement_spec(normalized, archetype)
 	runtime_spec.placement_spec = _compile_placement_spec(normalized, archetype)
 	runtime_spec.runtime_state_values = {
 		&"archetype_id": archetype.archetype_id,
@@ -154,6 +167,16 @@ func compile_spawn_entry(spawn_entry: Resource, archetype):
 	runtime_spec.root_scene = archetype.root_scene
 	if archetype.max_health > 0:
 		runtime_spec.max_health = archetype.max_health
+	if archetype.health_layers is Array:
+		runtime_spec.health_layers = _normalize_health_layers(archetype.health_layers)
+	runtime_spec.initial_exposure_state = StringName(normalized.merged_params.get(
+		"initial_exposure_state",
+		archetype.initial_exposure_state
+	))
+	runtime_spec.weight_class = StringName(normalized.merged_params.get(
+		"weight_class",
+		archetype.weight_class
+	))
 	if archetype.hitbox_size != Vector2.ZERO:
 		runtime_spec.hitbox_size = archetype.hitbox_size
 	runtime_spec.mechanic_runtime_states = _build_mechanic_runtime_states(normalized)
@@ -557,6 +580,13 @@ static func _compile_state_specs(normalized, archetype) -> Array:
 	return _compile_family_specs(normalized, archetype, CombatMechanicRef.FAMILY_STATE)
 
 
+static func _compile_movement_spec(normalized, archetype) -> Dictionary:
+	var specs := _compile_family_specs(normalized, archetype, CombatMechanicRef.FAMILY_MOVEMENT)
+	if specs.is_empty():
+		return {}
+	return Dictionary(specs[0]).duplicate(true)
+
+
 static func _compile_placement_spec(normalized, archetype) -> Dictionary:
 	var placement_mechanics: Array = []
 	for mechanic in normalized.mechanics:
@@ -646,8 +676,19 @@ static func _fallback_compile_family_spec(family_id: StringName, archetype, mech
 			return _build_controller_spec_inline(archetype, mechanic)
 		CombatMechanicRef.FAMILY_STATE:
 			return _build_state_spec_inline(archetype, mechanic)
+		CombatMechanicRef.FAMILY_MOVEMENT:
+			return _build_movement_spec_inline(archetype, mechanic)
 		_:
 			return {}
+
+
+static func _build_movement_spec_inline(archetype, mechanic) -> Dictionary:
+	return {
+		"movement_id": mechanic.type_id,
+		"mechanic_id": mechanic.mechanic_id,
+		"source_archetype_id": archetype.archetype_id,
+		"params": Dictionary(mechanic.params).duplicate(true),
+	}
 
 
 static func _build_controller_spec_inline(archetype, mechanic) -> Dictionary:
@@ -892,6 +933,28 @@ static var _compile_state_sleeping: Callable = func(mechanic, archetype, _merged
 	}
 
 
+static var _compile_movement_walk: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
+	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction"])
+	return {
+		"movement_id": &"core.walk",
+		"mechanic_id": mechanic.mechanic_id,
+		"source_archetype_id": archetype.archetype_id,
+		"params": base_params,
+	}
+
+
+static var _compile_movement_leap_once: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
+	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"jump_velocity", &"gravity"])
+	return {
+		"movement_id": &"core.leap_once",
+		"mechanic_id": mechanic.mechanic_id,
+		"source_archetype_id": archetype.archetype_id,
+		"params": base_params,
+	}
+
+
 static func _build_mechanic_runtime_states(normalized) -> Dictionary:
 	var states: Dictionary = {}
 	for mechanic in normalized.mechanics:
@@ -953,6 +1016,36 @@ static func _resolve_projectile_flight_profile(archetype, projectile_template) -
 	if projectile_template != null and projectile_template.get("flight_profile") != null:
 		return projectile_template.get("flight_profile")
 	return null
+
+
+static func _normalize_health_layers(raw_layers: Array) -> Array:
+	var normalized: Array = []
+	for raw_layer in raw_layers:
+		if raw_layer == null:
+			continue
+		var layer: Dictionary = {}
+		if raw_layer is Dictionary:
+			layer = Dictionary(raw_layer).duplicate(true)
+		elif raw_layer.has_method("to_runtime_layer"):
+			layer = Dictionary(raw_layer.call("to_runtime_layer"))
+		elif raw_layer.has_method("get"):
+			layer = {
+				"layer_id": StringName(raw_layer.get("layer_id")),
+				"layer_kind": StringName(raw_layer.get("layer_kind")),
+				"armor_type": StringName(raw_layer.get("armor_type")),
+				"max_health": int(raw_layer.get("max_health")),
+				"route_order": int(raw_layer.get("route_order")),
+				"material_tags": PackedStringArray(raw_layer.get("material_tags")),
+				"overflow_policy": StringName(raw_layer.get("overflow_policy")),
+			}
+		if layer.is_empty():
+			continue
+		if StringName(layer.get("layer_id", StringName())) == StringName():
+			continue
+		if StringName(layer.get("layer_kind", StringName())) == StringName():
+			continue
+		normalized.append(layer)
+	return normalized
 
 
 # --- Targeting compiler callables ---

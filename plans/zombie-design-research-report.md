@@ -6,6 +6,8 @@
 - 事实来源：`vendor/de-pvz/`（原版反编译）、`vendor/PVZ-Godot-Dream/`（参考实现）、本项目代码与 wiki
 - 可作为当前实现依据：是（分析结论），否（需设计审批后执行）
 
+> 维护注记（2026-05-20）：本文的研究结论仍可用；基础设施执行口径已由 `plans/draft/zombie-infrastructure-protocol-supplement.md` 和正式 wiki 回写收口。旧文中的 `ArmorLayerDef / armor_layers` 统一按 `HealthLayerDef / health_layers` 理解；`core.vault/core.bounce` 只表示后续复杂 Movement type 需求，v1 已落地类型为 `core.walk` 与 `core.leap_once`。
+
 ---
 
 ## 1. 研究目标
@@ -178,8 +180,8 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 | type_id | 语义 | 适用僵尸 |
 |---------|------|---------|
 | `core.walk` | 标准左行 | 大部分僵尸 |
-| `core.vault` | 单次跳越 | Pole Vaulter, Dolphin Rider |
-| `core.bounce` | 周期弹越 | Pogo |
+| `core.leap_once` + 后续 vault 专项 | 单次跳越基础设施 | Pole Vaulter, Dolphin Rider |
+| 后续 `hop_cycle` | 周期弹越 | Pogo |
 | `core.tunnel` | 地下穿行 | Digger |
 | `core.fly` | 空中飞行 | Balloon |
 | `core.drive` | 碾压前进+减速 | Zamboni |
@@ -198,23 +200,23 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 |------|----------|------------|-------|---------|------|
 | Normal | `core.walk(0.28)` | `core.bite` | — | — | — |
 | Flag | `core.walk(0.45)` | `core.bite` | — | — | 旗帜波次标记（WaveRunner 层） |
-| Conehead | `core.walk(0.28)` | `core.bite` | — | — | armor_layers: [{cone: 370}] |
-| Buckethead | `core.walk(0.28)` | `core.bite` | — | — | armor_layers: [{bucket: 1100, metal}] |
+| Conehead | `core.walk(0.28)` | `core.bite` | — | — | health_layers: [{cone: 370, helm}] |
+| Buckethead | `core.walk(0.28)` | `core.bite` | — | — | health_layers: [{bucket: 1100, helm, metal}] |
 
 ### 6.2 高速重甲（2 种）
 
 | 僵尸 | Movement | Controller | State | Payload | 特殊 |
 |------|----------|------------|-------|---------|------|
-| Football | `core.walk(0.67)` | `core.bite` | — | — | armor_layers: [{football_helm: 1400, metal}] |
-| Screen Door | `core.walk(0.28)` | `core.bite` | — | — | armor_layers: [{door: 1100, metal, directional}] |
+| Football | `core.walk(0.67)` | `core.bite` | — | — | health_layers: [{football_helm: 1400, helm, metal}] |
+| Screen Door | `core.walk(0.28)` | `core.bite` | — | — | health_layers: [{door: 1100, shield, metal, directional}] |
 
 ### 6.3 移动变体（3 种）
 
 | 僵尸 | Movement | Controller | State | 特殊 |
 |------|----------|------------|-------|------|
-| Pole Vaulter | `core.vault` → `core.walk(0.89)` | `core.bite` | vaulting → walking | vault 触发: proximity |
-| Pogo | `core.bounce` → `core.walk(0.45)` | `core.bite` | bouncing → grounded | bounce 失去弹簧: magnet |
-| Digger | `core.tunnel` → `core.walk(0.12, dir=+1)` | `core.bite` | underground → emerged | armor_layers: [{digger_helm: 100}] |
+| Pole Vaulter | `core.leap_once` + 后续 vault 专项 → `core.walk(0.89)` | `core.bite` | vaulting → walking | vault 触发: proximity |
+| Pogo | 后续 `hop_cycle` → `core.walk(0.45)` | `core.bite` | bouncing → grounded | bounce 失去弹簧: magnet |
+| Digger | 后续 `tunnel` → `core.walk(0.12, dir=+1)` | `core.bite` | underground → emerged | health_layers: [{digger_helm: 100, helm}] |
 
 ### 6.4 水面（3 种）
 
@@ -222,7 +224,7 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 |------|----------|------------|-------|------|
 | Ducky Tube | `core.walk(0.28)` | `core.bite` | — | water 标签（水面语义延后） |
 | Snorkel | `core.submerge` → `core.walk(0.67)` | `core.bite` | submerged → surfaced | 潜水: untargetable + damageable=false |
-| Dolphin Rider | `core.vault(pool)` → `core.walk(0.28)` | `core.bite` | riding → walking | 复用 vault，跳跃后降速 |
+| Dolphin Rider | `core.leap_once` + 后续 vault/pool 专项 → `core.walk(0.28)` | `core.bite` | riding → walking | 复用跳跃基础设施，跳跃后降速 |
 
 ### 6.5 远程/特殊（7 种）
 
@@ -270,20 +272,20 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 
 ### Phase 0（前置，BLOCKING）
 
-- **P0a**: 分层血量系统 — `ArmorLayerDef` + HealthComponent 扩展
-- **P0b**: Movement family 基础设施 — MovementRegistry + `core.walk` + 回归验证
+- **P0a**: 分层血量系统 — `HealthLayerDef` + HealthComponent 扩展
+- **P0b**: Movement family 基础设施 — MovementRegistry + `core.walk` / `core.leap_once` + 回归验证
 
 ### Phase 1（Batch A — 基础近战，全部 quick）
 
 - Normal, Flag, Conehead, Buckethead
 - 全部使用 `core.walk` + `core.bite`
-- Conehead/Buckethead 使用 armor_layers
+- Conehead/Buckethead 使用 health_layers
 
 ### Phase 2（Batch B — 高速/特殊移动）
 
-- Football, Screen Door: armor_layers + 高速 walk
+- Football, Screen Door: health_layers + 高速 walk
 - Newspaper: armor + when_damaged → speed boost
-- Pole Vaulter: `core.vault` Movement
+- Pole Vaulter: `core.leap_once` + 后续 vault 专项 Movement
 
 ### Phase 3（Batch C — 水面/载具）
 

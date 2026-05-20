@@ -14,6 +14,7 @@
 - [ADR-005 扩展包接入与迁移策略](ADR-005-扩展包接入与迁移策略.md)
 - [ADR-006 战斗模式组织层 v1 正式化](ADR-006-战斗模式组织层-v1-正式化.md)
 - [ADR-007 统一 Registry / Slot 生产线](ADR-007-统一Registry-Slot生产线.md)
+- [ADR-008 Movement 一级家族新增](ADR-008-Movement-一级家族新增.md)
 
 相关模板：
 

@@ -25,6 +25,7 @@ default_params = {
 "damage": 20,
 "interval": 1.5,
 "speed_slots_per_sec": 3.125,
-"start_delay": 0.2
+"start_delay": 0.2,
+"target_exposure_states": PackedStringArray("flying")
 }
 mechanics = [ExtResource("3_mechanic_0"), ExtResource("4_mechanic_1"), ExtResource("5_mechanic_2")]

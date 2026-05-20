@@ -18,6 +18,9 @@ class_name CombatArchetype
 @export var required_present_archetypes: PackedStringArray = PackedStringArray()
 @export var required_empty_roles: PackedStringArray = PackedStringArray(["blocker"])
 @export var max_health := -1
+@export var health_layers: Array[Resource] = []
+@export var initial_exposure_state: StringName = &"ground"
+@export var weight_class: StringName = &"normal"
 @export var hitbox_size := Vector2.ZERO
 @export var hit_height_band: Resource = null
 @export var projectile_flight_profile: Resource = null

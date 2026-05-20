@@ -3,6 +3,7 @@ class_name ProtocolValidator
 
 const CombatArchetypeRef = preload("res://scripts/core/defs/combat_archetype.gd")
 const CombatMechanicRef = preload("res://scripts/core/defs/combat_mechanic.gd")
+const HealthLayerDefRef = preload("res://scripts/core/defs/health_layer_def.gd")
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const HeightBandRef = preload("res://scripts/core/defs/height_band.gd")
 const ProjectileTemplateRef = preload("res://scripts/core/defs/projectile_template.gd")
@@ -59,11 +60,14 @@ const FROZEN_TRIGGER_BEHAVIOR_SPECS := {
 }
 const KNOWN_LANE_TYPES := [&"grass", &"pool", &"roof", &"dirt"]
 const KNOWN_TERRAIN_ELEVATION_MODES := [&"flat", &"linear", &"stepped"]
+const KNOWN_EXPOSURE_STATES := [&"ground", &"airborne", &"flying", &"submerged", &"underground"]
+const KNOWN_WEIGHT_CLASSES := [&"light", &"normal", &"heavy", &"massive", &"fixed"]
 
 const SPAWN_ENTRY_RESERVED_PARAMS := {
 	"interval": true,
 	"amount": true,
 	"damage": true,
+	"speed": true,
 	"speed_slots_per_sec": true,
 	"effect_overrides": true,
 	"on_hit_effect_id": true,
@@ -107,10 +111,18 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"angle_count": true,
 	"angle_spread": true,
 	"turn_rate": true,
+	"direction": true,
 	"move_speed_slots_per_sec": true,
+	"move_speed": true,
+	"jump_velocity": true,
+	"gravity": true,
 	"attack_damage": true,
 	"attack_interval": true,
 	"max_health": true,
+	"health_layers": true,
+	"initial_exposure_state": true,
+	"exposure_state": true,
+	"weight_class": true,
 	"hitbox_size": true,
 	"detection_radius_slots": true,
 	"detection_range_slots": true,
@@ -118,6 +130,8 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"range_mode": true,
 	"detection_id": true,
 	"target_tags": true,
+	"target_exposure_states": true,
+	"damage_layer_policy": true,
 	"target_priority_tags": true,
 	"target_exclude_tags": true,
 	"required_state": true,
@@ -131,6 +145,8 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"value_by_state": true,
 	"source_type": true,
 	"offset_y": true,
+	"min_height": true,
+	"max_weight_class": true,
 }
 
 
@@ -350,6 +366,23 @@ static func validate_combat_archetype(archetype: Resource) -> Array[String]:
 		errors.append("CombatArchetype.default_params must be a Dictionary.")
 	if not (archetype.compiler_hints is Dictionary):
 		errors.append("CombatArchetype.compiler_hints must be a Dictionary.")
+	if not KNOWN_EXPOSURE_STATES.has(StringName(archetype.initial_exposure_state)):
+		errors.append("CombatArchetype.initial_exposure_state must be one of %s." % _join_strings(_variant_string_set(KNOWN_EXPOSURE_STATES)))
+	if not KNOWN_WEIGHT_CLASSES.has(StringName(archetype.weight_class)):
+		errors.append("CombatArchetype.weight_class must be one of %s." % _join_strings(_variant_string_set(KNOWN_WEIGHT_CLASSES)))
+	if not (archetype.health_layers is Array):
+		errors.append("CombatArchetype.health_layers must be an Array.")
+	else:
+		var layer_ids: Dictionary = {}
+		for layer in archetype.health_layers:
+			for error in validate_health_layer_def(layer):
+				errors.append("CombatArchetype health_layers: %s" % error)
+			if layer != null and layer.has_method("get"):
+				var layer_id := StringName(layer.get("layer_id"))
+				if layer_id != StringName():
+					if layer_ids.has(layer_id):
+						errors.append("CombatArchetype health_layers duplicate layer_id %s." % String(layer_id))
+					layer_ids[layer_id] = true
 	if not (archetype.mechanics is Array):
 		errors.append("CombatArchetype.mechanics must be an Array.")
 	else:
@@ -361,6 +394,26 @@ static func validate_combat_archetype(archetype: Resource) -> Array[String]:
 	var placement_errors := _validate_archetype_placement_spec(archetype)
 	for error in placement_errors:
 		errors.append("CombatArchetype placement_spec: %s" % error)
+	return errors
+
+
+static func validate_health_layer_def(layer_def) -> Array[String]:
+	var errors: Array[String] = []
+	if layer_def == null:
+		errors.append("HealthLayerDef is null.")
+		return errors
+	if not (layer_def is HealthLayerDefRef):
+		errors.append("HealthLayerDef resource must use health_layer_def.gd.")
+		return errors
+	if StringName(layer_def.layer_id) == StringName():
+		errors.append("HealthLayerDef.layer_id must not be empty.")
+	if StringName(layer_def.layer_kind) == StringName():
+		errors.append("HealthLayerDef.layer_kind must not be empty.")
+	if int(layer_def.max_health) <= 0:
+		errors.append("HealthLayerDef.max_health must be greater than zero.")
+	var overflow_policy := StringName(layer_def.overflow_policy)
+	if overflow_policy != &"spill_to_next" and overflow_policy != &"absorb_only":
+		errors.append("HealthLayerDef.overflow_policy must be spill_to_next or absorb_only.")
 	return errors
 
 
@@ -953,6 +1006,10 @@ static func normalize_effect_node(node) -> Dictionary:
 
 	if StringName(node.effect_id) == &"spawn_projectile":
 		_normalize_projectile_movement_params(node, normalized_params, errors)
+	if normalized_params.has("target_exposure_states"):
+		_validate_target_exposure_states(PackedStringArray(normalized_params.get("target_exposure_states", PackedStringArray())), errors, "EffectNode %s" % String(node.effect_id))
+	if normalized_params.has("damage_layer_policy"):
+		_validate_damage_layer_policy(normalized_params.get("damage_layer_policy", {}), errors, "EffectNode %s" % String(node.effect_id))
 
 	if not bool(effect_def.allow_extra_params):
 		var normalized_param_names: Dictionary = {}
@@ -1048,6 +1105,24 @@ static func _effect_allowed_in_slot(child, slot_def) -> bool:
 		if effect_tags.has(allowed_tag):
 			return true
 	return false
+
+
+static func _validate_target_exposure_states(states: PackedStringArray, errors: PackedStringArray, scope: String) -> void:
+	for state in states:
+		if not KNOWN_EXPOSURE_STATES.has(StringName(state)):
+			errors.append("%s target_exposure_states contains unknown state %s." % [scope, String(state)])
+
+
+static func _validate_damage_layer_policy(policy: Variant, errors: PackedStringArray, scope: String) -> void:
+	if not (policy is Dictionary):
+		errors.append("%s damage_layer_policy must be a Dictionary." % scope)
+		return
+	var policy_dict := Dictionary(policy)
+	var raw_bypass: Variant = policy_dict.get("bypass_layer_kinds", PackedStringArray())
+	if not (raw_bypass is PackedStringArray or raw_bypass is Array):
+		errors.append("%s damage_layer_policy.bypass_layer_kinds must be PackedStringArray." % scope)
+	if policy_dict.has("spillover") and not (policy_dict.get("spillover") is bool):
+		errors.append("%s damage_layer_policy.spillover must be bool." % scope)
 
 
 static func _validate_battle_validation_rule(validation_rule: Resource, scenario_id: StringName) -> Array[String]:

@@ -103,6 +103,14 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "target_tags",
 		"type": "packed_string_array",
+	}, {
+		"name": "target_exposure_states",
+		"type": "packed_string_array",
+		"default": PackedStringArray(["ground"]),
+	}, {
+		"name": "damage_layer_policy",
+		"type": "dictionary",
+		"default": {},
 	}]
 	damage.param_defs = damage_param_defs
 	damage.allow_extra_params = false
@@ -303,6 +311,14 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "shuffle_mechanic_id",
 		"type": "string_name",
+	}, {
+		"name": "target_exposure_states",
+		"type": "packed_string_array",
+		"default": PackedStringArray(["ground"]),
+	}, {
+		"name": "damage_layer_policy",
+		"type": "dictionary",
+		"default": {},
 	}]
 	spawn_projectile.param_defs = spawn_projectile_param_defs
 	var on_hit_slot = EffectSlotDefRef.new()
@@ -347,6 +363,10 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "target_tags",
 		"type": "packed_string_array",
+	}, {
+		"name": "target_exposure_states",
+		"type": "packed_string_array",
+		"default": PackedStringArray(["ground"]),
 	}]
 	explode.param_defs = explode_param_defs
 	explode.allow_extra_params = false
@@ -551,6 +571,24 @@ func _register_builtin_defs() -> void:
 		"type": "float",
 		"min": 0.0,
 		"max": 128.0,
+	}, {
+		"name": "target_tags",
+		"type": "packed_string_array",
+	}, {
+		"name": "target_exposure_states",
+		"type": "packed_string_array",
+		"default": PackedStringArray(["flying"]),
+	}, {
+		"name": "min_height",
+		"type": "float",
+		"min": 0.0,
+		"max": 4000.0,
+		"default": 0.0,
+	}, {
+		"name": "max_weight_class",
+		"type": "string_name",
+		"default": &"normal",
+		"options": PackedStringArray(["light", "normal", "heavy", "massive", "fixed"]),
 	}]
 	dispel_flying.param_defs = dispel_flying_param_defs
 	dispel_flying.allow_extra_params = false
@@ -674,11 +712,7 @@ func _register_builtin_strategies() -> void:
 		for target in targets:
 			if target == null or not target.has_method("take_damage"):
 				continue
-			target.call("take_damage", amount, effect_source, damage_tags, {
-				"depth": int(context.runtime.get("depth", context.depth)) + 1,
-				"chain_id": context.chain_id,
-				"origin_event_name": context.event_name,
-			})
+			target.call("take_damage", amount, effect_source, damage_tags, _build_damage_runtime(context, params))
 		return result
 	)
 
@@ -746,11 +780,7 @@ func _register_builtin_strategies() -> void:
 		for target in targets:
 			if target == null or not target.has_method("take_damage"):
 				continue
-			target.call("take_damage", amount, effect_source, PackedStringArray(["explode", String(context.event_name)]), {
-				"depth": int(context.runtime.get("depth", context.depth)) + 1,
-				"chain_id": context.chain_id,
-				"origin_event_name": context.event_name,
-			})
+			target.call("take_damage", amount, effect_source, PackedStringArray(["explode", String(context.event_name)]), _build_damage_runtime(context, params))
 		return result
 	)
 
@@ -985,17 +1015,27 @@ func _register_builtin_strategies() -> void:
 		var radius := _resolve_slots_distance(params, "radius_slots", 4000.0)
 		var center: Vector2 = _node_ground_position(context.owner_entity)
 		var effect_source := _resolve_effect_source_node(context)
+		var target_tags := PackedStringArray(params.get("target_tags", PackedStringArray()))
+		var min_height := float(params.get("min_height", 0.0))
+		var max_weight_rank := _weight_rank(StringName(params.get("max_weight_class", &"normal")))
 
 		var targets: Array = GameState.current_battle.call("spatial_query", {
 			"center": center,
 			"radius": radius,
-			"tags_any": PackedStringArray(["flying"]),
 			"filter": func(candidate):
 				if candidate == context.owner_entity:
 					return false
 				if not candidate.has_method("take_damage"):
 					return false
 				if candidate.has_method("is_damageable") and not bool(candidate.call("is_damageable")):
+					return false
+				if not _matches_target_exposure(candidate, params, PackedStringArray(["flying"])):
+					return false
+				if _node_height(candidate) + 0.001 < min_height:
+					return false
+				if _node_weight_rank(candidate) > max_weight_rank:
+					return false
+				if not target_tags.is_empty() and not _node_has_any_tag_or_status(candidate, target_tags):
 					return false
 				return candidate is Node2D,
 		}) if GameState.current_battle.has_method("spatial_query") else []
@@ -1139,10 +1179,12 @@ func _resolve_target(context, params: Dictionary) -> Node:
 func _resolve_targets(context, params: Dictionary) -> Array:
 	var target_mode := StringName(params.get("target_mode", &"context_target"))
 	if target_mode == &"detected_targets":
-		return _resolve_detected_targets(context)
+		return _filter_targets_by_exposure(_resolve_detected_targets(context), params)
 	if target_mode != &"enemies_in_radius" and target_mode != &"enemies_in_lane":
 		var single_target := _resolve_target(context, params)
-		return [] if single_target == null else [single_target]
+		if single_target == null or not _matches_target_exposure(single_target, params):
+			return []
+		return [single_target]
 
 	if GameState.current_battle == null:
 		return []
@@ -1184,11 +1226,87 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 				return false
 			if not target_tags.is_empty() and not _node_has_any_tag_or_status(candidate, target_tags):
 				return false
+			if not _matches_target_exposure(candidate, params):
+				return false
 			return candidate is Node2D,
 	}
 	if lane_filter is int:
 		query["lane_ids"] = PackedInt32Array([int(lane_filter)])
 	return GameState.current_battle.call("spatial_query", query)
+
+
+func _build_damage_runtime(context, params: Dictionary) -> Dictionary:
+	var runtime := {
+		"depth": int(context.runtime.get("depth", context.depth)) + 1,
+		"chain_id": context.chain_id,
+		"origin_event_name": context.event_name,
+	}
+	if params.get("damage_layer_policy", null) is Dictionary and not Dictionary(params.get("damage_layer_policy")).is_empty():
+		runtime["damage_layer_policy"] = Dictionary(params.get("damage_layer_policy")).duplicate(true)
+	elif context.runtime.get("damage_layer_policy", null) is Dictionary:
+		runtime["damage_layer_policy"] = Dictionary(context.runtime.get("damage_layer_policy")).duplicate(true)
+	return runtime
+
+
+func _filter_targets_by_exposure(targets: Array, params: Dictionary) -> Array:
+	var filtered: Array = []
+	for target in targets:
+		if _matches_target_exposure(target, params):
+			filtered.append(target)
+	return filtered
+
+
+func _matches_target_exposure(target: Variant, params: Dictionary, default_states: PackedStringArray = PackedStringArray(["ground"])) -> bool:
+	if target == null:
+		return false
+	var allowed_states := _target_exposure_states_from_params(params, default_states)
+	if allowed_states.is_empty():
+		return true
+	var exposure_state := &"ground"
+	if target is Node and target.has_method("get_exposure_state"):
+		exposure_state = StringName(target.call("get_exposure_state"))
+	return allowed_states.has(String(exposure_state))
+
+
+func _target_exposure_states_from_params(params: Dictionary, default_states: PackedStringArray = PackedStringArray(["ground"])) -> PackedStringArray:
+	var raw_states: Variant = params.get("target_exposure_states", default_states)
+	if raw_states is PackedStringArray:
+		return PackedStringArray(raw_states)
+	if raw_states is Array:
+		return PackedStringArray(raw_states)
+	if raw_states is String or raw_states is StringName:
+		return PackedStringArray([String(raw_states)])
+	return PackedStringArray(default_states)
+
+
+func _node_height(node: Variant) -> float:
+	if node is Node and node.has_method("get_height"):
+		return float(node.call("get_height"))
+	return 0.0
+
+
+func _node_weight_rank(node: Variant) -> int:
+	if node is Node and node.has_method("get_weight_class"):
+		return _weight_rank(StringName(node.call("get_weight_class")))
+	if node is Node and node.has_method("get"):
+		return _weight_rank(StringName(node.get("weight_class")))
+	return _weight_rank(&"normal")
+
+
+func _weight_rank(weight_class: StringName) -> int:
+	match weight_class:
+		&"light":
+			return 0
+		&"normal":
+			return 1
+		&"heavy":
+			return 2
+		&"massive":
+			return 3
+		&"fixed":
+			return 4
+		_:
+			return 1
 
 
 func _resolve_detected_targets(context) -> Array:

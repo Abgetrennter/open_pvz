@@ -11,6 +11,7 @@ const FAMILY_STATE := &"State"
 const FAMILY_LIFECYCLE := &"Lifecycle"
 const FAMILY_PLACEMENT := &"Placement"
 const FAMILY_CONTROLLER := &"Controller"
+const FAMILY_MOVEMENT := &"Movement"
 
 const ALLOWED_FAMILIES := [
 	"Trigger",
@@ -23,6 +24,7 @@ const ALLOWED_FAMILIES := [
 	"Lifecycle",
 	"Placement",
 	"Controller",
+	"Movement",
 ]
 
 @export var mechanic_id: StringName = StringName()

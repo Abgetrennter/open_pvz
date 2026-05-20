@@ -21,9 +21,15 @@ const LIVENESS_PRIORITY_STATUS := 20
 @export var lane_id := -1
 @export var archetype_id: StringName = StringName()
 @export var tags: PackedStringArray = PackedStringArray()
+@export var initial_exposure_state: StringName = &"ground"
+@export var weight_class: StringName = &"normal"
 var entity_id := -1
 var entity_state: Variant = EntityStateRef.new()
 var _hit_height_range := Vector2(0.0, 24.0)
+var _height := 0.0
+var _height_velocity := 0.0
+var _ground_contact := true
+var _exposure_state: StringName = &"ground"
 var _active_statuses: Dictionary = {}
 var _active_marks: Dictionary = {}
 var _liveness_overrides: Dictionary = {}
@@ -34,6 +40,7 @@ var _liveness_cache: Dictionary = {}
 func _ready() -> void:
 	if entity_id == -1:
 		entity_id = GameState.next_entity_id()
+	_exposure_state = initial_exposure_state
 	set_notify_transform(true)
 	_rebuild_liveness()
 	_sync_entity_state()
@@ -67,6 +74,11 @@ func set_state_value(key: StringName, value: Variant) -> void:
 
 func set_health_state(current_health: int, maximum_health: int) -> void:
 	entity_state.set_health(current_health, maximum_health)
+	_sync_entity_state()
+
+
+func set_health_layers_state(layers: Array) -> void:
+	entity_state.set_health_layers(layers)
 	_sync_entity_state()
 
 
@@ -203,11 +215,76 @@ func get_ground_position() -> Vector2:
 
 
 func get_height() -> float:
-	return 0.0
+	return _height
+
+
+func get_height_velocity() -> float:
+	return _height_velocity
+
+
+func is_ground_contact() -> bool:
+	return _ground_contact
+
+
+func get_exposure_state() -> StringName:
+	return _exposure_state
+
+
+func set_exposure_state(exposure_state: StringName) -> void:
+	if exposure_state == StringName():
+		exposure_state = &"ground"
+	if _exposure_state == exposure_state:
+		return
+	var previous := _exposure_state
+	_exposure_state = exposure_state
+	_sync_entity_state()
+	_emit_height_state_changed(previous, _exposure_state)
+
+
+func get_weight_class() -> StringName:
+	return StringName(weight_class)
+
+
+func set_weight_class(new_weight_class: StringName) -> void:
+	weight_class = new_weight_class
+	_sync_entity_state()
+
+
+func set_motion_state(height: float, height_velocity: float, ground_contact: bool, exposure_state: StringName, source_id: StringName = StringName(), pause_reason: StringName = StringName()) -> void:
+	var previous_exposure := _exposure_state
+	_height = maxf(height, 0.0)
+	_height_velocity = height_velocity
+	_ground_contact = ground_contact
+	if exposure_state != StringName():
+		_exposure_state = exposure_state
+	set_state_value(&"height", _height)
+	set_state_value(&"height_velocity", _height_velocity)
+	set_state_value(&"ground_contact", _ground_contact)
+	set_state_value(&"exposure_state", _exposure_state)
+	if source_id != StringName():
+		set_state_value(&"movement_source_id", source_id)
+	set_state_value(&"movement_pause_reason", pause_reason)
+	_sync_entity_state()
+	if previous_exposure != _exposure_state:
+		_emit_height_state_changed(previous_exposure, _exposure_state)
+
+
+func set_movement_spec(spec: Dictionary) -> void:
+	var movement_component: Variant = get_node_or_null("MovementComponent")
+	if movement_component != null and movement_component.has_method("bind_movement_spec"):
+		movement_component.call("bind_movement_spec", spec)
+
+
+func submit_movement_override(command: Dictionary) -> void:
+	var movement_component: Variant = get_node_or_null("MovementComponent")
+	if movement_component != null and movement_component.has_method("submit_command"):
+		var merged := command.duplicate(true)
+		merged["command_kind"] = &"override"
+		movement_component.call("submit_command", merged)
 
 
 func get_hit_height_range() -> Vector2:
-	return _hit_height_range
+	return Vector2(_height + _hit_height_range.x, _height + _hit_height_range.y)
 
 
 func set_hit_height_range(min_height: float, max_height: float) -> void:
@@ -262,6 +339,11 @@ func _sync_entity_state() -> void:
 	entity_state.set_value(&"tags", tags)
 	entity_state.set_value(&"active_marks", PackedStringArray(_active_marks.keys()))
 	entity_state.set_value(&"liveness", _liveness_cache.duplicate(true))
+	entity_state.set_value(&"height", _height)
+	entity_state.set_value(&"height_velocity", _height_velocity)
+	entity_state.set_value(&"ground_contact", _ground_contact)
+	entity_state.set_value(&"exposure_state", _exposure_state)
+	entity_state.set_value(&"weight_class", StringName(weight_class))
 	entity_state.set_value(&"targetable", is_targetable())
 	entity_state.set_value(&"damageable", is_damageable())
 	entity_state.set_value(&"collidable", is_collidable())
@@ -343,3 +425,12 @@ func _emit_liveness_changed(source_id: StringName, previous_profile: Dictionary)
 	for axis in LIVENESS_AXES:
 		liveness_event.core[axis] = bool(_liveness_cache.get(axis, true))
 	EventBus.push_event(&"entity.liveness_changed", liveness_event)
+
+
+func _emit_height_state_changed(previous: StringName, current: StringName) -> void:
+	var event_data: Variant = LivenessEventDataRef.create(self, self, null, PackedStringArray(["height_state"]))
+	event_data.core["previous_exposure_state"] = previous
+	event_data.core["exposure_state"] = current
+	event_data.core["height"] = _height
+	event_data.core["ground_contact"] = _ground_contact
+	EventBus.push_event(&"entity.height_state_changed", event_data)

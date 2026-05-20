@@ -18,8 +18,10 @@ params = {
 "on_hit_effect_id": &"damage",
 "on_hit_effect_params": {
 "amount": 20,
+"target_exposure_states": PackedStringArray("flying"),
 "target_mode": &"context_target"
 },
 "projectile_template": ExtResource("2_projectile"),
-"speed_slots_per_sec": 3.125
+"speed_slots_per_sec": 3.125,
+"target_exposure_states": PackedStringArray("flying")
 }

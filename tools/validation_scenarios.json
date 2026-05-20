@@ -1032,5 +1032,83 @@
     "scenario": "res://scenes/validation/environment_fog_detection_validation.tres",
     "description": "Validates fog visibility query and default detection compatibility.",
     "layers": ["core"]
+  },
+  {
+    "id": "health_layer_helm_routing_validation",
+    "scenario": "res://scenes/validation/health_layer_helm_routing_validation.tres",
+    "description": "Validates helm health layer routing and overflow into body health.",
+    "layers": ["core"]
+  },
+  {
+    "id": "health_layer_shield_routing_validation",
+    "scenario": "res://scenes/validation/health_layer_shield_routing_validation.tres",
+    "description": "Validates shield health layer routing and layer destroyed signaling.",
+    "layers": ["core"]
+  },
+  {
+    "id": "health_layer_attachment_routing_validation",
+    "scenario": "res://scenes/validation/health_layer_attachment_routing_validation.tres",
+    "description": "Validates attachment health layer absorb-only routing.",
+    "layers": ["core"]
+  },
+  {
+    "id": "damage_layer_policy_bypass_shield_validation",
+    "scenario": "res://scenes/validation/damage_layer_policy_bypass_shield_validation.tres",
+    "description": "Validates bypass_layer_kinds shield policy across direct and projectile damage paths.",
+    "layers": ["core"]
+  },
+  {
+    "id": "movement_walk_validation",
+    "scenario": "res://scenes/validation/movement_walk_validation.tres",
+    "description": "Validates Movement.core.walk command generation and integration.",
+    "layers": ["core"]
+  },
+  {
+    "id": "movement_command_merge_validation",
+    "scenario": "res://scenes/validation/movement_command_merge_validation.tres",
+    "description": "Validates movement command merge order with status modifiers and impulses.",
+    "layers": ["core"]
+  },
+  {
+    "id": "movement_leap_z_axis_validation",
+    "scenario": "res://scenes/validation/movement_leap_z_axis_validation.tres",
+    "description": "Validates Movement.core.leap_once height, airborne exposure, and landing state.",
+    "layers": ["core"]
+  },
+  {
+    "id": "movement_interrupt_validation",
+    "scenario": "res://scenes/validation/movement_interrupt_validation.tres",
+    "description": "Validates movement liveness interrupt produces zero motion and pause reason.",
+    "layers": ["core"]
+  },
+  {
+    "id": "state_side_effect_set_movement_validation",
+    "scenario": "res://scenes/validation/state_side_effect_set_movement_validation.tres",
+    "description": "Validates state side effects from health.layer_destroyed can set movement and exposure state.",
+    "layers": ["core"]
+  },
+  {
+    "id": "hit_policy_exposure_ground_default_validation",
+    "scenario": "res://scenes/validation/hit_policy_exposure_ground_default_validation.tres",
+    "description": "Validates default damage target exposure only hits ground entities.",
+    "layers": ["core"]
+  },
+  {
+    "id": "hit_policy_exposure_flying_validation",
+    "scenario": "res://scenes/validation/hit_policy_exposure_flying_validation.tres",
+    "description": "Validates explicit flying target exposure opt-in.",
+    "layers": ["core"]
+  },
+  {
+    "id": "hit_policy_exposure_hidden_validation",
+    "scenario": "res://scenes/validation/hit_policy_exposure_hidden_validation.tres",
+    "description": "Validates hidden exposure states require explicit opt-in.",
+    "layers": ["core"]
+  },
+  {
+    "id": "force_weight_filter_validation",
+    "scenario": "res://scenes/validation/force_weight_filter_validation.tres",
+    "description": "Validates dispel_flying filters by exposure and weight class.",
+    "layers": ["core"]
   }
 ]

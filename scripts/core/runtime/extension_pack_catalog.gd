@@ -13,6 +13,7 @@ const ALLOWED_REGISTER_KINDS := {
 	&"triggers": true,
 	&"detections": true,
 	&"controllers": true,
+	&"movement": true,
 	&"visual_cues": true,
 	&"visual_fx": true,
 	&"audio_cues": true,
