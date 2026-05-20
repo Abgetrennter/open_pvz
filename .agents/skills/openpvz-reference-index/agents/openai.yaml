@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenPVZ Reference Index"
+  short_description: "Find de-pvz and Godot reference anchors"
+  default_prompt: "Use $openpvz-reference-index to find the right de-pvz and PVZ-Godot-Dream anchors for this OpenPVZ task."

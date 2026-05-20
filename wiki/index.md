@@ -70,6 +70,7 @@
 - [原版 PVZ 模式系统逆向分析](04-roadmap-reference/23-原版PVZ模式系统逆向分析.md)
 - [外部项目调研 PVZ-Godot-Dream](04-roadmap-reference/24-外部项目调研-PVZ-Godot-Dream.md)
 - [vendor 参考实现：游戏模式分析](04-roadmap-reference/39-vendor参考实现-游戏模式分析.md)
+- [参考项目语义索引](04-roadmap-reference/46-参考项目语义索引.md)
 
 ### 扩展系统
 
