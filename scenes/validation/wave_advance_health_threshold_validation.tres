@@ -1,0 +1,132 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=23 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+[ext_resource type="Script" path="res://scripts/battle/effect_execution_request.gd" id="3_effect_request"]
+[ext_resource type="Script" path="res://scripts/battle/wave_recipe_def.gd" id="4_recipe"]
+[ext_resource type="Script" path="res://scripts/battle/wave_pool_def.gd" id="5_pool"]
+[ext_resource type="Script" path="res://scripts/battle/wave_pool_entry_def.gd" id="6_pool_entry"]
+[ext_resource type="Script" path="res://scripts/battle/wave_advance_policy_def.gd" id="7_policy"]
+
+[sub_resource type="Resource" id="WaveAdvancePolicy_health"]
+script = ExtResource("7_policy")
+policy_id = &"health_threshold"
+policy_kind = &"timer_with_health_threshold"
+min_wave_duration = 0.5
+health_ratio_threshold = 0.5
+huge_warning_lead_time = 0.4
+
+[sub_resource type="Resource" id="WavePoolEntry_dummy"]
+script = ExtResource("6_pool_entry")
+archetype_id = &"archetype_lane_dummy"
+power = 1
+weight = 1
+first_allowed_wave = 0
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {
+"max_health": 100,
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="WavePoolEntry_flag"]
+script = ExtResource("6_pool_entry")
+archetype_id = &"archetype_original_flag_zombie"
+power = 1
+weight = 0
+first_allowed_wave = 1
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="WavePoolDef_advance"]
+script = ExtResource("5_pool")
+pool_id = &"advance_pool"
+entries = [SubResource("WavePoolEntry_dummy")]
+
+[sub_resource type="Resource" id="WaveRecipeDef_advance"]
+script = ExtResource("4_recipe")
+recipe_id = &"wave_advance_test"
+total_waves = 2
+waves_per_flag = 2
+start_delay = 0.2
+base_spacing = 4.0
+base_budget = 1
+budget_per_wave = 0
+flag_budget_multiplier = 1.0
+pool_def = SubResource("WavePoolDef_advance")
+flag_entry = SubResource("WavePoolEntry_flag")
+advance_policy = SubResource("WaveAdvancePolicy_health")
+
+[sub_resource type="Resource" id="Effect_damage_first_wave"]
+script = ExtResource("3_effect_request")
+at_time = 0.8
+effect_id = &"damage"
+params = {
+"amount": 70,
+"target_mode": &"context_target"
+}
+target_archetype_id = &"archetype_lane_dummy"
+target_lane_id = 0
+
+[sub_resource type="Resource" id="Rule_wave0_started"]
+script = ExtResource("2_rule")
+rule_id = &"advance_wave0_started"
+description = "first recipe wave starts normally"
+event_name = &"wave.started"
+required_core_values = {
+"wave_id": &"wave_advance_test_0"
+}
+
+[sub_resource type="Resource" id="Rule_first_wave_damaged"]
+script = ExtResource("2_rule")
+rule_id = &"advance_first_wave_damaged"
+description = "first wave enemy health drops below threshold"
+event_name = &"entity.damaged"
+required_core_values = {
+"target_archetype_id": &"archetype_lane_dummy",
+"health": 30,
+"max_health": 100
+}
+
+[sub_resource type="Resource" id="Rule_huge_warning"]
+script = ExtResource("2_rule")
+rule_id = &"advance_huge_warning"
+description = "flag wave warning is emitted before the flag wave starts"
+event_name = &"wave.huge_approaching"
+required_core_values = {
+"wave_id": &"wave_advance_test_1"
+}
+
+[sub_resource type="Resource" id="Rule_advance_triggered"]
+script = ExtResource("2_rule")
+rule_id = &"advance_triggered"
+description = "health threshold advances the next wave before its absolute start time"
+event_name = &"wave.advance_triggered"
+required_core_values = {
+"from_wave_id": &"wave_advance_test_0",
+"target_wave_id": &"wave_advance_test_1",
+"reason": &"health_threshold"
+}
+
+[sub_resource type="Resource" id="Rule_wave1_started"]
+script = ExtResource("2_rule")
+rule_id = &"advance_wave1_started"
+description = "second wave starts early through advance policy"
+event_name = &"wave.started"
+required_core_values = {
+"wave_id": &"wave_advance_test_1"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"wave_advance_health_threshold_validation"
+display_name = "Wave Advance Health Threshold Validation"
+description = "Validates timer plus health-threshold wave advance and flag-wave warning events for compiled wave recipes."
+goals = PackedStringArray("Start the first recipe wave.", "Damage its enemy below the configured health threshold after the minimum duration.", "Advance the flag wave before its absolute start time while emitting a huge-wave warning.")
+validation_time_limit = 1.5
+effect_execution_requests = [SubResource("Effect_damage_first_wave")]
+wave_recipe = SubResource("WaveRecipeDef_advance")
+validation_rules = [SubResource("Rule_wave0_started"), SubResource("Rule_first_wave_damaged"), SubResource("Rule_huge_warning"), SubResource("Rule_advance_triggered"), SubResource("Rule_wave1_started")]

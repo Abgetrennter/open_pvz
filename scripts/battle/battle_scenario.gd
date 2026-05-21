@@ -29,6 +29,7 @@ class_name BattleScenario
 @export var field_object_configs: Array = []
 @export var grid_item_configs: Array = []
 @export var wave_defs: Array = []
+@export var wave_recipe: Resource = null
 @export var battle_goal: StringName = &"all_waves_cleared"
 @export var defeat_conditions: PackedStringArray = PackedStringArray(["zombie_reached_goal"])
 @export var survival_duration := 0.0

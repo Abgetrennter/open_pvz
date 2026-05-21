@@ -420,6 +420,36 @@
     "layers": ["smoke", "core"]
   },
   {
+    "id": "wave_recipe_compile_validation",
+    "scenario": "res://scenes/validation/wave_recipe_compile_validation.tres",
+    "description": "Validates that a WaveRecipeDef compiles into ordinary executable waves, including flag-wave insertion.",
+    "layers": ["core"]
+  },
+  {
+    "id": "wave_advance_health_threshold_validation",
+    "scenario": "res://scenes/validation/wave_advance_health_threshold_validation.tres",
+    "description": "Validates timer plus health-threshold wave advance and flag-wave warning events for compiled wave recipes.",
+    "layers": ["core"]
+  },
+  {
+    "id": "wave_recipe_spawn_zone_filter_validation",
+    "scenario": "res://scenes/validation/wave_recipe_spawn_zone_filter_validation.tres",
+    "description": "Validates recipe-level spawn tag filtering before entries reach the runtime spawn resolver.",
+    "layers": ["core"]
+  },
+  {
+    "id": "wave_recipe_roof_spawn_zone_validation",
+    "scenario": "res://scenes/validation/wave_recipe_roof_spawn_zone_validation.tres",
+    "description": "Validates recipe-level spawn tag filtering and runtime resolution for explicit roof spawn zones.",
+    "layers": ["core", "terrain"]
+  },
+  {
+    "id": "wave_recipe_special_injection_validation",
+    "scenario": "res://scenes/validation/wave_recipe_special_injection_validation.tres",
+    "description": "Validates controlled recipe-level special injection rules without arbitrary WaveRunner scripting.",
+    "layers": ["core"]
+  },
+  {
     "id": "wave_guardrail_validation",
     "scenario": "res://scenes/validation/wave_guardrail_validation.tres",
     "description": "Validates that invalid wave definitions emit protocol issues and do not continue into wave-based spawns.",

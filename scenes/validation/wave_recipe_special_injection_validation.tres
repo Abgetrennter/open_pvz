@@ -1,0 +1,122 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/wave_recipe_def.gd" id="4_recipe"]
+[ext_resource type="Script" path="res://scripts/battle/wave_pool_def.gd" id="5_pool"]
+[ext_resource type="Script" path="res://scripts/battle/wave_pool_entry_def.gd" id="6_pool_entry"]
+[ext_resource type="Script" path="res://scripts/battle/wave_injection_rule_def.gd" id="7_injection"]
+
+[sub_resource type="Resource" id="BattleSpawnEntry_injection_plant"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 120,
+"interval": 0.25,
+"range_mode": &"full_lane",
+"speed_slots_per_sec": 2.291667,
+"start_delay": 0.0
+}
+
+[sub_resource type="Resource" id="WavePoolEntry_dummy"]
+script = ExtResource("6_pool_entry")
+archetype_id = &"archetype_lane_dummy"
+power = 1
+weight = 1
+first_allowed_wave = 0
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="WavePoolEntry_injected"]
+script = ExtResource("6_pool_entry")
+archetype_id = &"archetype_original_flag_zombie"
+power = 1
+weight = 0
+first_allowed_wave = 0
+lane_id = 0
+x_position = 520.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="WaveInjectionRule_special"]
+script = ExtResource("7_injection")
+rule_id = &"inject_flag_demo"
+wave_index = 0
+entry = SubResource("WavePoolEntry_injected")
+spawn_time_offset = 0.1
+
+[sub_resource type="Resource" id="WavePoolDef_injection"]
+script = ExtResource("5_pool")
+pool_id = &"injection_pool"
+entries = [SubResource("WavePoolEntry_dummy")]
+
+[sub_resource type="Resource" id="WaveRecipeDef_injection"]
+script = ExtResource("4_recipe")
+recipe_id = &"wave_injection_test"
+total_waves = 1
+waves_per_flag = 10
+start_delay = 0.2
+base_spacing = 1.0
+base_budget = 1
+budget_per_wave = 0
+flag_budget_multiplier = 1.0
+pool_def = SubResource("WavePoolDef_injection")
+special_injection_rules = [SubResource("WaveInjectionRule_special")]
+
+[sub_resource type="Resource" id="Rule_wave_started"]
+script = ExtResource("3_rule")
+rule_id = &"injection_wave_started"
+description = "recipe wave starts"
+event_name = &"wave.started"
+required_core_values = {
+"wave_id": &"wave_injection_test_0"
+}
+
+[sub_resource type="Resource" id="Rule_pool_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"injection_pool_spawned"
+description = "base pool entry still spawns"
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_lane_dummy",
+"spawn_reason": &"wave_spawn",
+"wave_id": &"wave_injection_test_0"
+}
+
+[sub_resource type="Resource" id="Rule_special_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"injection_special_spawned"
+description = "special injection rule adds its configured entry"
+event_name = &"entity.spawned"
+required_core_values = {
+"archetype_id": &"archetype_original_flag_zombie",
+"spawn_reason": &"wave_spawn",
+"wave_id": &"wave_injection_test_0"
+}
+
+[sub_resource type="Resource" id="Rule_wave_completed"]
+script = ExtResource("3_rule")
+rule_id = &"injection_wave_completed"
+description = "injected wave completes through normal WaveRunner completion"
+event_name = &"wave.completed"
+required_core_values = {
+"wave_id": &"wave_injection_test_0"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"wave_recipe_special_injection_validation"
+display_name = "Wave Recipe Special Injection Validation"
+description = "Validates controlled recipe-level special injection rules without arbitrary WaveRunner scripting."
+goals = PackedStringArray("Compile a normal recipe wave.", "Inject a configured special entry into the target wave.", "Execute the injected entry through the ordinary WaveRunner spawn path.")
+validation_time_limit = 4.0
+spawns = [SubResource("BattleSpawnEntry_injection_plant")]
+wave_recipe = SubResource("WaveRecipeDef_injection")
+validation_rules = [SubResource("Rule_wave_started"), SubResource("Rule_pool_spawned"), SubResource("Rule_special_spawned"), SubResource("Rule_wave_completed")]

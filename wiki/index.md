@@ -18,6 +18,7 @@
 - battle 模式组织层 v1 已经进入主干：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef` 已具备运行时主链和批量验证入口。
 - 规则基础设施第二轮已完成：多维 liveness、`SpatialIndex` / `spatial_query`、`height_range` 过滤和 tick budget 监控已经进入主干。
 - 僵尸基础设施协议 Wave 0 已完成：HealthLayer、damage_layer_policy、Movement v1、State side-effects、exposure/weight 过滤已经进入主干。
+- 波次与组波系统 v1 已进入主干：显式 `WaveDef[]` 与 `WaveRecipeDef` 共存，`WaveComposer` 可将 recipe 编译为普通 wave，`WaveRunner` 只做确定性执行。
 
 一句话判断：
 
@@ -35,9 +36,10 @@
 4. [开发路线图](04-roadmap-reference/26-开发路线图.md)
 5. [编译链与 Mechanic 系统](02-runtime-protocol/11-编译链与Mechanic系统.md)
 6. [战斗模式组织层](02-runtime-protocol/14-战斗模式组织层.md)
-7. [验证矩阵](03-content-validation/32-验证矩阵.md)
-8. [决策记录索引](decisions/README.md)
-9. [历史归档与退役文档索引](05-governance/37-历史归档与退役文档索引.md)
+7. [波次与组波系统](02-runtime-protocol/18-波次与组波系统.md)
+8. [验证矩阵](03-content-validation/32-验证矩阵.md)
+9. [决策记录索引](decisions/README.md)
+10. [历史归档与退役文档索引](05-governance/37-历史归档与退役文档索引.md)
 
 ---
 
@@ -93,6 +95,7 @@
 - [实体活跃性与空间查询](02-runtime-protocol/17-实体活跃性与空间查询.md)
 - [编译链与 Mechanic 系统](02-runtime-protocol/11-编译链与Mechanic系统.md)
 - [战斗模式组织层](02-runtime-protocol/14-战斗模式组织层.md)
+- [波次与组波系统](02-runtime-protocol/18-波次与组波系统.md)
 - [调试与日志观察](02-runtime-protocol/12-调试与日志观察.md)
 
 ### 内容与验证
@@ -119,7 +122,7 @@
 
 - 内容事实以 `data/combat/` 与 `extensions/` 当前资源树为准。
 - 验证事实以 `tools/validation_scenarios.json` 与 `tools/formal_content_validation_map.json` 为准。
-- 编译链与运行时事实以 `autoload/`、`scripts/core/`、`scripts/components/`、`scripts/projectile/` 为准。
+- 编译链与运行时事实以 `autoload/`、`scripts/core/`、`scripts/components/`、`scripts/projectile/`、`scripts/battle/` 为准。
 - 决策边界以 `wiki/decisions/` 下已决定的 ADR 为准。
 
 ---
