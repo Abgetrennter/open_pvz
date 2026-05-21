@@ -8,19 +8,19 @@ script = "pwsh -NoProfile -ExecutionPolicy Bypass -File .codex/scripts/setup_ope
 [[actions]]
 name = "运行"
 icon = "run"
-command = "pwsh -NoProfile -ExecutionPolicy Bypass -Command \"$godotHome = if ($env:OPENPVZ_GODOT_HOME) { $env:OPENPVZ_GODOT_HOME } else { 'E:/SDK/Godot' }; $godot = if ($env:OPENPVZ_GODOT_CONSOLE) { $env:OPENPVZ_GODOT_CONSOLE } else { (Get-ChildItem -LiteralPath $godotHome -Filter 'Godot_v*_win64_console.exe' -File | Sort-Object Name -Descending | Select-Object -First 1).FullName }; & $godot --path .\""
+command = "pwsh -NoProfile -ExecutionPolicy Bypass -File .codex/scripts/run_openpvz_action.ps1 -Action run"
 
 [[actions]]
 name = "验证: smoke"
 icon = "check"
-command = "pwsh -NoProfile -ExecutionPolicy Bypass -Command \"$godotHome = if ($env:OPENPVZ_GODOT_HOME) { $env:OPENPVZ_GODOT_HOME } else { 'E:/SDK/Godot' }; $godot = if ($env:OPENPVZ_GODOT_CONSOLE) { $env:OPENPVZ_GODOT_CONSOLE } else { (Get-ChildItem -LiteralPath $godotHome -Filter 'Godot_v*_win64_console.exe' -File | Sort-Object Name -Descending | Select-Object -First 1).FullName }; $maxParallel = if ($env:OPENPVZ_VALIDATION_MAX_PARALLEL) { [int]$env:OPENPVZ_VALIDATION_MAX_PARALLEL } else { 4 }; pwsh tools/run_all_validations.ps1 -GodotExe $godot -Layers smoke -MaxParallel $maxParallel\""
+command = "pwsh -NoProfile -ExecutionPolicy Bypass -File .codex/scripts/run_openpvz_action.ps1 -Action validate_smoke"
 
 [[actions]]
 name = "验证: reference"
 icon = "check"
-command = "pwsh -NoProfile -ExecutionPolicy Bypass -Command \"$godotHome = if ($env:OPENPVZ_GODOT_HOME) { $env:OPENPVZ_GODOT_HOME } else { 'E:/SDK/Godot' }; $godot = if ($env:OPENPVZ_GODOT_CONSOLE) { $env:OPENPVZ_GODOT_CONSOLE } else { (Get-ChildItem -LiteralPath $godotHome -Filter 'Godot_v*_win64_console.exe' -File | Sort-Object Name -Descending | Select-Object -First 1).FullName }; $maxParallel = if ($env:OPENPVZ_VALIDATION_MAX_PARALLEL) { [int]$env:OPENPVZ_VALIDATION_MAX_PARALLEL } else { 4 }; pwsh tools/run_all_validations.ps1 -GodotExe $godot -MaxParallel $maxParallel\""
+command = "pwsh -NoProfile -ExecutionPolicy Bypass -File .codex/scripts/run_openpvz_action.ps1 -Action validate_reference"
 
 [[actions]]
 name = "验证: 私有素材"
 icon = "check"
-command = "pwsh -NoProfile -ExecutionPolicy Bypass -Command \"$godotHome = if ($env:OPENPVZ_GODOT_HOME) { $env:OPENPVZ_GODOT_HOME } else { 'E:/SDK/Godot' }; $godot = if ($env:OPENPVZ_GODOT_CONSOLE) { $env:OPENPVZ_GODOT_CONSOLE } else { (Get-ChildItem -LiteralPath $godotHome -Filter 'Godot_v*_win64_console.exe' -File | Sort-Object Name -Descending | Select-Object -First 1).FullName }; pwsh tools/run_all_validations.ps1 -GodotExe $godot -Layers local_private -MaxParallel 1\""
+command = "pwsh -NoProfile -ExecutionPolicy Bypass -File .codex/scripts/run_openpvz_action.ps1 -Action validate_private"
