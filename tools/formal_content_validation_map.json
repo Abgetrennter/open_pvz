@@ -9,7 +9,7 @@
         "air_interceptor_validation",
         "sun_resource_validation",
         "card_flow_validation",
-        "plant_roster_phase6_validation",
+        "plant_roster_v1_validation",
         "plant_original_batch_a_validation"
       ],
       "showcases": [
@@ -26,7 +26,7 @@
         "wave_flow_validation",
         "fast_pursuit_cascade_validation",
         "tracking_barrage_chaos_validation",
-        "zombie_roster_phase6_validation"
+        "zombie_roster_v1_validation"
       ],
       "showcases": [
         "zombie_roster_showcase",
@@ -113,7 +113,7 @@
         "field_object_mower_validation",
         "field_object_mower_contact_guard_validation",
         "field_object_mower_enemy_only_guard_validation",
-        "battlefield_phase6_validation"
+        "battlefield_v1_validation"
       ],
       "showcases": []
     },
@@ -123,8 +123,8 @@
       "validations": [
         "wave_flow_validation",
         "wave_guardrail_validation",
-        "survival_goal_phase6_validation",
-        "protect_goal_phase6_validation"
+        "survival_goal_v1_validation",
+        "protect_goal_v1_validation"
       ],
       "showcases": [
         "minimal_validation_showcase"
@@ -132,11 +132,11 @@
     },
     {
       "id": "interaction_matrix_v1",
-      "description": "Formal Phase 6 interaction structure that ties roster roles to concrete battle responses.",
+      "description": "Formal v1 interaction structure that ties roster roles to concrete battle responses.",
       "validations": [
-        "interaction_matrix_phase6_validation",
-        "plant_roster_phase6_validation",
-        "zombie_roster_phase6_validation"
+        "interaction_matrix_v1_validation",
+        "plant_roster_v1_validation",
+        "zombie_roster_v1_validation"
       ],
       "showcases": []
     },
@@ -145,8 +145,7 @@
       "description": "Validation-only and extension-boundary groups that should stay separate from formal roster ownership.",
       "validations": [
         "extension_pack_smoke_validation",
-        "extension_manifest_guardrail_validation",
-        "extension_effect_guardrail_validation"
+        "extension_manifest_guardrail_validation"
       ],
       "showcases": []
     },

@@ -74,11 +74,10 @@ required_core_values = {
 
 [resource]
 script = ExtResource("1_scenario")
-scenario_id = &"interaction_matrix_phase6_validation"
-display_name = "Interaction Matrix Phase 6 Validation"
-description = "Validates the first formal Phase 6 interaction matrix across control, summon pressure, armored resistance and ranged disruption."
+scenario_id = &"interaction_matrix_v1_validation"
+display_name = "Interaction Matrix v1 Validation"
+description = "Validates the first formal v1 interaction matrix across control, summon pressure, armored resistance and ranged disruption."
 goals = PackedStringArray("Verify control plants slow fast pressure targets.", "Verify summoned units contribute against armored zombies.", "Verify support zombies can disrupt established ranged plants.")
 validation_time_limit = 7.0
 validation_rules = [SubResource("Rule_runner_slowed"), SubResource("Rule_sporeling_hits_tank"), SubResource("Rule_tar_jams_repeater")]
 spawns = [SubResource("Spawn_frost_pea"), SubResource("Spawn_runner"), SubResource("Spawn_spore_summoner"), SubResource("Spawn_repeater"), SubResource("Spawn_bucket_tank"), SubResource("Spawn_tar_spitter")]
-

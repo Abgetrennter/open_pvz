@@ -80,8 +80,8 @@ required_core_values = {
 
 [resource]
 script = ExtResource("1_scenario")
-scenario_id = &"battlefield_phase6_validation"
-display_name = "Battlefield Phase 6 Validation"
+scenario_id = &"battlefield_v1_validation"
+display_name = "Battlefield v1 Validation"
 description = "Validates formal battlefield presets by exercising water, ground and air-only placement semantics through the shared card and board runtime."
 goals = PackedStringArray("Verify water slots require surface support before primary content can be placed.", "Verify air-only slots reject ground cards and accept air content.", "Verify battlefield presets can drive formal slot semantics without per-level special cases.")
 validation_time_limit = 3.5
@@ -90,4 +90,3 @@ initial_sun = 300
 card_defs = [ExtResource("5_card_water_pod"), ExtResource("6_card_shooter"), ExtResource("7_card_air_perch"), ExtResource("8_card_wall")]
 card_play_requests = [SubResource("Req_water_pod"), SubResource("Req_shooter_on_water"), SubResource("Req_shooter_on_air"), SubResource("Req_air_perch")]
 validation_rules = [SubResource("Rule_water_surface_accept"), SubResource("Rule_primary_on_water_accept"), SubResource("Rule_ground_reject_air"), SubResource("Rule_air_accept")]
-

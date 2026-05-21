@@ -27,8 +27,8 @@ required_core_values = {
 
 [resource]
 script = ExtResource("1_scenario")
-scenario_id = &"protect_goal_phase6_validation"
-display_name = "Protect Goal Phase 6 Validation"
+scenario_id = &"protect_goal_v1_validation"
+display_name = "Protect Goal v1 Validation"
 description = "Validates the protect_archetype defeat condition by requiring a sunflower anchor to survive a ranged zombie attack."
 goals = PackedStringArray("Verify a scenario can fail when a protected archetype is destroyed, independent of the goal line.")
 validation_time_limit = 4.5
@@ -37,4 +37,3 @@ defeat_conditions = PackedStringArray("protect_archetype")
 protected_archetype_id = &"archetype_sunflower"
 spawns = [SubResource("Spawn_protected_sunflower"), SubResource("Spawn_bone_thrower")]
 validation_rules = [SubResource("Rule_protect_defeat")]
-

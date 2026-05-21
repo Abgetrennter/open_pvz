@@ -24,7 +24,7 @@ x_position = 620.0
 
 [sub_resource type="Resource" id="Rule_bone_projectile"]
 script = ExtResource("3_rule")
-rule_id = &"phase6_zombie_bone_attack"
+rule_id = &"v1_zombie_bone_attack"
 description = "bone thrower should fire a ranged projectile through the shared zombie attack chain"
 event_name = &"projectile.spawned"
 required_tags = PackedStringArray("projectile")
@@ -34,7 +34,7 @@ required_core_values = {
 
 [sub_resource type="Resource" id="Rule_bone_damage"]
 script = ExtResource("3_rule")
-rule_id = &"phase6_zombie_bone_damage"
+rule_id = &"v1_zombie_bone_damage"
 description = "bone thrower ranged projectiles should damage a defended plant"
 event_name = &"entity.damaged"
 required_core_values = {
@@ -44,7 +44,7 @@ required_core_values = {
 
 [sub_resource type="Resource" id="Rule_tar_status"]
 script = ExtResource("3_rule")
-rule_id = &"phase6_zombie_tar_status"
+rule_id = &"v1_zombie_tar_status"
 description = "tar spitter should apply jammed to a defended plant through the shared status effect chain"
 event_name = &"entity.status_applied"
 required_core_values = {
@@ -55,11 +55,10 @@ required_core_values = {
 
 [resource]
 script = ExtResource("1_scenario")
-scenario_id = &"zombie_roster_phase6_validation"
-display_name = "Zombie Roster Phase 6 Validation"
-description = "Validates the first formal Phase 6 zombie roster additions for ranged special attack and support disruption."
+scenario_id = &"zombie_roster_v1_validation"
+display_name = "Zombie Roster v1 Validation"
+description = "Validates the first formal v1 zombie roster additions for ranged special attack and support disruption."
 goals = PackedStringArray("Verify a ranged zombie can attack backward through shared lane detection and projectile runtime.", "Verify a support zombie can apply jammed through the built-in status effect chain.", "Verify these units work against defended plants without battle-specific special cases.")
 validation_time_limit = 6.5
 validation_rules = [SubResource("Rule_bone_projectile"), SubResource("Rule_bone_damage"), SubResource("Rule_tar_status")]
 spawns = [SubResource("Spawn_wall_barrier"), SubResource("Spawn_bone_thrower"), SubResource("Spawn_tar_spitter")]
-

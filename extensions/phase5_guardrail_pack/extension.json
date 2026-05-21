@@ -8,9 +8,6 @@
   "capabilities": [
     "effects"
   ],
-  "activation_scenario_ids": [
-    "extension_effect_guardrail_validation"
-  ],
   "activation_cli_flags": [
     "--include-guardrail-extension-packs"
   ]

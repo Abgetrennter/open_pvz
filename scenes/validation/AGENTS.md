@@ -2,13 +2,13 @@
 
 # scenes/validation -- 自动化验证场景
 
-引擎唯一测试机制。135 个 `.tres` + 6 个 `.tscn`；无单元测试框架。
+引擎唯一测试机制；无单元测试框架。场景数量以 `tools/validation_scenarios.json` 为准。
 
 ## 场景结构
 
 每个 `.tres` 是 `BattleScenario` Resource：`scenario_id`、`validation_time_limit`、`validation_rules[]`、`spawns[]`、经济/棋盘/卡片/波次/模式配置。可选 `.tscn` 提供自定义场景布局。
 
-场景索引：`tools/validation_scenarios.json`（155 条，分层 smoke/core/extension/guardrail/showcase）。
+场景索引：`tools/validation_scenarios.json`（分层 smoke/core/extension/guardrail/showcase/local_private，以文件为准）。
 
 ## 验证规则模型
 

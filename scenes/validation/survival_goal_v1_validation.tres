@@ -21,8 +21,8 @@ required_core_values = {
 
 [resource]
 script = ExtResource("1_scenario")
-scenario_id = &"survival_goal_phase6_validation"
-display_name = "Survival Goal Phase 6 Validation"
+scenario_id = &"survival_goal_v1_validation"
+display_name = "Survival Goal v1 Validation"
 description = "Validates the survive_duration battle goal variant without introducing battle-specific special cases."
 goals = PackedStringArray("Verify a scenario can win on time survived instead of requiring all waves to clear.")
 validation_time_limit = 3.5
@@ -31,4 +31,3 @@ survival_duration = 2.0
 defeat_conditions = PackedStringArray("zombie_reached_goal")
 spawns = [SubResource("Spawn_distant_walker")]
 validation_rules = [SubResource("Rule_survival_victory")]
-

@@ -210,38 +210,38 @@
     "layers": ["core"]
   },
   {
-    "id": "plant_roster_phase6_validation",
-    "scenario": "res://scenes/validation/plant_roster_phase6_validation.tres",
-    "description": "Validates the first formal Phase 6 plant roster additions for control and summon roles through shared built-in runtime effects.",
+    "id": "plant_roster_v1_validation",
+    "scenario": "res://scenes/validation/plant_roster_v1_validation.tres",
+    "description": "Validates the first formal v1 plant roster additions for control and summon roles through shared built-in runtime effects.",
     "layers": ["core"]
   },
   {
-    "id": "zombie_roster_phase6_validation",
-    "scenario": "res://scenes/validation/zombie_roster_phase6_validation.tres",
-    "description": "Validates the first formal Phase 6 zombie roster additions for ranged special attack and support disruption.",
+    "id": "zombie_roster_v1_validation",
+    "scenario": "res://scenes/validation/zombie_roster_v1_validation.tres",
+    "description": "Validates the first formal v1 zombie roster additions for ranged special attack and support disruption.",
     "layers": ["core"]
   },
   {
-    "id": "interaction_matrix_phase6_validation",
-    "scenario": "res://scenes/validation/interaction_matrix_phase6_validation.tres",
-    "description": "Validates the first formal Phase 6 interaction matrix across control, summon pressure, armored resistance and ranged disruption.",
+    "id": "interaction_matrix_v1_validation",
+    "scenario": "res://scenes/validation/interaction_matrix_v1_validation.tres",
+    "description": "Validates the first formal v1 interaction matrix across control, summon pressure, armored resistance and ranged disruption.",
     "layers": ["core"]
   },
   {
-    "id": "battlefield_phase6_validation",
-    "scenario": "res://scenes/validation/battlefield_phase6_validation.tres",
+    "id": "battlefield_v1_validation",
+    "scenario": "res://scenes/validation/battlefield_v1_validation.tres",
     "description": "Validates formal battlefield presets by exercising water, ground and air-only placement semantics through the shared card and board runtime.",
     "layers": ["core"]
   },
   {
-    "id": "survival_goal_phase6_validation",
-    "scenario": "res://scenes/validation/survival_goal_phase6_validation.tres",
+    "id": "survival_goal_v1_validation",
+    "scenario": "res://scenes/validation/survival_goal_v1_validation.tres",
     "description": "Validates the survive_duration battle goal variant without introducing battle-specific special cases.",
     "layers": ["core"]
   },
   {
-    "id": "protect_goal_phase6_validation",
-    "scenario": "res://scenes/validation/protect_goal_phase6_validation.tres",
+    "id": "protect_goal_v1_validation",
+    "scenario": "res://scenes/validation/protect_goal_v1_validation.tres",
     "description": "Validates the protect_archetype defeat condition by requiring a sunflower anchor to survive a ranged zombie attack.",
     "layers": ["core"]
   },
