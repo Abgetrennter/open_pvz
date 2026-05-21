@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_walk.tres" id="3_walk"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="4_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_jack_fuse_trigger.tres" id="5_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_jack_explode_payload.tres" id="6_explode"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_jack_in_the_box"
+entity_kind = &"zombie"
+display_name = "Original Jack-in-the-Box Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "fast", "explode")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 500
+hitbox_size = Vector2(46, 60)
+hit_height_band = ExtResource("2_height")
+default_params = {
+"move_speed_slots_per_sec": 0.67
+}
+mechanics = [ExtResource("3_walk"), ExtResource("5_trigger"), ExtResource("6_explode"), ExtResource("4_bite")]

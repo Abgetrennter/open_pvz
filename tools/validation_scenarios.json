@@ -1110,5 +1110,185 @@
     "scenario": "res://scenes/validation/force_weight_filter_validation.tres",
     "description": "Validates dispel_flying filters by exposure and weight class.",
     "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_basic_zombie_validation",
+    "scenario": "res://scenes/validation/zombie_original_basic_zombie_validation.tres",
+    "description": "Validates Original Basic Zombie archetype compilation, spawn, walk movement, and bite controller wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_flag_zombie_validation",
+    "scenario": "res://scenes/validation/zombie_original_flag_zombie_validation.tres",
+    "description": "Validates Original Flag Zombie archetype compilation, spawn, walk movement, and bite controller wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_conehead_validation",
+    "scenario": "res://scenes/validation/zombie_original_conehead_validation.tres",
+    "description": "Validates Original Conehead helm health layer and common zombie runtime wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_buckethead_validation",
+    "scenario": "res://scenes/validation/zombie_original_buckethead_validation.tres",
+    "description": "Validates Original Buckethead helm health layer and common zombie runtime wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_football_validation",
+    "scenario": "res://scenes/validation/zombie_original_football_validation.tres",
+    "description": "Validates Original Football Zombie fast walk and helmet layer.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_screen_door_validation",
+    "scenario": "res://scenes/validation/zombie_original_screen_door_validation.tres",
+    "description": "Validates Original Screen Door shield layer and directional shield metadata tags.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_newspaper_validation",
+    "scenario": "res://scenes/validation/zombie_original_newspaper_validation.tres",
+    "description": "Validates Original Newspaper shield destruction state transition and rage speed side effect.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_pole_vaulter_validation",
+    "scenario": "res://scenes/validation/zombie_original_pole_vaulter_validation.tres",
+    "description": "Validates Original Pole Vaulter leap_once movement wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_ducky_tube_validation",
+    "scenario": "res://scenes/validation/zombie_original_ducky_tube_validation.tres",
+    "description": "Validates Original Ducky Tube water spawn tag and common zombie runtime wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_snorkel_validation",
+    "scenario": "res://scenes/validation/zombie_original_snorkel_validation.tres",
+    "description": "Validates Original Snorkel submerged exposure and hidden exposure hit filter behavior.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_dolphin_rider_validation",
+    "scenario": "res://scenes/validation/zombie_original_dolphin_rider_validation.tres",
+    "description": "Validates Original Dolphin Rider leap_once movement wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_zomboni_validation",
+    "scenario": "res://scenes/validation/zombie_original_zomboni_validation.tres",
+    "description": "Validates Original Zomboni drive movement and crush controller wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_balloon_validation",
+    "scenario": "res://scenes/validation/zombie_original_balloon_validation.tres",
+    "description": "Validates Original Balloon attachment layer, flying exposure, and grounded side effect.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_jack_in_the_box_validation",
+    "scenario": "res://scenes/validation/zombie_original_jack_in_the_box_validation.tres",
+    "description": "Validates Original Jack-in-the-Box periodic fuse and explode payload compilation.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_digger_validation",
+    "scenario": "res://scenes/validation/zombie_original_digger_validation.tres",
+    "description": "Validates Original Digger tunnel movement, underground exposure, and helmet layer.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_pogo_validation",
+    "scenario": "res://scenes/validation/zombie_original_pogo_validation.tres",
+    "description": "Validates Original Pogo hop_cycle movement wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_yeti_validation",
+    "scenario": "res://scenes/validation/zombie_original_yeti_validation.tres",
+    "description": "Validates Original Yeti flee state movement side effect.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_bungee_validation",
+    "scenario": "res://scenes/validation/zombie_original_bungee_validation.tres",
+    "description": "Validates Original Bungee flying exposure and on-spawn drop damage payload compilation.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_ladder_validation",
+    "scenario": "res://scenes/validation/zombie_original_ladder_validation.tres",
+    "description": "Validates Original Ladder attachment layer and fast walk wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_catapult_validation",
+    "scenario": "res://scenes/validation/zombie_original_catapult_validation.tres",
+    "description": "Validates Original Catapult periodic basketball projectile payload compilation.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_dancing_validation",
+    "scenario": "res://scenes/validation/zombie_original_dancing_validation.tres",
+    "description": "Validates Original Dancing Zombie backup dancer summon effects.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_backup_dancer_validation",
+    "scenario": "res://scenes/validation/zombie_original_backup_dancer_validation.tres",
+    "description": "Validates Original Backup Dancer archetype compilation and common zombie runtime wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_gargantuar_validation",
+    "scenario": "res://scenes/validation/zombie_original_gargantuar_validation.tres",
+    "description": "Validates Original Gargantuar crush controller and one-shot Imp throw threshold.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_imp_validation",
+    "scenario": "res://scenes/validation/zombie_original_imp_validation.tres",
+    "description": "Validates Original Imp archetype compilation and fast walk wiring.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_redeye_gargantuar_validation",
+    "scenario": "res://scenes/validation/zombie_original_redeye_gargantuar_validation.tres",
+    "description": "Validates Original Redeye Gargantuar health, crush controller, and one-shot Imp throw threshold.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_batch_a_validation",
+    "scenario": "res://scenes/validation/zombie_original_batch_a_validation.tres",
+    "description": "Validates Original Zombies Batch A as a grouped content smoke: Basic, Flag, Conehead, Buckethead.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_batch_b_validation",
+    "scenario": "res://scenes/validation/zombie_original_batch_b_validation.tres",
+    "description": "Validates Original Zombies Batch B as a grouped content smoke: Football, Screen Door, Newspaper, Pole Vaulter.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_batch_c_validation",
+    "scenario": "res://scenes/validation/zombie_original_batch_c_validation.tres",
+    "description": "Validates Original Zombies Batch C as a grouped content smoke: Ducky Tube, Snorkel, Dolphin Rider, Zomboni.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_batch_d_validation",
+    "scenario": "res://scenes/validation/zombie_original_batch_d_validation.tres",
+    "description": "Validates Original Zombies Batch D as a grouped content smoke for complex special zombies.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_batch_e_validation",
+    "scenario": "res://scenes/validation/zombie_original_batch_e_validation.tres",
+    "description": "Validates Original Zombies Batch E as a grouped content smoke for summoners and giants.",
+    "layers": ["core"]
   }
 ]

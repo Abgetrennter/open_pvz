@@ -12,7 +12,7 @@ The project startup scene is a lightweight showcase hub:
 Use that hub to enter a showcase scene with buttons instead of changing the
 project default startup repeatedly.
 
-## Scene List (35 scenes)
+## Scene List (40 scenes)
 
 All of them use `BattleManager` directly and keep restart enabled with `R`.
 Each showcase scene also supports `Esc` to return to the showcase hub.
@@ -62,6 +62,14 @@ Each showcase scene also supports `Esc` to return to the showcase hub.
 - `original_explosion_garden_showcase.tscn` — Cherry Bomb, Jalapeno, Doom-shroom, Potato Mine
 - `original_defense_support_garden_showcase.tscn` — Wall-nut, Tall-nut, Pumpkin, Spikeweed, Spikerock, Torchwood
 - `original_special_garden_showcase.tscn` — Chomper, Squash, Tangle Kelp, Cob Cannon, Blover, Hypno-shroom
+
+### Original Zombie Migration (5 scenes)
+
+- `original_zombie_batch_a_showcase.tscn` — Basic, Flag, Conehead, Buckethead
+- `original_zombie_batch_b_showcase.tscn` — Football, Screen Door, Newspaper, Pole Vaulter
+- `original_zombie_batch_c_showcase.tscn` — Ducky Tube, Snorkel, Dolphin Rider, Zomboni
+- `original_zombie_batch_d_showcase.tscn` — Balloon, Jack-in-the-Box, Digger, Pogo, Yeti, Bungee, Ladder, Catapult
+- `original_zombie_batch_e_showcase.tscn` — Dancing, Backup Dancer, Gargantuar, Imp, Redeye Gargantuar
 
 ### Error Techniques & Cascades (7 scenes)
 

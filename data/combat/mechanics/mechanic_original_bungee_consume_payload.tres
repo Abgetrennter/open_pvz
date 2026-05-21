@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.bungee_consume"
+display_name = "Original Bungee Consume"
+family = &"Payload"
+type_id = &"core.consume_self"
+priority = 30
+tags = PackedStringArray("original", "zombie", "payload", "bungee")
+params = {
+"binding_group": &"bungee_drop",
+"reason": &"bungee_leave"
+}

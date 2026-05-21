@@ -16,6 +16,7 @@ const VisualFeedbackHostRef = preload("res://scripts/visual/visual_feedback_host
 const VisualStageLayerServiceRef = preload("res://scripts/visual/visual_stage_layer_service.gd")
 const VisualValidationProbeRef = preload("res://scripts/validation/visual_validation_probe.gd")
 const InfrastructureValidationProbeRef = preload("res://scripts/validation/infrastructure_validation_probe.gd")
+const OriginalZombieValidationProbeRef = preload("res://scripts/validation/original_zombie_validation_probe.gd")
 const SpatialIndexRef = preload("res://scripts/battle/spatial_index.gd")
 
 var lane_y_map := {
@@ -56,6 +57,7 @@ var _visual_feedback_host: Node = null
 var _visual_stage_layer_service: Node = null
 var _visual_validation_probe: Node = null
 var _infrastructure_validation_probe: Node = null
+var _original_zombie_validation_probe: Node = null
 var _spatial_index: Variant = SpatialIndexRef.new()
 var _last_tick_budget_warning_time := -999999.0
 var _environment_state: RefCounted = null
@@ -147,6 +149,7 @@ func reset_battle() -> void:
 	_visual_stage_layer_service.initialize(self)
 	_try_spawn_visual_validation_probe()
 	_try_spawn_infrastructure_validation_probe()
+	_try_spawn_original_zombie_validation_probe()
 
 	_rebuild_lane_config()
 	_subsystem_host.reset_runtime_services()
@@ -548,10 +551,26 @@ func _try_spawn_infrastructure_validation_probe() -> void:
 	_infrastructure_validation_probe.setup(self)
 
 
+func _try_spawn_original_zombie_validation_probe() -> void:
+	var active_scenario = resolve_scenario()
+	if active_scenario == null:
+		return
+	var scenario_id := String(active_scenario.scenario_id)
+	if not scenario_id.begins_with("zombie_original_"):
+		return
+	_original_zombie_validation_probe = OriginalZombieValidationProbeRef.new()
+	_original_zombie_validation_probe.name = "OriginalZombieValidationProbe"
+	add_child(_original_zombie_validation_probe)
+	_original_zombie_validation_probe.setup(self)
+
+
 func _cleanup_visual_runtime() -> void:
 	if _infrastructure_validation_probe != null:
 		_infrastructure_validation_probe.queue_free()
 		_infrastructure_validation_probe = null
+	if _original_zombie_validation_probe != null:
+		_original_zombie_validation_probe.queue_free()
+		_original_zombie_validation_probe = null
 	if _visual_validation_probe != null:
 		_visual_validation_probe.queue_free()
 		_visual_validation_probe = null

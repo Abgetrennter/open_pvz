@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.dancing_spawn_lane_up"
+display_name = "Original Dancing Spawn Lane Up"
+family = &"Payload"
+type_id = &"core.spawn_entity"
+priority = 20
+tags = PackedStringArray("original", "zombie", "payload", "summon")
+params = {
+"archetype_id": &"archetype_original_backup_dancer",
+"binding_group": &"dancer_summon",
+"lane_offset": -1,
+"spawn_reason": &"dancer_summon",
+"x_offset": 0.0
+}

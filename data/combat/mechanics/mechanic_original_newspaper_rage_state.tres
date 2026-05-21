@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.newspaper_rage"
+display_name = "Original Newspaper Rage"
+family = &"State"
+type_id = &"core.rage"
+priority = 6
+tags = PackedStringArray("original", "zombie", "state", "rage")
+params = {
+"event_name": &"health.layer_destroyed",
+"from_state": &"reading",
+"initial_state": &"reading",
+"required_layer_id": &"newspaper",
+"side_effects": [{
+"spec": {
+"movement_id": &"core.walk",
+"params": {
+"direction": Vector2(-1, 0),
+"move_speed_slots_per_sec": 0.89
+}
+},
+"type": &"set_movement"
+}, {
+"params": {
+"move_speed_slots_per_sec": 0.89
+},
+"type": &"set_runtime_params"
+}],
+"to_state": &"rage",
+"trigger": "event"
+}

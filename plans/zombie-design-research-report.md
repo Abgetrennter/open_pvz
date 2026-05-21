@@ -307,7 +307,7 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 ## 9. 关联文档
 
 - [ADR-008 Movement 一级家族新增](../wiki/decisions/ADR-008-Movement-一级家族新增.md)
-- [僵尸复刻路线图草案](draft/zombie-replication.md)
+- [僵尸复刻路线图归档](archive/zombie-replication-2026-05/zombie-replication.md)
 - [原版实体复刻工作流](../wiki/05-governance/36-原版实体复刻工作流.md)
 - [编译链与 Mechanic 系统](../wiki/02-runtime-protocol/11-编译链与Mechanic系统.md)
 - [连续行为模型](../wiki/02-runtime-protocol/08-连续行为模型.md)
@@ -329,4 +329,4 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 | PVZ-Godot-Dream | `scripts/manager/zombie_manager/zm_zombie_wave_create_manager.gd` | Power-based 波次生成 |
 | Open PVZ | `scripts/entities/zombie_root.gd` | 当前僵尸运行时 |
 | Open PVZ | `data/combat/archetypes/zombies/` | 10 种僵尸 archetype |
-| Open PVZ | `plans/draft/zombie-replication.md` | 25 僵尸复刻计划草案 |
+| Open PVZ | `plans/archive/zombie-replication-2026-05/zombie-replication.md` | 25 僵尸复刻计划归档 |

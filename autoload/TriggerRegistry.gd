@@ -110,6 +110,14 @@ func _register_builtin_defs() -> void:
 		"type": "int",
 		"min": 0,
 		"max": 999,
+	}, {
+		"name": "max_health_fraction_at_or_below",
+		"type": "float",
+		"min": 0.0,
+		"max": 1.0,
+	}, {
+		"name": "once_key",
+		"type": "string_name",
 	}]
 	when_damaged.id = &"when_damaged"
 	when_damaged.event_name = &"entity.damaged"
@@ -251,7 +259,28 @@ func _register_builtin_strategies() -> void:
 		if event_data.core.get("target_node", null) != instance.owner_entity:
 			return false
 		var min_damage := int(condition_values.get("min_damage", 0))
-		return int(event_data.core.get("value", 0)) >= min_damage
+		if int(event_data.core.get("value", 0)) < min_damage:
+			return false
+		if condition_values.has("max_health_fraction_at_or_below"):
+			var maximum_health := float(event_data.core.get("max_health", 0))
+			if maximum_health <= 0.0:
+				return false
+			var current_health := float(event_data.core.get("health", maximum_health))
+			if current_health / maximum_health > float(condition_values.get("max_health_fraction_at_or_below", 1.0)) + 0.0001:
+				return false
+		var once_key := StringName(condition_values.get("once_key", StringName()))
+		if once_key != StringName() and instance.owner_entity != null:
+			var state_ref: Variant = null
+			if instance.owner_entity.has_method("get_entity_state_ref"):
+				state_ref = instance.owner_entity.call("get_entity_state_ref")
+			if state_ref != null and state_ref.has_method("get_value"):
+				var used_keys := PackedStringArray(state_ref.call("get_value", &"trigger_once_keys", PackedStringArray()))
+				if used_keys.has(String(once_key)):
+					return false
+				used_keys.append(String(once_key))
+				if instance.owner_entity.has_method("set_state_value"):
+					instance.owner_entity.call("set_state_value", &"trigger_once_keys", used_keys)
+		return true
 	)
 
 	register_strategy(&"on_death", func(event_data, _condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:

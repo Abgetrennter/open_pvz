@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.crush_controller"
+display_name = "Original Crush Controller"
+family = &"Controller"
+type_id = &"core.crush"
+priority = 10
+tags = PackedStringArray("original", "zombie", "controller", "crush")
+params = {
+"damage": 9999,
+"detection_id": &"lane_backward",
+"interval": 0.1,
+"scan_range_slots": 0.75,
+"target_tags": PackedStringArray("plant")
+}

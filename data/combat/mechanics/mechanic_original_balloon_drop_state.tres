@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.balloon_drop"
+display_name = "Original Balloon Drop"
+family = &"State"
+type_id = &"core.rage"
+priority = 6
+tags = PackedStringArray("original", "zombie", "state", "balloon")
+params = {
+"event_name": &"health.layer_destroyed",
+"from_state": &"flying",
+"initial_state": &"flying",
+"required_layer_id": &"balloon",
+"side_effects": [{
+"height_band": {
+"exposure_state": &"ground",
+"ground_contact": true,
+"height": 0.0,
+"height_velocity": 0.0
+},
+"type": &"set_height_band"
+}, {
+"spec": {
+"movement_id": &"core.walk",
+"params": {
+"direction": Vector2(-1, 0),
+"move_speed_slots_per_sec": 0.28
+}
+},
+"type": &"set_movement"
+}],
+"to_state": &"grounded",
+"trigger": "event"
+}

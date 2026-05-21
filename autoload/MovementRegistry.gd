@@ -34,6 +34,18 @@ func _register_builtin_defs() -> void:
 	var leap_def = MovementDefRef.new()
 	leap_def.id = &"core.leap_once"
 	register_def(leap_def, {"kind": &"core", "source": &"core"})
+
+	var tunnel_def = MovementDefRef.new()
+	tunnel_def.id = &"core.tunnel"
+	register_def(tunnel_def, {"kind": &"core", "source": &"core"})
+
+	var hop_cycle_def = MovementDefRef.new()
+	hop_cycle_def.id = &"core.hop_cycle"
+	register_def(hop_cycle_def, {"kind": &"core", "source": &"core"})
+
+	var drive_def = MovementDefRef.new()
+	drive_def.id = &"core.drive"
+	register_def(drive_def, {"kind": &"core", "source": &"core"})
 	_register_builtin_strategies()
 
 
@@ -78,12 +90,14 @@ func _register_builtin_strategies() -> void:
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
+		var exposure_state := StringName(params.get("exposure_state", &"ground"))
+		var ground_contact := bool(params.get("ground_contact", exposure_state != &"flying" and exposure_state != &"airborne"))
 		return {
 			"source_id": &"movement:core.walk",
 			"command_kind": &"base",
 			"ground_velocity": direction.normalized() * move_speed,
-			"ground_contact": true,
-			"exposure_state": &"ground",
+			"ground_contact": ground_contact,
+			"exposure_state": exposure_state,
 			"interruptible": true,
 			"pause_reason": StringName(),
 		}
@@ -113,6 +127,8 @@ func _register_builtin_strategies() -> void:
 			}
 		if bool(blackboard.get("started", false)) and ground_contact and height <= 0.001:
 			blackboard["landed"] = true
+			if params.get("post_landing_movement", null) is Dictionary and owner != null and owner.has_method("set_movement_spec"):
+				owner.call("set_movement_spec", Dictionary(params.get("post_landing_movement")).duplicate(true))
 			return {
 				"source_id": &"movement:core.leap_once",
 				"command_kind": &"base",
@@ -136,6 +152,72 @@ func _register_builtin_strategies() -> void:
 			blackboard["started"] = true
 			command["height_velocity"] = float(params.get("jump_velocity", 220.0))
 		return command
+
+	_movement_strategies[&"core.tunnel"] = func(_owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> Dictionary:
+		var params: Dictionary = Dictionary(spec.get("params", {}))
+		var fallback_speed := float(params.get("move_speed", 80.0))
+		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
+		var direction := Vector2(params.get("direction", Vector2.LEFT))
+		if direction.length_squared() <= 0.0001:
+			direction = Vector2.LEFT
+		return {
+			"source_id": &"movement:core.tunnel",
+			"command_kind": &"base",
+			"ground_velocity": direction.normalized() * move_speed,
+			"ground_contact": true,
+			"exposure_state": StringName(params.get("exposure_state", &"underground")),
+			"interruptible": true,
+			"pause_reason": StringName(),
+		}
+
+	_movement_strategies[&"core.hop_cycle"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> Dictionary:
+		var params: Dictionary = Dictionary(spec.get("params", {}))
+		var fallback_speed := float(params.get("move_speed", 70.0))
+		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
+		var direction := Vector2(params.get("direction", Vector2.LEFT))
+		if direction.length_squared() <= 0.0001:
+			direction = Vector2.LEFT
+		var height := 0.0
+		var ground_contact := true
+		if owner != null and owner.has_method("get_height"):
+			height = float(owner.call("get_height"))
+		if owner != null and owner.has_method("is_ground_contact"):
+			ground_contact = bool(owner.call("is_ground_contact"))
+		var cooldown := maxf(float(blackboard.get("hop_cooldown", 0.0)) - delta, 0.0)
+		blackboard["hop_cooldown"] = cooldown
+		var command := {
+			"source_id": &"movement:core.hop_cycle",
+			"command_kind": &"base",
+			"ground_velocity": direction.normalized() * move_speed,
+			"ground_contact": ground_contact,
+			"exposure_state": &"airborne" if not ground_contact or height > 0.001 else &"ground",
+			"gravity": float(params.get("gravity", -520.0)),
+			"interruptible": true,
+			"pause_reason": StringName(),
+		}
+		if ground_contact and height <= 0.001 and cooldown <= 0.0:
+			command["ground_contact"] = false
+			command["exposure_state"] = &"airborne"
+			command["height_velocity"] = float(params.get("jump_velocity", 160.0))
+			blackboard["hop_cooldown"] = maxf(float(params.get("hop_interval", 0.7)), 0.05)
+		return command
+
+	_movement_strategies[&"core.drive"] = func(_owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> Dictionary:
+		var params: Dictionary = Dictionary(spec.get("params", {}))
+		var fallback_speed := float(params.get("move_speed", 45.0))
+		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
+		var direction := Vector2(params.get("direction", Vector2.LEFT))
+		if direction.length_squared() <= 0.0001:
+			direction = Vector2.LEFT
+		return {
+			"source_id": &"movement:core.drive",
+			"command_kind": &"base",
+			"ground_velocity": direction.normalized() * move_speed,
+			"ground_contact": true,
+			"exposure_state": &"ground",
+			"interruptible": false,
+			"pause_reason": StringName(),
+		}
 
 
 func _resolve_slots_speed(params: Dictionary, slots_key: String, default_world_per_sec: float) -> float:

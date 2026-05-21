@@ -49,6 +49,10 @@ func _register_builtin_defs() -> void:
 	proximity_liveness_def.id = &"core.proximity_liveness"
 	register_def(proximity_liveness_def, {"kind": &"core", "source": &"core"})
 
+	var crush_def = ControllerDefRef.new()
+	crush_def.id = &"core.crush"
+	register_def(crush_def, {"kind": &"core", "source": &"core"})
+
 	_register_builtin_strategies()
 
 
@@ -187,6 +191,9 @@ func _register_builtin_strategies() -> void:
 	_controller_strategies[&"core.proximity_liveness"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
 		_process_proximity_liveness(owner, spec, delta, blackboard)
 
+	_controller_strategies[&"core.crush"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+		_process_crush(owner, spec, delta, blackboard)
+
 
 func _process_collectible_magnet(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
 	if owner == null or not is_instance_valid(owner):
@@ -285,6 +292,39 @@ func _process_proximity_liveness(owner: Node, spec: Dictionary, delta: float, bl
 			owner.call("pop_liveness_override", source_id)
 		if owner.has_method("set_state_value"):
 			owner.call("set_state_value", &"proximity_liveness_state", inactive_state)
+
+
+func _process_crush(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
+	if owner == null or not is_instance_valid(owner):
+		return
+	if not owner is Node2D:
+		return
+	var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
+	var movement_component: Variant = owner.get_node_or_null("MovementComponent")
+	if movement_component != null and movement_component.has_method("physics_process_entity_movement"):
+		var fallback_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", float(params.get("move_speed", 45.0)))
+		movement_component.call("physics_process_entity_movement", owner, delta, Vector2.LEFT * fallback_speed, &"controller.core.crush", true)
+	var interval: float = maxf(float(params.get("interval", 0.1)), 0.01)
+	var acc_time: float = float(blackboard.get("acc_time", 0.0)) + delta
+	if acc_time < interval:
+		blackboard["acc_time"] = acc_time
+		return
+	blackboard["acc_time"] = acc_time - interval
+	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", float(params.get("scan_range", 64.0)))
+	var detection_id := StringName(params.get("detection_id", &"lane_backward"))
+	var target_tags := PackedStringArray(params.get("target_tags", PackedStringArray(["plant"])))
+	var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, owner, {
+		"scan_range": scan_range,
+		"target_tags": target_tags,
+		"range_mode": StringName(params.get("range_mode", StringName())),
+	})
+	var damage := int(params.get("damage", 9999))
+	for target in Array(detection_result.get("targets", [])):
+		if target == null or not is_instance_valid(target):
+			continue
+		if not target.has_method("take_damage"):
+			continue
+		target.call("take_damage", damage, owner, PackedStringArray(["crush", "controller"]))
 
 
 func _resolve_source_type_filter(raw_value: Variant) -> Array[StringName]:

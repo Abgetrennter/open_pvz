@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_pass"]
+script = ExtResource("2_rule")
+rule_id = &"zombie_original_screen_door"
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_screen_door",
+"result": &"passed"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_screen_door_validation"
+display_name = "Original Screen Door Validation"
+validation_time_limit = 1.2
+validation_rules = [SubResource("Rule_pass")]

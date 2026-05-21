@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/air_unit_medium.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_flying_walk.tres" id="3_drive"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_drop_trigger.tres" id="4_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_drop_damage.tres" id="5_damage"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_consume_payload.tres" id="6_consume"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_bungee"
+entity_kind = &"zombie"
+display_name = "Original Bungee Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "flying", "bungee")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 450
+initial_exposure_state = &"flying"
+hitbox_size = Vector2(42, 72)
+hit_height_band = ExtResource("2_height")
+default_params = {
+"move_speed_slots_per_sec": 0.0
+}
+mechanics = [ExtResource("3_drive"), ExtResource("4_trigger"), ExtResource("5_damage"), ExtResource("6_consume")]

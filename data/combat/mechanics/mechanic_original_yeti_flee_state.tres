@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.yeti_flee"
+display_name = "Original Yeti Flee"
+family = &"State"
+type_id = &"core.rage"
+priority = 6
+tags = PackedStringArray("original", "zombie", "state", "flee")
+params = {
+"event_name": &"entity.damaged",
+"from_state": &"calm",
+"initial_state": &"calm",
+"side_effects": [{
+"spec": {
+"movement_id": &"core.walk",
+"params": {
+"direction": Vector2(1, 0),
+"move_speed_slots_per_sec": 0.8
+}
+},
+"type": &"set_movement"
+}, {
+"params": {
+"move_speed_slots_per_sec": 0.8
+},
+"type": &"set_runtime_params"
+}],
+"to_state": &"fleeing",
+"trigger": "event"
+}

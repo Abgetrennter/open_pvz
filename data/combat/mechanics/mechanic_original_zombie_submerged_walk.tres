@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.zombie_submerged_walk"
+display_name = "Original Zombie Submerged Walk"
+family = &"Movement"
+type_id = &"core.walk"
+priority = 5
+tags = PackedStringArray("original", "zombie", "movement", "submerged")
+params = {
+"direction": Vector2(-1, 0),
+"exposure_state": &"submerged",
+"ground_contact": true
+}

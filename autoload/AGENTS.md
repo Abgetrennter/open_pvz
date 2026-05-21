@@ -18,11 +18,11 @@
 | `MechanicTypeRegistry.gd` | Node | Mechanic type 注册（family 下的具体 type_id，委托 MechanicCompiler 注册内置 type） |
 | `MechanicCompilerRegistry.gd` | RegistryBase | per-type 编译器 callable 注册与分发 |
 | `DetectionRegistry.gd` | RegistryBase | 目标发现策略：always / lane_forward / lane_backward / proximity / radius_around / global_track |
-| `TriggerRegistry.gd` | RegistryBase | 触发器策略：periodically / when_damaged / on_death / on_spawned / on_place / proximity |
-| `EffectRegistry.gd` | RegistryBase | 效果策略（1212 行，12 内置效果）：damage / spawn_projectile / explode / apply_status / spawn_entity / replace_entity / produce_sun / dispel_flying / wake / team_switch / consume_self / reveal。最大 lambda 策略段 |
-| `ControllerRegistry.gd` | RegistryBase | Controller 策略：core.bite / core.sweep / core.ground_damage / core.projectile_transform |
+| `TriggerRegistry.gd` | RegistryBase | 触发器策略：periodically / when_damaged / on_death / on_spawned / on_place / proximity；when_damaged 支持生命比例阈值与一次性触发守卫 |
+| `EffectRegistry.gd` | RegistryBase | 效果策略：damage / spawn_projectile / explode / apply_status / spawn_entity / replace_entity / produce_sun / dispel_flying / wake / team_switch / consume_self / reveal。最大 lambda 策略段 |
+| `ControllerRegistry.gd` | RegistryBase | Controller 策略：core.bite / core.sweep / core.ground_damage / core.projectile_transform / core.collectible_magnet / core.proximity_liveness / core.crush |
 | `ProjectileMovementRegistry.gd` | RegistryBase | 抛射体 movement：core.linear / core.parabola / core.track，含组件创建 |
-| `MovementRegistry.gd` | RegistryBase | 实体自主运动：core.walk / core.leap_once，输出 movement command |
+| `MovementRegistry.gd` | RegistryBase | 实体自主运动：core.walk / core.leap_once / core.tunnel / core.hop_cycle / core.drive，输出 movement command |
 | `VisualCueRegistry.gd` | RegistryBase | 视觉提示注册与分发 |
 | `VisualFxRegistry.gd` | RegistryBase | 视觉特效注册与分发 |
 | `VisualProfileRegistry.gd` | RegistryBase | 角色视觉外观档案注册 |

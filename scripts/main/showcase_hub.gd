@@ -195,6 +195,38 @@ const GROUPS := [
 		],
 	},
 	{
+		"group_title": "原版僵尸移植展示",
+		"group_summary": "25 种原版 PVZ 僵尸按移植批次分为 5 个展示场景，直观呈现基础近战、高速状态、水面载具、复杂特殊行为和巨型召唤语义。",
+		"color": Color("7e9f7a"),
+		"items": [
+			{
+				"title": "基础近战僵尸",
+				"summary": "Basic、Flag、Conehead、Buckethead 展示共享 walk/bite 路径、旗帜速度和 helm 分层承伤。",
+				"scene": "res://scenes/showcase/original_zombie_batch_a_showcase.tscn",
+			},
+			{
+				"title": "高速与状态僵尸",
+				"summary": "Football、Screen Door、Newspaper、Pole Vaulter 展示高速移动、shield/helm 分层、报纸破层加速和一次跳越。",
+				"scene": "res://scenes/showcase/original_zombie_batch_b_showcase.tscn",
+			},
+			{
+				"title": "水面与载具僵尸",
+				"summary": "Ducky Tube、Snorkel、Dolphin Rider、Zomboni 展示水面标签、submerged exposure、跳越复用和 drive/crush 载具语义。",
+				"scene": "res://scenes/showcase/original_zombie_batch_c_showcase.tscn",
+			},
+			{
+				"title": "复杂特殊行为僵尸",
+				"summary": "Balloon、Jack-in-the-Box、Digger、Pogo、Yeti、Bungee、Ladder、Catapult 展示特殊 exposure、周期触发、隧穿、弹跳和投篮。",
+				"scene": "res://scenes/showcase/original_zombie_batch_d_showcase.tscn",
+			},
+			{
+				"title": "召唤与巨型僵尸",
+				"summary": "Dancing、Backup Dancer、Gargantuar、Imp、Redeye Gargantuar 展示多 lane 召唤、巨人碾压和半血一次性投 Imp。",
+				"scene": "res://scenes/showcase/original_zombie_batch_e_showcase.tscn",
+			},
+		],
+	},
+	{
 		"group_title": "错误技与级联",
 		"group_summary": "展示错误技系统的级联与涌现效果：连锁爆炸、溅射、追踪反击、受伤反击、死亡爆炸和混合追踪弹幕。",
 		"color": Color("ef6c57"),

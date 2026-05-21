@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Script" path="res://scripts/core/defs/health_layer_def.gd" id="2_layer_script"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="3_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_walk.tres" id="4_walk"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="5_bite"]
+
+[sub_resource type="Resource" id="Layer_cone"]
+script = ExtResource("2_layer_script")
+layer_id = &"cone"
+layer_kind = &"helm"
+armor_type = &"traffic_cone"
+max_health = 370
+route_order = 30
+material_tags = PackedStringArray("cone", "paper")
+overflow_policy = &"spill_to_next"
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_conehead"
+entity_kind = &"zombie"
+display_name = "Original Conehead Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "armored", "helm", "cone")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 270
+health_layers = [SubResource("Layer_cone")]
+hitbox_size = Vector2(44, 60)
+hit_height_band = ExtResource("3_height")
+default_params = {
+"move_speed_slots_per_sec": 0.28
+}
+mechanics = [ExtResource("4_walk"), ExtResource("5_bite")]

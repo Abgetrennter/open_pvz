@@ -36,7 +36,11 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.clear_fog": &"Payload",
 		&"core.walk": &"Movement",
 		&"core.leap_once": &"Movement",
+		&"core.tunnel": &"Movement",
+		&"core.hop_cycle": &"Movement",
+		&"core.drive": &"Movement",
 		&"core.bite": &"Controller",
+		&"core.crush": &"Controller",
 		&"core.sweep": &"Controller",
 		&"core.ground_damage": &"Controller",
 		&"core.projectile_transform": &"Controller",
@@ -87,6 +91,11 @@ static func register_builtin_mechanic_types() -> void:
 			{"compiler_version": COMPILER_VERSION, "family": &"Controller"}
 		)
 		MechanicCompilerRegistry.register_compiler_callable(
+			&"core.crush",
+			_compile_controller_crush,
+			{"compiler_version": COMPILER_VERSION, "family": &"Controller"}
+		)
+		MechanicCompilerRegistry.register_compiler_callable(
 			&"core.sweep",
 			_compile_controller_sweep,
 			{"compiler_version": COMPILER_VERSION, "family": &"Controller"}
@@ -121,6 +130,12 @@ static func register_builtin_mechanic_types() -> void:
 			_compile_movement_leap_once,
 			{"compiler_version": COMPILER_VERSION, "family": &"Movement"}
 		)
+		for movement_type_id in [&"core.tunnel", &"core.hop_cycle", &"core.drive"]:
+			MechanicCompilerRegistry.register_compiler_callable(
+				movement_type_id,
+				_compile_movement_generic,
+				{"compiler_version": COMPILER_VERSION, "family": &"Movement"}
+			)
 		_register_targeting_callables()
 		_register_trajectory_callables()
 		_register_hit_policy_callables()
@@ -827,6 +842,16 @@ static var _compile_controller_bite: Callable = func(mechanic, archetype, merged
 		"params": base_params,
 	}
 
+static var _compile_controller_crush: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
+	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	_merge_controller_overrides(base_params, merged_params, [&"damage", &"interval", &"scan_range", &"scan_range_slots", &"range_mode", &"detection_id", &"target_tags"])
+	return {
+		"controller_id": &"core.crush",
+		"mechanic_id": mechanic.mechanic_id,
+		"source_archetype_id": archetype.archetype_id,
+		"params": base_params,
+	}
+
 static var _compile_controller_sweep: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
 	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"detection_radius", &"detection_radius_slots"])
@@ -898,19 +923,38 @@ static var _compile_state_growth: Callable = func(mechanic, archetype, _merged_p
 	}
 
 static var _compile_state_rage: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
-	return {
+	var initial_state := StringName(mechanic.params.get("initial_state", &"calm"))
+	var to_state := StringName(mechanic.params.get("to_state", &"rage"))
+	var transition: Dictionary = {
+		"transition_id": StringName(mechanic.params.get("transition_id", StringName("%s__%s_to_%s" % [
+			String(mechanic.mechanic_id),
+			String(initial_state),
+			String(to_state),
+		]))),
+		"from_state": StringName(mechanic.params.get("from_state", initial_state)),
+		"to_state": to_state,
+		"trigger": String(mechanic.params.get("trigger", "event")),
+		"event_name": StringName(mechanic.params.get("event_name", &"entity.damaged")),
+	}
+	if mechanic.params.has("trigger_threshold"):
+		transition["trigger_threshold"] = float(mechanic.params.get("trigger_threshold", 0.5))
+	if mechanic.params.has("after"):
+		transition["after"] = float(mechanic.params.get("after", 0.0))
+	if mechanic.params.has("required_layer_id"):
+		transition["required_layer_id"] = StringName(mechanic.params.get("required_layer_id", StringName()))
+	if mechanic.params.has("required_state_id"):
+		transition["required_state_id"] = StringName(mechanic.params.get("required_state_id", StringName()))
+	if mechanic.params.get("side_effects", null) is Array or mechanic.params.get("side_effects", null) is Dictionary:
+		transition["side_effects"] = mechanic.params.get("side_effects")
+	var compiled := {
 		"mechanic_id": mechanic.mechanic_id,
 		"source_archetype_id": archetype.archetype_id,
-		"initial_state": &"calm",
-		"transitions": [{
-			"transition_id": StringName("%s__calm_to_rage" % String(mechanic.mechanic_id)),
-			"from_state": &"calm",
-			"to_state": &"rage",
-			"trigger": "event",
-			"event_name": &"entity.damaged",
-			"trigger_threshold": float(mechanic.params.get("trigger_threshold", 0.5)),
-		}],
+		"initial_state": initial_state,
+		"transitions": [transition],
 	}
+	if mechanic.params.get("state_liveness", null) is Dictionary:
+		compiled["state_liveness"] = Dictionary(mechanic.params.get("state_liveness")).duplicate(true)
+	return compiled
 
 static var _compile_state_sleeping: Callable = func(mechanic, archetype, _merged_params: Dictionary) -> Dictionary:
 	return {
@@ -935,7 +979,7 @@ static var _compile_state_sleeping: Callable = func(mechanic, archetype, _merged
 
 static var _compile_movement_walk: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction"])
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"exposure_state", &"ground_contact"])
 	return {
 		"movement_id": &"core.walk",
 		"mechanic_id": mechanic.mechanic_id,
@@ -946,9 +990,19 @@ static var _compile_movement_walk: Callable = func(mechanic, archetype, merged_p
 
 static var _compile_movement_leap_once: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"jump_velocity", &"gravity"])
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"jump_velocity", &"gravity", &"post_landing_movement"])
 	return {
 		"movement_id": &"core.leap_once",
+		"mechanic_id": mechanic.mechanic_id,
+		"source_archetype_id": archetype.archetype_id,
+		"params": base_params,
+	}
+
+static var _compile_movement_generic: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
+	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"jump_velocity", &"gravity", &"hop_interval", &"exposure_state"])
+	return {
+		"movement_id": mechanic.type_id,
 		"mechanic_id": mechanic.mechanic_id,
 		"source_archetype_id": archetype.archetype_id,
 		"params": base_params,

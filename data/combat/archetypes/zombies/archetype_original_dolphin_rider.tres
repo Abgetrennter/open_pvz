@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dolphin_leap_once.tres" id="3_leap"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="4_bite"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_dolphin_rider"
+entity_kind = &"zombie"
+display_name = "Original Dolphin Rider Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "water", "leap", "spawn.medium.water")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 500
+hitbox_size = Vector2(52, 64)
+hit_height_band = ExtResource("2_height")
+default_params = {
+"move_speed_slots_per_sec": 0.9
+}
+mechanics = [ExtResource("3_leap"), ExtResource("4_bite")]

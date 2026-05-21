@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.jack_fuse"
+display_name = "Original Jack Fuse"
+family = &"Trigger"
+type_id = &"core.periodic"
+priority = 10
+tags = PackedStringArray("original", "zombie", "trigger", "fuse")
+params = {
+"binding_group": &"jack_fuse",
+"interval_max": 4.5,
+"interval_min": 2.5,
+"start_delay_max": 5.0,
+"start_delay_min": 1.5
+}

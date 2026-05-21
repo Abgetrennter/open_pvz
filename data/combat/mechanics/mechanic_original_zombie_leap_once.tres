@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.zombie_leap_once"
+display_name = "Original Zombie Leap Once"
+family = &"Movement"
+type_id = &"core.leap_once"
+priority = 5
+tags = PackedStringArray("original", "zombie", "movement", "leap")
+params = {
+"direction": Vector2(-1, 0),
+"gravity": -520.0,
+"jump_velocity": 220.0,
+"post_landing_movement": {
+"movement_id": &"core.walk",
+"params": {
+"direction": Vector2(-1, 0),
+"move_speed_slots_per_sec": 0.28
+}
+}
+}

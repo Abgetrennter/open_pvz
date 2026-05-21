@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_drive.tres" id="3_drive"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_crush_controller.tres" id="4_crush"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_zomboni"
+entity_kind = &"zombie"
+display_name = "Original Zomboni"
+tags = PackedStringArray("archetype", "zombie", "original", "vehicle", "crush", "massive")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent", "ControllerComponent")
+max_health = 1350
+weight_class = &"massive"
+hitbox_size = Vector2(96, 72)
+hit_height_band = ExtResource("2_height")
+default_params = {
+"move_speed_slots_per_sec": 0.25
+}
+mechanics = [ExtResource("3_drive"), ExtResource("4_crush")]

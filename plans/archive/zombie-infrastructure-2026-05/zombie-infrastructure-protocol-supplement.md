@@ -4,7 +4,7 @@
 - 日期：2026-05-20
 - 实现完成：2026-05-20
 - 关联文档：
-  - `plans/draft/zombie-replication.md`
+  - `plans/archive/zombie-replication-2026-05/zombie-replication.md`
   - `plans/zombie-design-research-report.md`
   - `wiki/decisions/ADR-008-Movement-一级家族新增.md`
 - 目标：补齐原版僵尸复刻前需要先冻结或最小实现的运行时协议，避免后续把特殊僵尸逻辑写进 `ZombieRoot`、`Controller` 或 `BattleManager` 特判。
@@ -616,7 +616,7 @@ State transition
 
 | 文档 | 回写点 |
 |------|--------|
-| `plans/draft/zombie-replication.md` | Wave 0 拆分为 HealthLayer / DamageLayerPolicy / Movement / State side-effects / Exposure-Weight |
+| `plans/archive/zombie-replication-2026-05/zombie-replication.md` | Wave 0 拆分为 HealthLayer / DamageLayerPolicy / Movement / State side-effects / Exposure-Weight |
 | `wiki/decisions/ADR-008-Movement-一级家族新增.md` | 收窄 Movement type 清单，删除 `reverse_walk`，拆出 `Controller.core.crush` |
 | `wiki/02-runtime-protocol/04-效果系统.md` | 记录 `damage_layer_policy` |
 | `wiki/02-runtime-protocol/08-连续行为模型.md` | 记录 MovementCommand 字段、命令合并、逻辑 Z 轴、Movement 与 Controller 执行顺序 |

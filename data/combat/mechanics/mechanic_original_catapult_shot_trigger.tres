@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.catapult_shot_trigger"
+display_name = "Original Catapult Shot Trigger"
+family = &"Trigger"
+type_id = &"core.periodic"
+priority = 10
+tags = PackedStringArray("original", "zombie", "trigger", "projectile")
+params = {
+"binding_group": &"catapult_shot",
+"detection_id": &"lane_backward",
+"interval": 2.0,
+"range_mode": &"full_lane",
+"start_delay": 0.4,
+"target_tags": PackedStringArray("plant")
+}

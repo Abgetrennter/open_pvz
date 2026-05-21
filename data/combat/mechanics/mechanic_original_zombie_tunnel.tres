@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.zombie_tunnel"
+display_name = "Original Zombie Tunnel"
+family = &"Movement"
+type_id = &"core.tunnel"
+priority = 5
+tags = PackedStringArray("original", "zombie", "movement", "tunnel")
+params = {
+"direction": Vector2(-1, 0),
+"exposure_state": &"underground"
+}

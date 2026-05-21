@@ -372,13 +372,20 @@ func _resolve_effect_spawn_lane(context, params: Dictionary) -> int:
 	var explicit_lane: Variant = params.get("lane_id", null)
 	if explicit_lane is int and int(explicit_lane) >= 0:
 		return int(explicit_lane)
+	var base_lane := -1
 	if context.target_node != null and context.target_node.get("lane_id") is int:
-		return int(context.target_node.get("lane_id"))
-	if context.source_node != null and context.source_node.get("lane_id") is int:
-		return int(context.source_node.get("lane_id"))
-	if context.owner_entity != null and context.owner_entity.get("lane_id") is int:
-		return int(context.owner_entity.get("lane_id"))
-	return 0
+		base_lane = int(context.target_node.get("lane_id"))
+	elif context.source_node != null and context.source_node.get("lane_id") is int:
+		base_lane = int(context.source_node.get("lane_id"))
+	elif context.owner_entity != null and context.owner_entity.get("lane_id") is int:
+		base_lane = int(context.owner_entity.get("lane_id"))
+	else:
+		base_lane = 0
+	var lane_offset := int(params.get("lane_offset", 0))
+	var resolved_lane := base_lane + lane_offset
+	if _battle != null and _battle.has_method("is_valid_lane") and not bool(_battle.call("is_valid_lane", resolved_lane)):
+		return base_lane
+	return resolved_lane
 
 
 func _resolve_effect_spawn_x_position(context, params: Dictionary) -> float:

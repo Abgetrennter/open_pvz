@@ -1,8 +1,12 @@
 # PVZ1 原版僵尸复刻路线图
 
+> 状态：已完成归档
+> 归档时间：2026-05-21
+> 当前事实：以代码、wiki 正文、`tools/validation_scenarios.json` 与 `tools/formal_content_validation_map.json` 为准。
+
 ## TL;DR
 
-> **Quick Summary**: 复刻 25 个 PVZ1 冒险模式常规僵尸，遵循植物移植方案的 Mechanic-first 架构。Wave 0 基础设施已先行落地：HealthLayer、DamageLayerPolicy、Movement v1、State side-effects、exposure/weight 过滤；后续按出场关卡和行为复杂度分 5 批（A-E）推进，每批含验证场景。
+> **Quick Summary**: 复刻 25 个 PVZ1 冒险模式常规僵尸，遵循植物移植方案的 Mechanic-first 架构。Wave 0 基础设施已归档为当前代码事实：HealthLayer、DamageLayerPolicy、Movement、State side-effects、exposure/weight 过滤；当前执行按 Batch A-E 落地 `archetype_original_*`、机制资源与验证场景。
 > 
 > **Deliverables**:
 > - 1 个僵尸基础设施协议包（HealthLayerDef + damage_layer_policy + Movement v1 + exposure/weight + 验证）
@@ -13,7 +17,23 @@
 > 
 > **Estimated Effort**: XL
 > **Parallel Execution**: YES - 6 waves
-> **Critical Path**: Wave 0 (基础设施，已完成) → Batch A (基础近战) → Batch B (特殊移动) → Batch C (水面) → Batch D (复杂行为) → Batch E (巨人) → Final Verification
+> **Critical Path**: Wave 0 (基础设施，已归档) → Batch A (基础近战) → Batch B (特殊移动) → Batch C (水面) → Batch D (复杂行为) → Batch E (巨人) → Final Verification
+
+## 2026-05-21 执行状态
+
+Wave 0 不再作为本计划内待实现任务处理，事实来源迁入 `plans/archive/zombie-infrastructure-2026-05/` 与当前 runtime/wiki。当前实现范围按草稿口径保持 25 个目标：包含 Redeye Gargantuar，排除 Zombotany、Dr. Zomboss、Bobsled Team。
+
+| 批次 | 状态 | 当前实现 |
+|------|------|----------|
+| Batch A | 已实现并通过全量回归 | Basic、Flag、Conehead、Buckethead；Cone/Bucket 使用 `helm` layer |
+| Batch B | 已实现并通过全量回归 | Football、Screen Door、Newspaper、Pole Vaulter；报纸破层加速和一次跳越闭环已接入 |
+| Batch C | 已实现并通过全量回归 | Ducky Tube、Snorkel、Dolphin Rider、Zomboni；水面标签、submerged exposure、复用 leap_once、`core.drive` + `core.crush` 已接入 |
+| Batch D | 已实现并通过全量回归 | Balloon、Jack-in-the-Box、Digger、Pogo、Yeti、Bungee、Ladder、Catapult；flying/underground/hop/tunnel/篮球投射与特殊 layer 已接入 |
+| Batch E | 已实现并通过全量回归 | Dancing、Backup Dancer、Gargantuar、Imp、Redeye Gargantuar；多 lane `spawn_entity` 与半血一次性投 Imp 已接入 |
+
+明确延后范围保持不变：Screen Door 方向挡弹、Zomboni 冰道、Ladder 架梯、Umbrella Leaf 防护、Yeti 稀有生成、Bobsled Team、Dr. Zomboss。
+
+当前执行口径：不计划 `git commit`、`git push` 或分支操作，除非后续明确要求。下方旧任务块中的 `Commit` 字段仅保留为历史分批建议，不作为本轮自动执行项。
 
 ---
 
@@ -61,12 +81,12 @@
 - 基础设施协议：`scripts/core/defs/health_layer_def.gd`、`autoload/MovementRegistry.gd`、`HealthComponent`、`MovementComponent`、`StateComponent`、暴露态/重量过滤 + 验证
 
 ### Definition of Done
-- [ ] 所有 25 个原版僵尸有对应 archetype 且可被 WaveRunner 正确生成
+- [x] 所有 25 个原版僵尸有对应 archetype 且可被 WaveRunner 正确生成
 - [x] Wave 0 基础设施正确处理 body/helm/shield/attachment 层路由、damage_layer_policy、Movement v1、State side-effects、exposure/weight 过滤
-- [ ] 每个僵尸至少 1 个单体验证场景通过
-- [ ] 每批至少 1 个批次验证场景通过
-- [ ] `pwsh tools/run_all_validations.ps1` 全量通过
-- [ ] `tools/formal_content_validation_map.json` 包含所有新增条目
+- [x] 每个僵尸至少 1 个单体验证场景通过
+- [x] 每批至少 1 个批次验证场景通过
+- [x] `pwsh tools/run_all_validations.ps1 -MaxParallel 8` 全量通过
+- [x] `tools/formal_content_validation_map.json` 包含所有新增条目
 
 ### Must Have
 - 原版数值以 `vendor/de-pvz` 为准（HP、速度、攻击值）
@@ -105,7 +125,7 @@ Evidence saved to `.sisyphus/evidence/task-{N}-{scenario-slug}.{ext}`.
 
 - **Zombie behaviors**: Use Bash (`pwsh tools/run_validation.ps1`) — Run validation scenario, check pass/fail
 - **Layered health**: Use Bash (`pwsh tools/run_validation.ps1`) — Run layered damage validation
-- **Batch validation**: Use Bash (`pwsh tools/run_all_validations.ps1 -Layers smoke,core`) — Full batch regression
+- **Batch validation**: Use Bash (`pwsh tools/run_all_validations.ps1 -MaxParallel 4`) — Full batch regression
 
 ---
 
@@ -223,7 +243,7 @@ Max Concurrent: 8 (Wave 4)
   **已落地范围**:
   - `HealthLayerDef` + `CombatArchetype.health_layers` + `RuntimeSpec.health_layers`，支持 `attachment -> shield -> helm -> body` 路由、过伤、`absorb_only/spill_to_next` 和 `health.layer_destroyed`。
   - `damage_layer_policy` 已接入 `Effect.damage`、`Effect.spawn_projectile`、`ProjectileTemplate.default_params` 和 projectile runtime overrides；v1 支持 `bypass_layer_kinds` 与 `spillover`。
-  - ADR-008 已接受；新增 `Movement` family、`MovementRegistry`、`MovementDef`、`RuntimeSpec.movement_spec`，v1 只实现 `core.walk` 与 `core.leap_once`。
+  - ADR-008 已接受；新增 `Movement` family、`MovementRegistry`、`MovementDef`、`RuntimeSpec.movement_spec`，当前已实现 `core.walk`、`core.leap_once`、`core.tunnel`、`core.hop_cycle` 与 `core.drive`。
   - `MovementComponent` 成为默认位置积分点，按 `State override -> Movement base -> Status modifier -> Effect impulse -> integrate` 合并命令，并同步 `height / height_velocity / ground_contact / exposure_state`。
   - `StateComponent` transition side-effects 已支持 `set_movement`、`submit_movement_override`、`set_height_band`、`set_runtime_params`、`emit_event`，可按 `event_name` 与 `required_layer_id` 过滤 `health.layer_destroyed`。
   - `CombatArchetype.initial_exposure_state` 与 `weight_class` 已接入，HitPolicy/Effect 使用 `target_exposure_states`，默认只命中 `ground`。
@@ -246,7 +266,7 @@ Max Concurrent: 8 (Wave 4)
   **后续复刻约束**:
   - 有护甲、门板、气球、报纸、梯子等可击破部件的僵尸必须使用 `health_layers`，不得把总 HP 合并进 body。
   - 投手类绕过门板/盾牌时使用 `damage_layer_policy.bypass_layer_kinds=["shield"]`，不得在 projectile 或 zombie 代码里特判。
-  - 新增僵尸运动默认使用 `Movement` mechanic；`hop_cycle/tunnel/drive/submerge` 只能在对应批次补设计与验证，不得塞进 `ZombieRoot` 或 `Controller` 特判。
+  - 新增僵尸运动默认使用 `Movement` mechanic；`hop_cycle/tunnel/drive` 已按对应批次补最小通用实现与验证，潜水/飞行通过显式 `exposure_state` 与 State side-effect 表达，不得塞进 `ZombieRoot` 或 `Controller` 特判。
   - `flying/submerged/underground/airborne` 必须显式 opt-in 到 `target_exposure_states`，默认攻击只命中 `ground`。
 
 - [ ] 1. **Basic Zombie（普通僵尸）**
@@ -322,7 +342,7 @@ Max Concurrent: 8 (Wave 4)
 
   **Commit**: YES (groups with Batch A)
   - Message: `feat(zombies): add original batch A — basic melee zombies`
-  - Pre-commit: `pwsh tools/run_all_validations.ps1 -Layers smoke,core`
+  - Pre-commit: `pwsh tools/run_all_validations.ps1 -MaxParallel 4`
 
 - [ ] 2. **Flag Zombie（旗帜僵尸）**
 
@@ -1031,10 +1051,10 @@ Max Concurrent: 8 (Wave 4)
     - max_health: 500
     - move_speed_slots_per_sec: 0.45
     - **协议缺口**：弹跳翻越需要类似 Pole Vault 的跳跃机制，但为持续性
-      - 最小实现：使用 Movement family，后续新增 `hop_cycle` type
+      - 最小实现：使用 Movement family，当前已新增 `core.hop_cycle` type
       - 行为：每接近一个植物时自动跳过
       - 跳跃次数：无限（直到被 Magnet-shroom 吸走弹簧，标记为后续迭代）
-    - 新增 mechanic `mechanic_original_pogo_hop.tres`（Movement: hop_cycle，后续专项设计）
+    - 新增 mechanic `mechanic_original_zombie_hop_cycle.tres`（Movement: `core.hop_cycle`，最小通用实现）
     - tags: `["archetype", "zombie", "original", "pogo", "jumper"]`
   - 创建验证场景
   - 添加到 `tools/validation_scenarios.json`
@@ -1545,7 +1565,7 @@ Max Concurrent: 8 (Wave 4)
 
 ---
 
-## Commit Strategy
+## Optional Commit Strategy
 
 - **Wave 0**: `feat(zombie): add infrastructure protocol supplements` — health_layer_def.gd, MovementRegistry, HealthComponent, MovementComponent, StateComponent, EffectRegistry, validation scenes
 - **Batch A**: `feat(zombies): add original batch A — basic melee zombies` — 4 archetypes + mechanics + validations
@@ -1553,7 +1573,7 @@ Max Concurrent: 8 (Wave 4)
 - **Batch C**: `feat(zombies): add original batch C — pool/water zombies` — 4 archetypes + mechanics + validations
 - **Batch D**: `feat(zombies): add original batch D — complex behavior zombies` — 8 archetypes + mechanics + validations
 - **Batch E**: `feat(zombies): add original batch E — giants & spawned zombies` — 5 archetypes + mechanics + validations
-- Each commit: `pwsh tools/run_all_validations.ps1 -Layers smoke,core` must pass
+- Each commit: `pwsh tools/run_all_validations.ps1 -MaxParallel 4` must pass
 
 ---
 

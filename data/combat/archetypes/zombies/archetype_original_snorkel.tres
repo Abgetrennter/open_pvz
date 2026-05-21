@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_submerged_walk.tres" id="3_walk"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="4_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_surface_state.tres" id="5_surface"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_snorkel"
+entity_kind = &"zombie"
+display_name = "Original Snorkel Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "water", "submerged", "spawn.medium.water")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent", "StateComponent")
+max_health = 270
+initial_exposure_state = &"submerged"
+hitbox_size = Vector2(44, 60)
+hit_height_band = ExtResource("2_height")
+default_params = {
+"move_speed_slots_per_sec": 0.67
+}
+mechanics = [ExtResource("3_walk"), ExtResource("5_surface"), ExtResource("4_bite")]

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Script" path="res://scripts/core/defs/health_layer_def.gd" id="2_layer_script"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/air_unit_low.tres" id="3_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_flying_walk.tres" id="4_walk"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="5_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_balloon_drop_state.tres" id="6_drop"]
+
+[sub_resource type="Resource" id="Layer_balloon"]
+script = ExtResource("2_layer_script")
+layer_id = &"balloon"
+layer_kind = &"attachment"
+armor_type = &"balloon"
+max_health = 20
+route_order = 10
+material_tags = PackedStringArray("balloon", "air")
+overflow_policy = &"spill_to_next"
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_balloon"
+entity_kind = &"zombie"
+display_name = "Original Balloon Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "air", "flying", "attachment")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent", "StateComponent")
+max_health = 270
+health_layers = [SubResource("Layer_balloon")]
+initial_exposure_state = &"flying"
+hitbox_size = Vector2(42, 72)
+hit_height_band = ExtResource("3_height")
+default_params = {
+"move_speed_slots_per_sec": 0.28
+}
+mechanics = [ExtResource("4_walk"), ExtResource("6_drop"), ExtResource("5_bite")]

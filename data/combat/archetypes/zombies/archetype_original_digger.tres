@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Script" path="res://scripts/core/defs/health_layer_def.gd" id="2_layer_script"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="3_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_tunnel.tres" id="4_tunnel"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="5_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_digger_surface_state.tres" id="6_surface"]
+
+[sub_resource type="Resource" id="Layer_digger"]
+script = ExtResource("2_layer_script")
+layer_id = &"digger_helmet"
+layer_kind = &"helm"
+armor_type = &"digger_helmet"
+max_health = 100
+route_order = 30
+material_tags = PackedStringArray("metal")
+overflow_policy = &"spill_to_next"
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_digger"
+entity_kind = &"zombie"
+display_name = "Original Digger Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "underground", "helm", "metal")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent", "StateComponent")
+max_health = 270
+health_layers = [SubResource("Layer_digger")]
+initial_exposure_state = &"underground"
+hitbox_size = Vector2(44, 60)
+hit_height_band = ExtResource("3_height")
+default_params = {
+"move_speed_slots_per_sec": 0.67
+}
+mechanics = [ExtResource("4_tunnel"), ExtResource("6_surface"), ExtResource("5_bite")]

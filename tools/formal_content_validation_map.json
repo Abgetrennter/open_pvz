@@ -35,6 +35,71 @@
       ]
     },
     {
+      "id": "original_zombies_batch_a",
+      "description": "PVZ1 original zombies Batch A validation: Basic, Flag, Conehead, and Buckethead using shared walk/bite plus helm layers.",
+      "validations": [
+        "zombie_original_basic_zombie_validation",
+        "zombie_original_flag_zombie_validation",
+        "zombie_original_conehead_validation",
+        "zombie_original_buckethead_validation",
+        "zombie_original_batch_a_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_zombies_batch_b",
+      "description": "PVZ1 original zombies Batch B validation: Football, Screen Door, Newspaper rage, and Pole Vaulter leap_once.",
+      "validations": [
+        "zombie_original_football_validation",
+        "zombie_original_screen_door_validation",
+        "zombie_original_newspaper_validation",
+        "zombie_original_pole_vaulter_validation",
+        "zombie_original_batch_b_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_zombies_batch_c",
+      "description": "PVZ1 original zombies Batch C validation: water tags/exposure, leap_once reuse, drive movement, and crush controller.",
+      "validations": [
+        "zombie_original_ducky_tube_validation",
+        "zombie_original_snorkel_validation",
+        "zombie_original_dolphin_rider_validation",
+        "zombie_original_zomboni_validation",
+        "zombie_original_batch_c_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_zombies_batch_d",
+      "description": "PVZ1 original zombies Batch D validation: flying/underground exposure, tunnel/hop/drive movement, periodic explode/projectile payloads, and special health layers.",
+      "validations": [
+        "zombie_original_balloon_validation",
+        "zombie_original_jack_in_the_box_validation",
+        "zombie_original_digger_validation",
+        "zombie_original_pogo_validation",
+        "zombie_original_yeti_validation",
+        "zombie_original_bungee_validation",
+        "zombie_original_ladder_validation",
+        "zombie_original_catapult_validation",
+        "zombie_original_batch_d_validation"
+      ],
+      "showcases": []
+    },
+    {
+      "id": "original_zombies_batch_e",
+      "description": "PVZ1 original zombies Batch E validation: Dancing/Backup Dancer summons plus Gargantuar/Imp/Redeye giant one-shot throw semantics.",
+      "validations": [
+        "zombie_original_dancing_validation",
+        "zombie_original_backup_dancer_validation",
+        "zombie_original_gargantuar_validation",
+        "zombie_original_imp_validation",
+        "zombie_original_redeye_gargantuar_validation",
+        "zombie_original_batch_e_validation"
+      ],
+      "showcases": []
+    },
+    {
       "id": "board_and_battlefield_semantics_v1",
       "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
       "validations": [

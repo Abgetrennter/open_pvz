@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://scenes/validation/zombie_original_batch_b_validation.tres" id="2_scenario"]
+
+[node name="OriginalZombieBatchBShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = false
+showcase_title = "原版僵尸 Batch B 展示"
+showcase_summary = "Football、Screen Door、Newspaper、Pole Vaulter 展示高速移动、shield/helm 分层、报纸破层加速和 leap_once 跳越。"

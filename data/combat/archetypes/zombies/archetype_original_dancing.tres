@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_walk.tres" id="3_walk"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="4_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_trigger.tres" id="5_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_lane_up.tres" id="6_up"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_lane_down.tres" id="7_down"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_left.tres" id="8_left"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_right.tres" id="9_right"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_dancing"
+entity_kind = &"zombie"
+display_name = "Original Dancing Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "summoner", "dancing")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 500
+hitbox_size = Vector2(48, 64)
+hit_height_band = ExtResource("2_height")
+default_params = {
+"move_speed_slots_per_sec": 0.45
+}
+mechanics = [ExtResource("3_walk"), ExtResource("5_trigger"), ExtResource("6_up"), ExtResource("7_down"), ExtResource("8_left"), ExtResource("9_right"), ExtResource("4_bite")]

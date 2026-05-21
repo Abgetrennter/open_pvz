@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.bungee_drop_damage"
+display_name = "Original Bungee Drop Damage"
+family = &"Payload"
+type_id = &"core.damage"
+priority = 20
+tags = PackedStringArray("original", "zombie", "payload", "bungee")
+params = {
+"amount": 9999,
+"binding_group": &"bungee_drop",
+"radius_slots": 1.0,
+"target_mode": &"enemies_in_radius",
+"target_tags": PackedStringArray("plant")
+}

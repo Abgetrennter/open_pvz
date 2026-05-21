@@ -75,7 +75,7 @@ Mechanic 负责定义：
 
 ---
 
-`Movement` 是 ADR-008 接受后的唯一新增 family，v1 只冻结 `core.walk` 与 `core.leap_once`。`hop_cycle`、`tunnel`、`drive`、`submerge` 等复杂 type 只作为后续批次登记项，不能先塞进 `ZombieRoot`、`Controller` 或 `BattleManager` 特判。
+`Movement` 是 ADR-008 接受后的唯一新增 family。当前内置 type 包括 `core.walk`、`core.leap_once`、`core.tunnel`、`core.hop_cycle` 与 `core.drive`；它们都通过 `MovementRegistry + MovementComponent` 输出统一 movement command。潜水/飞行等语义优先用显式 `exposure_state`、`ground_contact` 与 State side-effect 组合表达，不新增单独 family，也不能塞进 `ZombieRoot`、`Controller` 或 `BattleManager` 特判。
 
 ## 当前编译覆盖判断
 

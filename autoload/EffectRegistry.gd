@@ -430,8 +430,24 @@ func _register_builtin_defs() -> void:
 		"min": 0.0,
 		"max": 4000.0,
 	}, {
+		"name": "lane_id",
+		"type": "int",
+		"min": -1,
+		"max": 32,
+		"default": -1,
+	}, {
+		"name": "lane_offset",
+		"type": "int",
+		"min": -8,
+		"max": 8,
+		"default": 0,
+	}, {
 		"name": "spawn_position",
 		"type": "vector2",
+	}, {
+		"name": "spawn_overrides",
+		"type": "dictionary",
+		"default": {},
 	}, {
 		"name": "spawn_reason",
 		"type": "string_name",
