@@ -7,6 +7,8 @@
 - 可作为当前实现依据：是（分析结论），否（需设计审批后执行）
 
 > 维护注记（2026-05-20）：本文的研究结论仍可用；基础设施执行口径已由 `plans/archive/zombie-infrastructure-2026-05/zombie-infrastructure-protocol-supplement.md` 和正式 wiki 回写收口。旧文中的 `ArmorLayerDef / armor_layers` 统一按 `HealthLayerDef / health_layers` 理解；`core.vault/core.bounce` 只表示后续复杂 Movement type 需求，v1 已落地类型为 `core.walk` 与 `core.leap_once`。
+>
+> 状态校准（2026-05-21）：当前 `data/combat/archetypes/zombies/` 已有 35 个僵尸 archetype，其中 25 个 `archetype_original_*` 覆盖 PVZ1 原版僵尸 A-E 批次；`zombie_original_batch_a_validation` 到 `zombie_original_batch_e_validation` 均已登记到 manifest 并通过。下文第 4、8 节保留为落地前研究路线，不再表示当前未完成项。
 
 ---
 
@@ -16,7 +18,7 @@
 
 1. **原版 de-pvz**（C++ 反编译）：权威数值来源，25 种冒险僵尸的 HP/速度/护甲/行为定义
 2. **PVZ-Godot-Dream**（GDScript 参考实现）：架构参考，26 种僵尸的继承/组件/行为模式
-3. **Open PVZ**（本项目）：当前实现状态，10 种测试/正式僵尸 archetype
+3. **Open PVZ**（本项目）：当前实现状态，35 种僵尸 archetype，其中 25 种为 `archetype_original_*` 原版迁移内容
 
 核心问题：
 - 原版 25 种僵尸需要哪些行为能力？
@@ -124,6 +126,8 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 ---
 
 ## 4. 本项目现状与差距
+
+> 2026-05-21 校准：本节原本记录落地前差距。当前差距表已被原版僵尸迁移资源、批次 validation 和 `wiki/03-content-validation/32-验证矩阵.md` 吸收；以下“10 种僵尸”仅保留为当时的前置基线，不再代表当前内容规模。
 
 ### 4.1 已实现的 10 种僵尸
 
@@ -270,6 +274,8 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 
 ## 8. 建议的执行路线
 
+> 2026-05-21 校准：Phase 0 到 Phase 5 已作为 `archetype_original_*` 原版僵尸资源和 `zombie_original_batch_*` validation 落地。后续工作应转向波次生成权重、模式化关卡使用、表现资源或更精确的特殊交互，而不是重复执行本节批次计划。
+
 ### Phase 0（前置，BLOCKING）
 
 - **P0a**: 分层血量系统 — `HealthLayerDef` + HealthComponent 扩展
@@ -328,5 +334,5 @@ Node2D → Character000Base → Zombie000Base → Zombie001Norm / Zombie004PoleV
 | PVZ-Godot-Dream | `scripts/character/components/component_jump.gd` | 通用跳越组件 |
 | PVZ-Godot-Dream | `scripts/manager/zombie_manager/zm_zombie_wave_create_manager.gd` | Power-based 波次生成 |
 | Open PVZ | `scripts/entities/zombie_root.gd` | 当前僵尸运行时 |
-| Open PVZ | `data/combat/archetypes/zombies/` | 10 种僵尸 archetype |
+| Open PVZ | `data/combat/archetypes/zombies/` | 35 种僵尸 archetype，其中 25 种为 `archetype_original_*` 原版迁移内容 |
 | Open PVZ | `plans/archive/zombie-replication-2026-05/zombie-replication.md` | 25 僵尸复刻计划归档 |

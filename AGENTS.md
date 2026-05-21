@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-05-21** — 原版僵尸 A-E 批次完成状态校准：25 个 `archetype_original_*` 僵尸与 5 个批次验证已进入 manifest，当前验证清单为 215 场景
 - **2026-05-20** — 僵尸基础设施协议 Wave 0 落地：HealthLayer、damage_layer_policy、Movement family v1、State side-effects、exposure/weight 过滤与 13 个专项验证进入主干
 - **2026-05-11** — init-deep 全仓扫描：补充 autoload 清单（16 个）、模块索引（视觉/UI/输入/demo/验证）、反模式章节、守卫脚本命令、扩展包 AGENTS.md
 - **2026-05-10** — 原版植物 E 批补齐 Gloom-shroom、Cattail、Winter Melon、Spikerock、Gold Magnet 单体验证，验证 manifest 扩展到 145 场景
@@ -139,8 +140,8 @@ graph TD
 | `scripts/input/` | GDScript | 2 | 输入路由与处理 |
 | `scripts/demo/` | GDScript | 4 | 可玩 Demo 关卡脚本 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
-| `data/combat/archetypes/` | .tres | 97 | Archetype 资源（85 植物 + 10 僵尸 + 2 场上物件） |
-| `data/combat/` | .tres | 270 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
+| `data/combat/archetypes/` | .tres | 127 | Archetype 资源（89 植物 + 35 僵尸 + 3 场上物件） |
+| `data/combat/` | .tres | 353 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
 | `scenes/validation/` | .tres/.tscn | -- | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 为准 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
 | `tools/` | PS1/JSON | 3 | 验证运行工具 |

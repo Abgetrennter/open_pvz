@@ -46,9 +46,11 @@ data/combat/
 
 骨架（skeleton）：`peashooter` `striker` `burst_shooter` `spread_shooter` `trajectory_shooter` `arming_striker` 等，仅供验证或继承参考
 
-### 僵尸 Archetype (10)
+### 僵尸 Archetype (35)
 
-`basic_walker` `brisk_runner` `bucket_tank` `air_scout` `boss_heavy` `bone_thrower` `tar_spitter` `reactive_bomber` `lane_dummy` + `basic_zombie_skeleton`
+核心/样例：`basic_walker` `brisk_runner` `bucket_tank` `air_scout` `boss_heavy` `bone_thrower` `tar_spitter` `reactive_bomber` `lane_dummy` + `basic_zombie_skeleton`
+
+原版迁移：25 个 `original_*` 僵尸，覆盖 `basic_zombie`、`flag_zombie`、`conehead`、`buckethead`、`football`、`screen_door`、`newspaper`、`pole_vaulter`、水面/特殊/巨型批次等；对应 `zombie_original_batch_a` 到 `zombie_original_batch_e` 验证已登记。
 
 ### 场物件 (2)
 
