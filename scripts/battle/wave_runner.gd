@@ -6,6 +6,8 @@ const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
 const BattleSpawnResolverRef = preload("res://scripts/battle/battle_spawn_resolver.gd")
 const CombatContentResolverRef = preload("res://scripts/core/runtime/combat_content_resolver.gd")
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
+const WaveComposerRef = preload("res://scripts/battle/wave_composer.gd")
+const WaveAdvancePolicyDefRef = preload("res://scripts/battle/wave_advance_policy_def.gd")
 
 var battle: Node = null
 var flow_state: Node = null
@@ -20,7 +22,11 @@ var _started_waves: Dictionary = {}
 var _completed_waves: Dictionary = {}
 var _spawned_entry_indices: Dictionary = {}
 var _spawned_entities: Dictionary = {}
+var _wave_started_at: Dictionary = {}
+var _wave_start_override_times: Dictionary = {}
+var _huge_warning_emitted: Dictionary = {}
 var _spawn_resolver: RefCounted = BattleSpawnResolverRef.new()
+var _wave_composer: RefCounted = WaveComposerRef.new()
 
 
 func setup(battle_node: Node, flow_state_node: Node, scenario: Resource) -> void:
@@ -42,6 +48,9 @@ func setup(battle_node: Node, flow_state_node: Node, scenario: Resource) -> void
 	_completed_waves.clear()
 	_spawned_entry_indices.clear()
 	_spawned_entities.clear()
+	_wave_started_at.clear()
+	_wave_start_override_times.clear()
+	_huge_warning_emitted.clear()
 	var battlefield_preset: Variant = scenario.get("battlefield_preset")
 	_spawn_resolver.setup(battle, battlefield_preset)
 
@@ -50,6 +59,10 @@ func setup(battle_node: Node, flow_state_node: Node, scenario: Resource) -> void
 		for wave_def in configured_wave_defs:
 			if wave_def is Resource:
 				_wave_defs.append(wave_def)
+	var wave_recipe: Variant = scenario.get("wave_recipe")
+	if wave_recipe is Resource:
+		for wave_def in _wave_composer.compile(wave_recipe, GameState.battle_seed, battlefield_preset):
+			_wave_defs.append(wave_def)
 	_wave_defs.sort_custom(func(a: Resource, b: Resource) -> bool:
 		return float(a.get("start_time")) < float(b.get("start_time"))
 	)
@@ -100,13 +113,17 @@ func _on_game_tick(event_data: Variant) -> void:
 
 
 func _start_due_waves(game_time: float) -> void:
+	_update_advance_policy(game_time)
+	_emit_due_huge_warnings(game_time)
 	for wave_def in _wave_defs:
 		var wave_id := StringName(wave_def.get("wave_id"))
 		if _started_waves.has(wave_id):
 			continue
-		if game_time + 0.001 < float(wave_def.get("start_time")):
+		var effective_start_time := _effective_wave_start_time(wave_def)
+		if game_time + 0.001 < effective_start_time:
 			continue
 		_started_waves[wave_id] = true
+		_wave_started_at[wave_id] = game_time
 		_spawned_entry_indices[wave_id] = {}
 		_spawned_entities[wave_id] = []
 		flow_state.ensure_running(wave_id)
@@ -118,7 +135,7 @@ func _spawn_due_entries(game_time: float) -> void:
 		var wave_id := StringName(wave_def.get("wave_id"))
 		if not _started_waves.has(wave_id):
 			continue
-		var wave_start_time := float(wave_def.get("start_time"))
+		var wave_start_time := float(_wave_started_at.get(wave_id, _effective_wave_start_time(wave_def)))
 		var spawn_entries: Variant = wave_def.get("spawn_entries")
 		if not (spawn_entries is Array):
 			continue
@@ -271,3 +288,91 @@ func _report_spawn_rejected(spawn_entry: Resource, wave_id: StringName, reason: 
 		event_data.core["archetype_id"] = StringName(spawn_entry.get("archetype_id"))
 		event_data.core["lane_id"] = int(spawn_entry.get("lane_id"))
 	EventBus.push_event(&"spawn.rejected", event_data)
+
+
+func _update_advance_policy(game_time: float) -> void:
+	for index in range(_wave_defs.size() - 1):
+		var wave_def: Resource = _wave_defs[index]
+		var wave_id := StringName(wave_def.get("wave_id"))
+		if not _started_waves.has(wave_id) or _completed_waves.has(wave_id):
+			continue
+		var next_wave: Resource = _wave_defs[index + 1]
+		var next_wave_id := StringName(next_wave.get("wave_id"))
+		if _started_waves.has(next_wave_id) or _wave_start_override_times.has(next_wave_id):
+			continue
+		var policy: Resource = wave_def.get("advance_policy")
+		if not _should_advance_next_wave(policy, wave_id, game_time):
+			continue
+		_wave_start_override_times[next_wave_id] = game_time
+		_emit_wave_advance_triggered(wave_id, next_wave_id)
+
+
+func _should_advance_next_wave(policy: Resource, wave_id: StringName, game_time: float) -> bool:
+	if policy == null or policy.get_script() != WaveAdvancePolicyDefRef:
+		return false
+	if StringName(policy.get("policy_kind")) != &"timer_with_health_threshold":
+		return false
+	var started_at := float(_wave_started_at.get(wave_id, game_time))
+	if game_time + 0.001 < started_at + maxf(float(policy.get("min_wave_duration")), 0.0):
+		return false
+	var health_ratio := _wave_health_ratio(wave_id)
+	if health_ratio < 0.0:
+		return false
+	return health_ratio <= clampf(float(policy.get("health_ratio_threshold")), 0.0, 1.0)
+
+
+func _wave_health_ratio(wave_id: StringName) -> float:
+	var total_health := 0
+	var total_max_health := 0
+	var wave_entities: Array = Array(_spawned_entities.get(wave_id, []))
+	for entity in wave_entities:
+		if entity == null or not is_instance_valid(entity):
+			continue
+		if entity.has_method("is_runtime_alive") and not bool(entity.call("is_runtime_alive")):
+			continue
+		if entity.has_method("is_counted_for_objectives") and not bool(entity.call("is_counted_for_objectives")):
+			continue
+		var snapshot: Dictionary = entity.get_debug_snapshot() if entity.has_method("get_debug_snapshot") else {}
+		var max_health := int(snapshot.get("max_health", 0))
+		if max_health <= 0:
+			continue
+		total_health += maxi(int(snapshot.get("health", 0)), 0)
+		total_max_health += max_health
+	if total_max_health <= 0:
+		return -1.0
+	return float(total_health) / float(total_max_health)
+
+
+func _emit_due_huge_warnings(game_time: float) -> void:
+	for wave_def in _wave_defs:
+		var wave_id := StringName(wave_def.get("wave_id"))
+		if _huge_warning_emitted.has(wave_id):
+			continue
+		if StringName(wave_def.get("wave_kind")) != &"flag":
+			continue
+		var policy: Resource = wave_def.get("advance_policy")
+		var lead_time := 0.0
+		if policy != null and policy.get_script() == WaveAdvancePolicyDefRef:
+			lead_time = maxf(float(policy.get("huge_warning_lead_time")), 0.0)
+		if game_time + 0.001 < _effective_wave_start_time(wave_def) - lead_time:
+			continue
+		_huge_warning_emitted[wave_id] = true
+		var event_data: Variant = EventDataRef.create(null, null, null, PackedStringArray(["wave", "huge"]))
+		event_data.core["wave_id"] = wave_id
+		event_data.core["wave_kind"] = StringName(wave_def.get("wave_kind"))
+		EventBus.push_event(&"wave.huge_approaching", event_data)
+
+
+func _effective_wave_start_time(wave_def: Resource) -> float:
+	var wave_id := StringName(wave_def.get("wave_id"))
+	if _wave_start_override_times.has(wave_id):
+		return float(_wave_start_override_times[wave_id])
+	return float(wave_def.get("start_time"))
+
+
+func _emit_wave_advance_triggered(from_wave_id: StringName, target_wave_id: StringName) -> void:
+	var event_data: Variant = EventDataRef.create(null, null, null, PackedStringArray(["wave", "advance"]))
+	event_data.core["from_wave_id"] = from_wave_id
+	event_data.core["target_wave_id"] = target_wave_id
+	event_data.core["reason"] = &"health_threshold"
+	EventBus.push_event(&"wave.advance_triggered", event_data)

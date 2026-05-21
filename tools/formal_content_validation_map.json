@@ -122,6 +122,11 @@
       "description": "Formal wave pacing and playable level structure for reusable battle content.",
       "validations": [
         "wave_flow_validation",
+        "wave_recipe_compile_validation",
+        "wave_advance_health_threshold_validation",
+        "wave_recipe_spawn_zone_filter_validation",
+        "wave_recipe_roof_spawn_zone_validation",
+        "wave_recipe_special_injection_validation",
         "wave_guardrail_validation",
         "survival_goal_v1_validation",
         "protect_goal_v1_validation"

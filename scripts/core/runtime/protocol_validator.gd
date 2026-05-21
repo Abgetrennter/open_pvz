@@ -21,6 +21,11 @@ const FieldObjectConfigRef = preload("res://scripts/battle/field_object_config.g
 const GridItemConfigRef = preload("res://scripts/battle/grid_item_config.gd")
 const WaveSpawnEntryRef = preload("res://scripts/battle/wave_spawn_entry.gd")
 const WaveDefRef = preload("res://scripts/battle/wave_def.gd")
+const WaveInjectionRuleDefRef = preload("res://scripts/battle/wave_injection_rule_def.gd")
+const WavePoolDefRef = preload("res://scripts/battle/wave_pool_def.gd")
+const WavePoolEntryDefRef = preload("res://scripts/battle/wave_pool_entry_def.gd")
+const WaveRecipeDefRef = preload("res://scripts/battle/wave_recipe_def.gd")
+const WaveAdvancePolicyDefRef = preload("res://scripts/battle/wave_advance_policy_def.gd")
 const SunDropEntryRef = preload("res://scripts/battle/sun_drop_entry.gd")
 const BattleResourceSpendRequestRef = preload("res://scripts/battle/resource_spend_request.gd")
 const ProjectileFlightProfileRef = preload("res://scripts/projectile/projectile_flight_profile.gd")
@@ -805,6 +810,9 @@ static func validate_battle_scenario(scenario: Resource) -> Array[String]:
 	if configured_wave_defs is Array:
 		for wave_def in configured_wave_defs:
 			errors.append_array(_validate_wave_def(wave_def, scenario.scenario_id))
+	var configured_wave_recipe: Variant = scenario.get("wave_recipe")
+	if configured_wave_recipe != null:
+		errors.append_array(_validate_wave_recipe(configured_wave_recipe, scenario.scenario_id))
 
 	var configured_field_object_configs: Variant = scenario.get("field_object_configs")
 	if configured_field_object_configs is Array:
@@ -1393,6 +1401,147 @@ static func _validate_wave_spawn_entry(wave_spawn_entry: Resource, scenario_id: 
 		errors.append("BattleScenario %s wave %s spawn_time_offset must be >= 0." % [String(scenario_id), String(wave_id)])
 	var spawn_entry: Resource = wave_spawn_entry.get("spawn_entry")
 	errors.append_array(validate_battle_spawn_entry(spawn_entry, scenario_id))
+	return errors
+
+
+static func _validate_wave_recipe(recipe: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if recipe == null:
+		return errors
+	if recipe.get_script() != WaveRecipeDefRef:
+		errors.append("BattleScenario %s wave_recipe must use wave_recipe_def.gd." % String(scenario_id))
+		return errors
+	if StringName(recipe.get("recipe_id")) == StringName():
+		errors.append("BattleScenario %s wave_recipe must define recipe_id." % String(scenario_id))
+	if int(recipe.get("total_waves")) <= 0:
+		errors.append("BattleScenario %s wave_recipe total_waves must be > 0." % String(scenario_id))
+	if int(recipe.get("waves_per_flag")) <= 0:
+		errors.append("BattleScenario %s wave_recipe waves_per_flag must be > 0." % String(scenario_id))
+	if float(recipe.get("start_delay")) < 0.0:
+		errors.append("BattleScenario %s wave_recipe start_delay must be >= 0." % String(scenario_id))
+	if float(recipe.get("base_spacing")) < 0.0:
+		errors.append("BattleScenario %s wave_recipe base_spacing must be >= 0." % String(scenario_id))
+	if int(recipe.get("base_budget")) <= 0:
+		errors.append("BattleScenario %s wave_recipe base_budget must be > 0." % String(scenario_id))
+	if int(recipe.get("budget_per_wave")) < 0:
+		errors.append("BattleScenario %s wave_recipe budget_per_wave must be >= 0." % String(scenario_id))
+	if float(recipe.get("flag_budget_multiplier")) <= 0.0:
+		errors.append("BattleScenario %s wave_recipe flag_budget_multiplier must be > 0." % String(scenario_id))
+	errors.append_array(_validate_wave_pool(recipe.get("pool_def"), scenario_id))
+	var flag_entry: Variant = recipe.get("flag_entry")
+	if flag_entry != null:
+		errors.append_array(_validate_wave_pool_entry(flag_entry, scenario_id, StringName(recipe.get("recipe_id")), true))
+	var advance_policy: Variant = recipe.get("advance_policy")
+	if advance_policy != null:
+		errors.append_array(_validate_wave_advance_policy(advance_policy, scenario_id, StringName(recipe.get("recipe_id"))))
+	var injection_rules: Variant = recipe.get("special_injection_rules")
+	if not (injection_rules is Array):
+		errors.append("BattleScenario %s wave_recipe special_injection_rules must be an Array." % String(scenario_id))
+	else:
+		for injection_rule in Array(injection_rules):
+			errors.append_array(_validate_wave_injection_rule(injection_rule, scenario_id, StringName(recipe.get("recipe_id")), int(recipe.get("total_waves"))))
+	return errors
+
+
+static func _validate_wave_pool(pool: Resource, scenario_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if pool == null:
+		errors.append("BattleScenario %s wave_recipe must define pool_def." % String(scenario_id))
+		return errors
+	if pool.get_script() != WavePoolDefRef:
+		errors.append("BattleScenario %s wave_recipe pool_def must use wave_pool_def.gd." % String(scenario_id))
+		return errors
+	if StringName(pool.get("pool_id")) == StringName():
+		errors.append("BattleScenario %s wave_recipe pool_def must define pool_id." % String(scenario_id))
+	var entries: Variant = pool.get("entries")
+	if not (entries is Array) or Array(entries).is_empty():
+		errors.append("BattleScenario %s wave_recipe pool_def must contain at least one entry." % String(scenario_id))
+		return errors
+	for entry in Array(entries):
+		errors.append_array(_validate_wave_pool_entry(entry, scenario_id, StringName(pool.get("pool_id")), false))
+	return errors
+
+
+static func _validate_wave_pool_entry(entry: Resource, scenario_id: StringName, owner_id: StringName, allow_zero_weight: bool) -> Array[String]:
+	var errors: Array[String] = []
+	if entry == null:
+		errors.append("BattleScenario %s wave pool %s contains a null entry." % [String(scenario_id), String(owner_id)])
+		return errors
+	if entry.get_script() != WavePoolEntryDefRef:
+		errors.append("BattleScenario %s wave pool %s entries must use wave_pool_entry_def.gd." % [String(scenario_id), String(owner_id)])
+		return errors
+	var direct_archetype: Variant = entry.get("archetype")
+	var archetype_id := StringName(entry.get("archetype_id"))
+	var resolved_archetype: Resource = null
+	if direct_archetype is CombatArchetypeRef:
+		resolved_archetype = direct_archetype
+	elif archetype_id != StringName() and SceneRegistry.has_archetype(archetype_id):
+		resolved_archetype = SceneRegistry.get_archetype(archetype_id)
+	if resolved_archetype == null:
+		errors.append("BattleScenario %s wave pool %s entry must resolve a zombie archetype through archetype/archetype_id." % [String(scenario_id), String(owner_id)])
+	elif StringName(resolved_archetype.get("entity_kind")) != &"zombie":
+		errors.append("BattleScenario %s wave pool %s entry archetype must have entity_kind zombie." % [String(scenario_id), String(owner_id)])
+	if direct_archetype == null and archetype_id != StringName() and not SceneRegistry.has_archetype(archetype_id):
+		errors.append("BattleScenario %s wave pool %s references unknown archetype_id %s." % [String(scenario_id), String(owner_id), String(archetype_id)])
+	if int(entry.get("power")) <= 0:
+		errors.append("BattleScenario %s wave pool %s entry power must be > 0." % [String(scenario_id), String(owner_id)])
+	var weight := int(entry.get("weight"))
+	if weight < 0 or (weight == 0 and not allow_zero_weight):
+		errors.append("BattleScenario %s wave pool %s entry weight must be > 0." % [String(scenario_id), String(owner_id)])
+	if int(entry.get("first_allowed_wave")) < 0:
+		errors.append("BattleScenario %s wave pool %s entry first_allowed_wave must be >= 0." % [String(scenario_id), String(owner_id)])
+	if int(entry.get("lane_id")) < 0:
+		errors.append("BattleScenario %s wave pool %s entry lane_id must be >= 0." % [String(scenario_id), String(owner_id)])
+	if float(entry.get("x_position")) < 0.0:
+		errors.append("BattleScenario %s wave pool %s entry x_position must be >= 0." % [String(scenario_id), String(owner_id)])
+	if not (entry.get("required_spawn_tags") is PackedStringArray):
+		errors.append("BattleScenario %s wave pool %s entry required_spawn_tags must be a PackedStringArray." % [String(scenario_id), String(owner_id)])
+	var spawn_overrides: Variant = entry.get("spawn_overrides")
+	if not (spawn_overrides is Dictionary):
+		errors.append("BattleScenario %s wave pool %s entry spawn_overrides must be a Dictionary." % [String(scenario_id), String(owner_id)])
+	else:
+		errors.append_array(_validate_entity_runtime_params("zombie", Dictionary(spawn_overrides), "BattleScenario %s wave pool %s entry spawn_overrides" % [String(scenario_id), String(owner_id)]))
+	return errors
+
+
+static func _validate_wave_advance_policy(policy: Resource, scenario_id: StringName, owner_id: StringName) -> Array[String]:
+	var errors: Array[String] = []
+	if policy == null:
+		return errors
+	if policy.get_script() != WaveAdvancePolicyDefRef:
+		errors.append("BattleScenario %s wave recipe %s advance_policy must use wave_advance_policy_def.gd." % [String(scenario_id), String(owner_id)])
+		return errors
+	if StringName(policy.get("policy_id")) == StringName():
+		errors.append("BattleScenario %s wave recipe %s advance_policy must define policy_id." % [String(scenario_id), String(owner_id)])
+	var policy_kind := StringName(policy.get("policy_kind"))
+	if policy_kind not in [&"absolute_time", &"timer_with_health_threshold"]:
+		errors.append("BattleScenario %s wave recipe %s advance_policy policy_kind must be absolute_time or timer_with_health_threshold." % [String(scenario_id), String(owner_id)])
+	if float(policy.get("min_wave_duration")) < 0.0:
+		errors.append("BattleScenario %s wave recipe %s advance_policy min_wave_duration must be >= 0." % [String(scenario_id), String(owner_id)])
+	var threshold := float(policy.get("health_ratio_threshold"))
+	if threshold < 0.0 or threshold > 1.0:
+		errors.append("BattleScenario %s wave recipe %s advance_policy health_ratio_threshold must be between 0 and 1." % [String(scenario_id), String(owner_id)])
+	if float(policy.get("huge_warning_lead_time")) < 0.0:
+		errors.append("BattleScenario %s wave recipe %s advance_policy huge_warning_lead_time must be >= 0." % [String(scenario_id), String(owner_id)])
+	return errors
+
+
+static func _validate_wave_injection_rule(rule: Resource, scenario_id: StringName, owner_id: StringName, total_waves: int) -> Array[String]:
+	var errors: Array[String] = []
+	if rule == null:
+		errors.append("BattleScenario %s wave recipe %s contains a null special injection rule." % [String(scenario_id), String(owner_id)])
+		return errors
+	if rule.get_script() != WaveInjectionRuleDefRef:
+		errors.append("BattleScenario %s wave recipe %s special_injection_rules must use wave_injection_rule_def.gd." % [String(scenario_id), String(owner_id)])
+		return errors
+	if StringName(rule.get("rule_id")) == StringName():
+		errors.append("BattleScenario %s wave recipe %s special injection rule must define rule_id." % [String(scenario_id), String(owner_id)])
+	var wave_index := int(rule.get("wave_index"))
+	if wave_index < 0 or wave_index >= total_waves:
+		errors.append("BattleScenario %s wave recipe %s special injection rule %s wave_index must be within total_waves." % [String(scenario_id), String(owner_id), String(rule.get("rule_id"))])
+	if float(rule.get("spawn_time_offset")) < 0.0:
+		errors.append("BattleScenario %s wave recipe %s special injection rule %s spawn_time_offset must be >= 0." % [String(scenario_id), String(owner_id), String(rule.get("rule_id"))])
+	errors.append_array(_validate_wave_pool_entry(rule.get("entry"), scenario_id, StringName(rule.get("rule_id")), true))
 	return errors
 
 

@@ -1,0 +1,156 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=23 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/spawn_zone_config.gd" id="4_zone"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Script" path="res://scripts/battle/wave_recipe_def.gd" id="6_recipe"]
+[ext_resource type="Script" path="res://scripts/battle/wave_pool_def.gd" id="7_pool"]
+[ext_resource type="Script" path="res://scripts/battle/wave_pool_entry_def.gd" id="8_pool_entry"]
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="9_zombie"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="10_height"]
+
+[sub_resource type="Resource" id="LaneConfig_roof"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"roof"
+
+[sub_resource type="Resource" id="SpawnZone_roof"]
+script = ExtResource("4_zone")
+zone_id = &"roof_zone"
+lane_id = 0
+x = 730.0
+zone_tags = PackedStringArray("spawn.medium.roof", "spawn.medium.ground")
+
+[sub_resource type="Resource" id="BattlefieldPreset_roof"]
+script = ExtResource("2_preset")
+preset_id = &"wave_recipe_roof_spawn_zone"
+display_name = "Wave Recipe Roof Spawn Zone"
+lane_count = 1
+board_slot_count = 1
+lane_configs = [SubResource("LaneConfig_roof")]
+spawn_zones = [SubResource("SpawnZone_roof")]
+
+[sub_resource type="Resource" id="Zombie_roof"]
+script = ExtResource("9_zombie")
+archetype_id = &"inline_recipe_roof_zombie"
+display_name = "Inline Recipe Roof Zombie"
+hit_height_band = ExtResource("10_height")
+tags = PackedStringArray("archetype", "zombie", "spawn.medium.roof")
+max_health = 30
+hitbox_size = Vector2(40, 54)
+default_params = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Zombie_ground"]
+script = ExtResource("9_zombie")
+archetype_id = &"inline_recipe_ground_zombie"
+display_name = "Inline Recipe Ground Zombie"
+hit_height_band = ExtResource("10_height")
+tags = PackedStringArray("archetype", "zombie", "spawn.medium.ground")
+max_health = 30
+hitbox_size = Vector2(40, 54)
+default_params = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="WavePoolEntry_roof"]
+script = ExtResource("8_pool_entry")
+archetype = SubResource("Zombie_roof")
+archetype_id = &"inline_recipe_roof_zombie"
+power = 1
+weight = 1
+first_allowed_wave = 0
+lane_id = 0
+x_position = 520.0
+required_spawn_tags = PackedStringArray("spawn.medium.roof")
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="WavePoolEntry_ground"]
+script = ExtResource("8_pool_entry")
+archetype = SubResource("Zombie_ground")
+archetype_id = &"inline_recipe_ground_zombie"
+power = 1
+weight = 1
+first_allowed_wave = 0
+lane_id = 0
+x_position = 520.0
+required_spawn_tags = PackedStringArray("spawn.medium.ground")
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="WavePoolDef_roof"]
+script = ExtResource("7_pool")
+pool_id = &"roof_spawn_pool"
+entries = [SubResource("WavePoolEntry_roof")]
+
+[sub_resource type="Resource" id="WaveRecipeDef_roof"]
+script = ExtResource("6_recipe")
+recipe_id = &"wave_roof_spawn_test"
+total_waves = 1
+waves_per_flag = 1
+start_delay = 0.2
+base_spacing = 1.0
+base_budget = 2
+budget_per_wave = 0
+flag_budget_multiplier = 1.0
+pool_def = SubResource("WavePoolDef_roof")
+flag_entry = SubResource("WavePoolEntry_ground")
+
+[sub_resource type="Resource" id="Rule_wave_started"]
+script = ExtResource("5_rule")
+rule_id = &"roof_wave_started"
+description = "recipe wave starts against a roof spawn contract"
+event_name = &"wave.started"
+required_core_values = {
+"wave_id": &"wave_roof_spawn_test_0"
+}
+
+[sub_resource type="Resource" id="Rule_roof_resolved"]
+script = ExtResource("5_rule")
+rule_id = &"roof_entry_resolved"
+description = "roof-only recipe entry resolves to the explicit roof spawn zone"
+event_name = &"spawn.resolved"
+required_core_values = {
+"archetype_id": &"inline_recipe_roof_zombie",
+"lane_id": 0,
+"x_position": 730.0,
+"zone_id": &"roof_zone"
+}
+
+[sub_resource type="Resource" id="Rule_ground_resolved"]
+script = ExtResource("5_rule")
+rule_id = &"ground_entry_resolved_on_roof"
+description = "ground recipe entry remains compatible with a roof spawn zone that declares ground support"
+event_name = &"spawn.resolved"
+required_core_values = {
+"archetype_id": &"inline_recipe_ground_zombie",
+"lane_id": 0,
+"x_position": 730.0,
+"zone_id": &"roof_zone"
+}
+
+[sub_resource type="Resource" id="Rule_no_reject"]
+script = ExtResource("5_rule")
+rule_id = &"roof_no_reject"
+description = "roof-compatible recipe entries are not rejected by the runtime resolver"
+event_name = &"spawn.rejected"
+min_count = 0
+max_count = 0
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"wave_recipe_roof_spawn_zone_validation"
+display_name = "Wave Recipe Roof Spawn Zone Validation"
+description = "Validates recipe-level spawn tag filtering and runtime resolution for explicit roof spawn zones."
+goals = PackedStringArray("Compile a recipe against a roof spawn contract.", "Preserve roof-only and roof-compatible ground entries.", "Resolve retained entries through the explicit roof spawn zone.")
+validation_time_limit = 1.4
+battlefield_preset = SubResource("BattlefieldPreset_roof")
+defeat_conditions = PackedStringArray()
+wave_recipe = SubResource("WaveRecipeDef_roof")
+validation_rules = [SubResource("Rule_wave_started"), SubResource("Rule_roof_resolved"), SubResource("Rule_ground_resolved"), SubResource("Rule_no_reject")]
