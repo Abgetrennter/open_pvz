@@ -8,7 +8,7 @@
 - **2026-05-11** — init-deep 全仓扫描：补充 autoload 清单（16 个）、模块索引（视觉/UI/输入/demo/验证）、反模式章节、守卫脚本命令、扩展包 AGENTS.md
 - **2026-05-10** — 原版植物 E 批补齐 Gloom-shroom、Cattail、Winter Melon、Spikerock、Gold Magnet 单体验证，验证 manifest 扩展到 145 场景
 - **2026-05-09** — 规则基础设施第二轮完成：多维 liveness、`SpatialIndex` / `BattleManager.spatial_query(params)`、`height_range` 过滤、tick budget 监控与专项验证进入主干，验证基线扩展到 140 场景
-- **2026-05-06** — 验证批处理支持受控并行：`tools/run_all_validations.ps1` 新增 `-MaxParallel`，默认自动取 `min(CPU核心数, 4)`，批量验证改为并发调度并保持汇总输出顺序稳定
+- **2026-05-06** — 验证批处理支持受控并行：`tools/run_all_validations.ps1` 新增 `-MaxParallel`，默认自动取 `min(CPU核心数, 8)`，批量验证改为并发调度并保持汇总输出顺序稳定
 - **2026-05-05** — 统一 Registry/Slot 生产线完成：`TriggerRegistry`、`DetectionRegistry`、`ControllerRegistry` 全部继承 `RegistryBase`，contributor 字段统一为 `id`/`param_defs`，`ExtensionPackCatalog.ALLOWED_REGISTER_KINDS` 扩展至 7 种，验证基线扩展到 121 场景
 - **2026-04-24** — wiki 同步 Mechanic-first 决策：11 份文档更新，旧"模板与装配边界"重写为"编译链与 Mechanic 系统"；AGENTS.md 同步代码现状
 - **2026-04-22** — Mechanic-first 重构第三阶段完成：multi-payload 编译、per-type compiler dispatch、Controller/State/Lifecycle 扩展、确定性随机协议、Archetype 独立实例化、迁移对照验证
@@ -278,7 +278,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 
 - **无单元测试框架**，验证场景是唯一的自动化测试机制
 - 每个验证场景包含：`.tres` 配置（BattleScenario）+ `.tscn` 场景文件
-- 批量入口 `tools/run_all_validations.ps1` 支持 `-MaxParallel` 受控并行；建议按机器负载选择 2~4 起步，避免同时拉起过多 Godot headless 进程导致资源争用
+- 批量入口 `tools/run_all_validations.ps1` 支持 `-MaxParallel` 受控并行；建议按机器负载选择 4~8 起步，避免同时拉起过多 Godot headless 进程导致资源争用
 - 验证规则通过事件匹配：事件名 + 标签 + 核心值 + 次数范围
 - BattleManager 内置验证状态机：pending -> passed/failed
 - 命令行支持：`--validation-auto-quit`、`--validation-print-report`、`--validation-output-dir=`

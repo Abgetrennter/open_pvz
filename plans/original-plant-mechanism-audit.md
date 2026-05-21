@@ -12,7 +12,7 @@
 本次执行验证：
 
 ```powershell
-pwsh -Command "& 'tools/run_all_validations.ps1' -Layers @('smoke','core') -MaxParallel 4"
+pwsh -Command "& 'tools/run_all_validations.ps1' -Layers @('smoke','core') -MaxParallel 8"
 ```
 
 结果：125 个 `smoke/core` 场景全部通过，失败 0 个。批次包含所有 `plant_original_*` 场景和 8 个 `original_*_garden` 场景。

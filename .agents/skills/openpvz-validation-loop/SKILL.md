@@ -15,7 +15,7 @@ Use PowerShell from the repository root:
 
 ```powershell
 pwsh tools/run_all_validations.ps1
-pwsh tools/run_all_validations.ps1 -MaxParallel 4
+pwsh tools/run_all_validations.ps1 -MaxParallel 8
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"
 pwsh tools/check_public_extension_release_guardrails.ps1
 ```

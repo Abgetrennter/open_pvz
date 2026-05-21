@@ -40,7 +40,7 @@ EventBus.event_pushed
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<name>.tres"
 
 # 批量（受控并行）
-pwsh tools/run_all_validations.ps1 -MaxParallel 4 -Layers "smoke,core"
+pwsh tools/run_all_validations.ps1 -MaxParallel 8 -Layers "smoke,core"
 ```
 
 编辑器内：打开 `.tscn` 按 F6。

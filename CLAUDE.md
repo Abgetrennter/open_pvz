@@ -171,11 +171,11 @@ graph TD
 验证场景是主要的测试机制 -- 没有单元测试框架。
 
 ```powershell
-# 运行所有验证场景（默认自动取 min(CPU 核心数, 4) 并行）
+# 运行所有验证场景（默认自动取 min(CPU 核心数, 8) 并行）
 pwsh tools/run_all_validations.ps1
 
 # 控制并行度
-pwsh tools/run_all_validations.ps1 -MaxParallel 4
+pwsh tools/run_all_validations.ps1 -MaxParallel 8
 
 # 运行单个场景（参数是 -Scenario，不是 -ScenarioId；必须是 res:// 路径）
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"

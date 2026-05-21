@@ -337,7 +337,7 @@ git submodule update --init --recursive
 pwsh tools/run_all_validations.ps1
 
 # 控制并行度（默认自动取 min(CPU核心数, 4)）
-pwsh tools/run_all_validations.ps1 -MaxParallel 4
+pwsh tools/run_all_validations.ps1 -MaxParallel 8
 
 # 运行单个场景
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"

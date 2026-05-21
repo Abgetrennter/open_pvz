@@ -125,7 +125,7 @@ Evidence saved to `.sisyphus/evidence/task-{N}-{scenario-slug}.{ext}`.
 
 - **Zombie behaviors**: Use Bash (`pwsh tools/run_validation.ps1`) — Run validation scenario, check pass/fail
 - **Layered health**: Use Bash (`pwsh tools/run_validation.ps1`) — Run layered damage validation
-- **Batch validation**: Use Bash (`pwsh tools/run_all_validations.ps1 -MaxParallel 4`) — Full batch regression
+- **Batch validation**: Use Bash (`pwsh tools/run_all_validations.ps1 -MaxParallel 8`) — Full batch regression
 
 ---
 
@@ -342,7 +342,7 @@ Max Concurrent: 8 (Wave 4)
 
   **Commit**: YES (groups with Batch A)
   - Message: `feat(zombies): add original batch A — basic melee zombies`
-  - Pre-commit: `pwsh tools/run_all_validations.ps1 -MaxParallel 4`
+  - Pre-commit: `pwsh tools/run_all_validations.ps1 -MaxParallel 8`
 
 - [ ] 2. **Flag Zombie（旗帜僵尸）**
 
@@ -1573,7 +1573,7 @@ Max Concurrent: 8 (Wave 4)
 - **Batch C**: `feat(zombies): add original batch C — pool/water zombies` — 4 archetypes + mechanics + validations
 - **Batch D**: `feat(zombies): add original batch D — complex behavior zombies` — 8 archetypes + mechanics + validations
 - **Batch E**: `feat(zombies): add original batch E — giants & spawned zombies` — 5 archetypes + mechanics + validations
-- Each commit: `pwsh tools/run_all_validations.ps1 -MaxParallel 4` must pass
+- Each commit: `pwsh tools/run_all_validations.ps1 -MaxParallel 8` must pass
 
 ---
 
