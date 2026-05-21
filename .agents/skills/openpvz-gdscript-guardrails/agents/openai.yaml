@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenPVZ GDScript Guardrails"
+  short_description: "Apply OpenPVZ GDScript guardrails"
+  default_prompt: "Use $openpvz-gdscript-guardrails to implement or review OpenPVZ GDScript safely."

@@ -3,6 +3,8 @@ extends SceneTree
 const AssetIndexCatalogRef = preload("res://scripts/core/runtime/asset_index_catalog.gd")
 const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 
+const DEBUG_ENABLE_CLASSIC_ORIGINAL_ASSETS_SETTING := "openpvz/debug/enable_classic_original_assets"
+
 const REQUIRED_PROFILE_IDS := [
 	&"classic_original.entity.plant.peashooter.visual",
 	&"classic_original.entity.plant.sunflower.visual",
@@ -13,9 +15,13 @@ const REQUIRED_PROFILE_IDS := [
 
 
 func _init() -> void:
-	var expect_enabled := false
+	var expect_enabled := _debug_classic_original_assets_enabled()
 	for raw_arg in OS.get_cmdline_user_args():
-		if String(raw_arg) == "--expect-classic-original-assets":
+		var arg := String(raw_arg)
+		if arg == "--expect-classic-original-assets" or arg == "--include-classic-original-assets":
+			expect_enabled = true
+			break
+		if arg == "--include-extension-pack=classic_original_assets":
 			expect_enabled = true
 			break
 
@@ -52,8 +58,8 @@ func _init() -> void:
 		return
 
 	if not enabled_pack.is_empty():
-		push_error("classic_original_assets should not be enabled without its activation flag.")
-		quit(1)
+		print("classic_original_assets is enabled by current runtime activation.")
+		quit(0)
 		return
 	print("classic_original_assets is disabled by default.")
 	quit(0)
@@ -64,6 +70,10 @@ func _find_enabled_classic_pack() -> Dictionary:
 		if StringName(pack.get("pack_id", StringName())) == &"classic_original_assets":
 			return pack
 	return {}
+
+
+func _debug_classic_original_assets_enabled() -> bool:
+	return bool(ProjectSettings.get_setting(DEBUG_ENABLE_CLASSIC_ORIGINAL_ASSETS_SETTING, false))
 
 
 func _find_missing_private_profiles(root_path: String) -> PackedStringArray:

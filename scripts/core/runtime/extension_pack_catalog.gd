@@ -5,6 +5,8 @@ const EXTENSION_ROOT_DIR := "res://extensions"
 const LOCAL_EXTENSION_ROOT_DIR := "res://local_extensions"
 const EXTENSION_MANIFEST_FIXTURE_ROOT_DIR := "res://extensions_manifest_fixtures"
 const MANIFEST_FILE_NAME := "extension.json"
+const DEBUG_ENABLE_CLASSIC_ORIGINAL_ASSETS_SETTING := "openpvz/debug/enable_classic_original_assets"
+const PRIVATE_CLASSIC_ORIGINAL_ASSETS_PACK_ID := &"classic_original_assets"
 const ALLOWED_REGISTER_KINDS := {
 	&"resources": true,
 	&"effects": true,
@@ -200,6 +202,8 @@ static func _pack_enabled(manifest: Dictionary, root_path: String) -> bool:
 	if bool(manifest.get("enabled_by_default", false)):
 		return true
 	var pack_id := StringName(manifest.get("pack_id", StringName()))
+	if _pack_enabled_by_debug_project_settings(manifest, root_path, pack_id):
+		return true
 	if _session_enabled_pack_ids.has(pack_id):
 		return true
 	for raw_arg in OS.get_cmdline_user_args():
@@ -224,6 +228,16 @@ static func _pack_enabled(manifest: Dictionary, root_path: String) -> bool:
 				if scenario_name == StringName(activation_scenario_id):
 					return true
 	return false
+
+
+static func _pack_enabled_by_debug_project_settings(manifest: Dictionary, root_path: String, pack_id: StringName) -> bool:
+	if pack_id != PRIVATE_CLASSIC_ORIGINAL_ASSETS_PACK_ID:
+		return false
+	if StringName(manifest.get("publish_policy", &"public")) != &"local_private":
+		return false
+	if not root_path.begins_with("%s/" % LOCAL_EXTENSION_ROOT_DIR):
+		return false
+	return bool(ProjectSettings.get_setting(DEBUG_ENABLE_CLASSIC_ORIGINAL_ASSETS_SETTING, false))
 
 
 static func _should_include_manifest_fixture_root() -> bool:
