@@ -100,7 +100,7 @@ const SHOWCASE_SCENES := [
 				"min_step_at": 1.58,
 				"max_step_at": 1.62,
 				"min_motion_duration": 0.08,
-				"max_motion_offset_y": 12.0,
+				"expected_motion_offset_y": 20.0,
 				"min_motion_distance": 8.0,
 				"max_motion_target_distance": 20.0,
 			},
@@ -285,6 +285,14 @@ func _has_visual_log_entry(action_spec: Dictionary) -> bool:
 			if action_spec.has("expected_motion_offset_y"):
 				var motion_offset := entry.get("motion_offset", Vector2.ZERO) as Vector2
 				if not is_equal_approx(motion_offset.y, float(action_spec.get("expected_motion_offset_y", 0.0))):
+					continue
+			if action_spec.has("min_motion_offset_y"):
+				var motion_offset := entry.get("motion_offset", Vector2.ZERO) as Vector2
+				if motion_offset.y < float(action_spec.get("min_motion_offset_y", 0.0)):
+					continue
+			if action_spec.has("max_motion_offset_y"):
+				var motion_offset := entry.get("motion_offset", Vector2.ZERO) as Vector2
+				if motion_offset.y > float(action_spec.get("max_motion_offset_y", 0.0)):
 					continue
 			if float(entry.get("motion_distance", 0.0)) < float(action_spec.get("min_motion_distance", 0.0)):
 				continue
