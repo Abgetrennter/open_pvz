@@ -11,3 +11,4 @@ lane_count = 5
 board_slot_count = 9
 board_slot_origin_x = 200.0
 board_slot_spacing = 80.0
+battlefield_visual_id = &"classic_original.battlefield.grass_day.visual"

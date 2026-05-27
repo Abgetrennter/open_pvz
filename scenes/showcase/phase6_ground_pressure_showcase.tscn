@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/showcase_scene.gd" id="1_battle"]
+[ext_resource type="Resource" path="res://data/combat/levels/phase6/level_ground_pressure_v1.tres" id="2_scenario"]
+
+[node name="Phase6GroundPressureShowcase" type="Node2D"]
+script = ExtResource("1_battle")
+scenario = ExtResource("2_scenario")
+allow_restart_input = true
+enable_runtime_snapshot_logging = false
+show_debug_overlay = false
+showcase_title = "Phase6 草坪压力实战"
+showcase_summary = "套用原版草坪白天静态背景的 Ground Pressure V1 实际战斗场景。"

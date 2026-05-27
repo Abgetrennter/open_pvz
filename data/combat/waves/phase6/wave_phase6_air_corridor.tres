@@ -15,7 +15,7 @@ spawn_overrides = {}
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_air_scout"
 lane_id = 2
-x_position = 960.0
+x_position = 800.0
 spawn_overrides = {}
 
 [sub_resource type="Resource" id="Spawn_3"]
@@ -45,4 +45,3 @@ script = ExtResource("1_wave_def")
 wave_id = &"wave_phase6_air_corridor"
 start_time = 45.0
 spawn_entries = [SubResource("WaveSpawn_1"), SubResource("WaveSpawn_2"), SubResource("WaveSpawn_3")]
-

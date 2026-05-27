@@ -14,3 +14,4 @@ class_name BattlefieldPreset
 @export var lane_origin_y := 0.0
 @export var lane_spacing := 0.0
 @export var spawn_zones: Array = []
+@export var battlefield_visual_id: StringName = StringName()

@@ -2,8 +2,11 @@ extends Node
 
 const AssetIndexCatalogRef = preload("res://scripts/core/runtime/asset_index_catalog.gd")
 const VisualProfileDefRef = preload("res://scripts/core/defs/visual_profile_def.gd")
+const BattlefieldVisualDefRef = preload("res://scripts/core/defs/battlefield_visual_def.gd")
 
 const KIND_VISUAL_PROFILE := &"visual_profile"
+const KIND_BATTLEFIELD_VISUAL := &"battlefield_visual"
+const KIND_TEXTURE := &"texture"
 
 var _assets_by_kind: Dictionary = {}
 var _assets_by_id: Dictionary = {}
@@ -56,6 +59,48 @@ func resolve_visual_profile(profile_id: StringName) -> Resource:
 	return profile
 
 
+func resolve_battlefield_visual(visual_id: StringName) -> Resource:
+	var asset := resolve_asset(visual_id, KIND_BATTLEFIELD_VISUAL)
+	if asset.is_empty():
+		return null
+	var visual_path := String(asset.get("path", ""))
+	if visual_path.is_empty():
+		_record_issue("AssetRegistry battlefield_visual %s has no path." % String(visual_id))
+		return null
+	if not ResourceLoader.exists(visual_path):
+		_record_issue("AssetRegistry battlefield_visual %s path does not exist: %s" % [String(visual_id), visual_path])
+		return null
+	var visual_def := ResourceLoader.load(visual_path)
+	if visual_def == null:
+		_record_issue("AssetRegistry battlefield_visual %s could not be loaded: %s" % [String(visual_id), visual_path])
+		return null
+	if visual_def.get_script() != BattlefieldVisualDefRef:
+		_record_issue("AssetRegistry battlefield_visual %s must use BattlefieldVisualDef: %s" % [String(visual_id), visual_path])
+		return null
+	visual_def.set_meta(&"asset_registry_source", asset.duplicate(true))
+	visual_def.set_meta(&"asset_registry_resolved", true)
+	return visual_def
+
+
+func resolve_texture(texture_id: StringName) -> Texture2D:
+	var asset := resolve_asset(texture_id, KIND_TEXTURE)
+	if asset.is_empty():
+		return null
+	var texture_path := String(asset.get("path", ""))
+	if texture_path.is_empty():
+		_record_issue("AssetRegistry texture %s has no path." % String(texture_id))
+		return null
+	var texture: Texture2D = null
+	if ResourceLoader.exists(texture_path):
+		texture = ResourceLoader.load(texture_path) as Texture2D
+	if texture == null:
+		texture = _load_texture_from_image_file(texture_path)
+	if texture == null:
+		_record_issue("AssetRegistry texture %s could not be loaded: %s" % [String(texture_id), texture_path])
+		return null
+	return texture
+
+
 func _register_asset(asset: Dictionary) -> void:
 	var asset_id := StringName(asset.get("id", StringName()))
 	var kind := StringName(asset.get("kind", StringName()))
@@ -85,3 +130,15 @@ func _record_issue(message: String) -> void:
 	var debug_service := get_node_or_null("/root/DebugService")
 	if debug_service != null and debug_service.has_method("record_protocol_issue"):
 		debug_service.record_protocol_issue(&"asset_registry", message, &"error")
+
+
+func _load_texture_from_image_file(texture_path: String) -> Texture2D:
+	if texture_path.is_empty() or not FileAccess.file_exists(texture_path):
+		return null
+	var image := Image.new()
+	var result := image.load(ProjectSettings.globalize_path(texture_path))
+	if result != OK:
+		return null
+	var texture := ImageTexture.create_from_image(image)
+	texture.resource_name = texture_path.get_file()
+	return texture

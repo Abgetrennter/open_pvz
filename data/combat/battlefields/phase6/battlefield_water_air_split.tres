@@ -83,3 +83,4 @@ board_slot_count = 5
 board_slot_origin_x = 180.0
 board_slot_spacing = 88.0
 board_slot_configs = [SubResource("Water_0_0"), SubResource("Water_0_1"), SubResource("Water_0_2"), SubResource("Water_0_3"), SubResource("Water_0_4"), SubResource("Air_2_0"), SubResource("Air_2_1"), SubResource("Air_2_2"), SubResource("Air_2_3"), SubResource("Air_2_4")]
+battlefield_visual_id = &"classic_original.battlefield.pool_day.visual"

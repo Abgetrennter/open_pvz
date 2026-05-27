@@ -162,7 +162,7 @@ graph TD
 ### 运行项目
 
 - 在 Godot 4.x 编辑器中打开。主场景：`res://scenes/main/main.tscn`
-- 视口：960x540，窗口：1920x1080
+- 逻辑视口：800x600，窗口 override：1440x1080，stretch：canvas_items + keep
 - 物理引擎：Jolt Physics
 - 渲染方式：mobile
 

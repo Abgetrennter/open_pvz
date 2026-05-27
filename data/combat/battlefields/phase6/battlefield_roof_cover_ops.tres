@@ -118,3 +118,4 @@ board_slot_count = 5
 board_slot_origin_x = 180.0
 board_slot_spacing = 88.0
 board_slot_configs = [SubResource("Roof_0_0"), SubResource("Roof_0_1"), SubResource("Roof_0_2"), SubResource("Roof_0_3"), SubResource("Roof_0_4"), SubResource("Roof_1_0"), SubResource("Roof_1_1"), SubResource("Roof_1_2"), SubResource("Roof_1_3"), SubResource("Roof_1_4"), SubResource("Roof_2_0"), SubResource("Roof_2_1"), SubResource("Roof_2_2"), SubResource("Roof_2_3"), SubResource("Roof_2_4")]
+battlefield_visual_id = &"classic_original.battlefield.roof_day.visual"

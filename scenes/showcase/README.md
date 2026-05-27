@@ -12,7 +12,7 @@ The project startup scene is a lightweight showcase hub:
 Use that hub to enter a showcase scene with buttons instead of changing the
 project default startup repeatedly.
 
-## Scene List (40 scenes)
+## Scene List (44 scenes)
 
 All of them use `BattleManager` directly and keep restart enabled with `R`.
 Each showcase scene also supports `Esc` to return to the showcase hub.
@@ -80,6 +80,13 @@ Each showcase scene also supports `Esc` to return to the showcase hub.
 - `reactive_retaliation_chaos_showcase.tscn` — Dual repeater vs reactive retaliation
 - `death_blossom_chaos_showcase.tscn` — Reactive bomber death explosion chain
 - `tracking_barrage_chaos_showcase.tscn` — Ground + air tracking coexistence
+
+### Local Asset Import (4 scenes)
+
+- `phase6_ground_pressure_showcase.tscn` — Playable Phase 6 ground scenario with the original grass daytime background
+- `phase6_water_air_split_showcase.tscn` — Playable Phase 6 water/air scenario with the original pool daytime background
+- `phase6_roof_holdout_showcase.tscn` — Playable Phase 6 roof scenario with the original roof daytime background
+- `original_battlefield_background_showcase.tscn` — Static grass, unsodded, pool, and roof backgrounds from the private classic asset pack
 
 ## Boundary
 

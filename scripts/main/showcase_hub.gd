@@ -274,6 +274,26 @@ const GROUPS := [
 		"color": Color("ba68c8"),
 		"items": [
 			{
+				"title": "Phase6 草坪压力实战",
+				"summary": "套用原版草坪白天静态背景的 Ground Pressure V1 实际战斗场景。",
+				"scene": "res://scenes/showcase/phase6_ground_pressure_showcase.tscn",
+			},
+			{
+				"title": "Phase6 泳池空地实战",
+				"summary": "套用原版泳池白天静态背景的 Water And Air Split V1 实际战斗场景。",
+				"scene": "res://scenes/showcase/phase6_water_air_split_showcase.tscn",
+			},
+			{
+				"title": "Phase6 屋顶防守实战",
+				"summary": "套用原版屋顶白天静态背景的 Roof Holdout V1 实际战斗场景。",
+				"scene": "res://scenes/showcase/phase6_roof_holdout_showcase.tscn",
+			},
+			{
+				"title": "原版战场背景静态展示",
+				"summary": "从 classic_original_assets 的 battlefield_visual 条目读取草坪、未铺草皮、泳池和屋顶 4 张原版静态背景。",
+				"scene": "res://scenes/showcase/original_battlefield_background_showcase.tscn",
+			},
+			{
 				"title": "原版植物正式匹配展示",
 				"summary": "从正式 CombatArchetype.visual_profile_id 读取私有素材包 profile，展示当前已接入的 Peashooter、Sunflower、ThreePeater、Chomper、Squash。",
 				"scene": "res://scenes/validation/visual_private_classic_archetype_gallery.tscn",

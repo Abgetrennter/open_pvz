@@ -2,7 +2,7 @@ extends Node2D
 
 const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 
-const VIEWPORT_SIZE := Vector2(960.0, 540.0)
+const VIEWPORT_SIZE := Vector2(800.0, 600.0)
 const BOARD_ORIGIN := Vector2(58.0, 238.0)
 const SLOT_COUNT := 5
 const SLOT_SPACING := 168.0
