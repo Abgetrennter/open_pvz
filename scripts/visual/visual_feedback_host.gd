@@ -11,6 +11,7 @@ const FIXED_EVENTS: PackedStringArray = [
 	&"entity.died",
 	&"placement.accepted",
 	&"entity.status_removed",
+	&"combat_action.phase",
 ]
 
 var _subscriptions: Dictionary = {}
@@ -85,6 +86,13 @@ func _cue_filters_match(cue_def: Resource, event_data: Variant) -> bool:
 		return true
 
 	var core: Dictionary = event_data.core
+
+	# core_values filter: each listed core field must match exactly
+	if filters.has("core_values"):
+		var required_values: Dictionary = Dictionary(filters["core_values"])
+		for key: Variant in required_values.keys():
+			if core.get(key, null) != required_values[key]:
+				return false
 
 	# source_kind filter
 	if filters.has("source_kind"):

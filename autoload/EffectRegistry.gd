@@ -95,6 +95,11 @@ func _register_builtin_defs() -> void:
 		"min": 0.0,
 		"max": 64.0,
 	}, {
+		"name": "center_ref",
+		"type": "string_name",
+		"default": &"context",
+		"options": PackedStringArray(["context", "impact_position"]),
+	}, {
 		"name": "lane_id",
 		"type": "int",
 		"min": -1,
@@ -356,6 +361,11 @@ func _register_builtin_defs() -> void:
 		"min": 0.0,
 		"max": 64.0,
 	}, {
+		"name": "center_ref",
+		"type": "string_name",
+		"default": &"context",
+		"options": PackedStringArray(["context", "impact_position"]),
+	}, {
 		"name": "lane_id",
 		"type": "int",
 		"min": 0,
@@ -372,6 +382,56 @@ func _register_builtin_defs() -> void:
 	explode.allow_extra_params = false
 	explode.allow_extra_children = false
 	register_def(explode)
+
+	var start_action_timeline = EffectDefRef.new()
+	start_action_timeline.id = &"start_action_timeline"
+	start_action_timeline.tags = PackedStringArray(["action", "timeline", "delayed_impact"])
+	var start_action_timeline_param_defs: Array[Dictionary] = [{
+		"name": "action_id",
+		"type": "string_name",
+	}, {
+		"name": "phase_offsets",
+		"type": "dictionary",
+		"default": {},
+	}, {
+		"name": "impact_phase",
+		"type": "string_name",
+		"default": &"impact",
+	}, {
+		"name": "impact_effect_id",
+		"type": "string_name",
+	}, {
+		"name": "impact_effect_params",
+		"type": "dictionary",
+		"default": {},
+	}, {
+		"name": "target_mode",
+		"type": "string_name",
+		"default": &"context_target",
+		"options": PackedStringArray(["none", "source", "owner", "context_target", "event_source", "event_target", "enemies_in_radius"]),
+	}, {
+		"name": "radius",
+		"type": "float",
+		"min": 0.0,
+		"max": 4000.0,
+		"default": 96.0,
+	}, {
+		"name": "radius_slots",
+		"type": "float",
+		"min": 0.0,
+		"max": 64.0,
+	}, {
+		"name": "target_tags",
+		"type": "packed_string_array",
+	}, {
+		"name": "target_exposure_states",
+		"type": "packed_string_array",
+		"default": PackedStringArray(["ground"]),
+	}]
+	start_action_timeline.param_defs = start_action_timeline_param_defs
+	start_action_timeline.allow_extra_params = false
+	start_action_timeline.allow_extra_children = false
+	register_def(start_action_timeline)
 
 	var apply_status = EffectDefRef.new()
 	apply_status.id = &"apply_status"
@@ -710,6 +770,18 @@ func _register_builtin_defs() -> void:
 
 
 func _register_builtin_strategies() -> void:
+	register_strategy(&"start_action_timeline", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		if GameState.current_battle == null or not GameState.current_battle.has_method("start_combat_action_timeline"):
+			result.success = false
+			result.notes.append("No active battle action timeline available.")
+			return result
+		if not bool(GameState.current_battle.call("start_combat_action_timeline", context, params)):
+			result.success = false
+			result.notes.append("Action timeline could not be started.")
+		return result
+	)
+
 	register_strategy(&"damage", func(context, params: Dictionary, _node) -> Variant:
 		var result: Variant = EffectResultRef.new()
 		var amount := int(params.get("amount", 10))
@@ -1205,11 +1277,7 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 	if GameState.current_battle == null:
 		return []
 
-	var center: Vector2 = _node_ground_position(context.owner_entity)
-	if center == Vector2.ZERO:
-		center = _node_ground_position(context.target_node)
-	if center == Vector2.ZERO:
-		center = _node_ground_position(context.source_node)
+	var center := _resolve_effect_center(context, params)
 	var radius := _resolve_slots_distance(params, "radius_slots", 96.0)
 	var source_team: StringName = &"neutral"
 	if context.owner_entity != null and context.owner_entity.has_method("get"):
@@ -1249,6 +1317,23 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 	if lane_filter is int:
 		query["lane_ids"] = PackedInt32Array([int(lane_filter)])
 	return GameState.current_battle.call("spatial_query", query)
+
+
+func _resolve_effect_center(context, params: Dictionary) -> Vector2:
+	var center_ref := StringName(params.get("center_ref", &"context"))
+	if center_ref == &"impact_position" and context != null:
+		if context.core.has("impact_position"):
+			return Vector2(context.core.get("impact_position", Vector2.ZERO))
+		if context.position != Vector2.ZERO:
+			return Vector2(context.position)
+	var center: Vector2 = _node_ground_position(context.owner_entity)
+	if center == Vector2.ZERO:
+		center = _node_ground_position(context.target_node)
+	if center == Vector2.ZERO:
+		center = _node_ground_position(context.source_node)
+	if center == Vector2.ZERO and context != null:
+		center = Vector2(context.position)
+	return center
 
 
 func _build_damage_runtime(context, params: Dictionary) -> Dictionary:

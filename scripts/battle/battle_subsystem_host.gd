@@ -7,6 +7,7 @@ const BattleBoardStateRef = preload("res://scripts/battle/battle_board_state.gd"
 const BattleFlowStateRef = preload("res://scripts/battle/battle_flow_state.gd")
 const BattleStatusStateRef = preload("res://scripts/battle/battle_status_state.gd")
 const BattleEffectRequestStateRef = preload("res://scripts/battle/battle_effect_request_state.gd")
+const BattleActionTimelineStateRef = preload("res://scripts/battle/battle_action_timeline_state.gd")
 const BattleFieldObjectStateRef = preload("res://scripts/battle/battle_field_object_state.gd")
 const BattleGridItemStateRef = preload("res://scripts/battle/battle_grid_item_state.gd")
 const WaveRunnerRef = preload("res://scripts/battle/wave_runner.gd")
@@ -18,6 +19,7 @@ var _board_state: Node = null
 var _card_state: Node = null
 var _status_state: Node = null
 var _effect_request_state: Node = null
+var _action_timeline_state: Node = null
 var _field_object_state: Node = null
 var _grid_item_state: Node = null
 var _flow_state: Node = null
@@ -53,7 +55,7 @@ func get_runtime_entities(entity_root: Node2D, collectible_root: Node2D) -> Arra
 		runtime_nodes.append_array(entity_root.get_children())
 	if collectible_root != null:
 		runtime_nodes.append_array(collectible_root.get_children())
-	for sub in [_economy_state, _board_state, _card_state, _status_state, _effect_request_state, _field_object_state, _grid_item_state, _flow_state, _wave_runner, _mode_host]:
+	for sub in [_economy_state, _board_state, _card_state, _status_state, _effect_request_state, _action_timeline_state, _field_object_state, _grid_item_state, _flow_state, _wave_runner, _mode_host]:
 		if sub != null and is_instance_valid(sub):
 			runtime_nodes.append(sub)
 	return runtime_nodes
@@ -81,6 +83,19 @@ func get_status_state() -> Node:
 	if _status_state != null and is_instance_valid(_status_state):
 		return _status_state
 	return null
+
+
+func get_action_timeline_state() -> Node:
+	if _action_timeline_state != null and is_instance_valid(_action_timeline_state):
+		return _action_timeline_state
+	return null
+
+
+func start_action_timeline(context, params: Dictionary) -> bool:
+	var state := get_action_timeline_state()
+	if state == null or not state.has_method("start_action"):
+		return false
+	return bool(state.call("start_action", context, params))
 
 
 func get_field_object_state() -> Node:
@@ -114,7 +129,7 @@ func get_mode_host() -> Node:
 
 
 func _destroy_subsystems() -> void:
-	for sub in [_economy_state, _board_state, _card_state, _status_state, _effect_request_state, _field_object_state, _grid_item_state, _flow_state, _wave_runner, _mode_host]:
+	for sub in [_economy_state, _board_state, _card_state, _status_state, _effect_request_state, _action_timeline_state, _field_object_state, _grid_item_state, _flow_state, _wave_runner, _mode_host]:
 		if sub != null and is_instance_valid(sub):
 			_battle.remove_child(sub)
 			sub.free()
@@ -123,6 +138,7 @@ func _destroy_subsystems() -> void:
 	_card_state = null
 	_status_state = null
 	_effect_request_state = null
+	_action_timeline_state = null
 	_field_object_state = null
 	_grid_item_state = null
 	_flow_state = null
@@ -146,6 +162,9 @@ func _create_subsystems() -> void:
 	_effect_request_state = BattleEffectRequestStateRef.new()
 	_effect_request_state.name = "BattleEffectRequestState"
 	_battle.add_child(_effect_request_state)
+	_action_timeline_state = BattleActionTimelineStateRef.new()
+	_action_timeline_state.name = "BattleActionTimelineState"
+	_battle.add_child(_action_timeline_state)
 	_field_object_state = BattleFieldObjectStateRef.new()
 	_field_object_state.name = "BattleFieldObjectState"
 	_battle.add_child(_field_object_state)
@@ -178,6 +197,8 @@ func _setup_subsystems() -> void:
 		_status_state.setup(_battle, active_scenario)
 	if _effect_request_state != null:
 		_effect_request_state.setup(_battle, active_scenario)
+	if _action_timeline_state != null:
+		_action_timeline_state.setup(_battle, active_scenario)
 	if _field_object_state != null:
 		_field_object_state.setup(_battle, active_scenario)
 	if _grid_item_state != null:

@@ -30,7 +30,9 @@ if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $RunDir = Join-Path $OutputRoot ("{0}_{1}" -f $Timestamp, $RunLabel)
 New-Item -ItemType Directory -Path $RunDir -Force | Out-Null
+$ResolvedRunDir = (Resolve-Path -LiteralPath $RunDir).Path
 $ConsoleLogPath = Join-Path $RunDir "godot.log"
+$EngineLogPath = Join-Path $ResolvedRunDir "engine.log"
 $ReportPath = Join-Path $RunDir "validation_report.json"
 $DebugLogPath = Join-Path $RunDir "debug_logs.json"
 
@@ -46,6 +48,7 @@ if (-not (Test-Path -LiteralPath $ResolvedScenarioPath)) {
 		RunLabel = $RunLabel
 		RunDir = $RunDir
 		ConsoleLog = $ConsoleLogPath
+		EngineLog = $EngineLogPath
 		ReportPath = $ReportPath
 		DebugLogPath = $DebugLogPath
 		Status = "failed"
@@ -65,6 +68,7 @@ if (-not (Test-Path -LiteralPath $ResolvedScenarioPath)) {
 $GodotArgs = @(
 	"--headless",
 	"--path", $ProjectRoot,
+	"--log-file", $EngineLogPath,
 	"--",
 	"--validation-scenario=$Scenario",
 	"--validation-auto-quit",
@@ -100,6 +104,7 @@ $Result = [pscustomobject]@{
 	RunLabel = $RunLabel
 	RunDir = $RunDir
 	ConsoleLog = $ConsoleLogPath
+	EngineLog = $EngineLogPath
 	ReportPath = $ReportPath
 	DebugLogPath = $DebugLogPath
 	Status = $Status

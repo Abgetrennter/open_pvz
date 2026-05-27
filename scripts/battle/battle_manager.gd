@@ -258,6 +258,10 @@ func spawn_resolved_wave_entry(spawn_entry: Resource, lane_id: int, x_position: 
 	return _spawner.spawn_resolved_wave_entry(spawn_entry, lane_id, x_position, wave_id)
 
 
+func start_combat_action_timeline(context, params: Dictionary) -> bool:
+	return bool(_subsystem_host.start_action_timeline(context, params))
+
+
 func finalize_spawned_entity(entity: Node, lane_id: int, hit_height_band: Resource, trigger_instances: Array, source_node: Node = null, metadata: Dictionary = {}, emit_spawn_event: bool = true) -> void:
 	_spawner.finalize_spawned_entity(entity, lane_id, hit_height_band, trigger_instances, source_node, metadata, emit_spawn_event)
 

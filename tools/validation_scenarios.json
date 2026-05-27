@@ -590,7 +590,19 @@
   {
     "id": "plant_original_squash_validation",
     "scenario": "res://scenes/validation/plant_original_squash_validation.tres",
-    "description": "Validates Squash on-place proximity damage.",
+    "description": "Validates Squash on-place telegraphed impact phases and delayed damage.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_squash_no_immediate_damage_validation",
+    "scenario": "res://scenes/validation/plant_original_squash_no_immediate_damage_validation.tres",
+    "description": "Validates Squash does not damage its locked target during the windup window.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_squash_locked_impact_position_validation",
+    "scenario": "res://scenes/validation/plant_original_squash_locked_impact_position_validation.tres",
+    "description": "Validates Squash impact resolves from its locked impact position instead of tracking a moved target.",
     "layers": ["core"]
   },
   {
