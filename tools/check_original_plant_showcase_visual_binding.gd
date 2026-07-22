@@ -181,56 +181,113 @@ func _validate_showcase(showcase: Node, scene_spec: Dictionary) -> PackedStringA
 		errors.append("%s: classic_original_assets is not enabled" % scene_path)
 
 	var dynamic_motion_archetype_ids := _dynamic_motion_archetype_ids(scene_spec)
-	var expected_private_bindings: Dictionary = scene_spec.get("expected_private_bindings", {})
-	for archetype_id in expected_private_bindings.keys():
-		var expected_profile_id: StringName = expected_private_bindings[archetype_id]
-		var entity := _find_entity_by_archetype(showcase, archetype_id)
-		if entity == null:
-			errors.append("%s: missing entity %s" % [scene_path, String(archetype_id)])
+	for archetype_id in _showcase_archetype_ids(scene_spec):
+		var expected_profile_id := _classic_profile_for_archetype(archetype_id)
+		var required_profile_id := StringName(REQUIRED_PRIVATE_BINDINGS.get(archetype_id, StringName()))
+		if required_profile_id != StringName() and expected_profile_id != required_profile_id:
+			errors.append("%s: %s expected formal profile %s, got %s" % [scene_path, String(archetype_id), String(required_profile_id), String(expected_profile_id)])
 			continue
-
-		var visual_actor := entity.get_node_or_null("VisualActorComponent")
-		if visual_actor == null:
-			errors.append("%s: %s missing VisualActorComponent" % [scene_path, String(archetype_id)])
-			continue
-		if not visual_actor.has_method("get_actor_root") or visual_actor.call("get_actor_root") == null:
-			errors.append("%s: %s missing actor root" % [scene_path, String(archetype_id)])
-			continue
-		var actor_root := visual_actor.call("get_actor_root") as Node2D
-		if entity is Node2D:
-			var entity_position := (entity as Node2D).global_position
-			if visual_actor is Node2D:
-				var component_distance := (visual_actor as Node2D).global_position.distance_to(entity_position)
-				if component_distance > MAX_COMPONENT_ENTITY_DISTANCE:
-					errors.append("%s: %s visual actor component is detached from entity transform: %.2f px" % [scene_path, String(archetype_id), component_distance])
-			var actor_bounds := _visible_textured_global_rect(actor_root)
-			if actor_bounds.size != Vector2.ZERO and not dynamic_motion_archetype_ids.has(archetype_id):
-				var visible_top_y := actor_bounds.position.y - entity_position.y
-				var visible_bottom_y := actor_bounds.position.y + actor_bounds.size.y - entity_position.y
-				if visible_bottom_y < MIN_ACTOR_VISIBLE_BOTTOM_Y:
-					errors.append("%s: %s actor visible bounds are too high relative to entity origin: top %.2f px, bottom %.2f px" % [scene_path, String(archetype_id), visible_top_y, visible_bottom_y])
-		var visible_textured_count := _count_visible_textured_nodes(actor_root)
-		if visible_textured_count <= 0:
-			errors.append("%s: %s actor root has no visible textured nodes" % [scene_path, String(archetype_id)])
-		if not visual_actor.has_method("get_profile_source"):
-			errors.append("%s: %s missing profile source API" % [scene_path, String(archetype_id)])
-			continue
-
-		var source: Dictionary = visual_actor.call("get_profile_source")
-		if StringName(source.get("pack_id", StringName())) != PRIVATE_PACK_ID:
-			errors.append("%s: %s resolved from pack %s" % [scene_path, String(archetype_id), String(source.get("pack_id", StringName()))])
-		if StringName(source.get("id", StringName())) != expected_profile_id:
-			errors.append("%s: %s resolved profile %s" % [scene_path, String(archetype_id), String(source.get("id", StringName()))])
-
-	for archetype_id in Array(scene_spec.get("expected_fallbacks", [])):
-		var entity := _find_entity_by_archetype(showcase, StringName(archetype_id))
-		if entity == null:
-			errors.append("%s: missing fallback entity %s" % [scene_path, String(archetype_id)])
-			continue
-		if entity.get_node_or_null("VisualActorComponent") != null:
-			errors.append("%s: unbound %s should keep fallback placeholder, but mounted VisualActorComponent" % [scene_path, String(archetype_id)])
+		if expected_profile_id != StringName():
+			errors.append_array(_validate_private_actor(showcase, scene_path, archetype_id, expected_profile_id, dynamic_motion_archetype_ids))
+		else:
+			errors.append_array(_validate_fallback_placeholder(showcase, scene_path, archetype_id))
 
 	return errors
+
+
+func _validate_private_actor(
+	showcase: Node,
+	scene_path: String,
+	archetype_id: StringName,
+	expected_profile_id: StringName,
+	dynamic_motion_archetype_ids: Dictionary
+) -> PackedStringArray:
+	var errors := PackedStringArray()
+	var entity := _find_entity_by_archetype(showcase, archetype_id)
+	if entity == null:
+		errors.append("%s: missing entity %s" % [scene_path, String(archetype_id)])
+		return errors
+
+	var visual_actor := entity.get_node_or_null("VisualActorComponent")
+	if visual_actor == null:
+		errors.append("%s: %s missing VisualActorComponent" % [scene_path, String(archetype_id)])
+		return errors
+	if not visual_actor.has_method("get_actor_root") or visual_actor.call("get_actor_root") == null:
+		errors.append("%s: %s missing actor root" % [scene_path, String(archetype_id)])
+		return errors
+	var actor_root := visual_actor.call("get_actor_root") as Node2D
+	if entity is Node2D:
+		var entity_position := (entity as Node2D).global_position
+		if visual_actor is Node2D:
+			var component_distance := (visual_actor as Node2D).global_position.distance_to(entity_position)
+			if component_distance > MAX_COMPONENT_ENTITY_DISTANCE:
+				errors.append("%s: %s visual actor component is detached from entity transform: %.2f px" % [scene_path, String(archetype_id), component_distance])
+		var actor_bounds := _visible_textured_global_rect(actor_root)
+		if actor_bounds.size != Vector2.ZERO and not dynamic_motion_archetype_ids.has(archetype_id):
+			var visible_top_y := actor_bounds.position.y - entity_position.y
+			var visible_bottom_y := actor_bounds.position.y + actor_bounds.size.y - entity_position.y
+			if visible_bottom_y < MIN_ACTOR_VISIBLE_BOTTOM_Y:
+				errors.append("%s: %s actor visible bounds are too high relative to entity origin: top %.2f px, bottom %.2f px" % [scene_path, String(archetype_id), visible_top_y, visible_bottom_y])
+	var visible_textured_count := _count_visible_textured_nodes(actor_root)
+	if visible_textured_count <= 0:
+		errors.append("%s: %s actor root has no visible textured nodes" % [scene_path, String(archetype_id)])
+	if not visual_actor.has_method("get_profile_source"):
+		errors.append("%s: %s missing profile source API" % [scene_path, String(archetype_id)])
+		return errors
+
+	var source: Dictionary = visual_actor.call("get_profile_source")
+	if StringName(source.get("pack_id", StringName())) != PRIVATE_PACK_ID:
+		errors.append("%s: %s resolved from pack %s" % [scene_path, String(archetype_id), String(source.get("pack_id", StringName()))])
+	if StringName(source.get("id", StringName())) != expected_profile_id:
+		errors.append("%s: %s resolved profile %s" % [scene_path, String(archetype_id), String(source.get("id", StringName()))])
+	return errors
+
+
+func _validate_fallback_placeholder(showcase: Node, scene_path: String, archetype_id: StringName) -> PackedStringArray:
+	var errors := PackedStringArray()
+	var entity := _find_entity_by_archetype(showcase, archetype_id)
+	if entity == null:
+		errors.append("%s: missing fallback entity %s" % [scene_path, String(archetype_id)])
+		return errors
+	if entity.get_node_or_null("VisualActorComponent") != null:
+		errors.append("%s: unbound %s should keep fallback placeholder, but mounted VisualActorComponent" % [scene_path, String(archetype_id)])
+	return errors
+
+
+func _showcase_archetype_ids(scene_spec: Dictionary) -> Array[StringName]:
+	var ids_by_text := {}
+	var expected_private_bindings: Dictionary = scene_spec.get("expected_private_bindings", {})
+	for archetype_id in expected_private_bindings.keys():
+		ids_by_text[String(archetype_id)] = true
+	for archetype_id in Array(scene_spec.get("expected_fallbacks", [])):
+		ids_by_text[String(archetype_id)] = true
+
+	var sorted_ids := PackedStringArray()
+	for id_text in ids_by_text.keys():
+		sorted_ids.append(String(id_text))
+	sorted_ids.sort()
+
+	var result: Array[StringName] = []
+	for id_text in sorted_ids:
+		result.append(StringName(id_text))
+	return result
+
+
+func _classic_profile_for_archetype(archetype_id: StringName) -> StringName:
+	var scene_registry := root.get_node_or_null("/root/SceneRegistry")
+	if scene_registry == null or not scene_registry.has_method("get_archetype"):
+		return StringName()
+	var archetype := scene_registry.call("get_archetype", archetype_id) as Resource
+	if archetype == null:
+		return StringName()
+	var profile_id := StringName(archetype.get("visual_profile_id"))
+	if not _is_private_classic_profile_id(profile_id):
+		return StringName()
+	return profile_id
+
+
+func _is_private_classic_profile_id(profile_id: StringName) -> bool:
+	return String(profile_id).begins_with("classic_original.entity.plant.") and String(profile_id).ends_with(".visual")
 
 
 func _dynamic_motion_archetype_ids(scene_spec: Dictionary) -> Dictionary:

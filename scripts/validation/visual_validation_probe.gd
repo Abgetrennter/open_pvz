@@ -2,25 +2,19 @@ extends Node
 class_name VisualValidationProbe
 
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
+const AssetIndexCatalogRef = preload("res://scripts/core/runtime/asset_index_catalog.gd")
 const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
 const VisualCueDefRef = preload("res://scripts/core/defs/visual_cue_def.gd")
 const UIThemeProfileRef = preload("res://scripts/ui/theme/ui_theme_profile.gd")
 
 const PRIVATE_CLASSIC_PACK_ID := &"classic_original_assets"
-const PRIVATE_CLASSIC_PROFILE_IDS := [
+const CORE_PRIVATE_CLASSIC_PROFILE_IDS := [
 	&"classic_original.entity.plant.peashooter.visual",
 	&"classic_original.entity.plant.sunflower.visual",
 	&"classic_original.entity.plant.threepeater.visual",
 	&"classic_original.entity.plant.chomper.visual",
 	&"classic_original.entity.plant.squash.visual",
 ]
-const PRIVATE_CLASSIC_ARCHETYPE_TO_PROFILE := {
-	&"archetype_original_peashooter": &"classic_original.entity.plant.peashooter.visual",
-	&"archetype_original_sunflower": &"classic_original.entity.plant.sunflower.visual",
-	&"archetype_original_threepeater": &"classic_original.entity.plant.threepeater.visual",
-	&"archetype_original_chomper": &"classic_original.entity.plant.chomper.visual",
-	&"archetype_original_squash": &"classic_original.entity.plant.squash.visual",
-}
 
 var _battle: Node = null
 var _emitted: Dictionary = {}
@@ -92,7 +86,8 @@ func _probe_private_classic_asset_pack() -> void:
 	if enabled_pack.is_empty():
 		return
 	var loaded_count := 0
-	for profile_id in PRIVATE_CLASSIC_PROFILE_IDS:
+	for profile_id_text in _private_classic_profile_ids():
+		var profile_id := StringName(profile_id_text)
 		if not VisualProfileRegistry.has(profile_id):
 			return
 		var profile := VisualProfileRegistry.get_def(profile_id)
@@ -121,16 +116,14 @@ func _probe_private_classic_archetype_bindings() -> void:
 	if enabled_pack.is_empty():
 		return
 
-	var found_archetypes: Dictionary = {}
 	var bound_count := 0
 	for entity in _battle.get_runtime_combat_entities():
 		if entity == null or not is_instance_valid(entity):
 			continue
 		var archetype_id := StringName(entity.get("archetype_id"))
-		if not PRIVATE_CLASSIC_ARCHETYPE_TO_PROFILE.has(archetype_id):
+		var expected_profile_id := _classic_profile_for_archetype(archetype_id)
+		if expected_profile_id == StringName():
 			continue
-		found_archetypes[archetype_id] = true
-		var expected_profile_id: StringName = PRIVATE_CLASSIC_ARCHETYPE_TO_PROFILE[archetype_id]
 		var visual_actor: Node = entity.get_node_or_null("VisualActorComponent")
 		if visual_actor == null:
 			return
@@ -149,9 +142,8 @@ func _probe_private_classic_archetype_bindings() -> void:
 			return
 		bound_count += 1
 
-	for archetype_id in PRIVATE_CLASSIC_ARCHETYPE_TO_PROFILE.keys():
-		if not found_archetypes.has(archetype_id):
-			return
+	if bound_count <= 0:
+		return
 
 	_emitted[&"private_classic_archetype_bindings"] = true
 	_emit_probe(&"private_classic_archetype_bindings", &"passed", {
@@ -165,6 +157,42 @@ func _find_enabled_private_classic_pack() -> Dictionary:
 		if StringName(pack.get("pack_id", StringName())) == PRIVATE_CLASSIC_PACK_ID:
 			return pack
 	return {}
+
+
+func _private_classic_profile_ids() -> PackedStringArray:
+	var ids_by_text := {}
+	for profile_id in CORE_PRIVATE_CLASSIC_PROFILE_IDS:
+		ids_by_text[String(profile_id)] = true
+	for asset: Dictionary in AssetIndexCatalogRef.list_assets(&"visual_profile"):
+		if StringName(asset.get("pack_id", StringName())) != PRIVATE_CLASSIC_PACK_ID:
+			continue
+		var profile_id := StringName(asset.get("id", StringName()))
+		if profile_id != StringName():
+			ids_by_text[String(profile_id)] = true
+	var ids := PackedStringArray()
+	for id_text in ids_by_text.keys():
+		ids.append(String(id_text))
+	ids.sort()
+	return ids
+
+
+func _classic_profile_for_archetype(archetype_id: StringName) -> StringName:
+	if archetype_id == StringName():
+		return StringName()
+	var scene_registry := get_node_or_null("/root/SceneRegistry")
+	if scene_registry == null or not scene_registry.has_method("get_archetype"):
+		return StringName()
+	var archetype := scene_registry.call("get_archetype", archetype_id) as Resource
+	if archetype == null:
+		return StringName()
+	var profile_id := StringName(archetype.get("visual_profile_id"))
+	if not _is_private_classic_profile_id(profile_id):
+		return StringName()
+	return profile_id
+
+
+func _is_private_classic_profile_id(profile_id: StringName) -> bool:
+	return String(profile_id).begins_with("classic_original.entity.plant.") and String(profile_id).ends_with(".visual")
 
 
 func _get_asset_registry() -> Node:

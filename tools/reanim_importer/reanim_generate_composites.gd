@@ -176,6 +176,7 @@ func _save_profile(entry: Dictionary, actor_path: String, profile_path: String) 
 	profile.state_animation_map = _string_dict_to_string_name_dict(entry.get("state_animation_map", {}))
 	profile.action_animation_map = _profile_action_map(entry.get("action_animation_map", {}))
 	profile.animation_map = _string_dict_to_string_name_dict(entry.get("animation_map", {}))
+	profile.ground_offset = _to_vector2(entry.get("ground_offset", [0.0, 0.0]))
 	profile.z_policy = {"layer": &"plant"}
 	profile.tags = PackedStringArray(_to_string_array(entry.get("profile_tags", [])))
 	return ResourceSaver.save(profile, profile_path)
