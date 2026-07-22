@@ -294,6 +294,11 @@ const GROUPS := [
 				"scene": "res://scenes/showcase/original_battlefield_background_showcase.tscn",
 			},
 			{
+				"title": "原版植物实景展示",
+				"summary": "把已迁移成功的 Peashooter、Sunflower、ThreePeater、Chomper 和 Squash actor 放到原版草坪背景上检查。",
+				"scene": "res://scenes/showcase/original_migrated_plants_battlefield_showcase.tscn",
+			},
+			{
 				"title": "原版植物正式匹配展示",
 				"summary": "从正式 CombatArchetype.visual_profile_id 读取私有素材包 profile，展示当前已接入的 Peashooter、Sunflower、ThreePeater、Chomper、Squash。",
 				"scene": "res://scenes/validation/visual_private_classic_archetype_gallery.tscn",
