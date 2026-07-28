@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.squash_cleanup"
+display_name = "Original Squash Cleanup"
+family = &"Payload"
+type_id = &"core.invoke_effect"
+priority = 21
+tags = PackedStringArray("original", "telegraphed", "consume", "lifecycle")
+params = {
+"action_id": &"original.squash_cleanup",
+"effect_id": &"start_action_timeline",
+"impact_effect_id": &"consume_self",
+"impact_effect_params": {
+"reason": &"consumed"
+},
+"impact_phase": &"finished",
+"phase_offsets": {
+"finished": 2.6
+},
+"target_mode": &"none"
+}

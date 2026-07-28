@@ -2,8 +2,12 @@ extends SceneTree
 
 const AssetIndexCatalogRef = preload("res://scripts/core/runtime/asset_index_catalog.gd")
 const ExtensionPackCatalogRef = preload("res://scripts/core/runtime/extension_pack_catalog.gd")
+const VisualProfileDefRef = preload("res://scripts/core/defs/visual_profile_def.gd")
 
-const REQUIRED_PROFILE_IDS := [
+const DEBUG_ENABLE_CLASSIC_ORIGINAL_ASSETS_SETTING := "openpvz/debug/enable_classic_original_assets"
+const PRIVATE_PACK_ID := &"classic_original_assets"
+
+const CORE_PRIVATE_CLASSIC_PROFILE_IDS := [
 	&"classic_original.entity.plant.peashooter.visual",
 	&"classic_original.entity.plant.sunflower.visual",
 	&"classic_original.entity.plant.threepeater.visual",
@@ -13,9 +17,13 @@ const REQUIRED_PROFILE_IDS := [
 
 
 func _init() -> void:
-	var expect_enabled := false
+	var expect_enabled := _debug_classic_original_assets_enabled()
 	for raw_arg in OS.get_cmdline_user_args():
-		if String(raw_arg) == "--expect-classic-original-assets":
+		var arg := String(raw_arg)
+		if arg == "--expect-classic-original-assets" or arg == "--include-classic-original-assets":
+			expect_enabled = true
+			break
+		if arg == "--include-extension-pack=classic_original_assets":
 			expect_enabled = true
 			break
 
@@ -26,12 +34,13 @@ func _init() -> void:
 			push_error("classic_original_assets should be enabled with --include-classic-original-assets.")
 			quit(1)
 			return
-		var missing_profiles := _find_missing_private_profiles(String(enabled_pack.get("root_path", "")))
+		var required_profile_ids := _required_profile_ids(enabled_pack)
+		var missing_profiles := _find_missing_private_profiles(String(enabled_pack.get("root_path", "")), required_profile_ids)
 		if not missing_profiles.is_empty():
 			push_error("classic_original_assets missing visual profiles: %s" % ", ".join(Array(missing_profiles)))
 			quit(1)
 			return
-		var asset_index_errors := _validate_asset_index(enabled_pack)
+		var asset_index_errors := _validate_asset_index(enabled_pack, required_profile_ids)
 		if not asset_index_errors.is_empty():
 			push_error("classic_original_assets asset_index is invalid: %s" % " | ".join(Array(asset_index_errors)))
 			quit(1)
@@ -42,18 +51,18 @@ func _init() -> void:
 			quit(1)
 			return
 		asset_registry.call("rebuild_registry")
-		var registry_errors := _validate_asset_registry()
+		var registry_errors := _validate_asset_registry(required_profile_ids)
 		if not registry_errors.is_empty():
 			push_error("classic_original_assets AssetRegistry resolution is invalid: %s" % " | ".join(Array(registry_errors)))
 			quit(1)
 			return
-		print("classic_original_assets enabled with %d visual profiles." % REQUIRED_PROFILE_IDS.size())
+		print("classic_original_assets enabled with %d visual profiles." % required_profile_ids.size())
 		quit(0)
 		return
 
 	if not enabled_pack.is_empty():
-		push_error("classic_original_assets should not be enabled without its activation flag.")
-		quit(1)
+		print("classic_original_assets is enabled by current runtime activation.")
+		quit(0)
 		return
 	print("classic_original_assets is disabled by default.")
 	quit(0)
@@ -61,35 +70,61 @@ func _init() -> void:
 
 func _find_enabled_classic_pack() -> Dictionary:
 	for pack in ExtensionPackCatalogRef.list_enabled_packs(&"visual_profiles"):
-		if StringName(pack.get("pack_id", StringName())) == &"classic_original_assets":
+		if StringName(pack.get("pack_id", StringName())) == PRIVATE_PACK_ID:
 			return pack
 	return {}
 
 
-func _find_missing_private_profiles(root_path: String) -> PackedStringArray:
+func _debug_classic_original_assets_enabled() -> bool:
+	return bool(ProjectSettings.get_setting(DEBUG_ENABLE_CLASSIC_ORIGINAL_ASSETS_SETTING, false))
+
+
+func _required_profile_ids(enabled_pack: Dictionary) -> PackedStringArray:
+	var ids_by_text := {}
+	for profile_id in CORE_PRIVATE_CLASSIC_PROFILE_IDS:
+		ids_by_text[String(profile_id)] = true
+	for asset: Dictionary in AssetIndexCatalogRef.list_assets(&"visual_profile"):
+		if StringName(asset.get("pack_id", StringName())) != PRIVATE_PACK_ID:
+			continue
+		var profile_id := StringName(asset.get("id", StringName()))
+		if profile_id != StringName():
+			ids_by_text[String(profile_id)] = true
+	var ids := PackedStringArray()
+	for id_text in ids_by_text.keys():
+		ids.append(String(id_text))
+	ids.sort()
+	return ids
+
+
+func _find_missing_private_profiles(root_path: String, profile_ids: PackedStringArray) -> PackedStringArray:
 	var missing := PackedStringArray()
 	if root_path.is_empty():
 		missing.append("classic_original_assets root_path")
 		return missing
-	for profile_id in REQUIRED_PROFILE_IDS:
+	for profile_id_text in profile_ids:
+		var profile_id := StringName(profile_id_text)
 		var profile_path := _profile_path_for_id(root_path, profile_id)
-		if profile_path.is_empty() or not FileAccess.file_exists(profile_path):
+		var asset := AssetIndexCatalogRef.resolve_asset(profile_id, &"visual_profile")
+		if not asset.is_empty():
+			profile_path = String(asset.get("path", profile_path))
+		if profile_path.is_empty() or not ResourceLoader.exists(profile_path):
 			missing.append(String(profile_id))
 			continue
-		var profile_text := FileAccess.get_file_as_string(profile_path)
-		if not profile_text.contains("id = &\"%s\"" % String(profile_id)):
+		var profile := ResourceLoader.load(profile_path) as Resource
+		if profile == null or profile.get_script() != VisualProfileDefRef or StringName(profile.get("id")) != profile_id:
 			missing.append(String(profile_id))
 	return missing
 
 
-func _validate_asset_index(enabled_pack: Dictionary) -> PackedStringArray:
+func _validate_asset_index(enabled_pack: Dictionary, profile_ids: PackedStringArray) -> PackedStringArray:
 	var errors := AssetIndexCatalogRef.validate_pack_index(enabled_pack)
-	for profile_id in REQUIRED_PROFILE_IDS:
+	for profile_id_text in profile_ids:
+		var profile_id := StringName(profile_id_text)
 		var asset := AssetIndexCatalogRef.resolve_asset(profile_id, &"visual_profile")
 		if asset.is_empty():
 			errors.append("asset_index missing %s" % String(profile_id))
 			continue
-		if StringName(asset.get("pack_id", StringName())) != &"classic_original_assets":
+		if StringName(asset.get("pack_id", StringName())) != PRIVATE_PACK_ID:
 			errors.append("asset_index entry %s resolved from unexpected pack %s" % [String(profile_id), String(asset.get("pack_id", StringName()))])
 			continue
 		var entry: Dictionary = asset.get("entry", {})
@@ -103,13 +138,14 @@ func _validate_asset_index(enabled_pack: Dictionary) -> PackedStringArray:
 	return errors
 
 
-func _validate_asset_registry() -> PackedStringArray:
+func _validate_asset_registry(profile_ids: PackedStringArray) -> PackedStringArray:
 	var errors := PackedStringArray()
 	var asset_registry := _get_asset_registry()
 	if asset_registry == null:
 		errors.append("AssetRegistry autoload is not available.")
 		return errors
-	for profile_id in REQUIRED_PROFILE_IDS:
+	for profile_id_text in profile_ids:
+		var profile_id := StringName(profile_id_text)
 		if not bool(asset_registry.call("has_asset", profile_id, &"visual_profile")):
 			errors.append("AssetRegistry missing %s" % String(profile_id))
 			continue

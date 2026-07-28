@@ -36,7 +36,7 @@ spawn_overrides = {}
 script = ExtResource("3_spawn")
 archetype_id = &"archetype_brisk_runner"
 lane_id = 1
-x_position = 960.0
+x_position = 800.0
 spawn_overrides = {}
 
 [sub_resource type="Resource" id="WaveSpawn_1"]
@@ -75,4 +75,3 @@ spawn_entries = [
 	SubResource("WaveSpawn_4"),
 	SubResource("WaveSpawn_5")
 ]
-

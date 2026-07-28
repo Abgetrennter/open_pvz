@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_squash.tres" id="5_card"]
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 300.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="CardPlayRequest_squash"]
+script = ExtResource("3_request")
+at_time = 0.1
+card_id = &"card_original_squash"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Rule_action_windup"]
+script = ExtResource("4_rule")
+rule_id = &"squash_action_windup"
+description = "Squash should publish windup during the pre-impact window"
+event_name = &"combat_action.phase"
+required_core_values = {
+"action_id": &"original.squash_impact",
+"phase": &"windup",
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_no_immediate_damage"]
+script = ExtResource("4_rule")
+rule_id = &"squash_no_immediate_damage"
+description = "Squash should not damage the locked target before the impact phase"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_squash_no_immediate_damage_validation"
+display_name = "Original Squash No Early Damage Validation"
+description = "Validates Squash keeps combat damage delayed through the original look, jump-up and rising window."
+goals = PackedStringArray("Verify Squash publishes windup.", "Verify Squash does not damage the target before the original falling impact window.")
+validation_time_limit = 1.55
+initial_sun = 500
+lane_count = 1
+card_defs = [ExtResource("5_card")]
+card_play_requests = [SubResource("CardPlayRequest_squash")]
+validation_rules = [SubResource("Rule_action_windup"), SubResource("Rule_no_immediate_damage")]
+spawns = [SubResource("Spawn_target")]

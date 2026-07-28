@@ -13,6 +13,7 @@ func execute_action(action: Dictionary, event_data: Variant) -> void:
 	var event_name: StringName = event_data.runtime.get("event_name", &"")
 	var target: Node = _resolve_target(action, event_data)
 	var target_id: int = _get_entity_id(target)
+	var target_archetype_id := _get_archetype_id(target)
 
 	if action_type == &"spawn_fx":
 		_execute_spawn_fx(action, event_data, cue_id, event_name, target, target_id)
@@ -24,6 +25,8 @@ func execute_action(action: Dictionary, event_data: Variant) -> void:
 		_execute_play_actor_animation(action, event_data, cue_id, event_name, target, target_id)
 	elif action_type == &"play_actor_action":
 		_execute_play_actor_action(action, event_data, cue_id, event_name, target, target_id)
+	elif action_type == &"play_actor_action_sequence":
+		_execute_play_actor_action_sequence(action, event_data, cue_id, event_name, target, target_id, target_archetype_id)
 	elif action_type == &"play_actor_state":
 		_execute_play_actor_state(action, event_data, cue_id, event_name, target, target_id)
 	elif action_type == &"attach_fx":
@@ -63,6 +66,23 @@ func _get_entity_id(node: Node) -> int:
 	if node.has_method("get_entity_id"):
 		return int(node.call("get_entity_id"))
 	return -1
+
+
+func _get_archetype_id(node: Node) -> StringName:
+	if node == null or not is_instance_valid(node):
+		return StringName()
+	var value: Variant = node.get("archetype_id")
+	if value is StringName:
+		return value
+	if value is String:
+		return StringName(value)
+	return StringName()
+
+
+func _valid_node(value: Variant) -> Node:
+	if value == null or not is_instance_valid(value):
+		return null
+	return value if value is Node else null
 
 
 # ── Action Executors ────────────────────────────────────────────────
@@ -245,6 +265,309 @@ func _execute_play_actor_action(action: Dictionary, _event_data: Variant, cue_id
 	)
 
 
+func _execute_play_actor_action_sequence(action: Dictionary, event_data: Variant, cue_id: StringName, event_name: StringName, target: Node, target_id: int, target_archetype_id: StringName) -> void:
+	var raw_steps: Variant = action.get("steps", [])
+	if not (raw_steps is Array) or Array(raw_steps).is_empty():
+		DebugService.record_visual_event({
+			"cue_id": cue_id,
+			"event_name": event_name,
+			"action_type": &"play_actor_action_sequence",
+			"target_id": target_id,
+			"result": "skipped",
+			"skip_reason": "steps are empty",
+		})
+		return
+
+	var visual_actor := _resolve_visual_actor(target, &"play_action")
+	if visual_actor == null:
+		DebugService.record_visual_event({
+			"cue_id": cue_id,
+			"event_name": event_name,
+			"action_type": &"play_actor_action_sequence",
+			"target_id": target_id,
+			"result": "no_op",
+			"skip_reason": "visual actor component is missing",
+		})
+		return
+
+	var actor_root := _resolve_actor_root(target)
+	if actor_root == null:
+		DebugService.record_visual_event({
+			"cue_id": cue_id,
+			"event_name": event_name,
+			"action_type": &"play_actor_action_sequence",
+			"target_id": target_id,
+			"result": "no_op",
+			"skip_reason": "visual actor root is missing",
+		})
+		return
+
+	var original_local_position := actor_root.position
+	var sequence_id := _action_value_as_string_name(action, &"sequence_id")
+	var tree := actor_root.get_tree()
+	for raw_step: Variant in Array(raw_steps):
+		if not (raw_step is Dictionary):
+			continue
+		var step := Dictionary(raw_step).duplicate(true)
+		var step_at := maxf(0.0, float(step.get("at", 0.0)))
+		var callback := Callable(self, "_execute_actor_sequence_step").bind(
+			actor_root,
+			visual_actor,
+			cue_id,
+			event_name,
+			target_id,
+			target_archetype_id,
+			action.duplicate(true),
+			step,
+			event_data,
+			target,
+			original_local_position,
+			sequence_id,
+			step_at
+		)
+		if step_at <= 0.0 or tree == null:
+			callback.call()
+		else:
+			tree.create_timer(step_at).timeout.connect(callback, CONNECT_ONE_SHOT)
+
+
+func _execute_actor_sequence_step(
+	actor_root: Variant,
+	visual_actor: Variant,
+	cue_id: StringName,
+	event_name: StringName,
+	target_id: int,
+	target_archetype_id: StringName,
+	action: Dictionary,
+	step: Dictionary,
+	event_data: Variant,
+	target: Variant,
+	original_local_position: Vector2,
+	sequence_id: StringName,
+	step_at: float
+) -> void:
+	if not is_instance_valid(actor_root) or not (actor_root is Node2D):
+		return
+	if not is_instance_valid(visual_actor) or not (visual_actor is Node):
+		return
+	var actor_root_node := actor_root as Node2D
+	var visual_actor_node := visual_actor as Node
+	var target_node := _valid_node(target)
+
+	var step_kind := _action_value_as_string_name(step, &"kind")
+	match step_kind:
+		&"actor_action":
+			_execute_actor_sequence_action_step(actor_root_node, visual_actor_node, cue_id, event_name, target_id, target_archetype_id, step, event_data, target_node, sequence_id, step_at)
+		&"motion":
+			_execute_actor_sequence_motion_step(actor_root_node, visual_actor_node, cue_id, event_name, target_id, target_archetype_id, step, event_data, target_node, sequence_id, step_at)
+		&"restore_position":
+			actor_root_node.position = original_local_position
+			_record_actor_sequence_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, step_kind, step_at, {
+				"result": "executed",
+			})
+		_:
+			_record_actor_sequence_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, step_kind, step_at, {
+				"result": "skipped",
+				"skip_reason": "unknown sequence step kind",
+				"action_name": _first_string_name(step, [&"action_name", &"action"]),
+			})
+
+
+func _execute_actor_sequence_action_step(
+	actor_root: Node2D,
+	visual_actor: Node,
+	cue_id: StringName,
+	event_name: StringName,
+	target_id: int,
+	target_archetype_id: StringName,
+	step: Dictionary,
+	event_data: Variant,
+	target: Node,
+	sequence_id: StringName,
+	step_at: float
+) -> void:
+	var command_name := _resolve_sequence_action_name(step, event_data, target, actor_root)
+	if command_name == StringName():
+		_record_actor_sequence_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, &"actor_action", step_at, {
+			"result": "skipped",
+			"skip_reason": "action_name is empty",
+		})
+		return
+
+	var played: bool = visual_actor.call(&"play_action", command_name)
+	var log_values := {
+		"action_name": command_name,
+	}
+	if played:
+		log_values["result"] = "executed"
+	else:
+		log_values["result"] = "no_op"
+		log_values["skip_reason"] = "action '%s' is missing" % String(command_name)
+	_record_actor_sequence_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, &"actor_action", step_at, log_values)
+
+
+func _execute_actor_sequence_motion_step(
+	actor_root: Node2D,
+	visual_actor: Node,
+	cue_id: StringName,
+	event_name: StringName,
+	target_id: int,
+	target_archetype_id: StringName,
+	step: Dictionary,
+	event_data: Variant,
+	target: Node,
+	sequence_id: StringName,
+	step_at: float
+) -> void:
+	var motion_position_ref := _first_string_name(step, [&"motion_position_ref", &"position_ref"])
+	var motion_position := _resolve_position_ref_global_position(motion_position_ref, event_data, target)
+	if not bool(motion_position.get("valid", false)):
+		_record_actor_sequence_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, &"motion", step_at, {
+			"result": "no_op",
+			"skip_reason": "motion target is missing",
+			"motion_position_ref": motion_position_ref,
+		})
+		return
+
+	var destination := Vector2(motion_position.get("position", Vector2.ZERO)) + _action_value_as_vector2(step, &"motion_offset", _action_value_as_vector2(step, &"offset", Vector2.ZERO))
+	var motion_distance := actor_root.global_position.distance_to(destination)
+	var motion_duration := maxf(0.0, float(step.get("motion_duration", step.get("duration", 0.0))))
+	if motion_duration <= 0.0:
+		actor_root.global_position = destination
+		_record_actor_sequence_motion_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, step_at, step, actor_root, destination, motion_position_ref, motion_duration, motion_distance)
+		return
+
+	var tween := actor_root.create_tween()
+	if tween == null:
+		actor_root.global_position = destination
+		_record_actor_sequence_motion_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, step_at, step, actor_root, destination, motion_position_ref, motion_duration, motion_distance)
+		return
+
+	tween.tween_property(actor_root, "global_position", destination, motion_duration)
+	_apply_tween_curve(tween, _action_value_as_string_name(step, &"curve"))
+	tween.finished.connect(
+		_finish_actor_sequence_motion_step.bind(cue_id, event_name, target_id, target_archetype_id, sequence_id, step_at, step, actor_root, destination, motion_position_ref, motion_duration, motion_distance),
+		CONNECT_ONE_SHOT
+	)
+
+
+func _finish_actor_sequence_motion_step(
+	cue_id: StringName,
+	event_name: StringName,
+	target_id: int,
+	target_archetype_id: StringName,
+	sequence_id: StringName,
+	step_at: float,
+	step: Dictionary,
+	actor_root: Variant,
+	destination: Vector2,
+	motion_position_ref: StringName,
+	motion_duration: float,
+	motion_distance: float
+) -> void:
+	if not is_instance_valid(actor_root) or not (actor_root is Node2D):
+		return
+	var actor_root_node := actor_root as Node2D
+	actor_root_node.global_position = destination
+	_record_actor_sequence_motion_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, step_at, step, actor_root_node, destination, motion_position_ref, motion_duration, motion_distance)
+
+
+func _record_actor_sequence_motion_event(
+	cue_id: StringName,
+	event_name: StringName,
+	target_id: int,
+	target_archetype_id: StringName,
+	sequence_id: StringName,
+	step_at: float,
+	step: Dictionary,
+	actor_root: Node2D,
+	destination: Vector2,
+	motion_position_ref: StringName,
+	motion_duration: float,
+	motion_distance: float
+) -> void:
+	_record_actor_sequence_event(cue_id, event_name, target_id, target_archetype_id, sequence_id, &"motion", step_at, {
+		"result": "executed",
+		"motion_position_ref": motion_position_ref,
+		"motion_duration": motion_duration,
+		"motion_offset": _action_value_as_vector2(step, &"motion_offset", _action_value_as_vector2(step, &"offset", Vector2.ZERO)),
+		"motion_distance": motion_distance,
+		"motion_target_distance": actor_root.global_position.distance_to(destination),
+	})
+
+
+func _record_actor_sequence_event(
+	cue_id: StringName,
+	event_name: StringName,
+	target_id: int,
+	target_archetype_id: StringName,
+	sequence_id: StringName,
+	step_kind: StringName,
+	step_at: float,
+	values: Dictionary
+) -> void:
+	var log_entry := {
+		"cue_id": cue_id,
+		"event_name": event_name,
+		"action_type": &"play_actor_action_sequence",
+		"target_id": target_id,
+		"target_archetype_id": target_archetype_id,
+		"sequence_id": sequence_id,
+		"step_kind": step_kind,
+		"step_at": step_at,
+	}
+	for key: Variant in values.keys():
+		log_entry[key] = values[key]
+	DebugService.record_visual_event(log_entry)
+
+
+func _resolve_sequence_action_name(step: Dictionary, event_data: Variant, target: Node, actor_root: Node2D) -> StringName:
+	var relative_actions: Variant = step.get("action_by_relative_x", {})
+	if relative_actions is Dictionary:
+		var position_ref := _first_string_name(step, [&"direction_position_ref", &"position_ref", &"motion_position_ref"])
+		if position_ref == StringName():
+			position_ref = &"target"
+		var position_result := _resolve_position_ref_global_position(position_ref, event_data, target)
+		if bool(position_result.get("valid", false)):
+			var direction_key := &"left" if Vector2(position_result.get("position", Vector2.ZERO)).x < actor_root.global_position.x else &"right"
+			var action_name := _dictionary_string_name(Dictionary(relative_actions), direction_key)
+			if action_name != StringName():
+				return action_name
+	return _first_string_name(step, [&"action_name", &"action"])
+
+
+func _dictionary_string_name(values: Dictionary, key: StringName) -> StringName:
+	if values.has(key):
+		return _variant_to_string_name(values[key])
+	var string_key := String(key)
+	if values.has(string_key):
+		return _variant_to_string_name(values[string_key])
+	return StringName()
+
+
+func _variant_to_string_name(value: Variant) -> StringName:
+	if value == null:
+		return StringName()
+	if value is StringName:
+		return value
+	return StringName(str(value))
+
+
+func _apply_tween_curve(tween: Tween, curve: StringName) -> void:
+	if tween == null:
+		return
+	match curve:
+		&"ease_in_out":
+			tween.set_trans(Tween.TRANS_SINE)
+			tween.set_ease(Tween.EASE_IN_OUT)
+		&"ease_in":
+			tween.set_trans(Tween.TRANS_SINE)
+			tween.set_ease(Tween.EASE_IN)
+		&"ease_out":
+			tween.set_trans(Tween.TRANS_SINE)
+			tween.set_ease(Tween.EASE_OUT)
+
+
 func _execute_play_actor_state(action: Dictionary, _event_data: Variant, cue_id: StringName, event_name: StringName, target: Node, target_id: int) -> void:
 	_execute_visual_actor_command(
 		action,
@@ -338,6 +661,64 @@ func _action_value_as_string_name(action: Dictionary, key: Variant) -> StringNam
 	if value is StringName:
 		return value
 	return StringName(str(value))
+
+
+func _action_value_as_vector2(action: Dictionary, key: Variant, fallback: Vector2 = Vector2.ZERO) -> Vector2:
+	var value: Variant = null
+	if action.has(key):
+		value = action[key]
+	else:
+		var string_key := str(key)
+		if action.has(string_key):
+			value = action[string_key]
+	if value is Vector2:
+		return value
+	if value is Array and value.size() >= 2:
+		return Vector2(float(value[0]), float(value[1]))
+	if value is Dictionary:
+		return Vector2(float(value.get("x", fallback.x)), float(value.get("y", fallback.y)))
+	return fallback
+
+
+func _resolve_position_ref_global_position(position_ref: StringName, event_data: Variant, fallback_target: Node) -> Dictionary:
+	if event_data == null:
+		return _node_global_position_result(fallback_target)
+	var core: Dictionary = event_data.core
+	match position_ref:
+		&"source":
+			return _node_global_position_result(core.get("source_node", null))
+		&"target":
+			return _node_global_position_result(core.get("target_node", null))
+		&"impact_position":
+			if core.has("impact_position"):
+				return {
+					"valid": true,
+					"position": _variant_to_vector2(core.get("impact_position"), Vector2.ZERO),
+				}
+			return {"valid": false, "position": Vector2.ZERO}
+		_:
+			return _node_global_position_result(fallback_target)
+
+
+func _node_global_position_result(node: Variant) -> Dictionary:
+	if node == null or not is_instance_valid(node):
+		return {"valid": false, "position": Vector2.ZERO}
+	if node is Node2D:
+		return {
+			"valid": true,
+			"position": (node as Node2D).global_position,
+		}
+	return {"valid": false, "position": Vector2.ZERO}
+
+
+func _variant_to_vector2(value: Variant, fallback: Vector2 = Vector2.ZERO) -> Vector2:
+	if value is Vector2:
+		return Vector2(value)
+	if value is Array and value.size() >= 2:
+		return Vector2(float(value[0]), float(value[1]))
+	if value is Dictionary:
+		return Vector2(float(value.get("x", fallback.x)), float(value.get("y", fallback.y)))
+	return fallback
 
 
 func _resolve_visual_actor(target: Node, method_name: StringName) -> Node:
@@ -490,12 +871,13 @@ func _resolve_spawn_position(action: Dictionary, event_data: Variant, target: No
 	# Priority: action position > target position > source position > origin
 	if action.has("position"):
 		return action["position"]
-	if target != null and target is Node2D:
-		return (target as Node2D).global_position
+	var target_node := _valid_node(target)
+	if target_node is Node2D:
+		return (target_node as Node2D).global_position
 	if event_data != null:
 		var core: Dictionary = event_data.core
-		var source: Node = core.get("source_node", null)
-		if source != null and source is Node2D:
+		var source := _valid_node(core.get("source_node", null))
+		if source is Node2D:
 			return (source as Node2D).global_position
 	return Vector2.ZERO
 

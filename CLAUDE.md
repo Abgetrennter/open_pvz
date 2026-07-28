@@ -6,6 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 变更记录 (Changelog)
 
+- **2026-07-26** — 以 AGENTS.md（2026-05-21 基准）同步：冻结 Mechanic family 更新为 11 个（含 Movement，ADR-008）；autoload 表补齐 `MovementRegistry` 与 `AssetRegistry`；守卫检查章节替换为现存的 `check_public_extension_release_guardrails.ps1`；ADR 索引更新至 008
 - **2026-05-17** — CLAUDE.md 与 AGENTS.md 对齐：修正验证命令参数（`-Scenario` 而非 `-ScenarioId`）、补充反模式与通用扩展插槽章节、加入 `SpatialIndex` 与 `extensions/` 模块、补全守卫检查脚本与 `-MaxParallel` 参数；ADR 索引更新至 007
 - **2026-05-09** — CLAUDE.md / README / agent.md / wiki：删除易过时的具体数量，改为定性描述
 - **2026-04-24** — wiki 同步 Mechanic-first 决策：11 份文档更新，旧"模板与装配边界"重写为"编译链与 Mechanic 系统"；CLAUDE.md 同步代码现状
@@ -24,7 +25,7 @@ Open PVZ 是一个开放式 PVZ-like 规则引擎，核心目标是让"组合规
 
 1. **语义事件层** -- "发生了什么"。事件如 `game.tick`、`entity.damaged`、`entity.died`、`projectile.hit` 通过 `EventBus`（autoload）流转。
 2. **行为效果层** -- "该做什么"。`EffectDef` -> `EffectNode`，由 `EffectExecutor` 执行。效果是原子化、可组合、可嵌套的（最大深度 5）。注册于 `EffectRegistry`。
-3. **编译装配层** -- "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。10 个冻结 Mechanic family。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`。
+3. **编译装配层** -- "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。11 个冻结 Mechanic family（Movement 来自 ADR-008，v1 只实现 `core.walk` / `core.leap_once`）。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`。
 4. **连续行为层** -- "持续对象如何更新"。抛射体使用 3D 逻辑 + 2D 投影；Controller（bite / sweep 等）通过 `ControllerComponent` 每帧执行。命中时重新进入事件链。
 
 ### 执行链
@@ -53,7 +54,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `EventBus` | 事件分发，优先级订阅，历史追踪（最多 256 条） |
 | `DebugService` | 集中式日志：事件/触发器/效果/运行时快照/协议问题 |
 | `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/`，支持 archetype 查询 |
-| `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
+| `MechanicFamilyRegistry` | Mechanic 一级 family 注册（11 个冻结 family） |
 | `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id，委托 MechanicCompiler 注册内置 type） |
 | `MechanicCompilerRegistry` ★ | Mechanic per-type 编译器 callable 注册与分发 |
 | `DetectionRegistry` ★ | 目标发现策略注册 |
@@ -61,6 +62,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `EffectRegistry` ★ | 效果定义与策略注册 |
 | `ControllerRegistry` ★ | Controller 策略注册 |
 | `ProjectileMovementRegistry` ★ | 抛射体运动策略注册（linear / parabola / track） |
+| `MovementRegistry` ★ | 实体自主运动定义注册与命令生成（core.walk / core.leap_once） |
 | `GameState` | 游戏状态管理（当前战斗、100Hz 仿真时间、实体 ID 分配、battle_seed） |
 
 **表现层**：
@@ -71,6 +73,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `VisualFxRegistry` | 视觉特效注册与分发 |
 | `VisualProfileRegistry` | 视觉配置档注册 |
 | `AudioCueRegistry` | 音频提示注册与分发 |
+| `AssetRegistry` | 素材索引解析：从已启用 asset_pack 的 `asset_index.json` 解析逻辑表现 ID（v1 支持 visual_profile） |
 
 ### 战斗运行时子系统
 
@@ -162,7 +165,7 @@ graph TD
 ### 运行项目
 
 - 在 Godot 4.x 编辑器中打开。主场景：`res://scenes/main/main.tscn`
-- 视口：960x540，窗口：1920x1080
+- 逻辑视口：800x600，窗口 override：1440x1080，stretch：canvas_items + keep
 - 物理引擎：Jolt Physics
 - 渲染方式：mobile
 
@@ -191,11 +194,11 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 ### 守卫检查
 
 ```powershell
-# 检查旧实体模型残留（禁止 EntityTemplate / TriggerBinding）
-pwsh tools/check_no_legacy_entity_model.ps1
+# 检查公开扩展发布边界
+pwsh tools/check_public_extension_release_guardrails.ps1
 
-# 检查运行时指标/时间违规（禁止 OS.get_ticks_* 和 Timer 用于游戏逻辑）
-pwsh tools/check_runtime_metrics_time_guardrails.ps1
+# 运行时指标/时间违规由代码评审与验证场景检查：
+# 禁止 OS.get_ticks_* 和 Timer 用于游戏逻辑
 ```
 
 ## 编码规范
@@ -234,7 +237,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 
 第一轮协议冻结已生效。未经设计审批，不得修改以下语义：
 
-**Mechanic family（10 个冻结，新增需 ADR）：** Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller
+**Mechanic family（11 个冻结，新增需 ADR）：** Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller / Movement（来自 ADR-008，v1 只实现 `core.walk` / `core.leap_once`）
 
 **触发器：** `periodically` (game.tick)、`when_damaged` (entity.damaged)、`on_death` (entity.died)
 **效果：** `damage`、`spawn_projectile`、`explode`
@@ -245,9 +248,9 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 
 详见 [wiki/04-roadmap-reference/42-通用扩展插槽机制.md](wiki/04-roadmap-reference/42-通用扩展插槽机制.md)。
 
-- 已开放 slot：`projectile_movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`
-- 6 个对应的 autoload registry 统一继承 `RegistryBase`，共享注册、去重、信任检查、来源追踪、协议错误记录
-- 贡献项资源统一继承 `RegistryContributorDef`（字段 `id`、`tags`、`param_defs`）：`ProjectileMovementDef`、`MechanicCompilerDef`、`TriggerDef`、`DetectionDef`、`ControllerDef`
+- 已开放 slot：`projectile_movement`、`movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`
+- 7 个对应的 autoload registry 统一继承 `RegistryBase`，共享注册、去重、信任检查、来源追踪、协议错误记录
+- 贡献项资源统一继承 `RegistryContributorDef`（字段 `id`、`tags`、`param_defs`）：`ProjectileMovementDef`、`MovementDef`、`MechanicCompilerDef`、`TriggerDef`、`DetectionDef`、`ControllerDef`
 - 运行时代码 slot 需要 `trust_level = "trusted_runtime"`
 - **扩展包不得注册或覆盖 `core.*` 命名空间**
 - **扩展包不得新增 Mechanic family**，只能在冻结 family 下新增 type
@@ -292,7 +295,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 - `03-content-validation/` -- 验证矩阵和覆盖率
 - `04-roadmap-reference/` -- 参考实现、扩展系统规划、外部调研
 - `05-governance/` -- Archetype 编写约定、术语表、方法论
-- `decisions/` -- ADR 决策记录（ADR-001~007）
+- `decisions/` -- ADR 决策记录（ADR-001~008）
 
 `plans/` 目录包含阶段任务清单和设计草案。
 

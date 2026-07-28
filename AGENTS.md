@@ -77,6 +77,7 @@ _physics_process -> MovementComponent -> MovementRegistry -> ControllerComponent
 | 经济状态 | `BattleEconomyState` | 阳光资源管理、天降阳光、消费验证 |
 | 棋盘状态 | `BattleBoardState` | 格子系统、放置验证、槽位类型/标签、角色占位 |
 | 卡片状态 | `BattleCardState` | 卡片手牌、费用消耗、冷却管理、放置请求流程 |
+| 动作时间线状态 | `BattleActionTimelineState` | delayed-impact / telegraphed action 的规则阶段调度，发布 `combat_action.phase` 并在 impact 阶段执行效果 |
 | 流程状态 | `BattleFlowState` | 战斗阶段管理（preparing / running / victory / defeat） |
 | 波次运行器 | `WaveRunner` | 波次调度、敌人生成、胜败条件检测 |
 | 场上物件状态 | `BattleFieldObjectState` | 场上物件生成、管理、事件发射（割草机等） |
@@ -131,7 +132,7 @@ graph TD
 | `autoload/` | GDScript | 18 | 全局单例：事件总线、注册表、编译器分发、ProjectileMovement / Movement 分发、游戏状态 |
 | `scripts/core/defs/` | GDScript | 17 | 资源定义：CombatArchetype, CombatMechanic, TriggerDef, EffectDef, DetectionDef, ControllerDef, ProjectileTemplate, ProjectileMovementDef, MovementDef, HealthLayerDef, MechanicCompilerDef 等 |
 | `scripts/core/runtime/` | GDScript | 16 | 运行时：MechanicCompiler, RuntimeSpec, RuntimeTriggerSpec, NormalizedMechanicSet, EffectExecutor, ShuffleBag 等 |
-| `scripts/battle/` | GDScript | 41 | 战斗协调：BattleManager, EntityFactory（archetype-only）, 经济/棋盘/卡片/波次子系统, 模式层 |
+| `scripts/battle/` | GDScript | 42 | 战斗协调：BattleManager, EntityFactory（archetype-only）, 经济/棋盘/卡片/动作时间线/波次子系统, 模式层 |
 | `scripts/entities/` | GDScript | 6 | 实体类型：BaseEntity, PlantRoot, ZombieRoot, ProjectileRoot 等 |
 | `scripts/components/` | GDScript | 7 | 可复用组件：HealthComponent, TriggerComponent, ControllerComponent, StateComponent 等 |
 | `scripts/projectile/` | GDScript | 6 | 抛射体运动系统：linear / parabola / track movement 组件与飞行配置 |
@@ -154,7 +155,7 @@ graph TD
 ### 运行项目
 
 - 在 Godot 4.x 编辑器中打开。主场景：`res://scenes/main/main.tscn`
-- 视口：960x540，窗口：1920x1080
+- 逻辑视口：800x600，窗口 override：1440x1080，stretch：canvas_items + keep
 - 物理引擎：Jolt Physics
 - 渲染方式：mobile
 
@@ -177,7 +178,7 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 
 场景定义：`tools/validation_scenarios.json`（以文件为准，分层 smoke / core / extension / guardrail / showcase）
 场景资源：`scenes/validation/`
-结果输出：`artifacts/validation/`
+结果输出：`artifacts/validation/`（`validation_report.json` / `debug_logs.json` / `godot.log` / `engine.log`）
 
 在 Godot 编辑器中运行单个场景：打开 `scenes/validation/` 中的 `.tscn` 文件并按 F6。
 
@@ -283,7 +284,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 - 验证规则通过事件匹配：事件名 + 标签 + 核心值 + 次数范围
 - BattleManager 内置验证状态机：pending -> passed/failed
 - 命令行支持：`--validation-auto-quit`、`--validation-print-report`、`--validation-output-dir=`
-- 结果输出为 JSON：`validation_report.json` + `debug_logs.json`
+- 结果输出：`validation_report.json` + `debug_logs.json`，并保留 PowerShell 捕获日志 `godot.log` 与 Godot 引擎文件日志 `engine.log`
 
 ## 文档
 

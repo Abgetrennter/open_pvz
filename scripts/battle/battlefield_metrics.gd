@@ -9,7 +9,7 @@ var slot_spacing := 96.0
 var lane_y_positions: Dictionary = {}
 var lane_configs: Dictionary = {}
 var playable_min_x := 80.0
-var playable_max_x := 960.0
+var playable_max_x := 800.0
 
 
 func configure_from_battle_context(battle: Node, slot_origin: float, spacing: float) -> void:

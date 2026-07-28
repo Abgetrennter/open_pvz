@@ -17,6 +17,7 @@
 | `original-plant-migration-ledger.md` | 原版植物迁移底账 | 迁移底账本身，按需更新 | 是 |
 | `original-plant-protocol-gaps.md` | 原版植物协议缺口追踪 | 协议缺口追踪，维护中 | 是 |
 | `original-plant-mechanism-audit.md` | 原版植物机制审计 | 审计记录，按需更新 | 是 |
+| `original-plant-visual-bulk-migration-plan.md` | 原版植物视觉批量迁移执行方案 | 当前私有素材包、原版图像移植工作文档、验证脚本与展示场景 | 是 |
 | `未来计划.md` | 前进方向概要 | 与 `wiki/04-roadmap-reference/26-开发路线图.md` 对齐 | 是（路线图方向） |
 | `zombie-design-research-report.md` | 僵尸设计研究报告（三源综合分析） | `vendor/de-pvz/` + `vendor/PVZ-Godot-Dream/` + 本项目代码 | 是 |
 

@@ -1,0 +1,65 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="3_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_squash.tres" id="5_card"]
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 220.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 1.0
+}
+
+[sub_resource type="Resource" id="CardPlayRequest_squash"]
+script = ExtResource("3_request")
+at_time = 0.1
+card_id = &"card_original_squash"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Rule_action_impact"]
+script = ExtResource("4_rule")
+rule_id = &"squash_action_impact"
+description = "Squash should still publish impact after locking a moving target"
+event_name = &"combat_action.phase"
+required_core_values = {
+"action_id": &"original.squash_impact",
+"phase": &"impact",
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_no_tracking_damage"]
+script = ExtResource("4_rule")
+rule_id = &"squash_no_tracking_damage"
+description = "Squash impact should use the locked impact_position instead of tracking the moved target"
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("explode")
+required_core_values = {
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_squash_locked_impact_position_validation"
+display_name = "Original Squash Locked Impact Position Validation"
+description = "Validates Squash locks an impact position at action start and does not retarget damage to a moved zombie."
+goals = PackedStringArray("Verify Squash publishes the delayed impact phase.", "Verify a target that moves away before impact is not damaged by target-position tracking.")
+validation_time_limit = 2.1
+initial_sun = 500
+lane_count = 1
+defeat_line_x = 1.0
+card_defs = [ExtResource("5_card")]
+card_play_requests = [SubResource("CardPlayRequest_squash")]
+validation_rules = [SubResource("Rule_action_impact"), SubResource("Rule_no_tracking_damage")]
+spawns = [SubResource("Spawn_target")]

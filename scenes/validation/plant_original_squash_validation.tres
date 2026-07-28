@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
 [ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
@@ -25,7 +25,7 @@ slot_index = 1
 [sub_resource type="Resource" id="Rule_damage"]
 script = ExtResource("4_rule")
 rule_id = &"squash_damage"
-description = "Squash should damage a nearby zombie through its on-place impact payload"
+description = "Squash should damage a nearby zombie when its delayed impact resolves"
 event_name = &"entity.damaged"
 required_tags = PackedStringArray("explode")
 required_core_values = {
@@ -34,16 +34,52 @@ required_core_values = {
 "target_lane": 0
 }
 
+[sub_resource type="Resource" id="Rule_action_windup"]
+script = ExtResource("4_rule")
+rule_id = &"squash_action_windup"
+description = "Squash should publish a windup phase before resolving impact damage"
+event_name = &"combat_action.phase"
+required_core_values = {
+"action_id": &"original.squash_impact",
+"phase": &"windup",
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_action_impact"]
+script = ExtResource("4_rule")
+rule_id = &"squash_action_impact"
+description = "Squash should publish an impact phase when the delayed impact resolves"
+event_name = &"combat_action.phase"
+required_core_values = {
+"action_id": &"original.squash_impact",
+"phase": &"impact",
+"source_archetype_id": &"archetype_original_squash",
+"target_archetype_id": &"archetype_basic_walker",
+"target_lane": 0
+}
+
+[sub_resource type="Resource" id="Rule_consume"]
+script = ExtResource("4_rule")
+rule_id = &"squash_consume_after_finished"
+description = "Squash should consume itself after the falling sequence finishes"
+event_name = &"entity.consumed"
+required_core_values = {
+"reason": &"consumed",
+"source_archetype_id": &"archetype_original_squash"
+}
+
 [resource]
 script = ExtResource("1_scenario")
 scenario_id = &"plant_original_squash_validation"
 display_name = "Original Squash Validation"
-description = "Validates Squash on-place impact damage through the card and placement path."
-goals = PackedStringArray("Verify Squash is placed from its original card.", "Verify Squash damages a nearby zombie on placement.")
-validation_time_limit = 1.5
+description = "Validates Squash on-place telegraphed impact damage through the card and placement path."
+goals = PackedStringArray("Verify Squash is placed from its original card.", "Verify Squash publishes action timeline phases.", "Verify Squash damages a nearby zombie at impact.", "Verify Squash consumes itself after the falling sequence finishes.")
+validation_time_limit = 3.0
 initial_sun = 500
 lane_count = 1
 card_defs = [ExtResource("5_card")]
 card_play_requests = [SubResource("CardPlayRequest_squash")]
-validation_rules = [SubResource("Rule_damage")]
+validation_rules = [SubResource("Rule_action_windup"), SubResource("Rule_action_impact"), SubResource("Rule_damage"), SubResource("Rule_consume")]
 spawns = [SubResource("Spawn_target")]

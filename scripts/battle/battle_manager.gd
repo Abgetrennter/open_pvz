@@ -25,7 +25,7 @@ var lane_y_map := {
 }
 
 @export var tick_interval := 0.25
-@export var playfield_size := Vector2(960.0, 540.0)
+@export var playfield_size := Vector2(800.0, 600.0)
 @export var scenario: Resource = null
 @export var scenario_registry_id: StringName = StringName()
 @export var allow_restart_input := true
@@ -147,6 +147,9 @@ func reset_battle() -> void:
 	_visual_stage_layer_service.name = "VisualStageLayerService"
 	add_child(_visual_stage_layer_service)
 	_visual_stage_layer_service.initialize(self)
+	var active_scenario: Resource = resolve_scenario()
+	if active_scenario != null and _visual_stage_layer_service.has_method("apply_visual_preset"):
+		_visual_stage_layer_service.call("apply_visual_preset", active_scenario.get("battlefield_preset"))
 	_try_spawn_visual_validation_probe()
 	_try_spawn_infrastructure_validation_probe()
 	_try_spawn_original_zombie_validation_probe()
@@ -256,6 +259,10 @@ func spawn_wave_entry(spawn_entry: Resource, wave_id: StringName = StringName())
 
 func spawn_resolved_wave_entry(spawn_entry: Resource, lane_id: int, x_position: float, wave_id: StringName = StringName()):
 	return _spawner.spawn_resolved_wave_entry(spawn_entry, lane_id, x_position, wave_id)
+
+
+func start_combat_action_timeline(context, params: Dictionary) -> bool:
+	return bool(_subsystem_host.start_action_timeline(context, params))
 
 
 func finalize_spawned_entity(entity: Node, lane_id: int, hit_height_band: Resource, trigger_instances: Array, source_node: Node = null, metadata: Dictionary = {}, emit_spawn_event: bool = true) -> void:

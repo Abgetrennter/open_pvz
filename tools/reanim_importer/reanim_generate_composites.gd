@@ -176,6 +176,7 @@ func _save_profile(entry: Dictionary, actor_path: String, profile_path: String) 
 	profile.state_animation_map = _string_dict_to_string_name_dict(entry.get("state_animation_map", {}))
 	profile.action_animation_map = _profile_action_map(entry.get("action_animation_map", {}))
 	profile.animation_map = _string_dict_to_string_name_dict(entry.get("animation_map", {}))
+	profile.ground_offset = _to_vector2(entry.get("ground_offset", [0.0, 0.0]))
 	profile.z_policy = {"layer": &"plant"}
 	profile.tags = PackedStringArray(_to_string_array(entry.get("profile_tags", [])))
 	return ResourceSaver.save(profile, profile_path)
@@ -295,7 +296,10 @@ func _save_asset_index_if_requested(manifest: Dictionary, generated: Array[Dicti
 	if asset_index_path.is_empty():
 		return
 	var pack_root := _normalize_res_dir(String(manifest.get("asset_index_pack_root", asset_index_path.get_base_dir())))
-	var assets := {}
+	var existing_index := {}
+	if FileAccess.file_exists(asset_index_path):
+		existing_index = _load_json(asset_index_path)
+	var assets := _preserve_unmanaged_assets(existing_index)
 	var visual_profiles := {}
 	for result in generated:
 		if not bool(result.get("ok", false)):
@@ -320,6 +324,22 @@ func _save_asset_index_if_requested(manifest: Dictionary, generated: Array[Dicti
 		push_warning("Could not create asset index output dir: %s" % asset_index_path.get_base_dir())
 		return
 	_save_json(asset_index_path, index)
+
+
+func _preserve_unmanaged_assets(existing_index: Dictionary) -> Dictionary:
+	var preserved := {}
+	var existing_assets: Variant = existing_index.get("assets", {})
+	if not existing_assets is Dictionary:
+		return preserved
+	var managed_profile_ids: Variant = existing_index.get("visual_profiles", {})
+	if not managed_profile_ids is Dictionary:
+		managed_profile_ids = {}
+	for asset_id in (existing_assets as Dictionary).keys():
+		if (managed_profile_ids as Dictionary).has(asset_id):
+			continue
+		var asset_entry: Variant = (existing_assets as Dictionary)[asset_id]
+		preserved[asset_id] = asset_entry.duplicate(true) if asset_entry is Dictionary else asset_entry
+	return preserved
 
 
 func _make_asset_entry_paths_relative(entry: Dictionary, pack_root: String) -> Dictionary:

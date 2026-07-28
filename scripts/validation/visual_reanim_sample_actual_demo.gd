@@ -2,7 +2,7 @@ extends Node2D
 
 const VisualProfileDemoLoaderRef = preload("res://scripts/validation/visual_profile_demo_loader.gd")
 
-const VIEWPORT_SIZE := Vector2(960.0, 540.0)
+const VIEWPORT_SIZE := Vector2(800.0, 600.0)
 const BOARD_ORIGIN := Vector2(120.0, 135.0)
 const SLOT_COUNT := 9
 const LANE_COUNT := 5

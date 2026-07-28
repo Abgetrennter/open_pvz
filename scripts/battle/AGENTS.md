@@ -21,6 +21,7 @@
 | 经济 | `battle_economy_state.gd` | 阳光余额、天降调度、`try_spend_sun()` |
 | 棋盘 | `battle_board_state.gd` (734行) | 格子管理、槽位类型/标签、`validate_request()` 8 项约束、角色占位 (primary/cover/blocker) |
 | 卡片 | `battle_card_state.gd` | 手牌、费用、冷却、放置请求完整流程 |
+| 动作时间线 | `battle_action_timeline_state.gd` | delayed-impact / telegraphed action 的规则阶段调度，发布 `combat_action.phase`，impact 阶段执行效果 |
 | 流程 | `battle_flow_state.gd` | preparing→running→victory/defeat，发射 `phase_changed` |
 | 状态 | `battle_status_state.gd` | 定时 apply 状态、驱动实体 `update_statuses()` |
 | 波次 | `wave_runner.gd` | 按时间启波、调度生成、完成检测、胜败判定 |
@@ -28,7 +29,7 @@
 
 ### 数据定义
 
-`battle_spawn_entry` / `battle_validation_rule` / `card_def` / `card_play_request` / `placement_request` / `board_slot` / `board_slot_config` / `board_slot_catalog` / `wave_def` / `wave_spawn_entry` / `sun_collectible` / `sun_drop_entry` / `resource_spend_request` / `status_application_request` / `field_object_config` / `battlefield_preset` / `battlefield_metrics` / `effect_execution_request` / `battle_scenario_provider` / `battle_subsystem_host` / `battle_effect_request_state` / `battle_spawner`
+`battle_spawn_entry` / `battle_validation_rule` / `card_def` / `card_play_request` / `placement_request` / `board_slot` / `board_slot_config` / `board_slot_catalog` / `wave_def` / `wave_spawn_entry` / `sun_collectible` / `sun_drop_entry` / `resource_spend_request` / `status_application_request` / `field_object_config` / `battlefield_preset` / `battlefield_metrics` / `effect_execution_request` / `battle_scenario_provider` / `battle_subsystem_host` / `battle_effect_request_state` / `battle_action_timeline_state` / `battle_spawner`
 
 ### 模式层 (mode/)
 

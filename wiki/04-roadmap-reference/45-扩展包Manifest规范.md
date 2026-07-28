@@ -153,6 +153,7 @@ collection_pack
 - `contains_original_assets == true` 时必须为 `local_private`。
 - `generated_from_private_source == true` 时必须为 `local_private`，除非派生产物明确可发布。
 - `collection_pack` 依赖任何 `local_private` 包时，自己也应为 `local_private`。
+- 项目级 debug 开关只能改变本机开发期加载行为，不能改变 manifest 的发布策略；例如 `openpvz/debug/enable_classic_original_assets` 只允许让本机 `classic_original_assets` 默认可见，包本身仍必须保持 `local_private` 与 `enabled_by_default = false`。
 
 ---
 
@@ -267,6 +268,8 @@ collection_pack
   "tags": ["classic", "local_private"]
 }
 ```
+
+主线 `project.godot` 默认关闭 `openpvz/debug/enable_classic_original_assets`，主页面和 showcase 需要通过 `--include-classic-original-assets` 显式消费本机私有原版素材。该开关不属于 manifest，显式 CLI 启用是可复现验证入口。
 
 ---
 

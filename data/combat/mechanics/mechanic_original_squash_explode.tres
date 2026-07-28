@@ -7,11 +7,27 @@ script = ExtResource("1_mechanic")
 mechanic_id = &"core.original.squash_explode"
 display_name = "Original Squash Explode"
 family = &"Payload"
-type_id = &"core.explode"
+type_id = &"core.invoke_effect"
 priority = 20
-tags = PackedStringArray("original", "instant", "explode")
+tags = PackedStringArray("original", "telegraphed", "explode")
 params = {
+"action_id": &"original.squash_impact",
+"effect_id": &"start_action_timeline",
+"impact_effect_id": &"explode",
+"impact_effect_params": {
 "amount": 1800,
+"center_ref": &"impact_position",
 "radius_slots": 1.5625,
-"target_mode": &"enemies_in_radius"
+"target_mode": &"enemies_in_radius",
+"target_tags": PackedStringArray("zombie")
+},
+"impact_phase": &"impact",
+"phase_offsets": {
+"finished": 2.6,
+"impact": 1.65,
+"windup": 0.0
+},
+"radius_slots": 1.5625,
+"target_mode": &"enemies_in_radius",
+"target_tags": PackedStringArray("zombie")
 }
