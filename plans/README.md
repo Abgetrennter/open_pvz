@@ -31,6 +31,7 @@
 | `UI 框架层设计方案.md` | UI 框架设计讨论 | 历史讨论 |
 | `reanim资源转换工具链规划.md` | reanim 工具链规划 | 历史讨论 |
 | `attack-chain-family-compile-path.md` | 攻击链编译路径讨论 | 历史讨论 |
+| `draft/原版机制未实现项盘点.md` | 原版机制未实现项盘点 | 草案，基于 de-pvz / PVZ-Godot-Dream / 当前 validation 对齐 |
 | `pvz_like_engine_design_doc_v_1.md` | 引擎设计文档 v1 | 早期设计，已被实际实现超越 |
 
 ## 设计讨论（子目录）
