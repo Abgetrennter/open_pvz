@@ -53,6 +53,10 @@ func _register_builtin_defs() -> void:
 	crush_def.id = &"core.crush"
 	register_def(crush_def, {"kind": &"core", "source": &"core"})
 
+	var protect_targets_def = ControllerDefRef.new()
+	protect_targets_def.id = &"core.protect_targets"
+	register_def(protect_targets_def, {"kind": &"core", "source": &"core"})
+
 	_register_builtin_strategies()
 
 
@@ -193,6 +197,16 @@ func _register_builtin_strategies() -> void:
 
 	_controller_strategies[&"core.crush"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
 		_process_crush(owner, spec, delta, blackboard)
+
+	_controller_strategies[&"core.protect_targets"] = func(owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> void:
+		if owner == null or not is_instance_valid(owner):
+			return
+		var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
+		var intercept_tags := PackedStringArray(params.get("intercept_tags", PackedStringArray(["overhead"])))
+		var intercept_radius: float = _resolve_slots_distance(params, "protect_radius_slots", 153.6)
+		if owner.has_method("set_state_value"):
+			owner.call("set_state_value", &"intercept_tags", intercept_tags)
+			owner.call("set_state_value", &"intercept_radius", intercept_radius)
 
 
 func _process_collectible_magnet(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:

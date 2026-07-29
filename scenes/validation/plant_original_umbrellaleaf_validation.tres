@@ -1,0 +1,122 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_umbrella_protector"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_umbrellaleaf"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_wallnut_protected"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 0
+x_position = 256.0
+
+[sub_resource type="Resource" id="Spawn_catapult_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_catapult"
+lane_id = 0
+x_position = 700.0
+
+[sub_resource type="Resource" id="Spawn_garlic_unprotected"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_garlic"
+lane_id = 1
+x_position = 448.0
+
+[sub_resource type="Resource" id="Spawn_catapult_lane1"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_catapult"
+lane_id = 1
+x_position = 700.0
+
+[sub_resource type="Resource" id="Spawn_umbrella_bitten"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_umbrellaleaf"
+lane_id = 2
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_biter"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_basic_walker"
+lane_id = 2
+x_position = 400.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 1.0
+}
+
+[sub_resource type="Resource" id="Rule_intercepted"]
+script = ExtResource("3_rule")
+rule_id = &"overhead_attack_intercepted"
+description = "The Umbrella Leaf must intercept the catapult's overhead basketball aimed at the adjacent Wall-nut."
+event_name = &"attack.intercepted"
+required_core_values = {
+"lane_id": 0,
+"protected_target_archetype_id": &"archetype_original_wallnut",
+"protector_archetype_id": &"archetype_original_umbrellaleaf"
+}
+
+[sub_resource type="Resource" id="Rule_protected_no_projectile_damage"]
+script = ExtResource("3_rule")
+rule_id = &"protected_target_no_projectile_damage"
+description = "The protected Wall-nut must never receive projectile damage while covered by the Umbrella Leaf."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"target_archetype_id": &"archetype_original_wallnut"
+}
+
+[sub_resource type="Resource" id="Rule_unprotected_damaged"]
+script = ExtResource("3_rule")
+rule_id = &"unprotected_lane_projectile_damage"
+description = "The unprotected Garlic in lane 1 must receive projectile damage, proving interception requires an in-range protector."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"target_archetype_id": &"archetype_original_garlic"
+}
+
+[sub_resource type="Resource" id="Rule_no_intercept_lane1"]
+script = ExtResource("3_rule")
+rule_id = &"no_intercept_outside_protection"
+description = "No interception may occur in lane 1 where no Umbrella Leaf is present."
+event_name = &"attack.intercepted"
+min_count = 0
+max_count = 0
+required_core_values = {
+"lane_id": 1
+}
+
+[sub_resource type="Resource" id="Rule_bite_not_intercepted"]
+script = ExtResource("3_rule")
+rule_id = &"bite_not_intercepted"
+description = "Bite attacks bypass overhead interception: the walker must damage the lane-2 Umbrella Leaf normally."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_basic_walker",
+"target_archetype_id": &"archetype_original_umbrellaleaf"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_umbrellaleaf_validation"
+display_name = "Original Umbrella Leaf Validation"
+description = "Validates the Controller.core.protect_targets interception protocol: overhead-tagged catapult basketballs are cancelled near an Umbrella Leaf with attack.intercepted, while unprotected lanes and bite attacks resolve damage normally."
+goals = PackedStringArray("Verify overhead-tagged projectiles aimed near an Umbrella Leaf emit attack.intercepted and deal no damage.", "Verify the same attack damages an unprotected plant in another lane.", "Verify bite attacks are unaffected by interception.")
+validation_time_limit = 10.0
+lane_count = 3
+validation_rules = [SubResource("Rule_intercepted"), SubResource("Rule_protected_no_projectile_damage"), SubResource("Rule_unprotected_damaged"), SubResource("Rule_no_intercept_lane1"), SubResource("Rule_bite_not_intercepted")]
+spawns = [SubResource("Spawn_umbrella_protector"), SubResource("Spawn_wallnut_protected"), SubResource("Spawn_catapult_lane0"), SubResource("Spawn_garlic_unprotected"), SubResource("Spawn_catapult_lane1"), SubResource("Spawn_umbrella_bitten"), SubResource("Spawn_biter")]

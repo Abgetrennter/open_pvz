@@ -162,5 +162,14 @@ A1（trigger 参数）与 C2（card 协议）若引入新参数校验路径，�
 
 ## 附录：spike 决策记录（实施时追加）
 
-- B1 攻击拦截协议决策：待补
+### B1 攻击拦截协议决策（2026-07-29 定案）
+
+1. **攻击标签携带点**：走 `ProjectileTemplate.tags`。`EntityFactory._apply_projectile_template_metadata` 已把模板 tags 写入 projectile 实例 `entity_state`（key `projectile_template_tags`），拦截判定直接读实例状态，无需扩展 launch 链。`basketball_arc.tres` 补 `overhead` / `catapult` 两个 tag 作为首个攻击源。
+2. **拦截语义**：命中确认前取消（"弹开"语义）。hook 在 `projectile_root.gd::_on_hit` 的 team 校验之后、`projectile.hit` 事件与 on_hit_effect / 直接伤害之前：拦截成立时不发 `projectile.hit`、不产生任何伤害，投射物按非 pierce 路径消耗（status=intercepted + queue_free），改发 `attack.intercepted`。
+3. **防护者声明与查询**：实现载体选 `Controller.core.protect_targets`（计划 B2 二选一中的 Controller 方案）。策略每帧把 `intercept_tags` / `intercept_radius`（`protect_radius_slots` 经 BattlefieldMetrics 解析，默认 1.6 slot ≈ 3x3 邻域）写入守护者 `entity_state`；命中时投射物经 `BattleManager.spatial_query`（team=目标同队、center=目标地面位置、radius=查询上限 400px）筛出带 `intercept_tags` 状态的候选，再逐个校验 ①`is_liveness_enabled("controllers")`（睡眠/失效自动失去防护）②距离 ≤ 该守护者自身 `intercept_radius` ③投射物 `projectile_template_tags` ∩ 守护者 `intercept_tags` 非空。匹配纯标签驱动，无实体特判。
+4. **多守护者去重**：候选中取距被保护目标最近者响应（距离平手取 entity_id 较小者），仅该守护者发 1 次 `attack.intercepted`，其余不发事件。
+
+`attack.intercepted` 事件（source=守护者，target=被保护目标）core 字段：`protector_id`、`protector_archetype_id`、`attacker_id`、`attacker_archetype_id`、`protected_target_id`、`protected_target_archetype_id`、`attack_tags`（=projectile template tags）、`projectile_template_id`、`lane_id`（被保护目标所在 lane）。
+
+**B4 实施补记（2026-07-29）**：首轮验证暴露 `archetype_original_catapult` 存量数据缺陷——其篮球模板仅经 payload params 传入，archetype 级 `projectile_template` / `projectile_flight_profile` 字段为空，导致编译链无法从 flight profile 派生 `movement_mode`，`ProtocolValidator.normalize_effect_node` 填入 EffectDef 默认值 `linear` 覆盖了模板的 parabola（篮球直线飞行不命中）。按 `archetype_original_cabbagepult` 既有约定在 catapult archetype 上补齐两字段（纯数据修复，未改代码）。另：3 车道验证场景行距 60px 小于拦截半径 153.6px，跨行防护符合原版 3x3 语义，负例车道的植物需放置在拦截半径之外（lane1 蒜移至 x=448）。
 - C1 card clone 协议决策：待补

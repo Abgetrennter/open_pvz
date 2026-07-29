@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original_umbrellaleaf.protect"
+display_name = "Umbrella Leaf Protect"
+family = &"Controller"
+type_id = &"core.protect_targets"
+priority = 10
+tags = PackedStringArray("original", "umbrellaleaf", "protect")
+params = {
+"intercept_tags": PackedStringArray("overhead"),
+"protect_radius_slots": 1.6
+}

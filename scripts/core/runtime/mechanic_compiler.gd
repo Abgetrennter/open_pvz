@@ -42,6 +42,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.drive": &"Movement",
 		&"core.bite": &"Controller",
 		&"core.crush": &"Controller",
+		&"core.protect_targets": &"Controller",
 		&"core.sweep": &"Controller",
 		&"core.ground_damage": &"Controller",
 		&"core.projectile_transform": &"Controller",
@@ -749,6 +750,13 @@ static func _build_controller_spec_inline(archetype, mechanic) -> Dictionary:
 		&"core.proximity_liveness":
 			return {
 				"controller_id": &"core.proximity_liveness",
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"params": Dictionary(mechanic.params).duplicate(true),
+			}
+		&"core.protect_targets":
+			return {
+				"controller_id": &"core.protect_targets",
 				"mechanic_id": mechanic.mechanic_id,
 				"source_archetype_id": archetype.archetype_id,
 				"params": Dictionary(mechanic.params).duplicate(true),

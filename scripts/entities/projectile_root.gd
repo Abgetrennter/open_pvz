@@ -198,6 +198,16 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 	if target.has_method("get") and target.get("team") == team:
 		return
 
+	var interceptor: Node = _find_attack_interceptor(target)
+	if interceptor != null:
+		_consumed = true
+		_emit_attack_intercepted(interceptor, target)
+		set_state_value(&"last_result", &"intercepted")
+		set_status(&"intercepted")
+		sync_runtime_state()
+		queue_free()
+		return
+
 	if _hit_strategy == &"pierce":
 		_pierce_hit_entity_ids.append(target.get_instance_id())
 		_pierce_count += 1
@@ -606,6 +616,94 @@ func _is_ignored_target(target: Node) -> bool:
 	if target == null or not target.has_method("get_entity_id"):
 		return false
 	return _ignored_entity_ids.has(int(target.call("get_entity_id")))
+
+
+func _own_template_tags() -> PackedStringArray:
+	if entity_state == null or not entity_state.has_method("get_value"):
+		return PackedStringArray()
+	var tags_value: Variant = entity_state.call("get_value", &"projectile_template_tags")
+	if tags_value is PackedStringArray:
+		return PackedStringArray(tags_value)
+	if tags_value is Array:
+		return PackedStringArray(tags_value)
+	return PackedStringArray()
+
+
+func _find_attack_interceptor(target: Node) -> Node:
+	var attack_tags := _own_template_tags()
+	if attack_tags.is_empty():
+		return null
+	if not (target is Node2D):
+		return null
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("spatial_query"):
+		return null
+	var target_team: Variant = target.get("team")
+	if not (target_team is StringName or target_team is String):
+		return null
+	var protected_position := _candidate_ground_position(target as Node2D)
+	var candidates: Array = battle.call("spatial_query", {
+		"team_include": StringName(target_team),
+		"center": protected_position,
+		"radius": 400.0,
+	})
+	var best_interceptor: Node2D = null
+	var best_distance := INF
+	var best_entity_id := 9223372036854775807
+	for candidate in candidates:
+		var candidate_node := candidate as Node2D
+		if candidate_node == null or not is_instance_valid(candidate_node):
+			continue
+		var candidate_state: Variant = candidate_node.get("entity_state")
+		if candidate_state == null or not candidate_state.has_method("get_value"):
+			continue
+		var intercept_tags_value: Variant = candidate_state.call("get_value", &"intercept_tags")
+		var intercept_tags := PackedStringArray()
+		if intercept_tags_value is PackedStringArray or intercept_tags_value is Array:
+			intercept_tags = PackedStringArray(intercept_tags_value)
+		if intercept_tags.is_empty():
+			continue
+		if not _has_common_tag(attack_tags, intercept_tags):
+			continue
+		if candidate_node.has_method("is_liveness_enabled") and not bool(candidate_node.call("is_liveness_enabled", &"controllers")):
+			continue
+		var radius_value: Variant = candidate_state.call("get_value", &"intercept_radius")
+		var intercept_radius := float(radius_value) if (radius_value is float or radius_value is int) else 0.0
+		if intercept_radius <= 0.0:
+			continue
+		var distance := protected_position.distance_to(_candidate_ground_position(candidate_node))
+		if distance > intercept_radius:
+			continue
+		var candidate_entity_id := int(candidate_node.call("get_entity_id")) if candidate_node.has_method("get_entity_id") else -1
+		if best_interceptor == null or distance < best_distance or (is_equal_approx(distance, best_distance) and candidate_entity_id < best_entity_id):
+			best_interceptor = candidate_node
+			best_distance = distance
+			best_entity_id = candidate_entity_id
+	return best_interceptor
+
+
+func _has_common_tag(attack_tags: PackedStringArray, intercept_tags: PackedStringArray) -> bool:
+	for intercept_tag: String in intercept_tags:
+		if attack_tags.has(intercept_tag):
+			return true
+	return false
+
+
+func _emit_attack_intercepted(interceptor: Node, target: Node) -> void:
+	var intercept_runtime := _runtime_overrides.duplicate(true)
+	intercept_runtime["depth"] = int(intercept_runtime.get("depth", 1)) + 1
+	var intercepted_event = EventDataRef.create(interceptor, target, damage, PackedStringArray(["attack", "intercepted"]), intercept_runtime)
+	intercepted_event.core["protector_id"] = int(interceptor.call("get_entity_id")) if interceptor.has_method("get_entity_id") else -1
+	intercepted_event.core["protector_archetype_id"] = StringName(interceptor.get("archetype_id")) if interceptor.get("archetype_id") != null else StringName()
+	var attacker_valid := owner_entity != null and is_instance_valid(owner_entity)
+	intercepted_event.core["attacker_id"] = int(owner_entity.call("get_entity_id")) if attacker_valid and owner_entity.has_method("get_entity_id") else -1
+	intercepted_event.core["attacker_archetype_id"] = StringName(owner_entity.get("archetype_id")) if attacker_valid and owner_entity.get("archetype_id") != null else StringName()
+	intercepted_event.core["protected_target_id"] = int(target.call("get_entity_id")) if target.has_method("get_entity_id") else -1
+	intercepted_event.core["protected_target_archetype_id"] = StringName(target.get("archetype_id")) if target.get("archetype_id") != null else StringName()
+	intercepted_event.core["attack_tags"] = _own_template_tags()
+	intercepted_event.core["projectile_template_id"] = projectile_template_id
+	intercepted_event.core["lane_id"] = int(target.get("lane_id")) if target.get("lane_id") is int else -1
+	EventBus.push_event(&"attack.intercepted", intercepted_event)
 
 
 func _matches_target_exposure(target: Variant) -> bool:
