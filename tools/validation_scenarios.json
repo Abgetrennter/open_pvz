@@ -744,6 +744,12 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_garlic_validation",
+    "scenario": "res://scenes/validation/plant_original_garlic_validation.tres",
+    "description": "Validates Garlic bite-tag filtered when_damaged trigger, deterministic boundary lane_reroute, and non-bite damage immunity.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_water_pair_validation",
     "scenario": "res://scenes/validation/plant_original_water_pair_validation.tres",
     "description": "Validates Lily Pad support placement and Sea-shroom primary placement on water slots.",

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_garlic_when_bitten.tres" id="3_mechanic_0"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_garlic_lane_reroute.tres" id="4_mechanic_1"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_garlic"
+display_name = "Garlic"
+hit_height_band = ExtResource("2_height")
+entity_kind = &"plant"
+tags = PackedStringArray("archetype", "plant", "original", "garlic", "redirect")
+required_components = PackedStringArray("TriggerComponent")
+optional_components = PackedStringArray("DebugViewComponent")
+max_health = 400
+hitbox_size = Vector2(54, 64)
+mechanics = [ExtResource("3_mechanic_0"), ExtResource("4_mechanic_1")]

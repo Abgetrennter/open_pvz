@@ -34,6 +34,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.consume_self": &"Payload",
 		&"core.reveal": &"Payload",
 		&"core.clear_fog": &"Payload",
+		&"core.lane_reroute": &"Payload",
 		&"core.walk": &"Movement",
 		&"core.leap_once": &"Movement",
 		&"core.tunnel": &"Movement",
@@ -583,6 +584,8 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"reveal"}
 		&"core.clear_fog":
 			return {"effect_id": &"clear_fog"}
+		&"core.lane_reroute":
+			return {"effect_id": &"lane_reroute"}
 		_:
 			return {}
 
