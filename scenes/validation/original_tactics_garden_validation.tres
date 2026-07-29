@@ -1,0 +1,190 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="4_request"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_peashooter.tres" id="5_peashooter_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_imitater.tres" id="6_imitater_card"]
+
+[sub_resource type="Resource" id="Spawn_garlic_boundary"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_garlic"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_walker_garlic"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 280.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 1.0
+}
+
+[sub_resource type="Resource" id="Spawn_wallnut_lane1"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 1
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_umbrella_protector"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_umbrellaleaf"
+lane_id = 2
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_wallnut_protected"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 2
+x_position = 256.0
+
+[sub_resource type="Resource" id="Spawn_catapult_protected"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_catapult"
+lane_id = 2
+x_position = 700.0
+
+[sub_resource type="Resource" id="Spawn_garlic_unprotected"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_garlic"
+lane_id = 3
+x_position = 448.0
+
+[sub_resource type="Resource" id="Spawn_catapult_unprotected"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_catapult"
+lane_id = 3
+x_position = 700.0
+
+[sub_resource type="Resource" id="Spawn_walker_lane4"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_basic_walker"
+lane_id = 4
+x_position = 760.0
+
+[sub_resource type="Resource" id="Req_peashooter"]
+script = ExtResource("4_request")
+at_time = 0.5
+card_id = &"card_original_peashooter"
+lane_id = 4
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_clone"]
+script = ExtResource("4_request")
+at_time = 1.0
+card_id = &"card_original_imitater__card_original_peashooter"
+lane_id = 4
+slot_index = 1
+
+[sub_resource type="Resource" id="Rule_garlic_reroute"]
+script = ExtResource("3_rule")
+rule_id = &"garlic_reroute_boundary"
+description = "Biting the lane-0 Garlic must reroute the walker to lane 1 (only viable direction at the board boundary)."
+event_name = &"entity.lane_changed"
+max_count = 1
+required_core_values = {
+"from_lane": 0,
+"reason": &"garlic_repel",
+"to_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_rerouted_engages"]
+script = ExtResource("3_rule")
+rule_id = &"rerouted_walker_engages_new_lane"
+description = "After rerouting, the walker must engage the Wall-nut in lane 1."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_basic_walker",
+"target_archetype_id": &"archetype_original_wallnut",
+"target_lane": 1
+}
+
+[sub_resource type="Resource" id="Rule_intercepted"]
+script = ExtResource("3_rule")
+rule_id = &"overhead_attack_intercepted"
+description = "The Umbrella Leaf must intercept the catapult's overhead basketball in lane 2."
+event_name = &"attack.intercepted"
+required_core_values = {
+"lane_id": 2,
+"protector_archetype_id": &"archetype_original_umbrellaleaf"
+}
+
+[sub_resource type="Resource" id="Rule_protected_safe"]
+script = ExtResource("3_rule")
+rule_id = &"protected_target_no_projectile_damage"
+description = "No Wall-nut may receive projectile damage while covered by the Umbrella Leaf."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"target_archetype_id": &"archetype_original_wallnut"
+}
+
+[sub_resource type="Resource" id="Rule_unprotected_hit"]
+script = ExtResource("3_rule")
+rule_id = &"unprotected_lane_projectile_damage"
+description = "The unprotected Garlic in lane 3 must receive projectile damage, proving interception requires an in-range protector."
+event_name = &"entity.damaged"
+required_tags = PackedStringArray("projectile")
+required_core_values = {
+"target_archetype_id": &"archetype_original_garlic"
+}
+
+[sub_resource type="Resource" id="Rule_clone_resolved"]
+script = ExtResource("3_rule")
+rule_id = &"clone_resolved"
+description = "Battle setup must expand the Imitater clone card and emit card.clone_resolved."
+event_name = &"card.clone_resolved"
+max_count = 1
+required_core_values = {
+"clone_card_id": &"card_original_imitater__card_original_peashooter",
+"source_card_id": &"card_original_peashooter"
+}
+
+[sub_resource type="Resource" id="Rule_clone_accepted"]
+script = ExtResource("3_rule")
+rule_id = &"clone_card_accepted"
+description = "The clone card must be placeable while the original is still on cooldown."
+event_name = &"placement.accepted"
+max_count = 1
+required_core_values = {
+"card_id": &"card_original_imitater__card_original_peashooter"
+}
+
+[sub_resource type="Resource" id="Rule_clone_spawn_metadata"]
+script = ExtResource("3_rule")
+rule_id = &"clone_spawn_carries_imitater_metadata"
+description = "The clone placement must spawn the target archetype tagged with the imitater source metadata."
+event_name = &"entity.spawned"
+max_count = 1
+required_core_values = {
+"archetype_id": &"archetype_original_peashooter",
+"imitater_source_card_id": &"card_original_imitater",
+"spawn_reason": &"card_play"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"original_tactics_garden_validation"
+display_name = "Original Tactics Garden Validation"
+description = "Showcase validation for the P0 tactical support plants: Garlic reroutes a biter into the neighbor lane, Umbrella Leaf intercepts overhead catapult basketballs while an unprotected lane still takes damage, and the Imitater clone card places an independent Peashooter copy."
+goals = PackedStringArray("Verify a bite on the lane-0 Garlic reroutes the walker to lane 1 and it engages the Wall-nut there.", "Verify the Umbrella Leaf intercepts overhead projectiles in lane 2 while the unprotected lane-3 Garlic is hit.", "Verify the Imitater clone card expands at setup and places an independent Peashooter copy with imitater metadata.")
+validation_time_limit = 12.0
+initial_sun = 400
+lane_count = 5
+card_defs = [ExtResource("5_peashooter_card"), ExtResource("6_imitater_card")]
+card_play_requests = [SubResource("Req_peashooter"), SubResource("Req_clone")]
+validation_rules = [SubResource("Rule_garlic_reroute"), SubResource("Rule_rerouted_engages"), SubResource("Rule_intercepted"), SubResource("Rule_protected_safe"), SubResource("Rule_unprotected_hit"), SubResource("Rule_clone_resolved"), SubResource("Rule_clone_accepted"), SubResource("Rule_clone_spawn_metadata")]
+spawns = [SubResource("Spawn_garlic_boundary"), SubResource("Spawn_walker_garlic"), SubResource("Spawn_wallnut_lane1"), SubResource("Spawn_umbrella_protector"), SubResource("Spawn_wallnut_protected"), SubResource("Spawn_catapult_protected"), SubResource("Spawn_garlic_unprotected"), SubResource("Spawn_catapult_unprotected"), SubResource("Spawn_walker_lane4")]

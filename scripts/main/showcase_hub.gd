@@ -149,7 +149,7 @@ const GROUPS := [
 	},
 	{
 		"group_title": "原版植物移植展示",
-		"group_summary": "39 种原版 PVZ 植物按战斗类型分为 8 个展示场景，直观呈现射手、寒冰、投手、生产、蘑菇、爆炸、防御和特殊植物的战斗行为。",
+		"group_summary": "原版 PVZ 植物按战斗类型分为 9 个展示场景，直观呈现射手、寒冰、投手、生产、蘑菇、爆炸、防御、特殊和战术辅助植物的战斗行为。",
 		"color": Color("66bb6a"),
 		"items": [
 			{
@@ -191,6 +191,11 @@ const GROUPS := [
 				"title": "特殊植物园",
 				"summary": "大嘴花、倭瓜、缠人海带、玉米加农炮、三叶草和魅惑菇展示吞噬、跳跃、水战、炮击和催眠等独特机制。",
 				"scene": "res://scenes/showcase/original_special_garden_showcase.tscn",
+			},
+			{
+				"title": "战术辅助园",
+				"summary": "大蒜把咬它的僵尸赶去邻道，叶子保护伞拦截投石车的高空篮球，模仿者克隆卡放出独立冷却的豌豆射手副本。",
+				"scene": "res://scenes/showcase/original_tactics_garden_showcase.tscn",
 			},
 		],
 	},
