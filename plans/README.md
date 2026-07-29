@@ -18,6 +18,7 @@
 | `original-plant-protocol-gaps.md` | 原版植物协议缺口追踪 | 协议缺口追踪，维护中 | 是 |
 | `original-plant-mechanism-audit.md` | 原版植物机制审计 | 审计记录，按需更新 | 是 |
 | `original-plant-visual-bulk-migration-plan.md` | 原版植物视觉批量迁移执行方案 | 当前私有素材包、原版图像移植工作文档、验证脚本与展示场景 | 是 |
+| `reanim-native-runtime-implementation-plan.md` | Reanim 原生运行时三类样本 Spike 与分阶段迁移 | 设计草案、当前导入/视觉运行链、de-pvz 语义锚点与 local_private 验证 | 是（实施计划） |
 | `未来计划.md` | 前进方向概要 | 与 `wiki/04-roadmap-reference/26-开发路线图.md` 对齐 | 是（路线图方向） |
 | `zombie-design-research-report.md` | 僵尸设计研究报告（三源综合分析） | `vendor/de-pvz/` + `vendor/PVZ-Godot-Dream/` + 本项目代码 | 是 |
 
@@ -33,7 +34,7 @@
 | `reanim资源转换工具链规划.md` | reanim 工具链规划 | 历史讨论 |
 | `attack-chain-family-compile-path.md` | 攻击链编译路径讨论 | 历史讨论 |
 | `draft/原版机制未实现项盘点.md` | 原版机制未实现项盘点 | 草案，基于 de-pvz / PVZ-Godot-Dream / 当前 validation 对齐；P0 章节已拆分为 `p0-original-plant-blockers-plan.md` |
-| `draft/reanim原生运行时ReanimData方案设计草案.md` | Reanim 原生运行时方案（ReanimData + ReanimPlayer） | 草案，基于 de-pvz reanim 语义 / 当前 reanim 导入链 / 100Hz 仿真时钟对齐；否 |
+| `draft/reanim原生运行时ReanimData方案设计草案.md` | Reanim 原生运行时方案（ReanimData + ReanimPlayer + ReanimActorDef） | 草案，基于 de-pvz reanim 语义 / 当前 reanim 导入链 / 100Hz 仿真时钟对齐；否 |
 | `pvz_like_engine_design_doc_v_1.md` | 引擎设计文档 v1 | 早期设计，已被实际实现超越 |
 
 ## 设计讨论（子目录）
