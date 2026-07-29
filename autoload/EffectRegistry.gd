@@ -766,6 +766,29 @@ func _register_builtin_defs() -> void:
 	clear_fog.allow_extra_params = false
 	clear_fog.allow_extra_children = false
 	register_def(clear_fog)
+
+	var lane_reroute = EffectDefRef.new()
+	lane_reroute.id = &"lane_reroute"
+	lane_reroute.tags = PackedStringArray(["hit_response", "control", "lane"])
+	var lane_reroute_param_defs: Array[Dictionary] = [{
+		"name": "target_mode",
+		"type": "string_name",
+		"default": &"event_source",
+		"options": PackedStringArray(["source", "owner", "context_target", "event_source", "event_target"]),
+	}, {
+		"name": "direction_policy",
+		"type": "string_name",
+		"default": &"random",
+		"options": PackedStringArray(["random", "prefer_up", "prefer_down"]),
+	}, {
+		"name": "reason",
+		"type": "string_name",
+		"default": &"lane_reroute",
+	}]
+	lane_reroute.param_defs = lane_reroute_param_defs
+	lane_reroute.allow_extra_params = false
+	lane_reroute.allow_extra_children = false
+	register_def(lane_reroute)
 	_register_builtin_strategies()
 
 
@@ -1167,6 +1190,56 @@ func _register_builtin_strategies() -> void:
 		convert_event.core["old_team"] = current_team
 		convert_event.core["new_team"] = new_team
 		EventBus.push_event(&"entity.team_switched", convert_event)
+		return result
+	)
+
+	register_strategy(&"lane_reroute", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var target := _resolve_target(context, params)
+		if target == null or not is_instance_valid(target):
+			result.success = false
+			result.notes.append("Lane reroute target missing or invalid.")
+			return result
+		var metrics := _get_battlefield_metrics()
+		if metrics == null:
+			result.success = false
+			result.notes.append("Lane reroute requires battlefield metrics.")
+			return result
+		var lane_positions: Dictionary = metrics.get("lane_y_positions")
+		var from_lane := int(target.get("lane_id"))
+		var candidate_lanes: Array[int] = []
+		if lane_positions.has(from_lane - 1):
+			candidate_lanes.append(from_lane - 1)
+		if lane_positions.has(from_lane + 1):
+			candidate_lanes.append(from_lane + 1)
+		if candidate_lanes.is_empty():
+			result.success = false
+			result.notes.append("Lane reroute found no adjacent lane for lane %d." % from_lane)
+			return result
+		var direction_policy := StringName(params.get("direction_policy", &"random"))
+		var to_lane := candidate_lanes[0]
+		match direction_policy:
+			&"prefer_up":
+				to_lane = candidate_lanes[0]
+			&"prefer_down":
+				to_lane = candidate_lanes[candidate_lanes.size() - 1]
+			_:
+				if candidate_lanes.size() > 1:
+					var entity_seed := GameState.derive_entity_seed(GameState.battle_seed, int(target.call("get_entity_id")) if target.has_method("get_entity_id") else -1)
+					var rng := RandomNumberGenerator.new()
+					rng.seed = hash(str(entity_seed) + "_lane_reroute_" + str(GameState.current_tick))
+					to_lane = candidate_lanes[rng.randi_range(0, candidate_lanes.size() - 1)]
+		if target.has_method("assign_lane"):
+			target.call("assign_lane", to_lane)
+		else:
+			target.set("lane_id", to_lane)
+		if metrics.has_method("get_lane_y") and target is Node2D:
+			(target as Node2D).global_position.y = float(metrics.call("get_lane_y", to_lane))
+		var reroute_event: Variant = EventDataRef.create(context.owner_entity, target, null, PackedStringArray(["lane_reroute"]))
+		reroute_event.core["from_lane"] = from_lane
+		reroute_event.core["to_lane"] = to_lane
+		reroute_event.core["reason"] = StringName(params.get("reason", &"lane_reroute"))
+		EventBus.push_event(&"entity.lane_changed", reroute_event)
 		return result
 	)
 

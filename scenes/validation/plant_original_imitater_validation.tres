@@ -1,0 +1,157 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://scripts/battle/card_def.gd" id="4_card_def"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_peashooter.tres" id="5_peashooter_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_imitater.tres" id="6_imitater_card"]
+
+[sub_resource type="Resource" id="Card_broken_clone"]
+script = ExtResource("4_card_def")
+card_id = &"card_original_imitater_broken"
+display_name = "Imitater (broken)"
+archetype_id = &""
+sun_cost = 0
+cooldown_seconds = 0.0
+placement_tags = PackedStringArray()
+clone_source_card_id = &"card_missing_source"
+clone_metadata = {}
+
+[sub_resource type="Resource" id="Req_original"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_peashooter"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_clone"]
+script = ExtResource("2_request")
+at_time = 0.25
+card_id = &"card_original_imitater__card_original_peashooter"
+lane_id = 0
+slot_index = 1
+
+[sub_resource type="Resource" id="Req_clone_again"]
+script = ExtResource("2_request")
+at_time = 0.45
+card_id = &"card_original_imitater__card_original_peashooter"
+lane_id = 0
+slot_index = 2
+
+[sub_resource type="Resource" id="Req_broken_clone"]
+script = ExtResource("2_request")
+at_time = 0.65
+card_id = &"card_original_imitater_broken__card_missing_source"
+lane_id = 0
+slot_index = 3
+
+[sub_resource type="Resource" id="Rule_clone_resolved"]
+script = ExtResource("3_rule")
+rule_id = &"clone_resolved"
+description = "Battle setup must expand the Imitater clone card into an independent card instance and emit card.clone_resolved."
+event_name = &"card.clone_resolved"
+max_count = 1
+required_core_values = {
+"clone_card_id": &"card_original_imitater__card_original_peashooter",
+"source_card_id": &"card_original_peashooter",
+"target_archetype_id": &"archetype_original_peashooter"
+}
+
+[sub_resource type="Resource" id="Rule_original_accepted"]
+script = ExtResource("3_rule")
+rule_id = &"original_card_accepted"
+description = "The original Peashooter card must be placed normally."
+event_name = &"placement.accepted"
+max_count = 1
+required_core_values = {
+"card_id": &"card_original_peashooter"
+}
+
+[sub_resource type="Resource" id="Rule_clone_accepted"]
+script = ExtResource("3_rule")
+rule_id = &"clone_card_accepted"
+description = "The clone card must be placeable while the original is still on cooldown, proving independent cooldown timelines."
+event_name = &"placement.accepted"
+max_count = 1
+required_core_values = {
+"card_id": &"card_original_imitater__card_original_peashooter"
+}
+
+[sub_resource type="Resource" id="Rule_clone_cooldown_started"]
+script = ExtResource("3_rule")
+rule_id = &"clone_cooldown_started"
+description = "The clone card must enter its own cooldown after being played."
+event_name = &"card.cooldown_started"
+max_count = 1
+required_core_values = {
+"card_id": &"card_original_imitater__card_original_peashooter"
+}
+
+[sub_resource type="Resource" id="Rule_clone_second_play_on_cooldown"]
+script = ExtResource("3_rule")
+rule_id = &"clone_second_play_on_cooldown"
+description = "Replaying the clone card during its own cooldown must be rejected, proving the clone owns an independent cooldown slot."
+event_name = &"card.play_rejected"
+max_count = 1
+required_core_values = {
+"card_id": &"card_original_imitater__card_original_peashooter",
+"reason": &"on_cooldown"
+}
+
+[sub_resource type="Resource" id="Rule_imitater_metadata"]
+script = ExtResource("3_rule")
+rule_id = &"clone_spawn_carries_imitater_metadata"
+description = "The clone placement must spawn the target archetype tagged with the imitater source metadata."
+event_name = &"entity.spawned"
+max_count = 1
+required_core_values = {
+"archetype_id": &"archetype_original_peashooter",
+"imitater_source_card_id": &"card_original_imitater",
+"spawn_reason": &"card_play"
+}
+
+[sub_resource type="Resource" id="Rule_broken_clone_protocol_issue"]
+script = ExtResource("3_rule")
+rule_id = &"broken_clone_protocol_issue"
+description = "A clone card referencing an unknown source card must be rejected with a protocol.issue in the card_clone scope."
+event_name = &"protocol.issue"
+required_core_values = {
+"scope": &"card_clone"
+}
+
+[sub_resource type="Resource" id="Rule_broken_clone_not_resolved"]
+script = ExtResource("3_rule")
+rule_id = &"broken_clone_not_resolved"
+description = "The broken clone card must never emit card.clone_resolved."
+event_name = &"card.clone_resolved"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_card_id": &"card_missing_source"
+}
+
+[sub_resource type="Resource" id="Rule_broken_clone_play_rejected"]
+script = ExtResource("3_rule")
+rule_id = &"broken_clone_play_rejected"
+description = "Playing the never-expanded broken clone id must fail as an unknown card, proving it never entered the hand."
+event_name = &"card.play_rejected"
+max_count = 1
+required_core_values = {
+"card_id": &"card_original_imitater_broken__card_missing_source",
+"reason": &"unknown_card"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_imitater_validation"
+display_name = "Original Imitater Validation"
+description = "Validates the Imitater card clone protocol: battle setup expands the clone card into an independent card instance with its own cooldown slot, placement spawns the target archetype with imitater metadata, and invalid clone sources are rejected with protocol.issue."
+goals = PackedStringArray("Verify card.clone_resolved is emitted during battle setup with the expanded clone identity.", "Verify original and clone cards place independently with separate cooldown timelines.", "Verify an invalid clone source is rejected via protocol.issue and never enters the hand.")
+validation_time_limit = 1.5
+initial_sun = 1000
+lane_count = 1
+card_defs = [ExtResource("5_peashooter_card"), ExtResource("6_imitater_card"), SubResource("Card_broken_clone")]
+card_play_requests = [SubResource("Req_original"), SubResource("Req_clone"), SubResource("Req_clone_again"), SubResource("Req_broken_clone")]
+validation_rules = [SubResource("Rule_clone_resolved"), SubResource("Rule_original_accepted"), SubResource("Rule_clone_accepted"), SubResource("Rule_clone_cooldown_started"), SubResource("Rule_clone_second_play_on_cooldown"), SubResource("Rule_imitater_metadata"), SubResource("Rule_broken_clone_protocol_issue"), SubResource("Rule_broken_clone_not_resolved"), SubResource("Rule_broken_clone_play_rejected")]
+spawns = []

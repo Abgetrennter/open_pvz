@@ -7,3 +7,5 @@ class_name CardDef
 @export var sun_cost := 25
 @export var cooldown_seconds := 1.0
 @export var placement_tags: PackedStringArray = PackedStringArray()
+@export var clone_source_card_id: StringName = StringName()
+@export var clone_metadata: Dictionary = {}

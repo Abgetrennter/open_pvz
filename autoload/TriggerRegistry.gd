@@ -118,6 +118,9 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "once_key",
 		"type": "string_name",
+	}, {
+		"name": "required_damage_tags",
+		"type": "packed_string_array",
 	}]
 	when_damaged.id = &"when_damaged"
 	when_damaged.event_name = &"entity.damaged"
@@ -261,6 +264,12 @@ func _register_builtin_strategies() -> void:
 		var min_damage := int(condition_values.get("min_damage", 0))
 		if int(event_data.core.get("value", 0)) < min_damage:
 			return false
+		var required_damage_tags := PackedStringArray(condition_values.get("required_damage_tags", PackedStringArray()))
+		if not required_damage_tags.is_empty():
+			var event_tags := PackedStringArray(event_data.core.get("tags", PackedStringArray()))
+			for required_tag: String in required_damage_tags:
+				if not event_tags.has(required_tag):
+					return false
 		if condition_values.has("max_health_fraction_at_or_below"):
 			var maximum_health := float(event_data.core.get("max_health", 0))
 			if maximum_health <= 0.0:

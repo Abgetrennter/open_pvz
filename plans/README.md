@@ -32,7 +32,7 @@
 | `UI 框架层设计方案.md` | UI 框架设计讨论 | 历史讨论 |
 | `reanim资源转换工具链规划.md` | reanim 工具链规划 | 历史讨论 |
 | `attack-chain-family-compile-path.md` | 攻击链编译路径讨论 | 历史讨论 |
-| `draft/原版机制未实现项盘点.md` | 原版机制未实现项盘点 | 草案，基于 de-pvz / PVZ-Godot-Dream / 当前 validation 对齐 |
+| `draft/原版机制未实现项盘点.md` | 原版机制未实现项盘点 | 草案，基于 de-pvz / PVZ-Godot-Dream / 当前 validation 对齐；P0 章节已拆分为 `p0-original-plant-blockers-plan.md` |
 | `draft/reanim原生运行时ReanimData方案设计草案.md` | Reanim 原生运行时方案（ReanimData + ReanimPlayer） | 草案，基于 de-pvz reanim 语义 / 当前 reanim 导入链 / 100Hz 仿真时钟对齐；否 |
 | `pvz_like_engine_design_doc_v_1.md` | 引擎设计文档 v1 | 早期设计，已被实际实现超越 |
 
@@ -54,7 +54,7 @@
 
 | 目录 | 用途 |
 |------|------|
-| `archive/` | 已完成阶段归档总览，已归档的不再在根目录登记；近期归档包含 `wave-runner-2026-05/` |
+| `archive/` | 已完成阶段归档总览，已归档的不再在根目录登记；近期归档包含 `wave-runner-2026-05/` 与 `p0-original-plant-blockers-2026-07/`（P0 原版植物阻塞项执行计划，2026-07-29 完成） |
 | `draft/` | 未来方向草案区 |
 | `visual-feedback-layer/` | 视觉反馈层设计讨论子目录 |
 

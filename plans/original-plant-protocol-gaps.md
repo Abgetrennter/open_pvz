@@ -11,9 +11,9 @@
 
 ## 当前结论
 
-- 原版植物资源和卡片当前为 `46/49`：缺 `Garlic`、`Umbrella Leaf`、`Imitater`。
+- 原版植物资源和卡片当前为 `49/49`：`Garlic`、`Umbrella Leaf`、`Imitater` 已于 2026-07-29 P0 阻塞批落地。
 - 大部分早期协议缺口已经被现有 Mechanic / Effect / Controller / Placement 能力覆盖。
-- 当前真正阻塞新内容落地的缺口集中在 3 类：换道、防护/复制、场地或多格占用。
+- 换道（G-22）、防护（G-23）、卡片复制（G-27）已关闭；当前真正阻塞新内容落地的缺口集中在场地变形与多格占用。
 - E 批次已有资源的机制优先单体验证已补齐；下一步应处理缺失资源或真正需要协议设计的能力，而不是新增通用基础设施。
 
 ---
@@ -43,12 +43,12 @@
 | G-19 | 金属吸附 | 部分覆盖并已验证升级依赖 | Magnet-shroom, Gold Magnet | metal targeting 已覆盖；`plant_original_goldmagnet_validation` 覆盖升级最小语义，collectible 吸附未完成 |
 | G-20 | 升级放置依赖 | 已覆盖最小语义 | E 批次升级植物 | `required_present_archetypes` 已覆盖依赖检查；替换/占位精确语义另见 G-26 |
 | G-21 | 黄油眩晕 | 已覆盖 | Kernel-pult | `apply_status` + `butter_stun` 已覆盖；原版概率精确值后置 |
-| G-22 | 换道 | 未覆盖 | Garlic | 需要 lane reroute effect / rule module，不应写入 zombie 特判 |
-| G-23 | 防护特定攻击 | 未覆盖 | Umbrella Leaf | 需要 target protection / attack type guard 协议 |
+| G-22 | 换道 | 已覆盖 | Garlic | `Effect.lane_reroute` + `when_damaged(required_damage_tags)` + `entity.lane_changed` 已覆盖，无 zombie 特判；`plant_original_garlic_validation` |
+| G-23 | 防护特定攻击 | 已覆盖 | Umbrella Leaf | `Controller.core.protect_targets` + `attack.intercepted`（命中前取消，标签驱动）已覆盖；`plant_original_umbrellaleaf_validation`；Bungee 完整流程后置 |
 | G-24 | 金币资源 | 部分覆盖 | Marigold, Gold Magnet | Marigold `coin_generated` collectible 已覆盖；完整 coin/silver economy 与吸附后置 |
 | G-25 | 手动瞄准 | 基础能力已有，植物未完成 | Cob Cannon | BattleModeHost / InputProfile 已能承接手动输入；Cob Cannon 发射链未验收 |
 | G-26 | 多格占用 | 未覆盖 | Cob Cannon | 需要 Placement multi_tile / composite occupant |
-| G-27 | 卡片复制 | 未覆盖 | Imitater | 需要 Card layer clone 协议 |
+| G-27 | 卡片复制 | 已覆盖 | Imitater | CardDef `clone_source_card_id` + BattleCardState setup 展开 + `card.clone_resolved`，冷却独立；`plant_original_imitater_validation` |
 | G-28 | 跳跃高度阻挡 | 后置 | Tall-nut | 当前无跳跃僵尸正式内容；HeightBand 基线已在，collision/jump 语义等内容驱动 |
 | G-29 | 坑洞/crater | 后置 | Doom-shroom | 需要 BoardSlot modifier / 场地变形；当前不作为规则基础设施主线 |
 | G-30 | 随机 payload 选择 | 已覆盖 | Kernel-pult | `Emission.core.shuffle_cycle` 确定性轮换已覆盖 |
@@ -69,11 +69,11 @@
 
 ### B. 需要最小内容实现
 
-这些植物当前资源/card 缺失，或资源缺失导致无法进入验证：
+已清零（2026-07-29 P0 阻塞批）：
 
-- `Garlic`：需要新增 archetype/card，并实现 lane reroute 能力。
-- `Umbrella Leaf`：需要新增 archetype/card，并实现 protection 能力。
-- `Imitater`：需要新增 card clone 协议，不能绕开 CardState / RuntimeSpec。
+- `Garlic`：已落地 archetype/card + `Effect.lane_reroute`（G-22 关闭）。
+- `Umbrella Leaf`：已落地 archetype/card + `Controller.core.protect_targets`（G-23 关闭）。
+- `Imitater`：已落地 card clone 协议，未绕开 CardState / RuntimeSpec（G-27 关闭）。
 
 ### C. 明确后置基础设施
 
@@ -88,12 +88,10 @@
 
 ## 推荐下一批
 
-E-existing-validation 已完成。下一批不建议继续扩通用基础设施，推荐按内容缺口推进：
+E-existing-validation 与 P0 阻塞批（Garlic / Umbrella Leaf / Imitater）已完成。下一批不建议继续扩通用基础设施，推荐按内容缺口推进：
 
-1. Garlic：补 archetype/card，并设计 lane reroute 的最小规则层入口。
-2. Umbrella Leaf：补 archetype/card，并设计 attack protection / target guard。
-3. Imitater：补 card clone 协议，保持 CardState / RuntimeSpec 边界。
-4. Cob Cannon：等待 multi_tile / composite occupant 与手动发射协议成形后再做。
+1. Cob Cannon：等待 multi_tile / composite occupant 与手动发射协议成形后再做。
+2. Doom-shroom 坑洞 / 完整 coin taxonomy 等 P1 项按草案后续批次拆分。
 
 这些项目都比对象池、碰撞矩阵或泛化 BoardSlot modifier 更贴近当前原版植物迁移目标。
 

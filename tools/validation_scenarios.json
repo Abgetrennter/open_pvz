@@ -744,6 +744,24 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_garlic_validation",
+    "scenario": "res://scenes/validation/plant_original_garlic_validation.tres",
+    "description": "Validates Garlic bite-tag filtered when_damaged trigger, deterministic boundary lane_reroute, and non-bite damage immunity.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_umbrellaleaf_validation",
+    "scenario": "res://scenes/validation/plant_original_umbrellaleaf_validation.tres",
+    "description": "Validates Umbrella Leaf protect_targets interception of overhead-tagged projectiles, with unprotected-lane and bite negative assertions.",
+    "layers": ["core"]
+  },
+  {
+    "id": "plant_original_imitater_validation",
+    "scenario": "res://scenes/validation/plant_original_imitater_validation.tres",
+    "description": "Validates Imitater card clone protocol: setup-time clone expansion with card.clone_resolved, independent cooldown timelines, imitater spawn metadata, and protocol.issue rejection for invalid clone sources.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_water_pair_validation",
     "scenario": "res://scenes/validation/plant_original_water_pair_validation.tres",
     "description": "Validates Lily Pad support placement and Sea-shroom primary placement on water slots.",
@@ -879,6 +897,18 @@
     "id": "original_special_garden_validation",
     "scenario": "res://scenes/validation/original_special_garden_validation.tres",
     "description": "Showcase validation for original special plants across placement, water, upgrade, air and wake contexts.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_tactics_garden_validation",
+    "scenario": "res://scenes/validation/original_tactics_garden_validation.tres",
+    "description": "Showcase validation for P0 tactical support plants: Garlic lane reroute, Umbrella Leaf overhead interception, and Imitater clone card placement.",
+    "layers": ["showcase", "core"]
+  },
+  {
+    "id": "original_tactics_garden_validation",
+    "scenario": "res://scenes/validation/original_tactics_garden_validation.tres",
+    "description": "Showcase validation for P0 tactical support plants: Garlic lane reroute, Umbrella Leaf overhead interception, and Imitater clone card placement.",
     "layers": ["showcase", "core"]
   },
   {

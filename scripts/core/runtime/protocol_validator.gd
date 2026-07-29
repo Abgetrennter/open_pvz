@@ -1195,9 +1195,11 @@ static func _validate_card_def(card_def: Resource, scenario_id: StringName) -> A
 		return errors
 	if StringName(card_def.get("card_id")) == StringName():
 		errors.append("BattleScenario %s card def must define card_id." % String(scenario_id))
+	var clone_source_card_id := StringName(card_def.get("clone_source_card_id"))
 	var archetype_id := StringName(card_def.get("archetype_id"))
 	if archetype_id == StringName():
-		errors.append("BattleScenario %s card def %s must define archetype_id." % [String(scenario_id), String(card_def.get("card_id"))])
+		if clone_source_card_id == StringName():
+			errors.append("BattleScenario %s card def %s must define archetype_id." % [String(scenario_id), String(card_def.get("card_id"))])
 	elif archetype_id != StringName():
 		if not SceneRegistry.has_archetype(archetype_id):
 			errors.append("BattleScenario %s card def %s references unknown archetype_id %s." % [

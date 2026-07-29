@@ -37,11 +37,18 @@ func setup(battle_node: Node, scenario: Resource) -> void:
 		for card_def in configured_card_defs:
 			if card_def == null:
 				continue
+			if StringName(card_def.get("clone_source_card_id")) != StringName():
+				continue
 			var card_id := StringName(card_def.get("card_id"))
 			if card_id == StringName():
 				continue
 			_card_defs[card_id] = card_def
 			hand_order.append(card_id)
+		for card_def in configured_card_defs:
+			if card_def == null:
+				continue
+			if StringName(card_def.get("clone_source_card_id")) != StringName():
+				_resolve_clone_card(card_def)
 
 	var configured_requests: Variant = scenario.get("card_play_requests")
 	if configured_requests is Array:
@@ -106,6 +113,37 @@ func enqueue_card(card_def: Resource, reason: StringName = &"runtime_enqueue") -
 		hand_order.append(card_id)
 	_emit_hand_updated(reason, card_id)
 	return true
+
+
+func _resolve_clone_card(clone_def: Resource) -> void:
+	var clone_config_id := StringName(clone_def.get("card_id"))
+	var source_card_id := StringName(clone_def.get("clone_source_card_id"))
+	var source_def: Resource = _card_defs.get(source_card_id, null)
+	if source_def == null:
+		if battle != null and is_instance_valid(battle) and battle.has_method("report_protocol_issues"):
+			var clone_errors: Array[String] = ["Clone card %s references unknown clone_source_card_id %s." % [String(clone_config_id), String(source_card_id)]]
+			battle.call("report_protocol_issues", clone_errors, &"card_clone")
+		return
+	var clone_instance: Resource = source_def.duplicate()
+	var clone_card_id := StringName("%s__%s" % [String(clone_config_id), String(source_card_id)])
+	clone_instance.set("card_id", clone_card_id)
+	clone_instance.set("display_name", "%s (%s)" % [String(clone_def.get("display_name")), String(source_def.get("display_name"))])
+	clone_instance.set("clone_source_card_id", source_card_id)
+	var merged_metadata: Dictionary = {}
+	var configured_metadata: Variant = clone_def.get("clone_metadata")
+	if configured_metadata is Dictionary:
+		merged_metadata = Dictionary(configured_metadata).duplicate()
+	merged_metadata["imitater_source_card_id"] = clone_config_id
+	merged_metadata["clone_source_card_id"] = source_card_id
+	clone_instance.set("clone_metadata", merged_metadata)
+	_card_defs[clone_card_id] = clone_instance
+	if not hand_order.has(clone_card_id):
+		hand_order.append(clone_card_id)
+	var clone_event: Variant = EventDataRef.create(null, null, null, PackedStringArray(["card", "clone"]))
+	clone_event.core["clone_card_id"] = clone_card_id
+	clone_event.core["source_card_id"] = source_card_id
+	clone_event.core["target_archetype_id"] = StringName(source_def.get("archetype_id"))
+	EventBus.push_event(&"card.clone_resolved", clone_event)
 
 
 func rotate_card_to_back(card_id: StringName, reason: StringName = &"runtime_rotate") -> bool:
@@ -181,12 +219,16 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 		return false
 
 	var spawned_entity: Node = null
+	var clone_spawn_metadata: Dictionary = {}
+	var configured_clone_metadata: Variant = card_def.get("clone_metadata")
+	if configured_clone_metadata is Dictionary and not Dictionary(configured_clone_metadata).is_empty():
+		clone_spawn_metadata = Dictionary(configured_clone_metadata)
 	if battle != null and is_instance_valid(battle):
-		spawned_entity = battle.spawn_card_actor(card_def, lane_id, slot_index, {
+		spawned_entity = battle.spawn_card_actor(card_def, lane_id, slot_index, clone_spawn_metadata.merged({
 			"card_id": card_id,
 			"request_id": StringName(placement_request.get("request_id")),
 			"archetype_id": StringName(card_def.get("archetype_id")),
-		}, false)
+		}), false)
 	if spawned_entity == null:
 		_emit_card_rejected(card_id, lane_id, slot_index, &"spawn_failed")
 		selected_card_id = StringName()
@@ -203,7 +245,7 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 		if resolved_slot != null:
 			slot_type = StringName(resolved_slot.slot_type)
 			slot_tags = resolved_slot.get_effective_tags()
-		battle.emit_entity_spawned(spawned_entity, lane_id, null, {
+		battle.emit_entity_spawned(spawned_entity, lane_id, null, clone_spawn_metadata.merged({
 			"card_id": card_id,
 			"request_id": StringName(placement_request.get("request_id")),
 			"placement_role": StringName(placement_request.get("placement_role")),
@@ -212,7 +254,7 @@ func play_card(card_id: StringName, lane_id: int, slot_index: int, game_time: fl
 			"slot_type": slot_type,
 			"slot_tags": slot_tags,
 			"archetype_id": StringName(card_def.get("archetype_id")),
-		})
+		}))
 	var cooldown_seconds := float(card_def.get("cooldown_seconds"))
 	_cooldown_ready_times[card_id] = game_time + maxf(cooldown_seconds, 0.0)
 	_emit_card_event(&"card.cooldown_started", card_id, lane_id, slot_index, {

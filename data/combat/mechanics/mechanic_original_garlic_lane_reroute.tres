@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original_garlic.lane_reroute"
+display_name = "Garlic Lane Reroute"
+family = &"Payload"
+type_id = &"core.lane_reroute"
+priority = 20
+tags = PackedStringArray("original", "garlic", "reroute")
+params = {
+"binding_group": &"garlic_reroute",
+"direction_policy": &"random",
+"reason": &"garlic_repel",
+"target_mode": &"event_source"
+}

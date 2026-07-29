@@ -34,6 +34,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.consume_self": &"Payload",
 		&"core.reveal": &"Payload",
 		&"core.clear_fog": &"Payload",
+		&"core.lane_reroute": &"Payload",
 		&"core.walk": &"Movement",
 		&"core.leap_once": &"Movement",
 		&"core.tunnel": &"Movement",
@@ -41,6 +42,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.drive": &"Movement",
 		&"core.bite": &"Controller",
 		&"core.crush": &"Controller",
+		&"core.protect_targets": &"Controller",
 		&"core.sweep": &"Controller",
 		&"core.ground_damage": &"Controller",
 		&"core.projectile_transform": &"Controller",
@@ -583,6 +585,8 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"reveal"}
 		&"core.clear_fog":
 			return {"effect_id": &"clear_fog"}
+		&"core.lane_reroute":
+			return {"effect_id": &"lane_reroute"}
 		_:
 			return {}
 
@@ -746,6 +750,13 @@ static func _build_controller_spec_inline(archetype, mechanic) -> Dictionary:
 		&"core.proximity_liveness":
 			return {
 				"controller_id": &"core.proximity_liveness",
+				"mechanic_id": mechanic.mechanic_id,
+				"source_archetype_id": archetype.archetype_id,
+				"params": Dictionary(mechanic.params).duplicate(true),
+			}
+		&"core.protect_targets":
+			return {
+				"controller_id": &"core.protect_targets",
 				"mechanic_id": mechanic.mechanic_id,
 				"source_archetype_id": archetype.archetype_id,
 				"params": Dictionary(mechanic.params).duplicate(true),

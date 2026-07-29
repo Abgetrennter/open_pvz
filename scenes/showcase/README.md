@@ -12,7 +12,7 @@ The project startup scene is a lightweight showcase hub:
 Use that hub to enter a showcase scene with buttons instead of changing the
 project default startup repeatedly.
 
-## Scene List (45 scenes)
+## Scene List (46 scenes)
 
 All of them use `BattleManager` directly and keep restart enabled with `R`.
 Each showcase scene also supports `Esc` to return to the showcase hub.
@@ -52,7 +52,7 @@ Each showcase scene also supports `Esc` to return to the showcase hub.
 - `height_hit_showcase.tscn` — Height band hit rules
 - `terminal_explode_showcase.tscn` — Terminal hit -> explosion chain
 
-### Original Plant Gardens (8 scenes)
+### Original Plant Gardens (9 scenes)
 
 - `original_shooter_garden_showcase.tscn` — Peashooter, Repeater, Gatling, Threepeater, Split Pea
 - `original_frost_control_garden_showcase.tscn` — Snow Pea, Ice-shroom, Cactus, Winter Melon, Cattail
@@ -62,6 +62,7 @@ Each showcase scene also supports `Esc` to return to the showcase hub.
 - `original_explosion_garden_showcase.tscn` — Cherry Bomb, Jalapeno, Doom-shroom, Potato Mine
 - `original_defense_support_garden_showcase.tscn` — Wall-nut, Tall-nut, Pumpkin, Spikeweed, Spikerock, Torchwood
 - `original_special_garden_showcase.tscn` — Chomper, Squash, Tangle Kelp, Cob Cannon, Blover, Hypno-shroom
+- `original_tactics_garden_showcase.tscn` — Garlic lane reroute, Umbrella Leaf overhead interception, Imitater clone card
 
 ### Original Zombie Migration (5 scenes)
 

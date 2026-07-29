@@ -23,8 +23,8 @@
 | B | 7 | **7/7** | `plant_original_batch_b_validation` + Potato Mine / Squash / Chomper 单体验证覆盖 7/7 | **完成** |
 | C | 9 | **9/9** | `plant_original_batch_c_validation` + Grave Buster / Coffee Bean / Fume / Hypno / Sun / Scaredy 单体验证 | 机制优先完成；Sun-shroom 成长、Scaredy-shroom 近敌停火为原版精确度缺口 |
 | D | 12 | **12/12** | `plant_original_batch_d_validation` + Split Pea / Starfruit / Cactus / Blover / Magnet / Lily+Sea / Sea / Tangle+Plantern 单体验证 | 机制优先完成；完整拖拽动画和全局雾场/视野系统后置 |
-| E | 14 | **11/14** | Kernel-pult / Marigold / Flower Pot / E upgrade dependency 已验证；Gloom/Cattail/Winter/Spikerock/Gold 单体验证已补 | 未完成：Garlic / Umbrella Leaf / Imitater 资源缺失；Cob Cannon 受多格占用/手动发射阻塞 |
-| **总计** | **49** | **46/49** | A/B/C/D 机制优先可信覆盖，E 既有资源单体验证继续补齐 | **严格完成 A/B；C/D 机制优先完成；E 仅剩缺失资源与后置协议** |
+| E | 14 | **14/14** | Kernel-pult / Marigold / Flower Pot / E upgrade dependency 已验证；Gloom/Cattail/Winter/Spikerock/Gold 单体验证已补；Garlic / Umbrella Leaf / Imitater 已由 P0 阻塞批落地（`plant_original_garlic_validation` / `plant_original_umbrellaleaf_validation` / `plant_original_imitater_validation`） | 机制优先完成；Cob Cannon 受多格占用/手动发射阻塞 |
+| **总计** | **49** | **49/49** | A/B/C/D 机制优先可信覆盖，E 批含 P0 阻塞批全部落地 | **严格完成 A/B；C/D/E 机制优先完成；Cob Cannon 精确度与 coin taxonomy 后置** |
 
 > 2026-05-10 重评：规则基础设施第二轮已把多维 liveness、`SpatialIndex` / `spatial_query`、`height_range` overlap 和 tick budget 监控纳入主干。早期登记的睡眠、唤醒、近距触发、对空高度、地面持续伤害、投射物改写、全局飞行驱散等缺口不再是基础设施阻塞。E 批次已有资源的单体验证已补齐；下一步应转向缺失资源和真正后置协议，而不是提前实现对象池、碰撞矩阵或 BoardSlot modifier。
 
@@ -118,7 +118,7 @@
 ### 当前主要缺口
 
 1. **E 批次剩余单体验证缺口** — Gloom-shroom、Cattail、Winter Melon、Gold Magnet、Spikerock 已补单体验证；Cob Cannon 仍受多格占用/手动发射阻塞。
-2. **缺失资源** — Garlic、Umbrella Leaf、Imitater 未落地，资源和卡片均缺失。
+2. **缺失资源** — 已清零：Garlic、Umbrella Leaf、Imitater 于 2026-07-29 P0 阻塞批落地（lane_reroute effect、protect_targets controller、card clone 协议 + 专项验证）。
 3. **后置基础设施缺口** — Cob Cannon 多格占用、Doom-shroom 坑洞、Tall-nut 跳跃阻挡、完整 coin/silver economy 仍需内容需求驱动后再做。
 4. **原版精确度缺口** — Sun-shroom 成长、Scaredy-shroom 近敌停火、Tangle Kelp 拖拽动画、完整雾场/视野、黄油概率精确值等不阻塞机制优先完成。
 5. **规则基础设施已吸收的旧缺口** — sleep/wake、近距触发、对空高度、地面持续伤害、投射物改写、飞行驱散、liveness 行为暂停、height overlap 查询不再作为协议阻塞项。
@@ -742,8 +742,9 @@
 | 子类 | NORMAL |
 | 放置条件 | 地面 |
 | 攻击入口 | 被啃咬时换道 |
-| 分类 | **需协议设计** |
-| 协议缺口 | 换道 (lane reroute) 协议，不写入 zombie/battle 特判 |
+| 可复用 Mechanic | `Trigger.when_damaged(required_damage_tags=["bite"])` + `Effect.lane_reroute` |
+| 分类 | **已由最小机制补齐** |
+| 协议缺口 | 已关闭：`Effect.lane_reroute` + `entity.lane_changed` 事件，无 zombie/battle 特判；`plant_original_garlic_validation` 覆盖 |
 
 ### E-3: Umbrella Leaf (SEED_UMBRELLA = 37)
 
@@ -756,8 +757,9 @@
 | 子类 | NORMAL |
 | 放置条件 | 地面 |
 | 攻击入口 | 防护 bungee/catapult |
-| 分类 | **需协议设计** |
-| 协议缺口 | target protection 协议 (特定攻击类型免疫) |
+| 可复用 Mechanic | `Controller.core.protect_targets`（intercept_tags / intercept_radius） |
+| 分类 | **已由最小机制补齐** |
+| 协议缺口 | 已关闭：`attack.intercepted` 拦截协议（命中前取消，标签驱动）；`plant_original_umbrellaleaf_validation` 覆盖；Bungee 完整流程后置 |
 
 ### E-4: Marigold (SEED_MARIGOLD = 38)
 
@@ -901,8 +903,8 @@
 | 子类 | NORMAL |
 | 放置条件 | 复制目标植物的放置条件 |
 | 攻击入口 | 复制卡片 (不复制 runtime 节点) |
-| 分类 | **需协议设计** |
-| 协议缺口 | 卡片复制协议 (card clone, 不绕开 card/runtime 协议) |
+| 分类 | **已由最小机制补齐** |
+| 协议缺口 | 已关闭：CardDef `clone_source_card_id` + BattleCardState setup 展开 + `card.clone_resolved` 事件，冷却独立；`plant_original_imitater_validation` 覆盖；选卡 UI 交互后置 |
 
 ---
 
@@ -914,8 +916,8 @@
 | B | 7 | 完成；Tall-nut 跳跃阻挡后置 | 仅维护回归 |
 | C | 9 | 机制优先完成；Sun-shroom 成长、Scaredy-shroom 近敌停火为精确度缺口 | 后续按原版精确度单独补 |
 | D | 12 | 机制优先完成；Tangle Kelp 动画、Plantern 完整雾场后置 | 后续按表现/场景系统补 |
-| E | 14 | 11/14 资源落地；E-existing-validation 已补并通过，仍缺 3 个资源与 Cob Cannon 后置协议 | 缺失资源/后置协议 |
-| **总计** | **49** | **46/49** 资源+卡片落地 | 下一步处理缺失资源与后置协议 |
+| E | 14 | 14/14 资源落地；E-existing-validation 与 P0 阻塞批（Garlic/Umbrella/Imitater）验证通过，剩 Cob Cannon 后置协议 | 后置协议（多格占用/手动发射精度） |
+| **总计** | **49** | **49/49** 资源+卡片落地 | 维护回归与后置精确度 |
 
 ---
 
@@ -968,3 +970,4 @@
 | 2026-04-28 | 完成度口径校准：资源+卡片落地为 42/49；严格完成仅 A 批次 7/49；A/B/C/D/round1 目标验证可信通过但 B/C/D 仍为代表性覆盖 |
 | 2026-05-10 | 规则基础设施第二轮后重评：liveness / SpatialIndex / height_range 已吸收早期多数协议阻塞；E 批次已有资源单体验证成为下一主攻 |
 | 2026-05-10(E-existing) | 新增 Gloom-shroom / Cattail / Winter Melon / Spikerock / Gold Magnet 单体验证，继续收口 E 批次已有资源 |
+| 2026-07-29(P0) | P0 阻塞批完成：Garlic（lane_reroute + bite tag 过滤）、Umbrella Leaf（protect_targets 拦截协议）、Imitater（card clone 协议）落地并通过专项验证，累计 49/49 (100%) |
