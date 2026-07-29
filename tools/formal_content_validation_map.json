@@ -207,7 +207,7 @@
     },
     {
       "id": "original_plants_batch_e",
-      "description": "PVZ1 Batch E mechanism-first coverage: 11/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output, Gold Magnet coin-generated collectible collection, Cattail global tracking with air priority, Cob Cannon two-Kernel-pult footprint plus manual aimed area damage, available upgrade placement dependencies, and existing E-resource single-plant validations are covered. Remaining work is Garlic, Umbrella Leaf, Imitater, Cob Cannon projectile/reload precision, and full coin/silver/gold source taxonomy.",
+      "description": "PVZ1 Batch E mechanism-first coverage: 14/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output, Gold Magnet coin-generated collectible collection, Cattail global tracking with air priority, Cob Cannon two-Kernel-pult footprint plus manual aimed area damage, available upgrade placement dependencies, Garlic bite-triggered lane reroute, Umbrella Leaf overhead-attack interception, Imitater card clone protocol, and existing E-resource single-plant validations are covered. Remaining refinement work is Cob Cannon projectile/reload precision and full coin/silver/gold source taxonomy.",
       "validations": [
         "plant_original_kernelpult_validation",
         "plant_original_marigold_validation",
@@ -220,15 +220,21 @@
         "plant_original_wintermelon_validation",
         "plant_original_spikerock_validation",
         "plant_original_goldmagnet_validation",
-        "plant_original_cobcannon_validation"
+        "plant_original_cobcannon_validation",
+        "plant_original_garlic_validation",
+        "plant_original_umbrellaleaf_validation",
+        "plant_original_imitater_validation"
       ],
       "showcases": []
     },
     {
       "id": "original_plants_protocol_gaps",
-      "description": "Current original-plant protocol gap tracker. Most early gaps are now covered by liveness, SpatialIndex, height_range and existing Mechanic/Effect/Controller paths; remaining blockers are lane reroute, protection, card clone and multi-tile/field-modifier style systems.",
+      "description": "Current original-plant protocol gap tracker. Most early gaps are now covered by liveness, SpatialIndex, height_range and existing Mechanic/Effect/Controller paths; lane reroute (Effect.lane_reroute), attack protection (Controller.core.protect_targets) and card clone (CardDef clone_source_card_id) are closed by the P0 blocker batch, leaving multi-tile/field-modifier style systems as the remaining gap.",
       "validations": [
-        "plant_original_round1_validation"
+        "plant_original_round1_validation",
+        "plant_original_garlic_validation",
+        "plant_original_umbrellaleaf_validation",
+        "plant_original_imitater_validation"
       ],
       "showcases": []
     },

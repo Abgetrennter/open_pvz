@@ -14,7 +14,6 @@
 
 | 文件 | 用途 | 事实来源 | 可作为当前实现依据 |
 |------|------|----------|-------------------|
-| `p0-original-plant-blockers-plan.md` | P0 原版植物阻塞项执行计划（Garlic / Umbrella Leaf / Imitater） | `plans/draft/原版机制未实现项盘点.md` P0 章节 + 2026-07 代码基线调查 | 是 |
 | `original-plant-migration-ledger.md` | 原版植物迁移底账 | 迁移底账本身，按需更新 | 是 |
 | `original-plant-protocol-gaps.md` | 原版植物协议缺口追踪 | 协议缺口追踪，维护中 | 是 |
 | `original-plant-mechanism-audit.md` | 原版植物机制审计 | 审计记录，按需更新 | 是 |
@@ -55,7 +54,7 @@
 
 | 目录 | 用途 |
 |------|------|
-| `archive/` | 已完成阶段归档总览，已归档的不再在根目录登记；近期归档包含 `wave-runner-2026-05/` |
+| `archive/` | 已完成阶段归档总览，已归档的不再在根目录登记；近期归档包含 `wave-runner-2026-05/` 与 `p0-original-plant-blockers-2026-07/`（P0 原版植物阻塞项执行计划，2026-07-29 完成） |
 | `draft/` | 未来方向草案区 |
 | `visual-feedback-layer/` | 视觉反馈层设计讨论子目录 |
 
