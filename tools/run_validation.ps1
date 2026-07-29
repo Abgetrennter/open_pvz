@@ -11,12 +11,22 @@ param(
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($GodotExe)) {
-	$Candidate = Get-ChildItem $ProjectRoot -Filter "Godot_v*_win64_console.exe" -File | Sort-Object Name -Descending | Select-Object -First 1
-	if ($Candidate -ne $null) {
-		$GodotExe = $Candidate.FullName
+	# Fallback chain: GODOT_BIN env var -> project root scan -> godot on PATH
+	if (-not [string]::IsNullOrWhiteSpace($env:GODOT_BIN) -and (Test-Path -LiteralPath $env:GODOT_BIN -PathType Leaf)) {
+		$GodotExe = $env:GODOT_BIN
 	} else {
-		Write-Error "GodotExe not specified and no Godot console executable found in project root."
-		exit 1
+		$Candidate = Get-ChildItem $ProjectRoot -Filter "Godot_v*_win64_console.exe" -File | Sort-Object Name -Descending | Select-Object -First 1
+		if ($Candidate -ne $null) {
+			$GodotExe = $Candidate.FullName
+		} else {
+			$PathCandidate = Get-Command "godot" -ErrorAction SilentlyContinue
+			if ($PathCandidate -ne $null) {
+				$GodotExe = $PathCandidate.Source
+			} else {
+				Write-Error "GodotExe not specified and no Godot executable found (checked GODOT_BIN env var, project root, and PATH)."
+				exit 1
+			}
+		}
 	}
 }
 $ScenarioName = [System.IO.Path]::GetFileNameWithoutExtension($Scenario)

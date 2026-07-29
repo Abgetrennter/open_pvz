@@ -33,6 +33,7 @@
 | `reanim资源转换工具链规划.md` | reanim 工具链规划 | 历史讨论 |
 | `attack-chain-family-compile-path.md` | 攻击链编译路径讨论 | 历史讨论 |
 | `draft/原版机制未实现项盘点.md` | 原版机制未实现项盘点 | 草案，基于 de-pvz / PVZ-Godot-Dream / 当前 validation 对齐 |
+| `draft/reanim原生运行时ReanimData方案设计草案.md` | Reanim 原生运行时方案（ReanimData + ReanimPlayer） | 草案，基于 de-pvz reanim 语义 / 当前 reanim 导入链 / 100Hz 仿真时钟对齐；否 |
 | `pvz_like_engine_design_doc_v_1.md` | 引擎设计文档 v1 | 早期设计，已被实际实现超越 |
 
 ## 设计讨论（子目录）
