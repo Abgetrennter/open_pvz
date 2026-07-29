@@ -172,4 +172,10 @@ A1（trigger 参数）与 C2（card 协议）若引入新参数校验路径，�
 `attack.intercepted` 事件（source=守护者，target=被保护目标）core 字段：`protector_id`、`protector_archetype_id`、`attacker_id`、`attacker_archetype_id`、`protected_target_id`、`protected_target_archetype_id`、`attack_tags`（=projectile template tags）、`projectile_template_id`、`lane_id`（被保护目标所在 lane）。
 
 **B4 实施补记（2026-07-29）**：首轮验证暴露 `archetype_original_catapult` 存量数据缺陷——其篮球模板仅经 payload params 传入，archetype 级 `projectile_template` / `projectile_flight_profile` 字段为空，导致编译链无法从 flight profile 派生 `movement_mode`，`ProtocolValidator.normalize_effect_node` 填入 EffectDef 默认值 `linear` 覆盖了模板的 parabola（篮球直线飞行不命中）。按 `archetype_original_cabbagepult` 既有约定在 catapult archetype 上补齐两字段（纯数据修复，未改代码）。另：3 车道验证场景行距 60px 小于拦截半径 153.6px，跨行防护符合原版 3x3 语义，负例车道的植物需放置在拦截半径之外（lane1 蒜移至 x=448）。
-- C1 card clone 协议决策：待补
+### C1 card clone 协议决策（2026-07-29 定案）
+
+1. **CardDef 扩展字段**：新增 `clone_source_card_id: StringName`（默认空）与 `clone_metadata: Dictionary`（默认空），全部向后兼容。判定规则：`clone_source_card_id` 非空即为 clone 配置卡。`ProtocolValidator._validate_card_def` 对 clone 配置卡豁免 archetype_id 必填检查（archetype 从源卡展开时解析），其余字段校验不变。
+2. **cost / cooldown 取值规则**：写死为“完全取目标卡”。锚点：de-pvz `Plant::GetCost()`（Plant.cpp L5070-5073）与 `Plant::GetRefreshTime()`（L5118-5121）对 `SEED_IMITATER` 均直接返回 `theImitaterType` 的 `mSeedCost` / `mRefreshTime`，无任何 Imitater 自身加成；Imitater 定义行（L73：cost=0, refresh=750cs）仅为选卡占位，不参与运行时。实现上 clone instance 由**源卡 `duplicate()`** 生成后覆写身份字段，天然继承 archetype_id / sun_cost / cooldown_seconds / placement_tags，无运行时分支。
+3. **clone 解析时机**：`BattleCardState.setup()` 读完 `scenario.card_defs` 后统一展开（保证源卡已注册，与声明顺序无关）。clone 配置卡本身不进手牌；展开产物为独立 card instance，card_id = `<clone_card_id>__<source_card_id>`（如 `card_original_imitater__card_original_peashooter`），进 `_card_defs` + `hand_order`，冷却按 card_id 键控天然独立。`clone_metadata` 写入 `imitater_source_card_id` / `clone_source_card_id`，`play_card` 时 merge 进 `spawn_card_actor` 与 `emit_entity_spawned` 的 metadata，使 `entity.spawned` core 可被验证断言读取。失败路径：clone_source 指向的源卡不存在 → 不进手牌，经 `battle.report_protocol_issues(scope="card_clone")` 发 `protocol.issue`；`card_play_requests` 引用未展开的 id 走既有 `card.play_rejected(reason=unknown_card)`。
+
+`card.clone_resolved` 事件（战斗初始化时每张展开成功的 clone 卡发 1 次，tags `["card","clone"]`）core 字段：`clone_card_id`（展开后独立 id）、`source_card_id`（目标卡 id）、`target_archetype_id`（源卡 archetype_id）。

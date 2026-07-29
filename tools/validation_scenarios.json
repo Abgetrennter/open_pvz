@@ -756,6 +756,12 @@
     "layers": ["core"]
   },
   {
+    "id": "plant_original_imitater_validation",
+    "scenario": "res://scenes/validation/plant_original_imitater_validation.tres",
+    "description": "Validates Imitater card clone protocol: setup-time clone expansion with card.clone_resolved, independent cooldown timelines, imitater spawn metadata, and protocol.issue rejection for invalid clone sources.",
+    "layers": ["core"]
+  },
+  {
     "id": "plant_original_water_pair_validation",
     "scenario": "res://scenes/validation/plant_original_water_pair_validation.tres",
     "description": "Validates Lily Pad support placement and Sea-shroom primary placement on water slots.",
