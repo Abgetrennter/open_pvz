@@ -1,0 +1,368 @@
+# Reanim 原生运行时实施计划
+
+> 状态：待执行
+>
+> 制定日期：2026-07-29
+>
+> 设计来源：[`draft/reanim原生运行时ReanimData方案设计草案.md`](draft/reanim原生运行时ReanimData方案设计草案.md)
+>
+> 适用范围：Reanim 导入工具、视觉运行时、私有经典素材包与 `local_private` 验证
+>
+> 当前首要里程碑：完成 Peashooter + WallNut + ThreePeater 三类样本 Spike，并作 Go / No-Go 决策
+
+## 1. 目标
+
+建立 `ReanimData -> ReanimPlayer -> ReanimActorDef/ReanimActor` 原生视觉运行链，在不改变玩法协议、`VisualProfileDef.actor_scene` 边界和私有素材发布边界的前提下，用紧凑数据替代当前逐帧展开的 `.tscn + AnimationPlayer` 产物。
+
+首轮交付不追求全量替换。先用单实例样本 Peashooter、角度兼容样本 WallNut 和组合样本 ThreePeater 验证数据体积、播放语义、100Hz 仿真时钟对齐、组合能力及旧链回退，再决定是否进入批量迁移。
+
+## 2. 已冻结的实施决策
+
+| 决策 | 本计划采用的方案 |
+|------|------------------|
+| 运行时分层 | `ReanimData` 保存单个 reanimation 的不可变数据；`ReanimPlayer` 保存单实例播放状态；`ReanimActorDef/ReanimActor` 负责多实例组合与 Actor Scene Contract 适配 |
+| 现有边界 | 保留 `VisualProfileDef.actor_scene + VisualActorComponent`；不新增 Mechanic family，不把 Reanim 注册为玩法扩展点 |
+| 时钟 | 播放状态使用 `GameState.current_time` 的本地 epoch 计算；暂停时相位不前进，仿真加速时按仿真时间同步推进 |
+| 渲染 | Spike 阶段使用每轨道动态 `CanvasItem`；只有测量证明节点/提交开销不合格时才评估批渲染器 |
+| 组合 | ThreePeater 走显式 Part Slot / track binding 组合；不把它误建模为自动 `attacher__` |
+| Part Slot 作者格式 | 私有 manifest 作为作者输入，导入阶段生成 `ReanimActorDef` Resource；正式运行时不读取 JSON |
+| 兼容范围 | P0/P1 保留 text/font 字段并 fail-closed，但不承诺渲染；blend 只实现 de-pvz 已证明的兼容语义 |
+| 迁移策略 | 导入器双输出，旧 actor_scene 始终可回退；按 profile 逐项切换，不做一次性替换 |
+| 验证归属 | 新场景进入 `local_private` 层；不修改 gameplay formal content map 的实体归属 |
+
+## 3. 非目标
+
+- 不修改 Trigger / Effect / Controller / Movement 等冻结玩法协议。
+- 不让视觉播放结果反向影响伤害、命中、冷却、随机数或实体生命周期。
+- 不在本计划内公开或迁入经典原版素材；素材和生成物继续位于本地私有包。
+- 不在 Spike 前设计通用 ECS 动画系统、编辑器时间轴或网络同步协议。
+- 不为尚未出现的 blend、font、text 或复杂 attacher 语义预先实现完整功能。
+- 不直接修改 `vendor/` 参考项目。
+
+## 4. 事实来源与语义锚点
+
+| 来源 | 锚点 | 用途 |
+|------|------|------|
+| de-pvz | `vendor/de-pvz/Sexy.TodLib/Reanimator.h` 的 `ReanimatorTransform`、track instance 状态 | Reanim 字段、轨道覆盖和实例状态的原版语义 |
+| de-pvz | `vendor/de-pvz/Sexy.TodLib/Reanimator.cpp` 的 `BlendTransform`、`GetTransformAtTime`、`MatrixFromTransform`、`DrawRenderGroup` | 插值、矩阵、绘制顺序和 blend 行为的判定基准 |
+| de-pvz | 同文件的 `ParseAttacherTrack`、`AttacherSynchWalkSpeed` | 动态 attacher 的后续实现基准 |
+| de-pvz | `vendor/de-pvz/Lawn/Plant.cpp` 的 ThreePeater reanimation 初始化与发射路径 | 多 Reanim 实例、head track 绑定与动作协同的原版语义 |
+| 当前实现 | `tools/reanim_importer/reanim_import_one.gd` | 现有 XML 解析、clip 推断、角度转换和逐帧展开链 |
+| 当前实现 | `scripts/components/visual_actor_component.gd`、`scripts/core/defs/visual_profile_def.gd` | Actor Scene Contract 与外部接入边界 |
+| 当前实现 | `autoload/GameState.gd`、`scripts/battle/battle_manager.gd` | 100Hz 仿真时间与暂停/加速语义 |
+| 项目设计 | `plans/视觉表现层设计讨论.md` | Action Recipe、Part Slot、组合 actor 的既有设计边界 |
+| 私有素材规则 | `wiki/04-roadmap-reference/44-素材包系统与本地私有包.md` | 私有 manifest、生成物与发布边界 |
+| Godot 参考 | `vendor/PVZ-Godot-Dream/` 的 R2Ga / AnimationPlayer 链 | 仅用于 Godot 目录组织和工具链对照，不作为原版语义证据 |
+
+## 5. 预期模块边界
+
+建议在 `scripts/visual/reanim/` 建立独立子系统，具体小文件拆分在 T1 实施时按单一职责确定，至少包含以下概念：
+
+- `ReanimData`：schema、资源引用、clip 与压缩轨道数据；实例间共享且运行时只读。
+- `ReanimPlayer`：单实例相位、循环、速度、混合、轨道覆盖、采样与渲染节点更新。
+- `ReanimActorDef`：Part Slot、父子绑定、默认动作和多播放器组合定义。
+- `ReanimActor`：实现现有 actor scene API，将 `play_state`、`play_action`、`set_visual_speed`、`get_anchor` 转发到播放器/组合层。
+
+导入器仍位于 `tools/reanim_importer/`。自动验证脚本和场景分别进入 `scripts/validation/`、`scenes/validation/`，并登记到 `tools/validation_scenarios.json`。私有数据输出继续进入 `local_extensions/classic_original_assets/`，不纳入主仓库提交。
+
+## 6. 任务切片
+
+### T0：建立基线与黄金样本
+
+**类型：** 研究 / 验证
+
+**依赖：** 无
+
+工作内容：
+
+- 固定 Peashooter、WallNut、ThreePeater 当前源文件、语义报告、旧 actor 产物体积和关键帧快照。
+- 记录 ThreePeater 当前 wrapper 的节点结构、动作入口、轨道绑定和锚点行为。
+- 明确黄金样本的采样时刻、轨道顺序、矩阵容差与截图比较口径；静态语义比较不得依赖墙钟时间。
+- 先运行既有私有素材 smoke，确认基线可复现。
+
+可能涉及：
+
+- `scripts/validation/` 下的 Reanim 黄金样本辅助脚本
+- `scenes/validation/` 下的基线验证场景
+- `local_extensions/classic_original_assets/generated/reports/` 下的本地报告
+
+验收标准：
+
+- 三个样本均有可重复生成的 source hash、体积与关键帧基线。
+- 旧链两个既有 `local_private` smoke 通过。
+- 记录当前已知的 WallNut 角度告警，不把告警静默成成功。
+
+验证命令：
+
+```powershell
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_classic_asset_pack_smoke.tres" -ExtraUserArgs "--include-classic-original-assets"
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_classic_archetype_binding_smoke.tres" -ExtraUserArgs "--include-classic-original-assets"
+```
+
+回退/评审风险：只新增基线资产和验证，不切换正式 profile；如基线不可重复，应先修正采样口径，不进入 T1。
+
+### T1：ReanimData v1 与导入器双输出
+
+**类型：** 协议 / 工具 / 验证
+
+**依赖：** T0
+
+工作内容：
+
+- 定义带 `schema_version` 的 `ReanimData` Resource，覆盖 source identity/hash、fps、frame count、资源表、clip、轨道及压缩 transform 数组。
+- 将 `f` 保存为 `image_frame` 语义，不退化为 visibility；保留 image/font/text 槽位和 feature flags。
+- 扩展 `reanim_import_one.gd`，同一次导入可生成旧 actor 与新 ReanimData；默认不改现有 profile 绑定。
+- 对未知字段、无法解析的资源和未实现能力输出结构化报告并 fail-closed。
+- 为 Peashooter 与 WallNut 添加数据导入 smoke，验证 hash、轨道数、clip、关键帧采样输入和重复导入稳定性。
+
+可能涉及：
+
+- `scripts/visual/reanim/` 下的 Resource 定义
+- `tools/reanim_importer/reanim_import_one.gd`
+- `tools/reanim_importer/reanim_generate_composites.gd`（仅在需要透传新产物时）
+- `scenes/validation/visual_reanim_data_import_smoke.*`
+- `tools/validation_scenarios.json`
+
+验收标准：
+
+- 相同输入重复导入得到稳定的逻辑内容和 source hash。
+- 旧产物输出不回归，现有 profile 无需迁移即可继续工作。
+- Peashooter/WallNut 的轨道、clip 和关键 transform 与黄金样本一致。
+- 不支持的 text/font/blend 特性在报告中可见，运行时不会静默误播。
+
+验证命令（完成该场景后）：
+
+```powershell
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_data_import_smoke.tres" -ExtraUserArgs "--include-classic-original-assets"
+```
+
+回退/评审风险：双输出开关可关闭新格式；重点评审 schema 是否混入实例状态、数组是否可稳定序列化、字段缺失是否 fail-closed。
+
+### T2：ReanimPlayer 单实例播放闭环
+
+**类型：** 运行时 / 验证
+
+**依赖：** T1
+
+工作内容：
+
+- 实现 clip 选择、loop、速度、local phase、track sampling、矩阵合成、alpha/image frame 和稳定绘制顺序。
+- 使用本地 epoch：`phase_at_epoch + (GameState.current_time - epoch_sim_time) * visual_speed`；播放、切换、调速时重设 epoch。
+- 通过动态 `CanvasItem` 复现单实例 Reanim；先保持渲染器简单可测。
+- 提供供 `ReanimActor` 使用的最小 API，但本阶段只在验证场景接入 Peashooter/WallNut，不切换生产 profile。
+- 覆盖暂停、加速、动作重播、角度连续性、非法 clip、资源缺失和轨道顺序。
+
+可能涉及：
+
+- `scripts/visual/reanim/reanim_player.gd`
+- `scripts/visual/reanim/reanim_actor.gd`
+- `scripts/components/visual_actor_component.gd`（仅当契约兼容需要最小修正）
+- `scenes/validation/visual_reanim_native_runtime_smoke.*`
+- `scenes/validation/visual_reanim_sim_clock.*`
+- `scenes/validation/visual_reanim_angle_compatibility.*`
+- `scenes/validation/visual_reanim_renderer_order.*`
+
+验收标准：
+
+- Peashooter 关键帧、轨道顺序和动作循环与 T0 黄金样本一致。
+- WallNut 的连续角度样本通过容差比较，无跳变回归。
+- 暂停期间相位不前进；仿真加速只按 `GameState.current_time` 前进。
+- 视觉播放状态不写入玩法组件，不消费玩法随机数。
+
+验证命令（完成对应场景后）：
+
+```powershell
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_native_runtime_smoke.tres" -ExtraUserArgs "--include-classic-original-assets"
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_sim_clock.tres" -ExtraUserArgs "--include-classic-original-assets"
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_angle_compatibility.tres" -ExtraUserArgs "--include-classic-original-assets"
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_renderer_order.tres" -ExtraUserArgs "--include-classic-original-assets"
+```
+
+回退/评审风险：不改生产 profile 即可完全回退；重点评审 render delta 泄漏、角度插值、矩阵顺序、节点分配和每帧资源查找。
+
+### T3：ReanimActorDef 组合与 ThreePeater Spike
+
+**类型：** 协议 / 运行时 / 私有内容 / 验证
+
+**依赖：** T2
+
+工作内容：
+
+- 定义 `ReanimActorDef` 与 Part Slot：子播放器、父轨道、局部 transform、动作映射、锚点和可见性规则。
+- 让私有 manifest 生成 `ReanimActorDef` Resource；正式运行时只加载 Resource。
+- 实现 `ReanimActor` 对 Actor Scene Contract 的兼容适配。
+- 用 ThreePeater 重建 body + 三个 head 实例及 head track 绑定，不保留 ThreePeater 专用 wrapper 逻辑。
+- 可选用 SplitPea 作第二个组合样本，但它不是本阶段放行条件。
+
+可能涉及：
+
+- `scripts/visual/reanim/reanim_actor_def.gd`
+- `scripts/visual/reanim/reanim_actor.gd`
+- `tools/reanim_importer/reanim_generate_composites.gd`
+- 私有素材 manifest 与生成的 ReanimActorDef
+- `scenes/validation/visual_reanim_composite_threepeater.*`
+
+验收标准：
+
+- ThreePeater 可通过标准 `play_state`、`play_action`、`set_visual_speed`、`get_anchor` 工作。
+- body/head 动作、父轨道绑定、绘制顺序及锚点与黄金样本一致。
+- 新数据总量不高于当前 ThreePeater raw actor 产物的 25%。
+- 新链无 ThreePeater 专用运行时代码；删除新产物或恢复 profile 即可回到旧链。
+
+验证命令（完成该场景后）：
+
+```powershell
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_composite_threepeater.tres" -ExtraUserArgs "--include-classic-original-assets"
+pwsh tools/run_all_validations.ps1 -Layers "local_private" -MaxParallel 1
+```
+
+回退/评审风险：profile 仍保留旧 actor_scene；重点评审是否出现实体专用分支、组合状态是否错误写回共享 `ReanimData`、子实例动作是否被隐式同步。
+
+### Gate A：Spike Go / No-Go
+
+T3 完成后必须先出一份实测对照记录，满足以下条件才进入 T4-T6：
+
+- Peashooter、WallNut、ThreePeater 的语义验证全部通过。
+- 暂停/加速与 `GameState.current_time` 对齐，无 render delta 驱动玩法视觉状态。
+- ThreePeater 新数据体积不高于旧 raw actor 的 25%，且未引入专用 wrapper。
+- 动态节点数量、帧采样和提交成本在 showcase 样本中没有明显劣化；如存在劣化，先量化再决定是否设计批渲染器。
+- 旧链与 profile 级回退路径经过实际验证。
+
+任一硬条件失败则暂停批量迁移：修正 T1-T3，或作 No-Go 并继续使用当前 R2Ga/AnimationPlayer 链。不得用降低验证标准的方式放行。
+
+### T4：动态 attacher 与跨文件引用
+
+**类型：** 运行时 / 私有内容 / 验证
+
+**依赖：** Gate A 通过
+
+工作内容：
+
+- 按 de-pvz `ParseAttacherTrack` 语义解析显式 attacher 元数据并实例化子播放器。
+- 支持 pack-local 跨文件解析、缺失引用报告、循环检测和最大深度保护。
+- 仅在样本证明需要时实现 walk-speed 同步；不把 ThreePeater Part Slot 合并进 attacher 机制。
+- text/font 仍保持字段与诊断完整；是否渲染由独立任务决定。
+
+验收标准：
+
+- 至少一个真实 attacher 样本完成跨文件播放和父轨道跟随。
+- 循环、超深、缺失目标都 fail-closed，并写入协议诊断。
+- 无全局文件搜索或跨包隐式引用。
+
+验证命令（完成该场景后）：
+
+```powershell
+pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_attacher_cross_file.tres" -ExtraUserArgs "--include-classic-original-assets"
+```
+
+回退/评审风险：attacher feature flag 可禁用；重点评审递归资源放大、引用边界和生命周期清理。
+
+### T5：轨道覆盖、混合与性能门槛
+
+**类型：** 运行时 / 验证
+
+**依赖：** Gate A 通过；可在 T4 后执行
+
+工作内容：
+
+- 仅按已观测样本增加 image override、color、render group、base pose/additive 等 track instance 能力。
+- 对照 de-pvz `BlendTransform` 建立兼容测试，不自行发明未证明的 blend 模式。
+- 建立实例数、轨道数、节点数、内存和帧耗时指标；只有指标超限才提出 renderer 抽象或批提交 ADR/方案。
+
+验收标准：
+
+- 每项新增能力都有真实样本、原版锚点和专项验证。
+- 不需要的能力保持未实现且有清晰诊断。
+- 性能结论来自固定场景测量，不以代码结构推测替代。
+
+回退/评审风险：各高级能力应独立开关或保持数据级可选；重点评审 YAGNI、共享资源被实例状态污染及缓存失效。
+
+### T6：按 profile 批量迁移与文档收口
+
+**类型：** 迁移 / 验证 / 文档
+
+**依赖：** T4/T5 中目标内容需要的能力已完成，且 Gate A 通过
+
+工作内容：
+
+- 按 archetype/profile 小批量切换到新 actor_scene，每批保留旧产物直到专项和全量验证通过。
+- 更新 `original-plant-visual-bulk-migration-plan.md`、迁移底账、视觉/私有素材 wiki 和相应目录级 `AGENTS.md`。
+- 确认所有目标内容已不依赖专用 wrapper 后，才删除对应旧生成产物；删除动作须单独确认范围。
+- 完成后使用 completion/archive 流程归档本计划和源草案，并更新 `plans/README.md`。
+
+验收标准：
+
+- 目标 profile 已逐项登记新/旧链状态、验证证据和回退点。
+- public smoke 与全部 `local_private` 验证通过。
+- 主仓库不包含私有素材或本地生成物泄漏。
+- 正式 wiki 与当前实现一致，草案不再被当作当前规范。
+
+验证命令：
+
+```powershell
+pwsh tools/run_all_validations.ps1 -Layers "local_private" -MaxParallel 1
+pwsh tools/run_all_validations.ps1 -Layers "smoke" -MaxParallel 4
+pwsh tools/check_public_extension_release_guardrails.ps1
+```
+
+回退/评审风险：每批迁移独立恢复 profile；旧产物删除前必须核对引用和生成链，禁止批量删除未验证文件。
+
+## 7. 依赖顺序
+
+```mermaid
+flowchart LR
+    T0["T0 基线与黄金样本"] --> T1["T1 ReanimData + 双输出"]
+    T1 --> T2["T2 单实例 ReanimPlayer"]
+    T2 --> T3["T3 ReanimActorDef + ThreePeater"]
+    T3 --> G["Gate A: Go / No-Go"]
+    G --> T4["T4 动态 attacher"]
+    G --> T5["T5 覆盖/混合/性能"]
+    T4 --> T6["T6 批量迁移与收口"]
+    T5 --> T6
+```
+
+T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 是否需要、先后顺序如何，应由真实待迁移样本的 feature flags 决定。
+
+## 8. 验证矩阵
+
+| 能力 | 样本 | 验证场景 | 关键断言 |
+|------|------|----------|----------|
+| 数据导入 | Peashooter、WallNut | `visual_reanim_data_import_smoke` | schema/hash 稳定、轨道/clip/关键值一致、未知特性可见 |
+| 单实例播放 | Peashooter | `visual_reanim_native_runtime_smoke` | clip、loop、frame、alpha、绘制顺序 |
+| 仿真时钟 | Peashooter | `visual_reanim_sim_clock` | 暂停冻结、加速对齐、调速 epoch 连续 |
+| 角度兼容 | WallNut | `visual_reanim_angle_compatibility` | 跨角度关键帧连续、矩阵容差 |
+| 渲染顺序 | Peashooter/WallNut | `visual_reanim_renderer_order` | track/render group 顺序稳定 |
+| 多实例组合 | ThreePeater | `visual_reanim_composite_threepeater` | body/head 绑定、动作协同、锚点、无专用 wrapper |
+| 动态 attacher | credits 中真实样本 | `visual_reanim_attacher_cross_file` | 跨文件解析、父轨道跟随、循环/缺失 fail-closed |
+| 既有私有包 | 当前经典包 | 既有两个 private smoke | 旧链回退与 archetype/profile 绑定不回归 |
+| 发布边界 | 主仓库/私有包 | release guardrail | 无私有资产泄漏 |
+
+所有新增 Reanim 验证场景在 `tools/validation_scenarios.json` 中标记 `local_private`，需要原版私有素材的场景统一使用 `--include-classic-original-assets`。它们不登记到 `tools/formal_content_validation_map.json`，除非未来验证开始承担 gameplay roster 的正式归属。
+
+## 9. 完成定义
+
+### Spike DoD（T0-T3）
+
+- [ ] 三个黄金样本与 source hash 已固定且可重复生成。
+- [ ] ReanimData v1、双输出导入和不支持特性报告完成。
+- [ ] ReanimPlayer 通过单实例、角度、渲染顺序与仿真时钟验证。
+- [ ] ThreePeater 通过 ReanimActorDef 组合完成，无实体专用 wrapper。
+- [ ] 新旧链 profile 级回退已经实测。
+- [ ] Gate A 的体积和运行指标已有记录，并形成明确 Go / No-Go 结论。
+
+### 最终 DoD（T4-T6）
+
+- [ ] 目标迁移样本所需的 attacher/track override/blend 能力均有原版锚点和专项验证。
+- [ ] 目标 profiles 已分批迁移，所有 `local_private` 与 public smoke 通过。
+- [ ] 私有素材边界守卫通过，主仓库无素材或生成物泄漏。
+- [ ] wiki、迁移底账、目录级 AGENTS 与代码现状一致。
+- [ ] 不再需要的旧 wrapper/生成产物已在明确确认后安全清理。
+- [ ] 本计划与源草案按归档流程处理，`plans/README.md` 不再把它们标为活跃执行项。
+
+## 10. 计划维护规则
+
+- 每完成一个任务，直接在本文件更新状态、验证命令结果和证据路径；不要另建平行计划。
+- 协议语义变化先回写源草案并在本计划记录决策；若触及冻结玩法协议，另走 ADR 和设计审批。
+- 本计划是当前执行依据；源草案保留设计推导和开放问题，不作为完成状态来源。
+- Gate A 未通过前，不启动全量迁移，也不删除旧产物。
+- 实现完成后再调用完成归档检查：同步 wiki、验证证据、提交状态与 `plans/README.md`，然后将草案和计划归档。
