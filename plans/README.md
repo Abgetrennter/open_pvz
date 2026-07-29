@@ -14,6 +14,7 @@
 
 | 文件 | 用途 | 事实来源 | 可作为当前实现依据 |
 |------|------|----------|-------------------|
+| `p0-original-plant-blockers-plan.md` | P0 原版植物阻塞项执行计划（Garlic / Umbrella Leaf / Imitater） | `plans/draft/原版机制未实现项盘点.md` P0 章节 + 2026-07 代码基线调查 | 是 |
 | `original-plant-migration-ledger.md` | 原版植物迁移底账 | 迁移底账本身，按需更新 | 是 |
 | `original-plant-protocol-gaps.md` | 原版植物协议缺口追踪 | 协议缺口追踪，维护中 | 是 |
 | `original-plant-mechanism-audit.md` | 原版植物机制审计 | 审计记录，按需更新 | 是 |
@@ -32,7 +33,7 @@
 | `UI 框架层设计方案.md` | UI 框架设计讨论 | 历史讨论 |
 | `reanim资源转换工具链规划.md` | reanim 工具链规划 | 历史讨论 |
 | `attack-chain-family-compile-path.md` | 攻击链编译路径讨论 | 历史讨论 |
-| `draft/原版机制未实现项盘点.md` | 原版机制未实现项盘点 | 草案，基于 de-pvz / PVZ-Godot-Dream / 当前 validation 对齐 |
+| `draft/原版机制未实现项盘点.md` | 原版机制未实现项盘点 | 草案，基于 de-pvz / PVZ-Godot-Dream / 当前 validation 对齐；P0 章节已拆分为 `p0-original-plant-blockers-plan.md` |
 | `draft/reanim原生运行时ReanimData方案设计草案.md` | Reanim 原生运行时方案（ReanimData + ReanimPlayer） | 草案，基于 de-pvz reanim 语义 / 当前 reanim 导入链 / 100Hz 仿真时钟对齐；否 |
 | `pvz_like_engine_design_doc_v_1.md` | 引擎设计文档 v1 | 早期设计，已被实际实现超越 |
 
