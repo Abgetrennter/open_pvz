@@ -1052,6 +1052,20 @@
     "extra_user_args": ["--include-classic-original-assets"]
   },
   {
+    "id": "visual_reanim_blink_overlay",
+    "scenario": "res://scenes/validation/visual_reanim_blink_overlay.tres",
+    "description": "Validates the sunflower blink overlay expressed purely via ReanimActorDef parts: data-hidden idle, one-shot blink action visibility, body mask, fail-closed negatives, and size budget.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
+    "id": "visual_reanim_chomper_angle",
+    "scenario": "res://scenes/validation/visual_reanim_chomper_angle.tres",
+    "description": "Validates chomper native matrix sampling keeps frame and interpolated-midpoint rotations continuous despite 455 source angle warnings, which stay on record.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
     "id": "visual_action_types_smoke",
     "scenario": "res://scenes/validation/visual_action_types_smoke.tres",
     "description": "Validates that all 6 visual action types are wired and produce expected results when projectile.hit and entity.damaged events fire.",

@@ -1,6 +1,6 @@
 # Reanim 原生运行时实施计划
 
-> 状态：Spike（T0-T3 + Gate A）已完成，Gate A 结论 **Go**；T4-T6 范围已按 feature flags 实扫裁定（T4 本迁移范围裁剪、T5 收窄为 overlay/blink + Chomper 角度专项），尚未动工
+> 状态：Spike（T0-T3 + Gate A）与 T5（瘦身版：overlay/blink + Chomper 角度专项）已完成；T4 已裁剪；下一步 T6 分批迁移
 >
 > 制定日期：2026-07-29
 >
@@ -337,6 +337,22 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_a
 - 保留范围 ② **Chomper 角度专项**：Chomper 语义报告含 **455 条 angle warning**（WallNut 仅 2 条），迁移前需按 `visual_reanim_angle_compatibility` 模式对 Chomper 做连续性专项验证。
 - 性能门槛条目保留：Gate A 观察未触发批渲染需求，T6 分批迁移中若 showcase 指标劣化再量化。
 
+**执行记录（2026-07-30）：保留范围 ① overlay/blink 已完成。**
+
+- 结论：**纯现有 def 能力表达，未新增任何运行时代码。** sunflower 配 body + blink 两 part：blink part 平时也播 `idle` clip（该帧段 `anim_blink` 的 `image_frame=-1` 数据天然隐藏），`blink` action 一次性切 blink clip（帧 1-3，BLINK1/2 贴图），播完由既有 pending action 机制自动回 idle 重新隐身；host 绑定 `anim_idle` 跟随头部（对应 semantic report 推荐的 `inherit_parent_current_transform`）。
+- 周期触发属调用方职责（demo 每 2.4s 调 `play_action("blink")`，沿旧 demo 节奏），运行时保持无状态；生产接入时由 VisualActorComponent/profile 侧决定，视觉自治不消耗玩法随机数。
+- 产物：`generated/reanim_data/sunflower/reanim_data.tres`（29 轨、idle/blink 两 clip）、`generated/native/sunflower/`（part_count=2，def 1,115 B）；`run_reanim_data_import.ps1` 样本表已加 sunflower。
+- 验证：新增 `visual_reanim_blink_overlay` 场景 + 探针（idle 数据隐藏/mask、一次性 blink 可见性、回 idle 再隐藏、负例 fail-closed、体积 ≤25%）PASSED；`local_private` 全层回归 9/9 PASSED（`artifacts/validation/batch_20260730_101045/`）；窗口 demo 人眼确认眨眼位置与节奏正常。
+- 推广结论：其余 15 株含 overlay 的植物迁移时沿用同一模式（overlay 轨道独立 part + include mask + 一次性 action），无需逐株新增能力。
+
+**执行记录（2026-07-30）：保留范围 ② Chomper 角度专项已完成。T5 瘦身版两项全部完成。**
+
+- 新增 `visual_reanim_chomper_angle` 场景 + 探针：全部 visual 轨道逐帧 + 插值中点双重连续性检查（中点旋转不得超出相邻帧差，抓 wrap 翻转伪影），并断言 455 条源 angle warning 在 semantic report 中保持可见不静默。
+- 重要发现：首跑 45° 阈值报 8/4400 失败，逐处诊断后确认**全部是真实源动画而非插值伪影**：`Chomper_spike1-4`（咀嚼甲刺）帧 39→41 源 kx/ky 每帧递进 ~50-56°，且中点差恰为帧差一半（插值沿正确短弧推进）。阈值上调至 90°（仍能抓真实翻转），中点检查作为真正的伪影判据保持不变；该结论已注释在探针代码中。
+- 产物：`generated/reanim_data/chomper/reanim_data.tres`；`run_reanim_data_import.ps1` 样本表已加 chomper。
+- 验证：`visual_reanim_chomper_angle` PASSED（checked_delta_count=4400）；`local_private` 全层回归 **10/10 PASSED**。
+- Chomper 迁移前置风险解除：角度连续性已有专项护栏，后续 T6 可正常排入批次。
+
 ### T6：按 profile 批量迁移与文档收口
 
 **类型：** 迁移 / 验证 / 文档
@@ -396,8 +412,8 @@ T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 
 | 渲染顺序 | Peashooter/WallNut | `visual_reanim_renderer_order` | track/render group 顺序稳定 |
 | 多实例组合 | ThreePeater | `visual_reanim_composite_threepeater` | body/head 绑定、动作协同、锚点、无专用 wrapper |
 | 动态 attacher | credits 中真实样本 | `visual_reanim_attacher_cross_file` | 跨文件解析、父轨道跟随、循环/缺失 fail-closed（2026-07-30 裁剪，待未来 attacher 内容激活） |
-| overlay/blink 表达 | Sunflower（首选样本） | 待建（T5 瘦身版） | blink 用 def parts 表达、无新增专用分支 |
-| Chomper 角度专项 | Chomper（455 条 angle warning） | 待建（T5 瘦身版） | 连续角度容差、无跳变 |
+| overlay/blink 表达 | Sunflower（首选样本） | `visual_reanim_blink_overlay` | blink 用 def parts 表达、无新增专用分支（2026-07-30 PASSED） |
+| Chomper 角度专项 | Chomper（455 条 angle warning） | `visual_reanim_chomper_angle` | 连续角度容差、无跳变（2026-07-30 PASSED，含插值中点检查） |
 | 既有私有包 | 当前经典包 | 既有两个 private smoke | 旧链回退与 archetype/profile 绑定不回归 |
 | 发布边界 | 主仓库/私有包 | release guardrail | 无私有资产泄漏 |
 

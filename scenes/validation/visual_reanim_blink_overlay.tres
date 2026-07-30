@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the sunflower blink overlay checks run"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_reanim_blink"]
+script = ExtResource("2_rule")
+rule_id = &"reanim_blink_overlay_expressed_via_def_parts"
+description = "Sunflower blink must be expressed purely through ReanimActorDef parts: data-hidden during idle, visible only while the one-shot blink action plays, body blink track always masked, and unknown actions fail closed"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"reanim_blink_overlay",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_reanim_blink_overlay"
+display_name = "Visual Reanim Blink Overlay"
+description = "Verify the sunflower native composite (body + blink part) expresses the legacy manual blink overlay purely with existing def capabilities: hidden by image_frame data during idle, one-shot blink action shows the blink textures, returning to idle hides it again, and the size budget holds."
+goals = PackedStringArray("Verify the blink part stays data-hidden during idle and the body blink track stays masked.", "Verify the one-shot blink action shows the overlay with a blink texture and returns to hidden idle.", "Verify unknown actions and anchors fail closed.", "Verify native data volume stays at or below 25% of the raw actor.tscn size.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_reanim_blink")]

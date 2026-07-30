@@ -17,6 +17,9 @@ const REANIM_DATA_ROOT := "res://local_extensions/classic_original_assets/genera
 const REANIM_GOLDEN_REPORT_ROOT := "res://local_extensions/classic_original_assets/generated/reports/reanim_golden"
 const REANIM_NATIVE_THREEPEATER_ROOT := "res://local_extensions/classic_original_assets/generated/native/threepeater"
 const REANIM_RAW_THREEPEATER_ACTOR := "res://local_extensions/classic_original_assets/generated/raw/threepeater/actor.tscn"
+const REANIM_NATIVE_SUNFLOWER_ROOT := "res://local_extensions/classic_original_assets/generated/native/sunflower"
+const REANIM_RAW_SUNFLOWER_ACTOR := "res://local_extensions/classic_original_assets/generated/raw/sunflower/actor.tscn"
+const REANIM_CHOMPER_SEMANTIC_REPORT := "res://local_extensions/classic_original_assets/generated/reports/semantic/Chomper.semantic_report.json"
 const REANIM_NATIVE_MAX_SIZE_RATIO := 0.25
 const REANIM_REQUIRED_FEATURE_FLAGS := ["has_text", "has_font", "has_attacher", "has_blend_mode", "has_unknown_fields"]
 const CORE_PRIVATE_CLASSIC_PROFILE_IDS := [
@@ -66,6 +69,10 @@ func _process(_delta: float) -> void:
 		_probe_reanim_renderer_order()
 	if scenario_id == &"visual_reanim_composite_threepeater":
 		_probe_reanim_composite_threepeater()
+	if scenario_id == &"visual_reanim_blink_overlay":
+		_probe_reanim_blink_overlay()
+	if scenario_id == &"visual_reanim_chomper_angle":
+		_probe_reanim_chomper_angle()
 	_probe_stage_layers()
 	_probe_visual_log()
 	_probe_ui_theme()
@@ -601,6 +608,199 @@ func _probe_reanim_composite_threepeater() -> void:
 		"native_bytes": native_bytes,
 		"raw_bytes": raw_bytes,
 	})
+
+
+## Verifies the sunflower blink overlay is expressed purely through existing
+## ReanimActorDef parts (slim T5): the blink part stays data-hidden during
+## idle (image_frame < 0), becomes visible only while the one-shot blink
+## action plays, and the body part never renders the blink track (mask).
+func _probe_reanim_blink_overlay() -> void:
+	if _emitted.has(&"reanim_blink_overlay") or _emitted.has(&"reanim_blink_overlay_failed"):
+		return
+	if _find_enabled_private_classic_pack().is_empty():
+		return
+	var scene_path := "%s/actor.tscn" % REANIM_NATIVE_SUNFLOWER_ROOT
+	var def_path := "%s/actor_def.tres" % REANIM_NATIVE_SUNFLOWER_ROOT
+	if not ResourceLoader.exists(scene_path) or not ResourceLoader.exists(def_path):
+		return
+	var packed := ResourceLoader.load(scene_path) as PackedScene
+	if packed == null:
+		return
+	var actor := packed.instantiate() as Node2D
+	if actor == null:
+		return
+	add_child(actor)
+	if int(actor.call("get_part_count")) != 2:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "expected 2 parts, got %d" % int(actor.call("get_part_count")))
+		actor.queue_free()
+		return
+	var body_player := actor.call("get_part_player", &"body") as ReanimPlayerRef
+	var blink_player := actor.call("get_part_player", &"blink") as ReanimPlayerRef
+	if body_player == null or blink_player == null:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "body/blink part player missing")
+		actor.queue_free()
+		return
+	# Data prerequisites: blink clip and blink textures come from the source.
+	var data := blink_player.get_data()
+	if data == null or data.get_clip("blink").is_empty():
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "blink clip missing from reanim data")
+		actor.queue_free()
+		return
+	var image_refs := data.image_refs
+	if not "IMAGE_REANIM_SUNFLOWER_BLINK1" in image_refs or not "IMAGE_REANIM_SUNFLOWER_BLINK2" in image_refs:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "blink textures missing from image refs")
+		actor.queue_free()
+		return
+	var body_blink_sprite := _find_reanim_track_sprite(body_player, "anim_blink")
+	var overlay_sprite := _find_reanim_track_sprite(blink_player, "anim_blink")
+	if body_blink_sprite == null or overlay_sprite == null:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "anim_blink sprites missing")
+		actor.queue_free()
+		return
+	# Idle: the overlay is hidden by data (image_frame < 0) and the body copy
+	# stays hidden by the visibility mask.
+	body_player.sample_now()
+	blink_player.sample_now()
+	if overlay_sprite.visible or body_blink_sprite.visible:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "blink visible during idle (overlay=%s body=%s)" % [overlay_sprite.visible, body_blink_sprite.visible])
+		actor.queue_free()
+		return
+	# Negative cases: unknown action rejected; no anchors are defined.
+	if bool(actor.call("play_action", &"__reanim_probe_missing_action__")):
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "unknown action unexpectedly accepted")
+		actor.queue_free()
+		return
+	if actor.call("get_anchor", &"muzzle") != null:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "unexpected anchor exposed")
+		actor.queue_free()
+		return
+	# One-shot blink: overlay becomes visible with a blink texture while the
+	# body keeps playing idle undisturbed.
+	if not bool(actor.call("play_action", &"blink")):
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "play_action blink rejected")
+		actor.queue_free()
+		return
+	if blink_player.get_clip_name() != &"blink" or body_player.get_clip_name() != &"idle":
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "unexpected clips after blink: blink=%s body=%s" % [blink_player.get_clip_name(), body_player.get_clip_name()])
+		actor.queue_free()
+		return
+	blink_player.sample_now()
+	body_player.sample_now()
+	if not overlay_sprite.visible or overlay_sprite.texture == null:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "overlay not visible while blink plays")
+		actor.queue_free()
+		return
+	if body_blink_sprite.visible:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "masked body blink track became visible")
+		actor.queue_free()
+		return
+	# Returning to the idle state hides the overlay again.
+	if not bool(actor.call("play_state", &"idle")):
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "play_state idle rejected")
+		actor.queue_free()
+		return
+	blink_player.sample_now()
+	if overlay_sprite.visible:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "overlay still visible after returning to idle")
+		actor.queue_free()
+		return
+	# Volume budget, consistent with the composite probe.
+	var native_bytes := _reanim_file_size("%s/reanim_data.tres" % [REANIM_DATA_ROOT.path_join("sunflower")]) \
+		+ _reanim_file_size(def_path) + _reanim_file_size(scene_path)
+	var raw_bytes := _reanim_file_size(REANIM_RAW_SUNFLOWER_ACTOR)
+	if native_bytes <= 0 or raw_bytes <= 0 or float(native_bytes) > float(raw_bytes) * REANIM_NATIVE_MAX_SIZE_RATIO:
+		_report_reanim_probe_failure(&"reanim_blink_overlay", "native payload too large: %d vs raw %d" % [native_bytes, raw_bytes])
+		actor.queue_free()
+		return
+	actor.queue_free()
+	_emitted[&"reanim_blink_overlay"] = true
+	_emit_probe(&"reanim_blink_overlay", &"passed", {
+		"part_count": 2,
+		"native_bytes": native_bytes,
+		"raw_bytes": raw_bytes,
+	})
+
+
+func _find_reanim_track_sprite(player: ReanimPlayerRef, track_prefix: String) -> Sprite2D:
+	for child in player.get_children():
+		var sprite := child as Sprite2D
+		if sprite != null and String(sprite.name).begins_with(track_prefix):
+			return sprite
+	return null
+
+
+## Chomper carries by far the most source angle warnings (kx/ky divergence).
+## The native matrix sampling must still produce frame-to-frame and
+## intra-frame (interpolated midpoint) rotation continuity, and the source
+## warnings must stay visible in the semantic report instead of being muted.
+func _probe_reanim_chomper_angle() -> void:
+	if _emitted.has(&"reanim_chomper_angle") or _emitted.has(&"reanim_chomper_angle_failed"):
+		return
+	if _find_enabled_private_classic_pack().is_empty():
+		return
+	var data := _load_reanim_data("chomper")
+	if data == null:
+		return
+	# Source warnings stay on record (fail if the report went missing or muted).
+	var warning_count := _reanim_semantic_angle_warning_count(REANIM_CHOMPER_SEMANTIC_REPORT)
+	if warning_count <= 0:
+		_report_reanim_probe_failure(&"reanim_chomper_angle", "chomper angle warnings missing from semantic report (count=%d)" % warning_count)
+		return
+	var player := _create_reanim_player("chomper")
+	if player == null:
+		return
+	add_child(player)
+	var jump_count := 0
+	var checked_delta_count := 0
+	# Chomper's chew spikes legitimately rotate ~50-56 deg per frame in the
+	# source (Chomper_spike1-4, frames 39-41), so the jump threshold sits at
+	# 90 deg to catch real wrap-around flips only; the midpoint check below is
+	# the actual interpolation-artifact detector (midpoint must not overshoot).
+	var jump_threshold := deg_to_rad(90.0)
+	for track_index in data.get_track_count():
+		if data.track_kinds[track_index] != ReanimDataRef.TRACK_KIND_VISUAL:
+			continue
+		var track_name := data.track_names[track_index]
+		var has_previous := false
+		var previous_rotation := 0.0
+		for frame in data.frame_count:
+			if data.is_frame_hidden(track_index, frame):
+				has_previous = false
+				continue
+			var frame_rotation: float = player.get_track_transform(track_name, float(frame)).get_rotation()
+			if has_previous:
+				# Interpolated midpoint must sit between the neighbouring frames
+				# (no wrap-around flip mid-frame) and successive frames must not jump.
+				var midpoint_rotation: float = player.get_track_transform(track_name, float(frame) - 0.5).get_rotation()
+				var frame_delta := wrapf(frame_rotation - previous_rotation, -PI, PI)
+				var midpoint_delta := wrapf(midpoint_rotation - previous_rotation, -PI, PI)
+				checked_delta_count += 2
+				if absf(frame_delta) > jump_threshold or absf(midpoint_delta) > absf(frame_delta) + 0.001:
+					jump_count += 1
+			previous_rotation = frame_rotation
+			has_previous = true
+	player.queue_free()
+	if checked_delta_count <= 0:
+		return
+	if jump_count > 0:
+		_report_reanim_probe_failure(&"reanim_chomper_angle", "chomper rotation jumps detected: %d of %d checks" % [jump_count, checked_delta_count])
+		return
+	_emitted[&"reanim_chomper_angle"] = true
+	_emit_probe(&"reanim_chomper_angle", &"passed", {
+		"checked_delta_count": checked_delta_count,
+		"source_angle_warning_count": warning_count,
+	})
+
+
+func _reanim_semantic_angle_warning_count(report_path: String) -> int:
+	var file := FileAccess.open(report_path, FileAccess.READ)
+	if file == null:
+		return -1
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	file.close()
+	if not parsed is Dictionary:
+		return -1
+	return int((parsed as Dictionary).get("angle_warning_count", -1))
 
 
 func _reanim_file_size(res_path: String) -> int:

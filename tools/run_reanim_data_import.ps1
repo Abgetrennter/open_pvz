@@ -23,6 +23,8 @@ $SourceBySample = @{
 	"peashooter" = "PeaShooterSingle.reanim"
 	"wallnut" = "Wallnut.reanim"
 	"threepeater" = "ThreePeater.reanim"
+	"sunflower" = "SunFlower.reanim"
+	"chomper" = "Chomper.reanim"
 }
 
 $FailCount = 0
