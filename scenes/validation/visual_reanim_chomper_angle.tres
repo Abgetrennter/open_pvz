@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the chomper angle continuity checks run"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_reanim_chomper"]
+script = ExtResource("2_rule")
+rule_id = &"reanim_chomper_angle_continuity"
+description = "Chomper native matrix sampling must keep frame-to-frame and interpolated midpoint rotations continuous across all visual tracks despite the 455 source angle warnings, which must stay visible in the semantic report"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"reanim_chomper_angle",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_reanim_chomper_angle"
+display_name = "Visual Reanim Chomper Angle"
+description = "Verify the plant with the highest source angle-warning count (Chomper, 455) samples continuously on the native chain: no rotation jumps between frames and no wrap-around flips at interpolated midpoints, with the source warnings kept on record."
+goals = PackedStringArray("Verify frame-to-frame rotations stay within the 90-degree jump threshold on all visual tracks (Chomper_spike1-4 legitimately rotate 50-56 degrees per frame in the source).", "Verify interpolated midpoint rotations do not overshoot their neighbouring frames (no mid-frame wrap flips).", "Verify the 455 source angle warnings remain visible in the semantic report instead of being muted.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_reanim_chomper")]
