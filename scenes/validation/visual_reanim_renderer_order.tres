@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the reanim renderer order checks run"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_reanim_order"]
+script = ExtResource("2_rule")
+rule_id = &"reanim_draw_order_matches_source_track_order"
+description = "ReanimPlayer draw order must equal the source file visual track order and stay stable across repeated player instantiations"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"reanim_renderer_order",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_reanim_renderer_order"
+display_name = "Visual Reanim Renderer Order"
+description = "Verify the native reanim renderer keeps a deterministic draw order equal to the source visual track order across repeated instantiations."
+goals = PackedStringArray("Verify snapshot order indices are strictly sequential.", "Verify draw order equals the source file visual track order on two independent player instances.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_reanim_order")]

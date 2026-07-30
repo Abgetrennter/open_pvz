@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the native reanim runtime smoke checks run"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_reanim_native"]
+script = ExtResource("2_rule")
+rule_id = &"reanim_native_runtime_matches_golden_baseline"
+description = "ReanimPlayer draw snapshots at fixed frames must match the T0 golden baseline (matrix, texture, alpha, visibility) and negative cases must fail closed"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"reanim_native_runtime",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_reanim_native_runtime_smoke"
+display_name = "Visual Reanim Native Runtime Smoke"
+description = "Verify native ReanimPlayer sampling for peashooter/wallnut reproduces the T0 golden baseline snapshots at fixed frames, and that unknown clips or missing textures fail closed with diagnostics."
+goals = PackedStringArray("Verify per-track draw snapshots (transform matrix, texture, alpha, visibility, order) match the golden baseline at sampled frames.", "Verify unknown clip playback returns false with a reanim_runtime diagnostic.", "Verify missing textures reject setup with a reanim_runtime diagnostic.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_reanim_native")]
