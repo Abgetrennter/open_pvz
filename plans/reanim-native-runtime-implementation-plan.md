@@ -1,6 +1,6 @@
 # Reanim 原生运行时实施计划
 
-> 状态：Spike（T0-T3 + Gate A）已完成，Gate A 结论 **Go**；T4-T6 未启动
+> 状态：Spike（T0-T3 + Gate A）已完成，Gate A 结论 **Go**；T4-T6 范围已按 feature flags 实扫裁定（T4 本迁移范围裁剪、T5 收窄为 overlay/blink + Chomper 角度专项），尚未动工
 >
 > 制定日期：2026-07-29
 >
@@ -303,6 +303,13 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_a
 
 回退/评审风险：attacher feature flag 可禁用；重点评审递归资源放大、引用边界和生命周期清理。
 
+**范围裁定（2026-07-30）：本次植物迁移范围内裁剪，不启动。**
+
+- 依据：`tools/scan_reanim_feature_flags.ps1` 汇总 18 株 manifest 待迁移植物的语义报告（`generated/reports/semantic/`）与源文件 token 扫描。
+- 结果：**跨文件 attacher 命中 0 株**。扫出的 7 株 `suspected_attachment`（peashooter/chomper/threepeater/repeater/snowpea/gatlingpea/splitpea）逐一核实均为**文件内无贴图 host 轨道**（`anim_head1/2/3`、`anim_stem`、`anim_idle/chew/swallow` 等，texture_keys 全空）——正是 T3 `ReanimActorDef` parts + host 绑定已覆盖的模式，无需 `ParseAttacherTrack` 跨文件能力。
+- text/font 命中 0 株，维持 fail-closed 字段保留不渲染。
+- 本节工作内容、验收标准与 `visual_reanim_attacher_cross_file` 场景保留不删，待未来启动僵尸/credits 等真实 attacher 内容时再激活；激活前需先对目标样本重跑 feature flags 扫描确认。
+
 ### T5：轨道覆盖、混合与性能门槛
 
 **类型：** 运行时 / 验证
@@ -323,11 +330,18 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_a
 
 回退/评审风险：各高级能力应独立开关或保持数据级可选；重点评审 YAGNI、共享资源被实例状态污染及缓存失效。
 
+**范围裁定（2026-07-30）：收窄为两项，其余能力本迁移范围不实现。**
+
+- 依据同 T4（`tools/scan_reanim_feature_flags.ps1`，18 株待迁移植物）：**blend mode 命中 0 株**（`blend_modes_seen` 全空），`BlendTransform` 兼容测试与 image override/color/render group 等 track instance 能力均无真实样本支撑，按 YAGNI 不实现，保持未实现 + 诊断可见。
+- 保留范围 ① **overlay/blink 表达**：16 株植物含 overlay binding（眨眼类轨道，旧链用 `suppressed_tracks` + `manual_overlay_sprite`）。首选用现有 def parts 直接表达（blink clip 已被导入器识别为 marker），先拿 overlay 最简的 sunflower 验证；仅当需要周期/随机触发时才评估新增运行时能力（视觉侧自治，不消耗玩法随机数）。
+- 保留范围 ② **Chomper 角度专项**：Chomper 语义报告含 **455 条 angle warning**（WallNut 仅 2 条），迁移前需按 `visual_reanim_angle_compatibility` 模式对 Chomper 做连续性专项验证。
+- 性能门槛条目保留：Gate A 观察未触发批渲染需求，T6 分批迁移中若 showcase 指标劣化再量化。
+
 ### T6：按 profile 批量迁移与文档收口
 
 **类型：** 迁移 / 验证 / 文档
 
-**依赖：** T4/T5 中目标内容需要的能力已完成，且 Gate A 通过
+**依赖：** T4/T5 中目标内容需要的能力已完成，且 Gate A 通过（按 2026-07-30 范围裁定：T4 已裁剪，实际前置仅为收窄后的 T5 两项）
 
 工作内容：
 
@@ -369,6 +383,8 @@ flowchart LR
 
 T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 是否需要、先后顺序如何，应由真实待迁移样本的 feature flags 决定。
 
+> 2026-07-30 实扫裁定：18 株待迁移植物中 T4 命中 0 株（裁剪），T5 收窄为 overlay/blink + Chomper 角度专项；实际路径为 Gate A → T5（瘦身版）→ T6。详见 T4/T5 节范围裁定记录。
+
 ## 8. 验证矩阵
 
 | 能力 | 样本 | 验证场景 | 关键断言 |
@@ -379,7 +395,9 @@ T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 
 | 角度兼容 | WallNut | `visual_reanim_angle_compatibility` | 跨角度关键帧连续、矩阵容差 |
 | 渲染顺序 | Peashooter/WallNut | `visual_reanim_renderer_order` | track/render group 顺序稳定 |
 | 多实例组合 | ThreePeater | `visual_reanim_composite_threepeater` | body/head 绑定、动作协同、锚点、无专用 wrapper |
-| 动态 attacher | credits 中真实样本 | `visual_reanim_attacher_cross_file` | 跨文件解析、父轨道跟随、循环/缺失 fail-closed |
+| 动态 attacher | credits 中真实样本 | `visual_reanim_attacher_cross_file` | 跨文件解析、父轨道跟随、循环/缺失 fail-closed（2026-07-30 裁剪，待未来 attacher 内容激活） |
+| overlay/blink 表达 | Sunflower（首选样本） | 待建（T5 瘦身版） | blink 用 def parts 表达、无新增专用分支 |
+| Chomper 角度专项 | Chomper（455 条 angle warning） | 待建（T5 瘦身版） | 连续角度容差、无跳变 |
 | 既有私有包 | 当前经典包 | 既有两个 private smoke | 旧链回退与 archetype/profile 绑定不回归 |
 | 发布边界 | 主仓库/私有包 | release guardrail | 无私有资产泄漏 |
 
