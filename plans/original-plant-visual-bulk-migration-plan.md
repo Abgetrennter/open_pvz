@@ -22,6 +22,7 @@
 - 当前基线：
   - 私有包 manifest：`local_extensions/classic_original_assets/manifests/reanim_visual_manifest.local.json` 当前 18 个 entries。
   - 私有包 runtime profile：`local_extensions/classic_original_assets/data/combat/visual_profiles/plants/` 当前 18 个 `.tres`。
+  - 视觉运行时链路（2026-07-30）：18 株 profile 的 `actor_scene` 已全部由旧链 wrapper actor（`actors/<id>/`）切到新链 `ReanimActor + ReanimActorDef + ReanimData`（`generated/native/<id>/actor.tscn`），详见 `plans/reanim-native-runtime-implementation-plan.md` 的 T6 执行记录；旧 `actors/<id>/` 产物保留作回退点。
   - 主仓 formal binding：`archetype_original_peashooter`、`archetype_original_sunflower`、`archetype_original_threepeater`、`archetype_original_chomper`、`archetype_original_squash` 已绑定 `classic_original.entity.plant.*.visual`。
   - 原版背景与 800x600 画布已对齐；草地背景按 `position = Vector2(-220, 0)`，植物展示按原版 `LAWN_XMIN = 40`、`LAWN_YMIN = 80`、格宽 `80`、草地行高 `100` 换算，并叠加 profile `ground_offset`。
 

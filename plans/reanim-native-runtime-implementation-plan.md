@@ -1,6 +1,6 @@
 # Reanim 原生运行时实施计划
 
-> 状态：Spike（T0-T3 + Gate A）与 T5（瘦身版：overlay/blink + Chomper 角度专项）已完成；T4 已裁剪；下一步 T6 分批迁移
+> 状态：Spike（T0-T3 + Gate A）、T5（瘦身版：overlay/blink + Chomper 角度专项）与 T6（18 株植物分批迁移）已完成；T4 已裁剪
 >
 > 制定日期：2026-07-29
 >
@@ -382,6 +382,21 @@ pwsh tools/check_public_extension_release_guardrails.ps1
 ```
 
 回退/评审风险：每批迁移独立恢复 profile；旧产物删除前必须核对引用和生成链，禁止批量删除未验证文件。
+
+**执行记录（2026-07-30）：已完成。** 18 株原版植物全部从旧链 wrapper actor 迁移到新链 `ReanimActor + ReanimActorDef + ReanimData`，profile 的 `actor_scene` 逐项切到 `generated/native/<id>/actor.tscn`，旧 `actors/<id>/` 产物保留可回退。
+
+迁移前先在主仓落地 T6 三个通用能力（commit `1cbbabe`，无 per-plant 分支）：`clip_rates`（逐 clip 倍速，还原旧 wrapper 的 idle 17/12、shooting 35/12 等 fps 加速）、`action_next_states`（一次性动作完成后转指定状态，还原 `one_shot_next_state`）、固定锚点 `{position: Vector2}`（还原旧 wrapper 直接挂的固定 muzzle/mouth 节点）。三者贯穿 `ReanimActorDef`（schema+校验）、`ReanimActor`（应用逻辑）、`reanim_generate_composites.gd`（透传）。
+
+分批结果（私有包 commit）：
+
+- **批次 1（6 简单株）** `squash / wallnut / tallnut / pumpkin / lilypad / flowerpot`：body-only 单 part，各命名状态忠实还原源 clip。主仓 `1cbbabe` + 私有包 `089aa43`。
+- **批次 2（菇类 4 株 + sunflower）** `puffshroom / fumeshroom / seashroom` body-only；`scaredyshroom` 追加 `clip_rates`（shooting 2.9167 / scared 0.8333 / grow 0.75）与 `action_next_states`（cower→cowering、grow→idle）；sunflower 切 profile。私有包 `087c359`。blink flourish 延后（body-only 已逐状态忠实还原，可后续按 sunflower 双 part 模式补 idle 期眨眼叠层）。
+- **批次 3（豌豆系 5 株 + threepeater）** `repeater / snowpea`（host `anim_stem`）、`gatlingpea / splitpea`（无 anim_stem，host `anim_idle` 回退）两 part body+head，还原旧 `pea_family` wrapper：`clip_rates` idle/head_idle 1.4167（17/12）+ shooting 2.9167（35/12）、固定 muzzle `{position 46,-38}` 别名 projectile/pea_spawn；`peashooter` def 补相同 `clip_rates` 做全家族 fps 对齐（保留 spike 期 anim_stem 跟踪 muzzle）；`threepeater` 沿用 spike 期已验证的 3-head 嘴部跟踪 native 块，仅切 profile。`splitpea` 前脸单 head 与旧链一致（后置分裂豌豆头延后）。私有包 `2e5a82f`。
+- **批次 4（chomper）** body-only 单 part：`track_visibility` exclude 4 条辅助轨道（Chomper_stomach、Zombie_outerarm_hand/lower、Chomper_tongue_lick），states idle + digesting/chewing→chew，一次性动作 bite/attack/devour→digesting、swallow→idle（`action_next_states`），`clip_rates` bite 2.0 / chew 1.25 / idle+swallow 1.0，固定锚点 mouth `{58,-42}`（chomp/devour 别名）+ bite_target `{88,-32}`（target/devour_target 别名）。私有包 `466543f`。
+
+每批完成即跑 `local_private` 回归 10/10 PASSED。收口全量回归：`local_private` 10/10、`smoke` 24/24、`guardrail` 20/20，`check_public_extension_release_guardrails.ps1` OK。主仓不含私有素材泄漏（视觉产物均在私有包 git 仓）。
+
+遗留与延后项（不阻塞收口）：① 菇类 idle 期 blink/eye flourish（当前 body-only 忠实还原各状态，未叠加独立眨眼层）；② splitpea 后置分裂豌豆头；③ peashooter native 沿用 spike 期 anim_stem 跟踪 muzzle 而非家族统一的固定 muzzle（fps 已对齐，spawn 位置近似）；④ 旧 `actors/<id>/` 产物与专用 wrapper 脚本尚未删除（保留回退点，删除须单独确认范围）；⑤ 本计划的 completion/archive 归档与源草案收口按后续独立流程执行。
 
 ## 7. 依赖顺序
 
