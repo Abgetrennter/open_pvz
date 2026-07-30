@@ -398,7 +398,7 @@ pwsh tools/check_public_extension_release_guardrails.ps1
 
 **Demo 目测修复（2026-07-30，私有包 `e09b583`）：** 全阵容 demo 暴露并修掉三类问题——① 8 株 native 块漏写 `root_offset` 导致原点落在轨道左上角、整体偏下（puffshroom/fumeshroom/seashroom/wallnut/tallnut/pumpkin/lilypad/flowerpot），按逐帧可见 AABB 推导 bottom-center 偏移并对 peashooter/scaredyshroom/squash 校准后写回；② splitpea 补第三 part `backhead`（`splitpea_idle`/`splitpea_shooting` host `anim_idle`、render_order 2、clip_rates 对齐），后置分裂头恢复显示；③ wallnut/tallnut/lilypad 眨眼改为 sunflower 式双 part overlay（body 排除眨眼轨道持续 idle，blink part 仅含眨眼轨道播 one-shot），眨眼时身体不再消失。9 株产物再生成，`local_private` 回归 10/10 PASSED，用户目测确认表现正常。
 
-遗留与延后项（不阻塞收口）：① 菇类 idle 期 blink/eye flourish（当前 body-only 忠实还原各状态，未叠加独立眨眼层）；② ~~splitpea 后置分裂豌豆头~~（已于 `e09b583` 补齐）；③ peashooter native 沿用 spike 期 anim_stem 跟踪 muzzle 而非家族统一的固定 muzzle（fps 已对齐，spawn 位置近似）；④ 旧 `actors/<id>/` 产物与专用 wrapper 脚本尚未删除（保留回退点，删除须单独确认范围）；⑤ 本计划的 completion/archive 归档与源草案收口按后续独立流程执行。
+遗留与延后项（不阻塞收口）：① ~~菇类 idle 期 blink/eye flourish~~（puffshroom/fumeshroom 已于 `5359eef` 补 sunflower 式双 part 眨眼；seashroom/scaredyshroom 有意保持 body-only——其 blink/eye 轨道与 sleep/shooting/idle 状态 clip 共享，拆分会丢层或重复绘制）；② ~~splitpea 后置分裂豌豆头~~（已于 `e09b583` 补齐）；③ ~~peashooter native 跟踪 muzzle~~（已于 `5359eef` 改为家族统一固定 `{position 46,-38}`）；④ ~~旧 `actors/<id>/` 产物~~（18 株旧链 composite 场景已于 `5359eef` 删除，零活跃引用，可从 manifest 再生成）；专用 wrapper 脚本保留（threepeater 供 golden baseline、`reanim_manifest_composite_actor` 为通用生成器、其余为非 native 再生成源），完整移除需连带删 manifest 旧链字段，属独立重构；⑤ 本计划的 completion/archive 归档与源草案收口按后续独立流程执行。
 
 ## 7. 依赖顺序
 
