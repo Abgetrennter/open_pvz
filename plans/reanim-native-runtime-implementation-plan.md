@@ -396,7 +396,9 @@ pwsh tools/check_public_extension_release_guardrails.ps1
 
 每批完成即跑 `local_private` 回归 10/10 PASSED。收口全量回归：`local_private` 10/10、`smoke` 24/24、`guardrail` 20/20，`check_public_extension_release_guardrails.ps1` OK。主仓不含私有素材泄漏（视觉产物均在私有包 git 仓）。
 
-遗留与延后项（不阻塞收口）：① 菇类 idle 期 blink/eye flourish（当前 body-only 忠实还原各状态，未叠加独立眨眼层）；② splitpea 后置分裂豌豆头；③ peashooter native 沿用 spike 期 anim_stem 跟踪 muzzle 而非家族统一的固定 muzzle（fps 已对齐，spawn 位置近似）；④ 旧 `actors/<id>/` 产物与专用 wrapper 脚本尚未删除（保留回退点，删除须单独确认范围）；⑤ 本计划的 completion/archive 归档与源草案收口按后续独立流程执行。
+**Demo 目测修复（2026-07-30，私有包 `e09b583`）：** 全阵容 demo 暴露并修掉三类问题——① 8 株 native 块漏写 `root_offset` 导致原点落在轨道左上角、整体偏下（puffshroom/fumeshroom/seashroom/wallnut/tallnut/pumpkin/lilypad/flowerpot），按逐帧可见 AABB 推导 bottom-center 偏移并对 peashooter/scaredyshroom/squash 校准后写回；② splitpea 补第三 part `backhead`（`splitpea_idle`/`splitpea_shooting` host `anim_idle`、render_order 2、clip_rates 对齐），后置分裂头恢复显示；③ wallnut/tallnut/lilypad 眨眼改为 sunflower 式双 part overlay（body 排除眨眼轨道持续 idle，blink part 仅含眨眼轨道播 one-shot），眨眼时身体不再消失。9 株产物再生成，`local_private` 回归 10/10 PASSED，用户目测确认表现正常。
+
+遗留与延后项（不阻塞收口）：① 菇类 idle 期 blink/eye flourish（当前 body-only 忠实还原各状态，未叠加独立眨眼层）；② ~~splitpea 后置分裂豌豆头~~（已于 `e09b583` 补齐）；③ peashooter native 沿用 spike 期 anim_stem 跟踪 muzzle 而非家族统一的固定 muzzle（fps 已对齐，spawn 位置近似）；④ 旧 `actors/<id>/` 产物与专用 wrapper 脚本尚未删除（保留回退点，删除须单独确认范围）；⑤ 本计划的 completion/archive 归档与源草案收口按后续独立流程执行。
 
 ## 7. 依赖顺序
 

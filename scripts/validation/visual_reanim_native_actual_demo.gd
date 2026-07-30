@@ -1,13 +1,16 @@
 extends Node2D
-## Windowed demo for the native reanim runtime (T0-T3 spike output).
+## Windowed demo for the native reanim runtime - full T6 roster.
 ##
-## Loads the generated native actors (ReanimActor + ReanimActorDef + ReanimData)
-## for ThreePeater (composite: body + 3 hosted heads), Peashooter (body +
-## hosted head) and Sunflower (body + blink overlay part), drives
-## GameState.current_time locally, loops a combat cycle (idle rest ->
-## continuous volleys at the original 1.5s cadence -> idle) plus a periodic
-## blink, and draws anchor markers. Demo-only; not registered as a validation
-## scenario and never touches production profiles.
+## Loads all 18 migrated original plants as native actors (ReanimActor +
+## ReanimActorDef + ReanimData) straight from generated/native, drives
+## GameState.current_time locally and loops a combat cycle (idle rest ->
+## continuous volleys at the original 1.5s cadence -> idle). Non-shooters
+## play their flourish actions on a periodic timer, which exercises the T6
+## capabilities live: clip_rates (pea family fps parity), action_next_states
+## (chomper bite -> digesting -> swallow -> idle, scaredyshroom cower ->
+## cowering) and fixed {position} anchors (pea muzzles, chomper mouth).
+## Demo-only; not registered as a validation scenario and never touches
+## production profiles.
 ##
 ## Run (windowed):
 ##   & .\Godot_v4.6.2-stable_win64_console.exe --path . res://scenes/validation/visual_reanim_native_actual_demo.tscn
@@ -15,74 +18,93 @@ extends Node2D
 ## Controls:
 ##   Space  pause/resume simulation time (phase must freeze)
 ##   1/2/3  simulation speed 0.5x / 1x / 2x
-##   S      trigger an extra shoot action on both actors
-##   B      trigger an extra blink on the sunflower
+##   S      trigger an extra volley on all shooters
+##   B      trigger every flourish immediately
+##   Z      toggle mushrooms between sleeping and idle
 
-const THREEPEATER_ACTOR_PATH := "res://local_extensions/classic_original_assets/generated/native/threepeater/actor.tscn"
-const PEASHOOTER_ACTOR_PATH := "res://local_extensions/classic_original_assets/generated/native/peashooter/actor.tscn"
-const SUNFLOWER_ACTOR_PATH := "res://local_extensions/classic_original_assets/generated/native/sunflower/actor.tscn"
-const GROUND_Y := 360.0
-const THREEPEATER_POSITION := Vector2(200.0, GROUND_Y)
-const PEASHOOTER_POSITION := Vector2(440.0, GROUND_Y)
-const SUNFLOWER_POSITION := Vector2(640.0, GROUND_Y)
+const NATIVE_ROOT := "res://local_extensions/classic_original_assets/generated/native"
 const IDLE_PHASE_SECONDS := 3.0
 const COMBAT_PHASE_SECONDS := 6.0
 const FIRE_INTERVAL_SECONDS := 1.5
-const BLINK_INTERVAL_SECONDS := 2.4
-const THREEPEATER_ANCHORS: Array[StringName] = [&"muzzle1", &"muzzle2", &"muzzle3"]
-const PEASHOOTER_ANCHORS: Array[StringName] = [&"muzzle"]
-const ANCHOR_MARKER_RADIUS := 5.0
+const FLOURISH_INTERVAL_SECONDS := 2.4
+const ANCHOR_MARKER_RADIUS := 4.0
+const ROW_YS: Array[float] = [170.0, 350.0, 530.0]
+const COL_XS: Array[float] = [90.0, 218.0, 346.0, 474.0, 602.0, 730.0]
+
+## Row-major roster; shoot -> joins volleys, flourish -> cycled one-shots,
+## sleeper -> toggles sleeping/idle with Z, anchors -> drawn as markers.
+const ROSTER: Array[Dictionary] = [
+	{"id": "peashooter", "shoot": true, "anchors": ["muzzle"]},
+	{"id": "repeater", "shoot": true, "anchors": ["muzzle"]},
+	{"id": "snowpea", "shoot": true, "anchors": ["muzzle"]},
+	{"id": "gatlingpea", "shoot": true, "anchors": ["muzzle"]},
+	{"id": "splitpea", "shoot": true, "anchors": ["muzzle"]},
+	{"id": "threepeater", "shoot": true, "anchors": ["muzzle1", "muzzle2", "muzzle3"]},
+	{"id": "puffshroom", "shoot": true, "sleeper": true},
+	{"id": "fumeshroom", "shoot": true, "sleeper": true},
+	{"id": "seashroom", "shoot": true, "sleeper": true},
+	{"id": "scaredyshroom", "shoot": true, "sleeper": true, "flourish": ["cower", "grow"]},
+	{"id": "sunflower", "flourish": ["blink"]},
+	{"id": "chomper", "flourish": ["bite", "swallow"], "anchors": ["mouth", "bite_target"]},
+	{"id": "wallnut", "flourish": ["blink_twice", "blink_twitch", "blink_thrice"]},
+	{"id": "tallnut", "flourish": ["blink_twice", "blink_thrice"]},
+	{"id": "pumpkin"},
+	{"id": "lilypad", "flourish": ["blink"]},
+	{"id": "flowerpot"},
+	{"id": "squash", "flourish": ["look_left", "look_right", "jump_up", "jump_down"]},
+]
 
 var _status_label: Label = null
-var _actors: Array[Node2D] = []
-var _anchor_sets: Array = []
+var _entries: Array[Dictionary] = []
 var _time_scale := 1.0
 var _paused := false
 var _phase: StringName = &"idle"
 var _phase_elapsed := 0.0
 var _fire_elapsed := 0.0
+var _flourish_elapsed := 0.0
 var _shoot_count := 0
-var _sunflower: Node2D = null
-var _blink_elapsed := 0.0
-var _blink_count := 0
+var _flourish_count := 0
+var _mushrooms_sleeping := false
+var _missing_ids: Array[String] = []
 
 
 func _ready() -> void:
 	_build_backdrop()
 	_build_status_label()
 	GameState.reset_simulation_time()
-	var threepeater := _spawn_actor(THREEPEATER_ACTOR_PATH, THREEPEATER_POSITION, THREEPEATER_ANCHORS)
-	var peashooter := _spawn_actor(PEASHOOTER_ACTOR_PATH, PEASHOOTER_POSITION, PEASHOOTER_ANCHORS)
-	_sunflower = _spawn_actor(SUNFLOWER_ACTOR_PATH, SUNFLOWER_POSITION, [])
-	if threepeater == null or peashooter == null or _sunflower == null:
-		_status_label.text = "Native actors missing. Regenerate them first:\n" \
-			+ "reanim_generate_composites.gd --manifest .../reanim_visual_manifest.local.json --native-only true"
-		return
+	for index in ROSTER.size():
+		var config := ROSTER[index]
+		var at := Vector2(COL_XS[index % COL_XS.size()], ROW_YS[floori(float(index) / float(COL_XS.size()))])
+		var actor := _spawn_actor(String(config["id"]), at)
+		if actor == null:
+			_missing_ids.append(String(config["id"]))
+			continue
+		_entries.append({
+			"id": String(config["id"]),
+			"actor": actor,
+			"shoot": bool(config.get("shoot", false)),
+			"sleeper": bool(config.get("sleeper", false)),
+			"flourish": config.get("flourish", []),
+			"flourish_index": 0,
+			"anchors": config.get("anchors", []),
+		})
+		_build_name_label(String(config["id"]), at)
 	_update_status()
 
 
 func _process(delta: float) -> void:
-	if _actors.is_empty():
+	if _entries.is_empty():
 		return
 	if not _paused:
 		var step := delta * _time_scale
 		GameState.advance_time(step)
 		_advance_combat_cycle(step)
-		_advance_blink_cycle(step)
+		_advance_flourish_cycle(step)
 	_update_status()
 	queue_redraw()
 
 
-## Sunflowers blink periodically regardless of combat, mirroring the legacy
-## overlay demo cadence; the blink action is a one-shot clip on the blink part.
-func _advance_blink_cycle(step: float) -> void:
-	_blink_elapsed += step
-	if _blink_elapsed >= BLINK_INTERVAL_SECONDS:
-		_blink_elapsed = 0.0
-		_trigger_blink()
-
-
-## Loops idle rest and combat volleys, mirroring in-game pacing: plants sit
+## Loops idle rest and combat volleys, mirroring in-game pacing: shooters sit
 ## idle, then fire repeatedly at the original cadence while a target is held.
 func _advance_combat_cycle(step: float) -> void:
 	_phase_elapsed += step
@@ -97,6 +119,15 @@ func _advance_combat_cycle(step: float) -> void:
 		_trigger_shoot()
 	if _phase_elapsed >= COMBAT_PHASE_SECONDS:
 		_enter_phase(&"idle")
+
+
+## Non-shoot plants cycle their one-shot flourishes; finished one-shots route
+## back through the def (action_next_states or the current state).
+func _advance_flourish_cycle(step: float) -> void:
+	_flourish_elapsed += step
+	if _flourish_elapsed >= FLOURISH_INTERVAL_SECONDS:
+		_flourish_elapsed = 0.0
+		_trigger_flourish()
 
 
 func _enter_phase(phase: StringName) -> void:
@@ -121,17 +152,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_S:
 			_trigger_shoot()
 		KEY_B:
-			_trigger_blink()
+			_trigger_flourish()
+		KEY_Z:
+			_toggle_mushroom_sleep()
 
 
 func _draw() -> void:
-	draw_line(Vector2(40.0, GROUND_Y), Vector2(760.0, GROUND_Y), Color(0.35, 0.5, 0.35), 2.0)
-	for anchor_set in _anchor_sets:
-		for anchor_name in anchor_set["names"]:
-			var actor := anchor_set["actor"] as Node2D
-			if actor == null or not actor.has_method("get_anchor"):
-				continue
-			var anchor := actor.call("get_anchor", anchor_name) as Node2D
+	for row_y in ROW_YS:
+		draw_line(Vector2(30.0, row_y), Vector2(770.0, row_y), Color(0.35, 0.5, 0.35), 2.0)
+	for entry in _entries:
+		var actor := entry["actor"] as Node2D
+		if actor == null or not actor.has_method("get_anchor"):
+			continue
+		for anchor_name in entry["anchors"]:
+			var anchor := actor.call("get_anchor", StringName(anchor_name)) as Node2D
 			if anchor == null:
 				continue
 			var local := to_local(anchor.global_position)
@@ -140,7 +174,8 @@ func _draw() -> void:
 			draw_line(local - Vector2(0.0, ANCHOR_MARKER_RADIUS), local + Vector2(0.0, ANCHOR_MARKER_RADIUS), Color.WHITE, 1.0)
 
 
-func _spawn_actor(scene_path: String, at: Vector2, anchor_names: Array[StringName]) -> Node2D:
+func _spawn_actor(plant_id: String, at: Vector2) -> Node2D:
+	var scene_path := "%s/%s/actor.tscn" % [NATIVE_ROOT, plant_id]
 	if not ResourceLoader.exists(scene_path):
 		return null
 	var packed := load(scene_path) as PackedScene
@@ -154,21 +189,46 @@ func _spawn_actor(scene_path: String, at: Vector2, anchor_names: Array[StringNam
 	if actor.has_method("get_part_count") and int(actor.call("get_part_count")) <= 0:
 		actor.queue_free()
 		return null
-	_actors.append(actor)
-	_anchor_sets.append({"actor": actor, "names": anchor_names})
 	return actor
 
 
 func _trigger_shoot() -> void:
 	_shoot_count += 1
-	for actor in _actors:
-		if actor.has_method("play_action") and actor != _sunflower:
+	for entry in _entries:
+		if not entry["shoot"]:
+			continue
+		if entry["sleeper"] and _mushrooms_sleeping:
+			continue
+		var actor := entry["actor"] as Node2D
+		if actor.has_method("play_action"):
 			actor.call("play_action", &"shoot")
 
 
-func _trigger_blink() -> void:
-	if _sunflower != null and _sunflower.has_method("play_action") and _sunflower.call("play_action", &"blink"):
-		_blink_count += 1
+func _trigger_flourish() -> void:
+	for entry in _entries:
+		var flourish: Array = entry["flourish"]
+		if flourish.is_empty():
+			continue
+		var actor := entry["actor"] as Node2D
+		if not actor.has_method("play_action"):
+			continue
+		var action := StringName(flourish[int(entry["flourish_index"]) % flourish.size()])
+		if actor.call("play_action", action):
+			entry["flourish_index"] = int(entry["flourish_index"]) + 1
+			_flourish_count += 1
+
+
+## Z toggles the four mushrooms between their sleeping and idle states to
+## show per-state clip forwarding on the same body part.
+func _toggle_mushroom_sleep() -> void:
+	_mushrooms_sleeping = not _mushrooms_sleeping
+	var target: StringName = &"sleeping" if _mushrooms_sleeping else &"idle"
+	for entry in _entries:
+		if not entry["sleeper"]:
+			continue
+		var actor := entry["actor"] as Node2D
+		if actor.has_method("play_state"):
+			actor.call("play_state", target)
 
 
 func _build_backdrop() -> void:
@@ -179,28 +239,38 @@ func _build_backdrop() -> void:
 	add_child(background)
 
 
+func _build_name_label(plant_id: String, at: Vector2) -> void:
+	var label := Label.new()
+	label.text = plant_id
+	label.position = at + Vector2(-40.0, 6.0)
+	label.size = Vector2(80.0, 14.0)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 10)
+	label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.7))
+	add_child(label)
+
+
 func _build_status_label() -> void:
 	_status_label = Label.new()
-	_status_label.position = Vector2(16.0, 12.0)
+	_status_label.position = Vector2(16.0, 8.0)
+	_status_label.add_theme_font_size_override("font_size", 12)
 	_status_label.add_theme_color_override("font_color", Color(0.9, 0.95, 0.9))
+	_status_label.z_index = 10
 	add_child(_status_label)
 
 
 func _update_status() -> void:
-	_status_label.text = "Native reanim runtime demo (ReanimActor + ReanimActorDef + ReanimData)\n" \
-		+ "sim_time=%.2f  speed=%.1fx  %s  phase=%s  shots=%d  blinks=%d\n" % [
+	var text := "Native reanim runtime - T6 full roster (%d/18 plants, ReanimActor + ReanimActorDef + ReanimData)\n" % _entries.size() \
+		+ "sim_time=%.2f  speed=%.1fx  %s  phase=%s  volleys=%d  flourishes=%d  mushrooms=%s\n" % [
 			GameState.current_time,
 			_time_scale,
-			"PAUSED (phase frozen)" if _paused else "running",
+			"PAUSED" if _paused else "running",
 			String(_phase),
 			_shoot_count,
-			_blink_count,
+			_flourish_count,
+			"sleeping" if _mushrooms_sleeping else "idle",
 		] \
-		+ "cycle: idle %.0fs -> volleys every %.1fs for %.0fs -> repeat   blink every %.1fs\n" % [
-			IDLE_PHASE_SECONDS,
-			FIRE_INTERVAL_SECONDS,
-			COMBAT_PHASE_SECONDS,
-			BLINK_INTERVAL_SECONDS,
-		] \
-		+ "left: threepeater (body + 3 hosted heads)   mid: peashooter (body + hosted head)   right: sunflower (body + blink part)\n" \
-		+ "[Space] pause  [1/2/3] speed 0.5/1/2x  [S] shoot  [B] blink   markers = get_anchor() muzzles"
+		+ "[Space] pause  [1/2/3] speed  [S] volley  [B] flourish  [Z] mushroom sleep   markers = get_anchor()"
+	if not _missing_ids.is_empty():
+		text += "\nMISSING native actors: %s (regenerate via reanim_generate_composites.gd --native-only true)" % ", ".join(_missing_ids)
+	_status_label.text = text
