@@ -36,8 +36,13 @@ var _anchor_defs: Dictionary = {}
 var _def_anchor_nodes: Array[Node2D] = []
 var _current_state: StringName = &""
 var _pending_action := false
+var _pending_action_id: StringName = &""
 var _pending_part_ids: Array[StringName] = []
 var _visual_speed := 1.0
+## Clip name (String) -> rate multiplier from the def (empty means 1.0).
+var _clip_rates: Dictionary = {}
+## Action id (StringName) -> state id (StringName) entered after the one-shot.
+var _action_next_states: Dictionary = {}
 
 
 func _ready() -> void:
@@ -58,6 +63,9 @@ func setup_from_def(def: Resource) -> bool:
 		return false
 	_clear_composition()
 	_base_local = Transform2D(0.0, Vector2.ONE * typed.root_scale, 0.0, typed.root_offset)
+	_clip_rates = typed.clip_rates.duplicate()
+	for action_key in typed.action_next_states.keys():
+		_action_next_states[StringName(String(action_key))] = StringName(String(typed.action_next_states[action_key]))
 	var ordered := typed.parts.duplicate()
 	ordered.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return int(a.get("render_order", 0)) < int(b.get("render_order", 0)))
@@ -97,7 +105,7 @@ func add_part(part_id: StringName, data: ReanimDataRef, initial_clip: StringName
 	if not player.setup(data):
 		player.queue_free()
 		return false
-	player.set_visual_speed(_visual_speed)
+	player.set_visual_speed(_visual_speed * _rate_for_clip(initial_clip))
 	if initial_clip != &"" and not player.play_clip(initial_clip, loop):
 		player.queue_free()
 		return false
@@ -151,10 +159,11 @@ func play_action(action_id: StringName) -> bool:
 	for part_key in clips.keys():
 		var part_id := StringName(String(part_key))
 		var player := get_part_player(part_id)
-		if player == null or not player.play_clip(StringName(String(clips[part_key])), false):
+		if player == null or not _play_part_clip(player, StringName(String(clips[part_key])), false):
 			return false
 		involved.append(part_id)
 	_pending_action = true
+	_pending_action_id = action_id
 	_pending_part_ids = involved
 	refresh_composition()
 	return true
@@ -163,7 +172,7 @@ func play_action(action_id: StringName) -> bool:
 func play_animation(animation_name: StringName) -> bool:
 	if _primary_player == null:
 		return false
-	return _primary_player.play_clip(animation_name, true)
+	return _play_part_clip(_primary_player, animation_name, true)
 
 
 func set_visual_speed(speed_scale: float) -> bool:
@@ -171,7 +180,7 @@ func set_visual_speed(speed_scale: float) -> bool:
 	for part in _parts:
 		var player := part.get("player", null) as ReanimPlayerRef
 		if player != null:
-			player.set_visual_speed(_visual_speed)
+			player.set_visual_speed(_visual_speed * _rate_for_clip(player.get_clip_name()))
 	return true
 
 
@@ -213,6 +222,14 @@ func _process(_delta: float) -> void:
 		if player != null and not player.is_finished():
 			return
 	_pending_action = false
+	var finished_action_id := _pending_action_id
+	_pending_action_id = &""
+	# The def may route the finished one-shot into a whole-actor state change
+	# (legacy one_shot_next_state, e.g. chomper bite -> digesting chew loop).
+	if _action_next_states.has(finished_action_id):
+		_pending_part_ids.clear()
+		play_state(_action_next_states[finished_action_id])
+		return
 	if _current_state == &"" or not state_clip_map.has(_current_state):
 		_pending_part_ids.clear()
 		return
@@ -221,7 +238,7 @@ func _process(_delta: float) -> void:
 		var clip: Variant = clips.get(String(part_id), null)
 		var player := get_part_player(part_id)
 		if clip != null and player != null:
-			player.play_clip(StringName(String(clip)), true)
+			_play_part_clip(player, StringName(String(clip)), true)
 	_pending_part_ids.clear()
 
 
@@ -231,9 +248,21 @@ func _play_mapping(mapping: Variant, loop: bool) -> bool:
 		return false
 	for part_key in clips.keys():
 		var player := get_part_player(StringName(String(part_key)))
-		if player == null or not player.play_clip(StringName(String(clips[part_key])), loop):
+		if player == null or not _play_part_clip(player, StringName(String(clips[part_key])), loop):
 			return false
 	return true
+
+
+## Plays a clip with the def-level per-clip rate applied on top of the actor
+## visual speed (legacy wrappers' idle/shooting rate scales).
+func _play_part_clip(player: ReanimPlayerRef, clip_name: StringName, loop: bool) -> bool:
+	player.set_visual_speed(_visual_speed * _rate_for_clip(clip_name))
+	return player.play_clip(clip_name, loop)
+
+
+func _rate_for_clip(clip_name: StringName) -> float:
+	var rate: Variant = _clip_rates.get(String(clip_name), 1.0)
+	return maxf(float(rate), 0.0) if (rate is float or rate is int) else 1.0
 
 
 ## Normalizes a clip-map value to Dictionary part_id -> clip; StringName /
@@ -280,6 +309,10 @@ func _build_def_anchors(typed: ReanimActorDefRef) -> void:
 		var node := Node2D.new()
 		node.name = "Anchor_%s" % anchor_name
 		add_child(node)
+		if config.has("position"):
+			# Fixed anchor in actor-root space (legacy wrapper muzzle/mouth nodes);
+			# refresh_composition skips it because it has no part player.
+			node.position = _to_vector2(config.get("position", Vector2.ZERO))
 		_def_anchor_nodes.append(node)
 		register_anchor(StringName(anchor_name), node)
 
@@ -322,7 +355,10 @@ func _clear_composition() -> void:
 	action_clip_map = {}
 	_current_state = &""
 	_pending_action = false
+	_pending_action_id = &""
 	_pending_part_ids = []
+	_clip_rates = {}
+	_action_next_states = {}
 	_base_local = Transform2D.IDENTITY
 
 

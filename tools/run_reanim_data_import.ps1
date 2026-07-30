@@ -25,6 +25,19 @@ $SourceBySample = @{
 	"threepeater" = "ThreePeater.reanim"
 	"sunflower" = "SunFlower.reanim"
 	"chomper" = "Chomper.reanim"
+	"squash" = "Squash.reanim"
+	"repeater" = "PeaShooter.reanim"
+	"snowpea" = "SnowPea.reanim"
+	"gatlingpea" = "GatlingPea.reanim"
+	"splitpea" = "SplitPea.reanim"
+	"puffshroom" = "PuffShroom.reanim"
+	"scaredyshroom" = "ScaredyShroom.reanim"
+	"fumeshroom" = "FumeShroom.reanim"
+	"seashroom" = "SeaShroom.reanim"
+	"tallnut" = "Tallnut.reanim"
+	"pumpkin" = "Pumpkin.reanim"
+	"lilypad" = "LilyPad.reanim"
+	"flowerpot" = "Pot.reanim"
 }
 
 $FailCount = 0

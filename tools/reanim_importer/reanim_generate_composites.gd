@@ -449,6 +449,8 @@ func _generate_native_entry(entry: Dictionary) -> Dictionary:
 	def.parts = parts
 	def.states = _normalize_native_clip_maps(native.get("states", {}))
 	def.actions = _normalize_native_clip_maps(native.get("actions", {}))
+	def.action_next_states = _normalize_string_dict(native.get("action_next_states", {}))
+	def.clip_rates = _normalize_clip_rates(native.get("clip_rates", {}))
 	def.anchors = _normalize_native_anchors(native.get("anchors", {}))
 
 	var problems: PackedStringArray = def.validate()
@@ -531,12 +533,34 @@ func _normalize_native_anchors(value: Variant) -> Dictionary:
 		var alias_of := String(config_dict.get("alias_of", ""))
 		if alias_of != "":
 			result[String(anchor_name)] = {"alias_of": alias_of}
+		elif config_dict.has("position"):
+			result[String(anchor_name)] = {
+				"position": _to_vector2(config_dict.get("position", [0.0, 0.0])),
+			}
 		else:
 			result[String(anchor_name)] = {
 				"part": String(config_dict.get("part", "")),
 				"track": String(config_dict.get("track", "")),
 				"offset": _to_vector2(config_dict.get("offset", [0.0, 0.0])),
 			}
+	return result
+
+
+func _normalize_string_dict(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if not value is Dictionary:
+		return result
+	for key in (value as Dictionary).keys():
+		result[String(key)] = String((value as Dictionary)[key])
+	return result
+
+
+func _normalize_clip_rates(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if not value is Dictionary:
+		return result
+	for key in (value as Dictionary).keys():
+		result[String(key)] = float((value as Dictionary)[key])
 	return result
 
 

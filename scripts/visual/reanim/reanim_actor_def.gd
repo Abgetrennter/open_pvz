@@ -32,8 +32,18 @@ const TRACK_VISIBILITY_MODES := ["include", "exclude"]
 ## Action id (String) -> {part_id: clip_name} one-shot playback; the involved
 ## parts return to the current state clips once every one-shot finished.
 @export var actions: Dictionary = {}
+## Action id (String) -> state id (String): once the one-shot finishes the
+## whole actor enters this state instead of restoring the previous clips
+## (mirrors the legacy wrappers' one_shot_next_state, e.g. bite -> digesting).
+@export var action_next_states: Dictionary = {}
+## Clip name (String) -> playback rate multiplier (float > 0) applied on top
+## of the actor visual speed (mirrors the legacy wrappers' per-animation
+## rate scales such as idle 17/12 and shooting 35/12).
+@export var clip_rates: Dictionary = {}
 ## Anchor name (String) -> {part: String, track: String, offset: Vector2}
-## or {alias_of: String} referencing another concrete anchor.
+## or {alias_of: String} referencing another concrete anchor, or
+## {position: Vector2} for a fixed anchor in actor-root space (mirrors the
+## legacy wrappers' fixed muzzle/mouth anchor nodes).
 @export var anchors: Dictionary = {}
 
 
@@ -93,6 +103,26 @@ func validate() -> PackedStringArray:
 	problems.append_array(_validate_clip_map("action", actions, data_by_part))
 	if initial_state != &"" and not states.has(String(initial_state)):
 		problems.append("initial_state has no states entry: %s" % String(initial_state))
+	for action_key in action_next_states.keys():
+		var action_id := String(action_key)
+		var next_state := String(action_next_states[action_key])
+		if not actions.has(action_id):
+			problems.append("action_next_states references unknown action: %s" % action_id)
+		if not states.has(next_state):
+			problems.append("action_next_states %s references unknown state: %s" % [action_id, next_state])
+	for clip_key in clip_rates.keys():
+		var clip_name := String(clip_key)
+		var rate: Variant = clip_rates[clip_key]
+		if not (rate is float or rate is int) or float(rate) <= 0.0:
+			problems.append("clip_rates %s must be a positive number" % clip_name)
+			continue
+		var clip_known := false
+		for part_data: ReanimDataRef in data_by_part.values():
+			if not part_data.get_clip(clip_name).is_empty():
+				clip_known = true
+				break
+		if not clip_known:
+			problems.append("clip_rates references unknown clip: %s" % clip_name)
 	problems.append_array(_validate_anchors(data_by_part))
 	return problems
 
@@ -145,6 +175,14 @@ func _validate_anchors(data_by_part: Dictionary) -> PackedStringArray:
 			var target: Variant = anchors.get(alias_of, null)
 			if not target is Dictionary or String((target as Dictionary).get("alias_of", "")) != "":
 				problems.append("anchor %s alias_of must reference a concrete anchor: %s" % [anchor_name, alias_of])
+			continue
+		if config_dict.has("position"):
+			# Fixed anchor in actor-root space; must not mix with track anchors.
+			var position: Variant = config_dict.get("position", null)
+			if not (position is Vector2 or (position is Array and (position as Array).size() >= 2)):
+				problems.append("anchor %s position must be a Vector2 or [x, y] Array" % anchor_name)
+			if config_dict.has("part") or config_dict.has("track"):
+				problems.append("anchor %s cannot mix position with part/track" % anchor_name)
 			continue
 		var part_id := String(config_dict.get("part", ""))
 		var track_name := String(config_dict.get("track", ""))
