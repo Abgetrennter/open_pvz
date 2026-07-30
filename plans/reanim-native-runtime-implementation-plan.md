@@ -1,6 +1,6 @@
 # Reanim 原生运行时实施计划
 
-> 状态：待执行
+> 状态：Spike（T0-T3 + Gate A）已完成，Gate A 结论 **Go**；T4-T6 未启动
 >
 > 制定日期：2026-07-29
 >
@@ -101,6 +101,14 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_
 
 回退/评审风险：只新增基线资产和验证，不切换正式 profile；如基线不可重复，应先修正采样口径，不进入 T1。
 
+**执行记录（2026-07-29）：已完成。**
+
+- 新增 `tools/reanim_golden_baseline.gd`，三样本基线报告输出至 `local_extensions/classic_original_assets/generated/reports/reanim_golden/{peashooter,wallnut,threepeater}.golden.json`；重复运行内容稳定（source SHA-256 一致）。
+- ThreePeater 旧 wrapper（`scripts/validation/visual_reanim_threepeater_composite_actor.gd`）的节点结构、head 绑定公式（`head.transform = body.transform * anchor_now * base⁻¹`，base 取 frame 124）、锚点（muzzle1/2/3 = mouth track + (18,8) 全局偏移）均已写入 golden 报告 `composite_wrapper` 段。
+- WallNut 既有 2 条 angle warning 记录在案（import report），未静默。
+- 关键发现：旧链 AnimationPlayer 关键帧为去重后的稀疏 key，基线采样必须用 held-key（取采样点之前最后一个 key）语义还原 de-pvz `ReanimationFillInMissingData` 的逐帧填充；若按 Godot 默认插值取值会产生原引擎从未计算过的中间值（如 peashooter `idle_mouth` 在 full_idle 第 6 帧的 rotation）。该决策已固化在 `tools/reanim_golden_baseline.gd` 的 `_sample_track_value`。
+- 验证结果：两个既有 private smoke（asset_pack / archetype_binding）PASSED。
+
 ### T1：ReanimData v1 与导入器双输出
 
 **类型：** 协议 / 工具 / 验证
@@ -137,6 +145,13 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_d
 ```
 
 回退/评审风险：双输出开关可关闭新格式；重点评审 schema 是否混入实例状态、数组是否可稳定序列化、字段缺失是否 fail-closed。
+
+**执行记录（2026-07-29）：已完成。**
+
+- 新增 `scripts/visual/reanim/reanim_data.gd`（Resource，schema_version=1）：轨道数据以共享 `PackedFloat32Array`/`PackedInt32Array` 打包，导入期按 `ReanimationFillInMissingData` 语义展开缺省字段；`f` 保存为 `image_frame`（`< 0` 隐藏），未降格为 visible；text/font/blend 槽位与 feature_flags 保留且 fail-closed。
+- `tools/reanim_importer/reanim_import_one.gd` 新增 `--emit-reanim-data`，双输出：旧 actor.tscn 不变 + `generated/reanim_data/<id>/reanim_data.tres`；未改任何 profile 绑定。
+- 产物：peashooter/wallnut/threepeater 三份 `reanim_data.tres`（threepeater：fps=12、149 帧、36 轨道、16 image_refs）。
+- 验证结果：`visual_reanim_data_import_smoke` PASSED（schema/hash 稳定、fps/frame_count/track/clip 与 T0 黄金样本一致、feature_flags 可见）；已登记 `tools/validation_scenarios.json`（local_private）。
 
 ### T2：ReanimPlayer 单实例播放闭环
 
@@ -180,6 +195,14 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_r
 
 回退/评审风险：不改生产 profile 即可完全回退；重点评审 render delta 泄漏、角度插值、矩阵顺序、节点分配和每帧资源查找。
 
+**执行记录（2026-07-29）：已完成。**
+
+- 新增 `scripts/visual/reanim/reanim_player.gd`（局部相位 epoch 模型：`phase_at_epoch + (GameState.current_time - epoch_sim_time) * visual_speed`；play/切 clip/调速时重设 epoch，调速先按旧速结算相位）与 `scripts/visual/reanim/reanim_actor.gd`（Actor Scene Contract 适配，未识别 action 返回 false）。
+- 渲染：运行时动态 per-track Sprite2D，按 track 顺序稳定绘制；帧间线性插值（x/y/sx/sy/kx/ky/alpha 按 de-pvz `GetTransformAtTime` 语义），image/image_frame 离散取值。
+- 诊断走 DebugService `record_protocol_issue`（scope=`reanim_runtime`），非法 clip / 资源缺失 fail-closed；`VisualActorComponent` 未修改。
+- 兼容性注意：运行时脚本不得直接引用 autoload 标识符（DebugService/GameState），否则被 headless `--script` 工具 preload 时编译失败；统一经 `_find_singleton`（`Engine.get_main_loop()`）查找，tool 模式下诊断安全降级。
+- 验证结果：`visual_reanim_native_runtime_smoke`、`visual_reanim_sim_clock`、`visual_reanim_angle_compatibility`、`visual_reanim_renderer_order` 全部 PASSED（含负例）；均登记 local_private。
+
 ### T3：ReanimActorDef 组合与 ThreePeater Spike
 
 **类型：** 协议 / 运行时 / 私有内容 / 验证
@@ -218,6 +241,14 @@ pwsh tools/run_all_validations.ps1 -Layers "local_private" -MaxParallel 1
 
 回退/评审风险：profile 仍保留旧 actor_scene；重点评审是否出现实体专用分支、组合状态是否错误写回共享 `ReanimData`、子实例动作是否被隐式同步。
 
+**执行记录（2026-07-29）：已完成。**
+
+- 新增 `scripts/visual/reanim/reanim_actor_def.gd`（Resource：parts[]/states{}/actions{}/anchors{}，`validate()` 全量校验 fail-closed）；`reanim_actor.gd` 支持 def 驱动多 part：通用 host 绑定 `hosted.transform = base_local * host_track_now * host_base⁻¹`、glob 模式 track_visibility mask、数据化锚点（part+track+offset，支持 alias_of）。**无 ThreePeater 专用运行时分支。**
+- `tools/reanim_importer/reanim_generate_composites.gd` 新增 `--only` / `--native-only`：从私有 manifest `native` 块生成 `actor_def.tres` + 轻量 `actor.tscn`（ReanimActor 根 + def 引用）+ `native_report.json`；正式运行时只读 Resource。
+- ThreePeater 组合：body + 3 head（host_track=anim_head1/2/3），states/actions 全 4 part 映射，muzzle1/2/3 锚点对照 golden ±0.05 通过。
+- 体积：actor.tscn 396 B + actor_def.tres 2,798 B + reanim_data.tres 186,689 B ≈ 189,883 B，为旧 raw actor 2,313,518 B 的 **8.2%**（≤25% 达标）。
+- 验证结果：`visual_reanim_composite_threepeater` PASSED（API 全链、锚点/host base 对照 golden、绘制顺序、体积断言、def 负例 fail-closed）；`run_all_validations -Layers local_private` 8/8 PASSED。
+
 ### Gate A：Spike Go / No-Go
 
 T3 完成后必须先出一份实测对照记录，满足以下条件才进入 T4-T6：
@@ -229,6 +260,21 @@ T3 完成后必须先出一份实测对照记录，满足以下条件才进入 T
 - 旧链与 profile 级回退路径经过实际验证。
 
 任一硬条件失败则暂停批量迁移：修正 T1-T3，或作 No-Go 并继续使用当前 R2Ga/AnimationPlayer 链。不得用降低验证标准的方式放行。
+
+**Gate A 实测记录（2026-07-29）：结论 Go。**
+
+1. 三样本语义验证：`run_all_validations -Layers local_private -MaxParallel 1` → **8/8 PASSED**（证据：`artifacts/validation/batch_20260729_185255/`），覆盖两个既有 private smoke + import smoke + T2 四场景 + threepeater 组合场景。
+2. 时钟对齐证据：`visual_reanim_sim_clock` PASSED，断言覆盖暂停冻结相位、simulation_speed 对齐 `GameState.current_time`、运行中调速无相位跳变、manual step；相位仅由仿真时间驱动，无 render delta 进入播放状态。
+3. ThreePeater 体积比：189,883 B / 2,313,518 B ≈ **8.2%**（硬条件 ≤25%）；无专用 wrapper（运行时仅 `reanim_actor.gd` 通用路径）。
+4. 节点数/开销观察：threepeater 组合为 4 个 ReanimPlayer + 36 个动态 Sprite2D + 10 锚点节点，量级与旧链 wrapper（主场景 + 3 head 实例各自全轨道 AnimationPlayer）相当；验证场景帧采样无可见劣化（validation_time_limit 3s 内完成），未触发批渲染器设计需求。
+5. profile 级回退实测（双向）：
+   - 正向：临时将 `peashooter.tres` 的 `actor_scene` 切到新链 `generated/native/peashooter/actor.tscn`（单 part def，产物 393 B + 1,090 B def），两个 private smoke **PASSED**（`artifacts/validation/20260729_185833_*`、`20260729_185918_*`）。
+   - 反向：恢复 `actors/peashooter/actor.tscn` 旧链，两个 private smoke 再次 **PASSED**（`20260729_185957_*`、`20260729_190046_*`）。profile 单行切换即可双向回退，验证 `VisualProfileDef.actor_scene` 边界有效。
+   - 后续修正：回退实测时的 peashooter native def 为单 part 临时配置，后经窗口 demo（`visual_reanim_native_actual_demo.tscn`）发现单 part 只能显示当前 clip 帧段可见的轨道（idle 只剩身体、shooting 只剩头部），已升级为 body + hosted head 两 part 组合（host_track=`anim_stem`，与旧 wrapper 语义对齐）；def 生成器与运行时通用路径不变，新产物 part_count=2（def 1,311 B）。
+6. 发布边界：`check_public_extension_release_guardrails.ps1` → **OK**，主仓无私有素材泄漏；所有含原版素材产物均在 `local_extensions/classic_original_assets/`。
+7. 已知风险记录：旧链稀疏 key 插值伪影问题（见 T0 执行记录）已由 held-key 采样决策规避；WallNut 2 条 angle warning 保持可见；blend/text/font 仅保留字段 + fail-closed，不渲染（冻结决策）。
+
+**Go / No-Go：Go。** 五项硬条件全部满足。T4-T6 未启动，未删除任何旧产物；所有生产 profile 仍指向旧链。
 
 ### T4：动态 attacher 与跨文件引用
 
@@ -343,12 +389,12 @@ T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 
 
 ### Spike DoD（T0-T3）
 
-- [ ] 三个黄金样本与 source hash 已固定且可重复生成。
-- [ ] ReanimData v1、双输出导入和不支持特性报告完成。
-- [ ] ReanimPlayer 通过单实例、角度、渲染顺序与仿真时钟验证。
-- [ ] ThreePeater 通过 ReanimActorDef 组合完成，无实体专用 wrapper。
-- [ ] 新旧链 profile 级回退已经实测。
-- [ ] Gate A 的体积和运行指标已有记录，并形成明确 Go / No-Go 结论。
+- [x] 三个黄金样本与 source hash 已固定且可重复生成。
+- [x] ReanimData v1、双输出导入和不支持特性报告完成。
+- [x] ReanimPlayer 通过单实例、角度、渲染顺序与仿真时钟验证。
+- [x] ThreePeater 通过 ReanimActorDef 组合完成，无实体专用 wrapper。
+- [x] 新旧链 profile 级回退已经实测。
+- [x] Gate A 的体积和运行指标已有记录，并形成明确 Go / No-Go 结论。
 
 ### 最终 DoD（T4-T6）
 

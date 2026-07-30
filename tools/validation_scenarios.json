@@ -1010,6 +1010,48 @@
     "extra_user_args": ["--include-classic-original-assets"]
   },
   {
+    "id": "visual_reanim_data_import_smoke",
+    "scenario": "res://scenes/validation/visual_reanim_data_import_smoke.tres",
+    "description": "Validates that ReanimData resources emitted for the three reanim spike samples stay consistent with the T0 golden baseline reports.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
+    "id": "visual_reanim_native_runtime_smoke",
+    "scenario": "res://scenes/validation/visual_reanim_native_runtime_smoke.tres",
+    "description": "Validates native ReanimPlayer fixed-frame draw snapshots against the T0 golden baseline and fail-closed negative cases (unknown clip, missing texture).",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
+    "id": "visual_reanim_sim_clock",
+    "scenario": "res://scenes/validation/visual_reanim_sim_clock.tres",
+    "description": "Validates ReanimPlayer phase alignment with the simulation clock: pause freeze, manual step, and jump-free visual speed changes.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
+    "id": "visual_reanim_angle_compatibility",
+    "scenario": "res://scenes/validation/visual_reanim_angle_compatibility.tres",
+    "description": "Validates WallNut native matrix sampling keeps frame-to-frame rotations continuous despite the known source angle warnings.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
+    "id": "visual_reanim_renderer_order",
+    "scenario": "res://scenes/validation/visual_reanim_renderer_order.tres",
+    "description": "Validates the native reanim renderer draw order equals the source visual track order and stays stable across instantiations.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
+    "id": "visual_reanim_composite_threepeater",
+    "scenario": "res://scenes/validation/visual_reanim_composite_threepeater.tres",
+    "description": "Validates the generated ThreePeater ReanimActorDef composite: actor contract, golden anchor/host-binding parity, draw order, size budget, and fail-closed def negatives.",
+    "layers": ["local_private", "smoke"],
+    "extra_user_args": ["--include-classic-original-assets"]
+  },
+  {
     "id": "visual_action_types_smoke",
     "scenario": "res://scenes/validation/visual_action_types_smoke.tres",
     "description": "Validates that all 6 visual action types are wired and produce expected results when projectile.hit and entity.damaged events fire.",
