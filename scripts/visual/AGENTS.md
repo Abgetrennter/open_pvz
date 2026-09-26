@@ -10,6 +10,10 @@
 | `visual_action_runner.gd` | 执行视觉动作：spawn_fx / play_audio / flash_actor / play_actor_animation / attach_fx / screen_overlay |
 | `visual_stage_layer_service.gd` | 管理 z-order 与视觉层分组，将 layer_name 映射到宿主节点（EntityLayer / ProjectileLayer 等） |
 | `visual_layer_policy.gd` | 配置每层渲染规则：11 层 z_index 基值（ground=0 ~ ui=10000）与层间排序策略 |
+| `reanim/reanim_data.gd` | Reanim 不可变轨道、clip、资源引用与 feature flag 数据 |
+| `reanim/reanim_player.gd` | 单实例 Reanim 播放、仿真时钟 epoch、轨道采样与动态 Sprite2D 渲染 |
+| `reanim/reanim_actor_def.gd` | 多 part、host track、state/action、clip rate 与 anchor 组合定义 |
+| `reanim/reanim_actor.gd` | Actor Scene Contract 适配与多 ReanimPlayer 组合运行时 |
 
 ## KEY RULES
 
@@ -19,6 +23,9 @@
 - Host 订阅固定事件列表（`FIXED_EVENTS`），不动态扩展
 - ActionRunner 通过 `_resolve_target` 解析动作目标，支持 context / source / event_target 等
 - 新增视觉动作类型需在 ActionRunner 中添加对应 `_execute_*` 分支
+- Reanim 播放相位只读 `GameState.current_time`，不得用 render delta、Timer 或墙钟推进
+- `ReanimData` 由实例共享且保持只读；局部 phase、pending action 与 track override 只能保存在 Player/Actor 实例
+- native Reanim 继续通过 `VisualProfileDef.actor_scene` 接入，不建立独立 gameplay registry
 
 ## DEPENDENCIES
 

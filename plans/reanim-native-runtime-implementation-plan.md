@@ -1,6 +1,6 @@
 # Reanim 原生运行时实施计划
 
-> 状态：Spike（T0-T3 + Gate A）、T5（瘦身版：overlay/blink + Chomper 角度专项）与 T6（18 株植物分批迁移）已完成；T4 已裁剪
+> 状态：实现与验证已完成，T4 按真实内容裁剪；待执行归档移动
 >
 > 制定日期：2026-07-29
 >
@@ -8,7 +8,7 @@
 >
 > 适用范围：Reanim 导入工具、视觉运行时、私有经典素材包与 `local_private` 验证
 >
-> 当前首要里程碑：完成 Peashooter + WallNut + ThreePeater 三类样本 Spike，并作 Go / No-Go 决策
+> 当前收口：实现、迁移、验证与正式文档已完成；等待确认后移动计划与源草案到 `plans/archive/`
 
 ## 1. 目标
 
@@ -383,7 +383,7 @@ pwsh tools/check_public_extension_release_guardrails.ps1
 
 回退/评审风险：每批迁移独立恢复 profile；旧产物删除前必须核对引用和生成链，禁止批量删除未验证文件。
 
-**执行记录（2026-07-30）：已完成。** 18 株原版植物全部从旧链 wrapper actor 迁移到新链 `ReanimActor + ReanimActorDef + ReanimData`，profile 的 `actor_scene` 逐项切到 `generated/native/<id>/actor.tscn`，旧 `actors/<id>/` 产物保留可回退。
+**执行记录（2026-07-30，2026-08-01 收口校正）：已完成。** 18 株原版植物全部从旧链 wrapper actor 迁移到新链 `ReanimActor + ReanimActorDef + ReanimData`，profile 与 `asset_index.json` 的 active `actor_scene` 逐项切到 `generated/native/<id>/actor.tscn`。旧 `actors/<id>/` 产物已删除；manifest 顶层旧链输出字段仅作为可选再生成目标，active actor 以 `native.actor_scene_out_path` 和实际 profile 绑定为准。
 
 迁移前先在主仓落地 T6 三个通用能力（commit `1cbbabe`，无 per-plant 分支）：`clip_rates`（逐 clip 倍速，还原旧 wrapper 的 idle 17/12、shooting 35/12 等 fps 加速）、`action_next_states`（一次性动作完成后转指定状态，还原 `one_shot_next_state`）、固定锚点 `{position: Vector2}`（还原旧 wrapper 直接挂的固定 muzzle/mouth 节点）。三者贯穿 `ReanimActorDef`（schema+校验）、`ReanimActor`（应用逻辑）、`reanim_generate_composites.gd`（透传）。
 
@@ -399,6 +399,8 @@ pwsh tools/check_public_extension_release_guardrails.ps1
 **Demo 目测修复（2026-07-30，私有包 `e09b583`）：** 全阵容 demo 暴露并修掉三类问题——① 8 株 native 块漏写 `root_offset` 导致原点落在轨道左上角、整体偏下（puffshroom/fumeshroom/seashroom/wallnut/tallnut/pumpkin/lilypad/flowerpot），按逐帧可见 AABB 推导 bottom-center 偏移并对 peashooter/scaredyshroom/squash 校准后写回；② splitpea 补第三 part `backhead`（`splitpea_idle`/`splitpea_shooting` host `anim_idle`、render_order 2、clip_rates 对齐），后置分裂头恢复显示；③ wallnut/tallnut/lilypad 眨眼改为 sunflower 式双 part overlay（body 排除眨眼轨道持续 idle，blink part 仅含眨眼轨道播 one-shot），眨眼时身体不再消失。9 株产物再生成，`local_private` 回归 10/10 PASSED，用户目测确认表现正常。
 
 遗留与延后项（不阻塞收口）：① ~~菇类 idle 期 blink/eye flourish~~（puffshroom/fumeshroom 已于 `5359eef` 补 sunflower 式双 part 眨眼；seashroom/scaredyshroom 有意保持 body-only——其 blink/eye 轨道与 sleep/shooting/idle 状态 clip 共享，拆分会丢层或重复绘制）；② ~~splitpea 后置分裂豌豆头~~（已于 `e09b583` 补齐）；③ ~~peashooter native 跟踪 muzzle~~（已于 `5359eef` 改为家族统一固定 `{position 46,-38}`）；④ ~~旧 `actors/<id>/` 产物~~（18 株旧链 composite 场景已于 `5359eef` 删除，零活跃引用，可从 manifest 再生成）；专用 wrapper 脚本保留（threepeater 供 golden baseline、`reanim_manifest_composite_actor` 为通用生成器、其余为非 native 再生成源），完整移除需连带删 manifest 旧链字段，属独立重构；⑤ 本计划的 completion/archive 归档与源草案收口按后续独立流程执行。
+
+**一致性修复（2026-08-01）：** 删除旧产物后残留的 18 条 `asset_index.actor_scene` 已改指 `generated/native/<id>/actor.tscn`；manifest checker 改为在存在 `native` block 时校验 native actor 与实际 profile，旧链输出仅作可选再生成目标；`visual_private_classic_asset_pack_smoke` 现会先执行 `AssetIndexCatalog.validate_pack_index()`，避免 profile 能加载但索引元数据已失效时误报通过。全阵容 demo 也会在 mushroom sleeping 时跳过 flourish，避免睡眠状态播放 idle blink。当前 checkout 证据：私有包/manifest 两个专项检查通过，`local_private` 10/10（`artifacts/validation/batch_20260801_211116/`）、public smoke 24/24（`batch_20260801_211200/`）、guardrail 20/20（`batch_20260801_211222/`），发布边界守卫 OK。
 
 ## 7. 依赖顺序
 
@@ -449,11 +451,11 @@ T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 
 
 ### 最终 DoD（T4-T6）
 
-- [ ] 目标迁移样本所需的 attacher/track override/blend 能力均有原版锚点和专项验证。
-- [ ] 目标 profiles 已分批迁移，所有 `local_private` 与 public smoke 通过。
-- [ ] 私有素材边界守卫通过，主仓库无素材或生成物泄漏。
-- [ ] wiki、迁移底账、目录级 AGENTS 与代码现状一致。
-- [ ] 不再需要的旧 wrapper/生成产物已在明确确认后安全清理。
+- [x] 目标 18 株的 feature scan 已完成：T4 attacher 命中 0 株并裁剪，实际需要的 overlay 与角度兼容均有原版锚点和专项验证。
+- [x] 目标 profiles 已分批迁移，所有 `local_private` 与 public smoke 通过。
+- [x] 私有素材边界守卫通过，主仓库无素材或生成物泄漏。
+- [x] wiki、迁移底账、目录级 AGENTS 与代码现状一致。
+- [x] 不再需要的旧 `actors/<id>/` 生成产物已安全清理；仍保留的 wrapper 均有 golden、生成器或非 native 再生成职责。
 - [ ] 本计划与源草案按归档流程处理，`plans/README.md` 不再把它们标为活跃执行项。
 
 ## 10. 计划维护规则

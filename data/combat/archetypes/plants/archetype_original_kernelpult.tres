@@ -12,6 +12,7 @@
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_kernelpult"
 display_name = "Kernel-pult"
+visual_profile_id = &"classic_original.entity.plant.kernelpult.visual"
 projectile_template = ExtResource("7_projectile")
 projectile_flight_profile = ExtResource("6_profile")
 hit_height_band = ExtResource("5_height")

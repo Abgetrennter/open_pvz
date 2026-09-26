@@ -116,6 +116,10 @@ func _probe_private_classic_asset_pack() -> void:
 	var enabled_pack := _find_enabled_private_classic_pack()
 	if enabled_pack.is_empty():
 		return
+	# Keep the smoke honest: resolving a profile path alone must not hide stale
+	# actor_scene metadata in asset_index.json.
+	if not AssetIndexCatalogRef.validate_pack_index(enabled_pack).is_empty():
+		return
 	var loaded_count := 0
 	for profile_id_text in _private_classic_profile_ids():
 		var profile_id := StringName(profile_id_text)

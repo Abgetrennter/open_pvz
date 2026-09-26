@@ -7,6 +7,8 @@
 
 > 本文档是阶段 0 产出物，为 49 个原版植物提供可追踪的迁移底账。
 
+> 视觉迁移补充（2026-08-02）：本地私有包中的原版植物已全部从旧 composite actor 切换为 `ReanimData + ReanimPlayer + ReanimActorDef/ReanimActor`，active scene 位于 `generated/native/<id>/actor.tscn`。**48/48 株已进私有 native 链**，**48 个 archetype 的 `visual_profile_id` 已全部正式绑定**。验证：`local_private` 10/10、公开 `smoke` 24/24、`guardrail` 20/20、发布边界检查 OK，48 actor demo headless 加载无 missing/error；玩法迁移完成度仍按下表独立计算。残留 GUI-only：root_offset 目测校准与 48 actor 性能基线实测。详见 `reanim-native-full-original-plant-migration-plan.md` 与 `reanim-native-migration-candidate-matrix.md`。
+
 ---
 
 ## 执行状态总览 (2026-05-10 规则基础设施重评口径)

@@ -38,6 +38,41 @@ $SourceBySample = @{
 	"pumpkin" = "Pumpkin.reanim"
 	"lilypad" = "LilyPad.reanim"
 	"flowerpot" = "Pot.reanim"
+	# --- full-original-plant-migration first batch (M1 simple) ---
+	"cherrybomb" = "Cherrybomb.reanim"
+	"coffeebean" = "Coffeebean.reanim"
+	"gravebuster" = "Gravebuster.reanim"
+	"hypnoshroom" = "Hypnoshroom.reanim"
+	# --- M1 remainder ---
+	"blover" = "Blover.reanim"
+	"doomshroom" = "Doomshroom.reanim"
+	# --- M2-a mushroom blink ---
+	"gloomshroom" = "GloomShroom.reanim"
+	"iceshroom" = "IceShroom.reanim"
+	"sunshroom" = "SunShroom.reanim"
+	"magnetshroom" = "Magnetshroom.reanim"
+	"spikeweed" = "Caltrop.reanim"
+	"spikerock" = "SpikeRock.reanim"
+	# --- M2-b shooter / pult ---
+	"cabbagepult" = "Cabbagepult.reanim"
+	"kernelpult" = "Cornpult.reanim"
+	"melonpult" = "Melonpult.reanim"
+	"wintermelon" = "WinterMelon.reanim"
+	"cactus" = "Cactus.reanim"
+	"starfruit" = "Starfruit.reanim"
+	"cattail" = "Cattail.reanim"
+	"goldmagnet" = "GoldMagnet.reanim"
+	"cobcannon" = "CobCannon.reanim"
+	# --- M2-c support ---
+	"garlic" = "Garlic.reanim"
+	"plantern" = "Plantern.reanim"
+	"torchwood" = "Torchwood.reanim"
+	"marigold" = "Marigold.reanim"
+	"twinsunflower" = "TwinSunflower.reanim"
+	"jalapeno" = "Jalapeno.reanim"
+	"umbrellaleaf" = "Umbrellaleaf.reanim"
+	"tanglekelp" = "Tanglekelp.reanim"
+	"potatomine" = "Potatomine.reanim"
 }
 
 $FailCount = 0

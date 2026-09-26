@@ -31,22 +31,25 @@ func _run() -> int:
 	for entry in manifest.get("entries", []):
 		if not entry is Dictionary:
 			continue
-		if only_id != "" and String((entry as Dictionary).get("id", "")) != only_id:
+		var typed_entry := entry as Dictionary
+		if only_id != "" and String(typed_entry.get("id", "")) != only_id:
 			continue
-		if not native_only:
-			var result := _generate_entry(entry)
-			generated.append(result)
-			if not bool(result.get("ok", false)):
-				push_warning("Composite generation failed for %s: %s" % [String(result.get("id", "")), String(result.get("error", ""))])
-		if (entry as Dictionary).has("native"):
-			var native_result := _generate_native_entry(entry)
+		# Generate native first so a full compatibility pass can keep the
+		# VisualProfile and asset index bound to the active native actor.
+		if typed_entry.has("native"):
+			var native_result := _generate_native_entry(typed_entry)
 			if not bool(native_result.get("ok", false)):
 				native_failures += 1
 				push_warning("Native def generation failed for %s: %s" % [String(native_result.get("id", "")), String(native_result.get("error", ""))])
 			else:
 				print("Generated native reanim def for %s -> %s" % [String(native_result.get("id", "")), String(native_result.get("actor_scene", ""))])
+		if not native_only:
+			var result := _generate_entry(typed_entry)
+			generated.append(result)
+			if not bool(result.get("ok", false)):
+				push_warning("Composite generation failed for %s: %s" % [String(result.get("id", "")), String(result.get("error", ""))])
 	# Rebuilding the asset index from a filtered entry set would drop managed
-	# entries, so it only runs on full legacy generation passes.
+	# entries, so it only runs on full compatibility generation passes.
 	if not native_only and only_id == "":
 		_save_asset_index_if_requested(manifest, generated)
 
@@ -191,7 +194,7 @@ func _apply_actor_properties(root: Node2D, value: Variant) -> void:
 func _save_profile(entry: Dictionary, actor_path: String, profile_path: String) -> int:
 	var profile = VisualProfileDefRef.new()
 	profile.id = StringName(entry.get("profile_id", "local.original.%s.composite" % String(entry.get("id", "unknown"))))
-	profile.actor_scene = ResourceLoader.load(actor_path) as PackedScene
+	profile.actor_scene = ResourceLoader.load(_active_actor_scene_path(entry, actor_path)) as PackedScene
 	profile.state_animation_map = _string_dict_to_string_name_dict(entry.get("state_animation_map", {}))
 	profile.action_animation_map = _profile_action_map(entry.get("action_animation_map", {}))
 	profile.animation_map = _string_dict_to_string_name_dict(entry.get("animation_map", {}))
@@ -280,6 +283,7 @@ func _is_number_like(value: Variant) -> bool:
 
 
 func _build_asset_index_entry(entry: Dictionary, actor_path: String, profile_path: String, report_path: String) -> Dictionary:
+	var active_actor_path := _active_actor_scene_path(entry, actor_path)
 	var generated := {
 		"raw_actor_scene": String(entry.get("raw_actor_scene", "")),
 		"composite_report": report_path,
@@ -297,7 +301,7 @@ func _build_asset_index_entry(entry: Dictionary, actor_path: String, profile_pat
 		"kind": "visual_profile",
 		"path": profile_path,
 		"profile": profile_path,
-		"actor_scene": actor_path,
+		"actor_scene": active_actor_path,
 		"source": source,
 		"generated": generated,
 		"semantic": {
@@ -308,6 +312,15 @@ func _build_asset_index_entry(entry: Dictionary, actor_path: String, profile_pat
 			"suppressed_tracks": entry.get("suppressed_tracks", []),
 		},
 	}
+
+
+func _active_actor_scene_path(entry: Dictionary, fallback_path: String) -> String:
+	var native_value: Variant = entry.get("native", {})
+	if native_value is Dictionary:
+		var native_path := _normalize_res_path(String((native_value as Dictionary).get("actor_scene_out_path", "")))
+		if not native_path.is_empty():
+			return native_path
+	return fallback_path
 
 
 func _save_asset_index_if_requested(manifest: Dictionary, generated: Array[Dictionary]) -> void:

@@ -28,7 +28,7 @@ const COMBAT_PHASE_SECONDS := 6.0
 const FIRE_INTERVAL_SECONDS := 1.5
 const FLOURISH_INTERVAL_SECONDS := 2.4
 const ANCHOR_MARKER_RADIUS := 4.0
-const ROW_YS: Array[float] = [170.0, 350.0, 530.0]
+const ROW_YS: Array[float] = [150.0, 300.0, 450.0, 600.0, 750.0, 900.0, 1050.0, 1200.0]
 const COL_XS: Array[float] = [90.0, 218.0, 346.0, 474.0, 602.0, 730.0]
 
 ## Row-major roster; shoot -> joins volleys, flourish -> cycled one-shots,
@@ -52,6 +52,41 @@ const ROSTER: Array[Dictionary] = [
 	{"id": "lilypad", "flourish": ["blink"]},
 	{"id": "flowerpot"},
 	{"id": "squash", "flourish": ["look_left", "look_right", "jump_up", "jump_down"]},
+	# --- M1 first batch (native migration plan) ---
+	{"id": "hypnoshroom", "sleeper": true},
+	{"id": "cherrybomb", "flourish": ["explode"]},
+	{"id": "gravebuster", "flourish": ["land"]},
+	{"id": "coffeebean", "flourish": ["twitch", "crumble"]},
+	# --- M1 remainder ---
+	{"id": "blover", "flourish": ["blow", "loop"]},
+	{"id": "doomshroom", "sleeper": true, "flourish": ["explode"]},
+	# --- M2-a mushroom blink ---
+	{"id": "gloomshroom", "shoot": true, "sleeper": true, "flourish": ["blink"]},
+	{"id": "iceshroom", "sleeper": true, "flourish": ["blink"]},
+	{"id": "sunshroom", "sleeper": true, "flourish": ["grow", "blink"]},
+	{"id": "magnetshroom", "shoot": true, "sleeper": true, "flourish": ["blink"]},
+	{"id": "spikeweed", "shoot": true, "flourish": ["blink"]},
+	{"id": "spikerock", "shoot": true, "flourish": ["blink"]},
+	# --- M2-b shooter / pult ---
+	{"id": "cabbagepult", "shoot": true, "flourish": ["blink"]},
+	{"id": "kernelpult", "shoot": true, "flourish": ["blink"]},
+	{"id": "melonpult", "shoot": true, "flourish": ["blink"]},
+	{"id": "wintermelon", "shoot": true, "flourish": ["blink"]},
+	{"id": "starfruit", "shoot": true, "flourish": ["blink"]},
+	{"id": "cattail", "shoot": true, "flourish": ["blink"]},
+	{"id": "cobcannon", "shoot": true, "flourish": ["charge", "blink"]},
+	{"id": "cactus", "shoot": true, "flourish": ["rise", "lower", "blink"]},
+	{"id": "goldmagnet", "flourish": ["attract", "blink"]},
+	# --- M2-c support ---
+	{"id": "garlic", "flourish": ["blink"]},
+	{"id": "plantern", "flourish": ["blink"]},
+	{"id": "torchwood", "flourish": ["blink"]},
+	{"id": "marigold", "flourish": ["blink"]},
+	{"id": "twinsunflower", "flourish": ["blink", "blink2"]},
+	{"id": "jalapeno", "flourish": ["explode"]},
+	{"id": "umbrellaleaf", "flourish": ["block", "blink"]},
+	{"id": "tanglekelp", "flourish": ["grab", "blink"]},
+	{"id": "potatomine", "flourish": ["rise", "blink"]},
 ]
 
 var _status_label: Label = null
@@ -208,6 +243,8 @@ func _trigger_flourish() -> void:
 	for entry in _entries:
 		var flourish: Array = entry["flourish"]
 		if flourish.is_empty():
+			continue
+		if entry["sleeper"] and _mushrooms_sleeping:
 			continue
 		var actor := entry["actor"] as Node2D
 		if not actor.has_method("play_action"):

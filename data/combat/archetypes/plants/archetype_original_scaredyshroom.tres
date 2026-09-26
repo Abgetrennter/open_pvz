@@ -11,6 +11,7 @@
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_scaredyshroom"
 display_name = "Scaredy-shroom"
+visual_profile_id = &"classic_original.entity.plant.scaredyshroom.visual"
 hit_height_band = ExtResource("5_height")
 entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "original", "scaredyshroom", "mushroom", "nocturnal", "shooter")

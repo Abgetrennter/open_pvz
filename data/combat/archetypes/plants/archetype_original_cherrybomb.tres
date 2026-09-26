@@ -9,6 +9,7 @@
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_cherrybomb"
 display_name = "Cherry Bomb"
+visual_profile_id = &"classic_original.entity.plant.cherrybomb.visual"
 hit_height_band = ExtResource("4_height")
 entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "original", "cherrybomb", "instant", "explode")

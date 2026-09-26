@@ -9,6 +9,7 @@
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_garlic"
 display_name = "Garlic"
+visual_profile_id = &"classic_original.entity.plant.garlic.visual"
 hit_height_band = ExtResource("2_height")
 entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "original", "garlic", "redirect")

@@ -99,13 +99,16 @@ func _validate_manifest_entry(
 	if String(entry.get("source_resources", "")).strip_edges() != "":
 		_validate_existing_file(entry_id, "source_resources", String(entry.get("source_resources", "")), errors)
 
-	var actor_scene_path := String(entry.get("actor_scene_out_path", ""))
+	# Native entries keep the old composite output path only as an optional
+	# regeneration target. The active actor is the native scene referenced by
+	# the VisualProfile and asset index.
+	var actor_scene_path := _active_actor_scene_path(entry)
 	if actor_scene_path.is_empty() or not ResourceLoader.exists(actor_scene_path):
-		errors.append("manifest entry %s actor_scene_out_path missing: %s" % [entry_id, actor_scene_path])
+		errors.append("manifest entry %s active actor scene missing: %s" % [entry_id, actor_scene_path])
 	else:
 		var actor_scene := ResourceLoader.load(actor_scene_path) as PackedScene
 		if actor_scene == null:
-			errors.append("manifest entry %s actor_scene_out_path is not a PackedScene: %s" % [entry_id, actor_scene_path])
+			errors.append("manifest entry %s active actor scene is not a PackedScene: %s" % [entry_id, actor_scene_path])
 
 	var profile_path := String(entry.get("profile_out_path", ""))
 	if profile_path.is_empty() or not ResourceLoader.exists(profile_path):
@@ -119,8 +122,11 @@ func _validate_manifest_entry(
 		errors.append("manifest entry %s profile_out_path must use VisualProfileDef: %s" % [entry_id, profile_path])
 	if StringName(profile.get("id")) != profile_id:
 		errors.append("manifest entry %s profile id mismatch: %s" % [entry_id, String(profile.get("id"))])
-	if profile.get("actor_scene") == null:
+	var profile_actor_scene := profile.get("actor_scene") as PackedScene
+	if profile_actor_scene == null:
 		errors.append("manifest entry %s profile has no actor_scene: %s" % [entry_id, profile_path])
+	elif profile_actor_scene.resource_path != actor_scene_path:
+		errors.append("manifest entry %s profile actor_scene mismatch: expected %s got %s" % [entry_id, actor_scene_path, profile_actor_scene.resource_path])
 	if entry.has("ground_offset"):
 		var expected_ground_offset := _to_vector2(entry.get("ground_offset", [0.0, 0.0]))
 		var actual_ground_offset := profile.get("ground_offset") as Vector2
@@ -134,6 +140,15 @@ func _validate_existing_file(entry_id: String, field_name: String, raw_path: Str
 		errors.append("manifest entry %s is missing %s" % [entry_id, field_name])
 	elif not FileAccess.file_exists(path):
 		errors.append("manifest entry %s %s missing: %s" % [entry_id, field_name, path])
+
+
+func _active_actor_scene_path(entry: Dictionary) -> String:
+	var native_value: Variant = entry.get("native", {})
+	if native_value is Dictionary:
+		var native_path := String((native_value as Dictionary).get("actor_scene_out_path", "")).strip_edges()
+		if not native_path.is_empty():
+			return native_path
+	return String(entry.get("actor_scene_out_path", "")).strip_edges()
 
 
 func _validate_asset_index(enabled_pack: Dictionary, entry_profile_ids: Dictionary) -> PackedStringArray:
@@ -175,6 +190,13 @@ func _validate_index_entry_against_manifest(
 	var actor_scene_path := AssetIndexCatalogRef.resolve_pack_path(enabled_pack, String(entry.get("actor_scene", "")))
 	if actor_scene_path.is_empty() or not ResourceLoader.exists(actor_scene_path):
 		errors.append("asset_index entry %s actor_scene missing: %s" % [String(profile_id), actor_scene_path])
+	elif not profile_path.is_empty() and ResourceLoader.exists(profile_path):
+		var profile := ResourceLoader.load(profile_path) as Resource
+		var profile_actor_scene: PackedScene = null
+		if profile != null:
+			profile_actor_scene = profile.get("actor_scene") as PackedScene
+		if profile_actor_scene == null or profile_actor_scene.resource_path != actor_scene_path:
+			errors.append("asset_index entry %s actor_scene does not match profile: %s" % [String(profile_id), actor_scene_path])
 	var source: Dictionary = entry.get("source", {})
 	var source_reanim_path := AssetIndexCatalogRef.resolve_pack_path(enabled_pack, String(source.get("reanim", "")))
 	if source_reanim_path.is_empty() or not FileAccess.file_exists(source_reanim_path):
