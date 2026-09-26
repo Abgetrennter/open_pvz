@@ -141,11 +141,11 @@ graph TD
 | `scripts/input/` | GDScript | 2 | 输入路由与处理 |
 | `scripts/demo/` | GDScript | 4 | 可玩 Demo 关卡脚本 |
 | `scripts/debug/` | GDScript | 1 | 调试覆盖层 |
-| `data/combat/archetypes/` | .tres | 127 | Archetype 资源（89 植物 + 35 僵尸 + 3 场上物件） |
-| `data/combat/` | .tres | 353 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等 |
+| `data/combat/archetypes/` | .tres | 129 | Archetype 资源（91 植物 + 35 僵尸 + 3 场上物件；数量随内容演进，以目录实测为准） |
+| `data/combat/` | .tres | 362 | 战斗数据资源：archetype、投射物模板、飞行配置、卡片、波次等（数量随内容演进，以目录实测为准） |
 | `scenes/validation/` | .tres/.tscn | -- | 自动化验证场景资源；验证入口以 `tools/validation_scenarios.json` 为准 |
 | `scenes/showcase/` | .tscn | 9 | 展示场景 |
-| `tools/` | PS1/JSON | 3 | 验证运行工具 |
+| `tools/` | PS1/JSON | 3+ | 验证运行工具 |
 | `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
 | `extensions/` | JSON/.tres/GDScript | -- | 扩展包：最小内容包、chaos 样例、guardrail 样例、通用插槽示例 |
 | `vendor/` | -- | 大量 | 参考实现（PVZ-Godot-Dream），不属于引擎核心 |

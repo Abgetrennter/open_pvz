@@ -30,7 +30,7 @@
 
 1. **语义事件层** — "发生了什么"。事件如 `game.tick`、`entity.damaged`、`entity.died`、`projectile.hit` 通过 `EventBus`（autoload）流转。
 2. **行为效果层** — "该做什么"。`EffectDef` -> `EffectNode`，由 `EffectExecutor` 执行。效果是原子化、可组合、可嵌套的。注册于 `EffectRegistry`。
-3. **编译装配层** — "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。10 个冻结 Mechanic family。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`。
+3. **编译装配层** — "实体如何编译和组装"。`CombatArchetype` + `CombatMechanic[]` -> `MechanicCompiler` -> `RuntimeSpec` -> `EntityFactory` 实例化。冻结 Mechanic family 数量以 `scripts/core/defs/combat_mechanic.gd` 的 `ALLOWED_FAMILIES` 为准。注册于 `MechanicFamilyRegistry` / `MechanicTypeRegistry` / `MechanicCompilerRegistry`。
 4. **连续行为层** — "持续对象如何更新"。抛射体使用 3D 逻辑 + 2D 投影；Controller 通过 `ControllerComponent` 每帧执行。
 
 ### 执行链
@@ -57,7 +57,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 | `EventBus` | 事件分发，优先级订阅，历史追踪 |
 | `DebugService` | 集中式日志：事件/触发器/效果/运行时快照/协议问题 |
 | `SceneRegistry` | 场景与资源注册表，自动扫描 `data/combat/` |
-| `MechanicFamilyRegistry` | Mechanic 一级 family 注册（10 个冻结 family） |
+| `MechanicFamilyRegistry` | Mechanic 一级 family 注册（冻结 family 清单见 `combat_mechanic.gd` `ALLOWED_FAMILIES`） |
 | `MechanicTypeRegistry` | Mechanic type 注册（family 下的具体 type_id） |
 | `MechanicCompilerRegistry` | Mechanic per-type 编译器 callable 注册与分发 |
 | `DetectionRegistry` | 目标发现策略注册 |
@@ -80,7 +80,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 更准确地说，当前状态是：
 
 - 引擎主干、Mechanic-first 主链和战斗玩法层已经稳定落地
-- Mechanic family 已冻结为 10 个：`Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller`
+- Mechanic family 已冻结（清单见 `combat_mechanic.gd` `ALLOWED_FAMILIES`）：`Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller / Movement`
 - 通用扩展插槽 v1 已落地：所有 registry 统一继承 `RegistryBase`，开放 slot 包括 `projectile_movement`、`mechanic_compilers`、`effects`、`triggers`、`detections`、`controllers`
 - 战斗模式组织层 v1 已落地：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef`
 - 规则基础设施第二轮已落地：多维 liveness、`SpatialIndex` / `BattleManager.spatial_query(params)`、`height_range` 过滤、tick budget 监控
@@ -105,7 +105,7 @@ _physics_process -> ControllerComponent -> ControllerRegistry -> Controller Stra
 - 内容与协议主链：
   - `CombatArchetype + CombatMechanic[] -> RuntimeSpec -> EntityFactory`（唯一正式入口）
   - 规则协议白名单与守卫
-  - 10 个冻结 Mechanic family，大量内置 type
+  - 冻结 Mechanic family（清单见 `combat_mechanic.gd` `ALLOWED_FAMILIES`），大量内置 type
   - 扩展包可通过 `MechanicCompilerDef` 在冻结 family 下新增 type
 - 战斗玩法层：
   - 阳光与资源
@@ -211,7 +211,7 @@ EventBus -> TriggerInstance / EffectExecutor -> Projectile or Damage -> EventBus
 
 - `tools/run_validation.ps1` — 单场景验证
 - `tools/run_all_validations.ps1` — 批量验证（支持 `-MaxParallel` 受控并行）
-- `tools/validation_scenarios.json` — 145 个验证场景，分层：smoke / core / extension / guardrail / showcase
+- `tools/validation_scenarios.json` — 验证场景清单（数量以该文件为准），分层：smoke / core / extension / guardrail / showcase / local_private
 
 ### 9. 仓库已经有可操作 Demo
 
@@ -271,7 +271,7 @@ vendor/                  外部参考实现子模块
 
 第一轮协议冻结已生效。未经设计审批，不得修改以下语义：
 
-- **Mechanic family**（10 个冻结，新增需 ADR）：Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller
+- **Mechanic family**（冻结清单见 `combat_mechanic.gd` `ALLOWED_FAMILIES`，新增需 ADR）：Trigger / Targeting / Emission / Trajectory / HitPolicy / Payload / State / Lifecycle / Placement / Controller / Movement
 - **触发器**：`periodically`、`when_damaged`、`on_death`
 - **效果**：`damage`、`spawn_projectile`、`explode`
 
@@ -343,7 +343,7 @@ pwsh tools/run_all_validations.ps1 -MaxParallel 8
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres"
 ```
 
-验证场景定义：`tools/validation_scenarios.json`（145 个场景）
+验证场景定义：`tools/validation_scenarios.json`（场景数量以该文件为准）
 验证结果输出：`artifacts/validation/`
 
 ## 许可证

@@ -46,7 +46,7 @@ function Get-DefaultReadItems {
     return $items
 }
 
-$agentEntryFiles = @("agent.md", "AGENTS.md")
+$agentEntryFiles = @("AGENTS.md")
 foreach ($entryFile in $agentEntryFiles) {
     $entryPath = Join-Path $ProjectRoot $entryFile
     if (!(Test-Path $entryPath)) {
@@ -257,7 +257,86 @@ if (!(Test-Path $retiredDir)) {
     }
 }
 
+# ─── CHECK 6: 文档数字断言（信号级）───
+# 机器可算的数字不许手写当前断言：要么与机械源一致，要么改为指向源。
+# 依据：docs/governance/2026-09-26-workspace-governance-implementation-plan.md P1.2（设计 §4.8）
+# 升级路径：连续稳定一个工作周期后按设计 §6.3 升级为阻塞（单独成事务）
+
+Write-Host "[CHECK 6] 文档数字断言"
+
+# 机械源计算
+$mechanicalFacts = @{}
+
+# 1) 验证场景数 = tools/validation_scenarios.json 条目数
+$manifestPath = Join-Path $ProjectRoot "tools" "validation_scenarios.json"
+if (Test-Path $manifestPath) {
+    $manifest = Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $mechanicalFacts["validation_scenarios"] = @($manifest).Count
+}
+
+# 2) archetype 数 = data/combat/archetypes/ 递归 .tres 计数
+$archetypeDir = Join-Path $ProjectRoot "data" "combat" "archetypes"
+if (Test-Path $archetypeDir) {
+    $mechanicalFacts["archetypes"] = @(Get-ChildItem $archetypeDir -Recurse -Filter "*.tres" -File).Count
+}
+
+# 3) Mechanic family 数 = combat_mechanic.gd ALLOWED_FAMILIES 数组长度
+$mechanicDefPath = Join-Path $ProjectRoot "scripts" "core" "defs" "combat_mechanic.gd"
+if (Test-Path $mechanicDefPath) {
+    $defContent = Get-Content $mechanicDefPath -Raw -Encoding UTF8
+    $m = [regex]::Match($defContent, 'const ALLOWED_FAMILIES\s*:=\s*\[(?<body>.*?)\]', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    if ($m.Success) {
+        $mechanicalFacts["mechanic_families"] = [int](([regex]::Matches($m.Groups["body"].Value, '"')).Count / 2)
+    }
+}
+
+# 被检文件与断言规则：数字 + 量词 -> 机械源键
+$docAssertionTargets = @(
+    (Join-Path $ProjectRoot "README.md"),
+    (Join-Path $ProjectRoot "AGENTS.md"),
+    (Join-Path $ProjectRoot "wiki" "01-overview" "03-15分钟上手路径.md")
+)
+$quantifierMap = @(
+    @{ Pattern = '场景'; Key = 'validation_scenarios' },
+    @{ Pattern = 'archetype|Archetype'; Key = 'archetypes' },
+    @{ Pattern = 'family|family'; Key = 'mechanic_families' }
+)
+
+$driftFindings = @()
+foreach ($filePath in $docAssertionTargets) {
+    if (!(Test-Path $filePath)) { continue }
+    $relName = [System.IO.Path]::GetRelativePath($ProjectRoot, $filePath)
+    $lineNo = 0
+    foreach ($line in (Get-Content $filePath -Encoding UTF8)) {
+        $lineNo++
+        # 排除变更记录行（历史记录非当前断言）与表格分隔行
+        if ($line -match '^\s*-\s*\*\*20\d{2}-' -or $line -match '^\|\s*[-:]+\s*\|') { continue }
+        foreach ($q in $quantifierMap) {
+            if (!$mechanicalFacts.ContainsKey($q.Key)) { continue }
+            # 形如「N 个场景」「N 个 archetype」「N 个冻结 Mechanic family」（量词后最多 12 个非分隔字符）
+            if ($line -match ('(?<num>\d+)\s*个[^，。；、|]{0,12}?(?:' + $q.Pattern + ')')) {
+                $num = [int]$Matches["num"]
+                $expected = [int]$mechanicalFacts[$q.Key]
+                if ($num -ne $expected) {
+                    $driftFindings += "${relName}:${lineNo} 声称 $num（机械源 $($q.Key)=$expected）: $($line.Trim())"
+                }
+            }
+        }
+    }
+}
+
+if ($driftFindings.Count -eq 0) {
+    Write-Host "  OK    文档数字断言与机械源一致（场景=$($mechanicalFacts['validation_scenarios']) archetype=$($mechanicalFacts['archetypes']) family=$($mechanicalFacts['mechanic_families'])）"
+} else {
+    Write-Host "  WARN  $($driftFindings.Count) 处数字漂移（机械源：场景=$($mechanicalFacts['validation_scenarios']) archetype=$($mechanicalFacts['archetypes']) family=$($mechanicalFacts['mechanic_families'])）："
+    $warnings++
+    foreach ($f in $driftFindings) {
+        Write-Host "        - $f"
+    }
+}
+
 Write-Host ""
+
 Write-Host "=== 检查完成: $warnings warnings, 0 errors ==="
 
 exit 0
