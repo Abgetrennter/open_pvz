@@ -18,7 +18,8 @@
 | `original-plant-protocol-gaps.md` | 原版植物协议缺口追踪 | 协议缺口追踪，维护中 | 是 |
 | `original-plant-mechanism-audit.md` | 原版植物机制审计 | 审计记录，按需更新 | 是 |
 | `original-plant-visual-bulk-migration-plan.md` | 原版植物视觉批量迁移执行方案 | 当前私有素材包、原版图像移植工作文档、验证脚本与展示场景 | 是 |
-| `reanim-native-runtime-implementation-plan.md` | Reanim 原生运行时三类样本 Spike 与分阶段迁移 | 设计草案、当前导入/视觉运行链、de-pvz 语义锚点与 local_private 验证 | 是（实施计划） |
+| `reanim-native-full-original-plant-migration-plan.md` | 48 株原版植物 Reanim 原生视觉全量迁移 | 当前 archetype 清单、私有 manifest/semantic reports、原生 Reanim 运行时与 local_private 验证 | 是（执行计划） |
+| `reanim-native-migration-candidate-matrix.md` | 30 株待迁移植物的候选矩阵（M0 产出，含 source/flags/批次/阻塞） | scan_reanim_feature_flags.ps1 输出 + 各 semantic report；M1 首批 4 株已落地 | 是（M1/M2 执行依据） |
 | `未来计划.md` | 前进方向概要 | 与 `wiki/04-roadmap-reference/26-开发路线图.md` 对齐 | 是（路线图方向） |
 | `zombie-design-research-report.md` | 僵尸设计研究报告（三源综合分析） | `vendor/de-pvz/` + `vendor/PVZ-Godot-Dream/` + 本项目代码 | 是 |
 
@@ -34,7 +35,7 @@
 | `reanim资源转换工具链规划.md` | reanim 工具链规划 | 历史讨论 |
 | `attack-chain-family-compile-path.md` | 攻击链编译路径讨论 | 历史讨论 |
 | `draft/原版机制未实现项盘点.md` | 原版机制未实现项盘点 | 草案，基于 de-pvz / PVZ-Godot-Dream / 当前 validation 对齐；P0 章节已拆分为 `p0-original-plant-blockers-plan.md` |
-| `draft/reanim原生运行时ReanimData方案设计草案.md` | Reanim 原生运行时方案（ReanimData + ReanimPlayer + ReanimActorDef） | 草案，基于 de-pvz reanim 语义 / 当前 reanim 导入链 / 100Hz 仿真时钟对齐；否 |
+| `draft/公开引擎受限素材与worktree治理草案.md` | 公开引擎、受限素材双仓边界与 worktree 挂载治理 | 草案，不是当前实现依据 |
 | `pvz_like_engine_design_doc_v_1.md` | 引擎设计文档 v1 | 早期设计，已被实际实现超越 |
 
 ## 设计讨论（子目录）
@@ -50,6 +51,8 @@
 | `错误技系统完整设计思路（整合版）.md` | 错误技系统设计 | 已落地实施 |
 | `原版植物移植详细路线图.md` | 原版植物路线图 | 已被迁移底账替代 |
 | `原版图像移植工作文档.md` | 原版图像移植 | 历史材料 |
+| `reanim-native-runtime-implementation-plan.md` | Reanim 原生运行时实施计划 | T0-T6 已完成且验证通过，待确认后移入 `archive/` |
+| `draft/reanim原生运行时ReanimData方案设计草案.md` | Reanim 原生运行时设计草案 | 已由实施计划、运行时代码与素材包 wiki 吸收，待归档 |
 
 ## 子目录
 
@@ -74,3 +77,4 @@
 - 用途：
 - 事实来源：
 - 可作为当前实现依据：（是 / 否）
+| `../docs/governance/2026-09-26-workspace-governance-implementation-plan.md` | 工作区治理体系实施计划 v2（阶段 0–4；裁决 D1–D9 全部落盘） | 治理设计 + 审查 + 裁决记录三文档（已迁根仓 docs/governance/） | 是（阶段 1、2 均可执行） |
