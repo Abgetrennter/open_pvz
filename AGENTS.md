@@ -4,7 +4,7 @@
 
 ## 变更记录 (Changelog)
 
-- **2026-05-21** — 原版僵尸 A-E 批次完成状态校准：25 个 `archetype_original_*` 僵尸与 5 个批次验证已进入 manifest，当前验证清单为 215 场景
+- **2026-09-26** — 工作区治理阶段 1–2：文档数字漂移清零 + CHECK 6 信号上线；治理文件收敛（CLAUDE.md 指针化，PLAN/agent 删除）；vendor 4 仓外迁 pvz-ws/references（227 基线零依赖实测）；out_files 转 local_refs 挂载；plans/README 分叉收敛
 - **2026-05-20** — 僵尸基础设施协议 Wave 0 落地：HealthLayer、damage_layer_policy、Movement family v1、State side-effects、exposure/weight 过滤与 13 个专项验证进入主干
 - **2026-05-11** — init-deep 全仓扫描：补充 autoload 清单（16 个）、模块索引（视觉/UI/输入/demo/验证）、反模式章节、守卫脚本命令、扩展包 AGENTS.md
 - **2026-05-10** — 原版植物 E 批补齐 Gloom-shroom、Cattail、Winter Melon、Spikerock、Gold Magnet 单体验证，验证 manifest 扩展到 145 场景
@@ -148,7 +148,14 @@ graph TD
 | `tools/` | PS1/JSON | 3+ | 验证运行工具 |
 | `wiki/` | Markdown | ~40 | 中文设计文档（6 个分区 + decisions） |
 | `extensions/` | JSON/.tres/GDScript | -- | 扩展包：最小内容包、chaos 样例、guardrail 样例、通用插槽示例 |
-| `vendor/` | -- | 大量 | 参考实现（PVZ-Godot-Dream），不属于引擎核心 |
+
+> 第三方参考实现已外迁至工作区 `pvz-ws/references/`（裁决 D2）；项目内不再有 vendor/。
+
+## 工作区形态（外部事实）
+
+- 本仓是 `pvz-ws` 工作区的项目层：根仓（任务账本/门禁/Doctor/池/合同）在上一级 `pvz-ws/`，见根仓 README
+- **主检出是只读基准**：改动 tracked 文件一律走 worktree 池槽（裁决 D3），Doctor 会对主检出脏状态报 FAIL
+- 第三方参考锚点：`../references/de-pvz`（0.9.9.1029）等，路径对照见 `../references/README.md`
 
 ## 运行与开发
 
@@ -250,7 +257,7 @@ Identity -> Chassis -> Combat Stats -> Mechanic[]
 ### 内容禁止
 - **不得在 GDScript 中硬编码内容**：所有游戏数据必须走 `.tres` Resource
 - **遗留字段仅为迁移桥接**：`_LEGACY_TO_SEMANTIC_OVERRIDE_KEYS` 和 `legacy_*` 字段为临时桥接，最终须移除
-- **不得直接修改 `vendor/` 参考实现**
+- **不得直接修改参考实现**：第三方参考仓在 `../references/`，只读、pinned、不参与构建
 
 ## 冻结协议
 
