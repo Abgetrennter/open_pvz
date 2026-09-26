@@ -1,6 +1,6 @@
 extends Node2D
 
-@export_file("*.tscn") var raw_actor_scene_path := "res://vendor/out_files/_openpvz_import/scaredyshroom/actor.tscn"
+@export_file("*.tscn") var raw_actor_scene_path := "res://local_refs/out_files/_openpvz_import/scaredyshroom/actor.tscn"
 @export var actor_anchor_offset := Vector2(-34.0, -78.0)
 @export var actor_scale_value := 1.0
 @export var muzzle_anchor_position := Vector2(14.0, -31.0)

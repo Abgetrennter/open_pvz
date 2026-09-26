@@ -362,9 +362,9 @@ func _configure_wallnut() -> void:
 	if _wallnut_uses_actor_texture_override:
 		return
 	_wallnut_face = _find_node_by_name(_actor, "anim_face") as Sprite2D
-	_wallnut_body_texture = _load_texture("res://vendor/out_files/reanim/Wallnut_body.png")
-	_wallnut_cracked1_texture = _load_texture("res://vendor/out_files/reanim/Wallnut_cracked1.png")
-	_wallnut_cracked2_texture = _load_texture("res://vendor/out_files/reanim/Wallnut_cracked2.png")
+	_wallnut_body_texture = _load_texture("res://local_refs/out_files/reanim/Wallnut_body.png")
+	_wallnut_cracked1_texture = _load_texture("res://local_refs/out_files/reanim/Wallnut_cracked1.png")
+	_wallnut_cracked2_texture = _load_texture("res://local_refs/out_files/reanim/Wallnut_cracked2.png")
 
 
 func _apply_wallnut_damage_texture() -> void:

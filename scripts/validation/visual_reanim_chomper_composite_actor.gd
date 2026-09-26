@@ -1,6 +1,6 @@
 extends Node2D
 
-@export_file("*.tscn") var raw_actor_scene_path := "res://vendor/out_files/_openpvz_import/chomper/actor.tscn"
+@export_file("*.tscn") var raw_actor_scene_path := "res://local_refs/out_files/_openpvz_import/chomper/actor.tscn"
 @export var actor_anchor_offset := Vector2(-44.0, -94.0)
 @export var actor_scale_value := 1.0
 @export var mouth_anchor_position := Vector2(58.0, -42.0)

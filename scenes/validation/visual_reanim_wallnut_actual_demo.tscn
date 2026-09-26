@@ -4,7 +4,7 @@
 
 [node name="VisualReanimWallnutActualDemo" type="Node2D"]
 script = ExtResource("1_sample_demo")
-profile_path = "res://vendor/out_files/_openpvz_import/wallnut_manifest_composite/visual_profile.tres"
+profile_path = "res://local_refs/out_files/_openpvz_import/wallnut_manifest_composite/visual_profile.tres"
 display_name = "Wall-nut"
 status_text = "Wall-nut reanim 实际演示：idle 摇摆 + cracked1/cracked2 贴图替换，覆盖原版坚果受伤外观语义。"
 demo_kind = "wallnut"

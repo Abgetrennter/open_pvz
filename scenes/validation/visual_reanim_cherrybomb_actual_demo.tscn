@@ -4,7 +4,7 @@
 
 [node name="VisualReanimCherryBombActualDemo" type="Node2D"]
 script = ExtResource("1_sample_demo")
-profile_path = "res://vendor/out_files/_openpvz_import/cherrybomb_manifest_composite/visual_profile.tres"
+profile_path = "res://local_refs/out_files/_openpvz_import/cherrybomb_manifest_composite/visual_profile.tres"
 display_name = "Cherry Bomb"
 status_text = "Cherry Bomb reanim 实际演示：idle 蓄势 -> explode 一次性动画 -> 粒子占位爆炸范围，覆盖默认可见 marker 段。"
 demo_kind = "cherrybomb"

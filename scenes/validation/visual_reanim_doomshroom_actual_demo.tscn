@@ -4,7 +4,7 @@
 
 [node name="VisualReanimDoomShroomActualDemo" type="Node2D"]
 script = ExtResource("1_sample_demo")
-profile_path = "res://vendor/out_files/_openpvz_import/doomshroom_manifest_composite/visual_profile.tres"
+profile_path = "res://local_refs/out_files/_openpvz_import/doomshroom_manifest_composite/visual_profile.tres"
 display_name = "Doom-shroom"
 status_text = "Doom-shroom reanim 实际演示：idle -> explode -> sleep，爆炸范围用占位圆提示，视觉不承担战斗范围判定。"
 demo_kind = "doomshroom"

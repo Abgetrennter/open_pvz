@@ -4,7 +4,7 @@
 
 [node name="VisualReanimGatlingPeaActualDemo" type="Node2D"]
 script = ExtResource("1_pea_family_demo")
-profile_path = "res://vendor/out_files/_openpvz_import/gatlingpea_composite/visual_profile.tres"
+profile_path = "res://local_refs/out_files/_openpvz_import/gatlingpea_composite/visual_profile.tres"
 display_name = "Gatling Pea"
 status_text = "Gatling Pea composite actor 演示：body 使用 anim_idle 视觉层区间，head 挂到 anim_idle，demo 只调用 play_action(shooting) 并按四连发节奏生成豌豆。"
 projectile_release_times = PackedFloat32Array(0.32, 0.49, 0.65, 0.82)

@@ -1,6 +1,6 @@
 extends Node2D
 
-const PROFILE_PATH := "res://vendor/out_files/_openpvz_import/scaredyshroom_composite/visual_profile.tres"
+const PROFILE_PATH := "res://local_refs/out_files/_openpvz_import/scaredyshroom_composite/visual_profile.tres"
 const VIEWPORT_SIZE := Vector2(800.0, 600.0)
 const BOARD_ORIGIN := Vector2(120.0, 135.0)
 const SLOT_COUNT := 9

@@ -40,8 +40,8 @@ const MANIFEST_GUARDRAIL_SCENARIO_IDS := {
 	&"extension_manifest_guardrail_validation": true,
 }
 const PRIVATE_REFERENCE_MARKERS := [
-	"res://vendor/out_files",
-	"vendor/out_files",
+	"res://local_refs/out_files",
+	"local_refs/out_files",
 	"res://local_extensions",
 	"local_extensions",
 ]

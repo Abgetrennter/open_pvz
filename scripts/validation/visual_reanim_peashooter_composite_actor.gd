@@ -1,6 +1,6 @@
 extends Node2D
 
-@export_file("*.tscn") var raw_actor_scene_path := "res://vendor/out_files/_openpvz_import/peashooter/actor.tscn"
+@export_file("*.tscn") var raw_actor_scene_path := "res://local_refs/out_files/_openpvz_import/peashooter/actor.tscn"
 const ACTOR_ANCHOR_OFFSET := Vector2(-44.0, -96.0)
 const OPENPVZ_SLOT_SPACING := 80.0
 const ORIGINAL_SLOT_WIDTH := 80.0

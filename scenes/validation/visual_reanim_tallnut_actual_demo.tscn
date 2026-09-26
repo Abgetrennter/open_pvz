@@ -4,7 +4,7 @@
 
 [node name="VisualReanimTallnutActualDemo" type="Node2D"]
 script = ExtResource("1_sample_demo")
-profile_path = "res://vendor/out_files/_openpvz_import/tallnut_manifest_composite/visual_profile.tres"
+profile_path = "res://local_refs/out_files/_openpvz_import/tallnut_manifest_composite/visual_profile.tres"
 display_name = "Tall-nut"
 status_text = "Tall-nut reanim 实际演示：idle 摇摆 + cracked1/cracked2 贴图替换，验证坚果类受伤外观 override 泛化。"
 demo_kind = "tallnut"

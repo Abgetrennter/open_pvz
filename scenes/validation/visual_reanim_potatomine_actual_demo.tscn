@@ -4,7 +4,7 @@
 
 [node name="VisualReanimPotatoMineActualDemo" type="Node2D"]
 script = ExtResource("1_sample_demo")
-profile_path = "res://vendor/out_files/_openpvz_import/potatomine_manifest_composite/visual_profile.tres"
+profile_path = "res://local_refs/out_files/_openpvz_import/potatomine_manifest_composite/visual_profile.tres"
 display_name = "Potato Mine"
 status_text = "Potato Mine reanim 实际演示：埋地等待 -> rise -> armed/glow -> mashed 爆炸，消化原版状态机视觉流程。"
 demo_kind = "potatomine"

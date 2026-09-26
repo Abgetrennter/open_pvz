@@ -10,6 +10,6 @@
     "visual_profiles"
   ],
   "metadata": {
-    "forbidden_reference": "res://vendor/out_files/_openpvz_import/peashooter/actor.tscn"
+    "forbidden_reference": "res://local_refs/out_files/_openpvz_import/peashooter/actor.tscn"
   }
 }

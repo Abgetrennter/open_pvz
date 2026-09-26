@@ -4,7 +4,7 @@
 
 [node name="VisualReanimFumeShroomActualDemo" type="Node2D"]
 script = ExtResource("1_sample_demo")
-profile_path = "res://vendor/out_files/_openpvz_import/fumeshroom_manifest_composite/visual_profile.tres"
+profile_path = "res://local_refs/out_files/_openpvz_import/fumeshroom_manifest_composite/visual_profile.tres"
 display_name = "Fume-shroom"
 status_text = "Fume-shroom reanim 实际演示：idle -> shooting，并用短程喷雾占位显示范围攻击表现。"
 demo_kind = "fumeshroom"

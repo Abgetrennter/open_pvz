@@ -1,6 +1,6 @@
 ---
 name: openpvz-reference-index
-description: Find and apply the right OpenPVZ reference-project anchors in vendor/de-pvz and vendor/PVZ-Godot-Dream. Use when the user asks to compare with original PVZ, inspect de-pvz, inspect PVZ-Godot-Dream, extract original values or behavior, or locate reference files before drafting, planning, or implementing.
+description: Find and apply the right OpenPVZ reference-project anchors in E:/Code/pvz-ws/references/de-pvz and E:/Code/pvz-ws/references/PVZ-Godot-Dream. Use when the user asks to compare with original PVZ, inspect de-pvz, inspect PVZ-Godot-Dream, extract original values or behavior, or locate reference files before drafting, planning, or implementing.
 ---
 
 # OpenPVZ Reference Index
@@ -15,8 +15,8 @@ Read the wiki file matching `wiki/04-roadmap-reference/46-*` before searching ve
 
 ## Source Priority
 
-1. `vendor/de-pvz/` is the original-spec source for numbers, enums, tick semantics, resource ids, board coordinates, and behavior conditions.
-2. `vendor/PVZ-Godot-Dream/` is a Godot expression reference for nodes, components, scenes, animation, UI, and engineering organization.
+1. `E:/Code/pvz-ws/references/de-pvz/` is the original-spec source for numbers, enums, tick semantics, resource ids, board coordinates, and behavior conditions.
+2. `E:/Code/pvz-ws/references/PVZ-Godot-Dream/` is a Godot expression reference for nodes, components, scenes, animation, UI, and engineering organization.
 3. OpenPVZ code and resources are the final target. Do not copy either reference project directly.
 
 If `de-pvz` and `PVZ-Godot-Dream` disagree about original behavior, trust `de-pvz` and mention the discrepancy.
@@ -38,19 +38,19 @@ If `de-pvz` and `PVZ-Godot-Dream` disagree about original behavior, trust `de-pv
 
 ## Common Anchors
 
-- Plants: `vendor/de-pvz/Lawn/Plant.cpp:gPlantDefs[]`, `ConstEnums.h:SeedType`
-- Zombies: `vendor/de-pvz/Lawn/Zombie.cpp:gZombieDefs[]`, `Zombie.h`
-- Board metrics: `vendor/de-pvz/GameConstants.h`, `vendor/de-pvz/Lawn/Board.cpp`
-- Projectiles: `vendor/de-pvz/Lawn/Projectile.cpp`
-- Resources: `vendor/de-pvz/Resources.cpp`, `Resources.h`
-- Reanim: `vendor/de-pvz/Sexy.TodLib/Reanimator.*`, `Attachment.*`
-- Godot components: `vendor/PVZ-Godot-Dream/scripts/character/components/`
-- Godot managers: `vendor/PVZ-Godot-Dream/scripts/manager/`
-- Godot level resources: `vendor/PVZ-Godot-Dream/scripts/resources/level/`, `level_game_para/`
+- Plants: `E:/Code/pvz-ws/references/de-pvz/Lawn/Plant.cpp:gPlantDefs[]`, `ConstEnums.h:SeedType`
+- Zombies: `E:/Code/pvz-ws/references/de-pvz/Lawn/Zombie.cpp:gZombieDefs[]`, `Zombie.h`
+- Board metrics: `E:/Code/pvz-ws/references/de-pvz/GameConstants.h`, `E:/Code/pvz-ws/references/de-pvz/Lawn/Board.cpp`
+- Projectiles: `E:/Code/pvz-ws/references/de-pvz/Lawn/Projectile.cpp`
+- Resources: `E:/Code/pvz-ws/references/de-pvz/Resources.cpp`, `Resources.h`
+- Reanim: `E:/Code/pvz-ws/references/de-pvz/Sexy.TodLib/Reanimator.*`, `Attachment.*`
+- Godot components: `E:/Code/pvz-ws/references/PVZ-Godot-Dream/scripts/character/components/`
+- Godot managers: `E:/Code/pvz-ws/references/PVZ-Godot-Dream/scripts/manager/`
+- Godot level resources: `E:/Code/pvz-ws/references/PVZ-Godot-Dream/scripts/resources/level/`, `level_game_para/`
 
 ## Guardrails
 
-- Do not modify `vendor/`.
+- Do not modify `references/` (moved from vendor/, see root pin.json).
 - Do not treat external wiki, memory, or prior summaries as final numeric evidence.
 - Do not import `PVZ-Godot-Dream` concrete unit scripts as OpenPVZ entity-specific logic.
 - Do not bypass Mechanic-first or registry conventions.

@@ -28,7 +28,7 @@ function Test-PrivateReference([object]$Value, [string]$Path) {
 	}
 	if ($Value -is [string]) {
 		$normalized = $Value.Replace('\', '/')
-		if ($normalized.Contains('vendor/out_files') -or $normalized.Contains('local_extensions')) {
+		if ($normalized.Contains('local_refs') -or $normalized.Contains('vendor/out_files') -or $normalized.Contains('local_extensions')) {
 			Add-Issue "Public extension manifest references private path at ${Path}: $Value"
 		}
 		return

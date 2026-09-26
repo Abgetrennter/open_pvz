@@ -1,6 +1,6 @@
 extends Node2D
 
-const ACTOR_SCENE_PATH := "res://vendor/out_files/_openpvz_import/peashooter/actor.tscn"
+const ACTOR_SCENE_PATH := "res://local_refs/out_files/_openpvz_import/peashooter/actor.tscn"
 const VIEWPORT_SIZE := Vector2(800.0, 600.0)
 const ACTOR_POSITION := Vector2(480.0, 318.0)
 const ACTOR_SCALE := Vector2(3.0, 3.0)
