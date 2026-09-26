@@ -1,5 +1,8 @@
 # 扩展包 Manifest 规范
 
+> 路径提示：本文中的 endor/... 引用已外迁至工作区 pvz-ws/references/，对照表见 E:/Code/pvz-ws/references/README.md（2026-09-26 vendor 外迁，裁决 D2）。
+
+
 - 状态：正式设计
 - 提升日期：2026-05-17
 - 来源草案：`plans/draft/extension-system/41-扩展包-manifest-规范-v1.md`

@@ -1,5 +1,8 @@
 # vendor 参考实现：游戏模式系统分析
 
+> 路径提示：本文中的 endor/... 引用已外迁至工作区 pvz-ws/references/，对照表见 E:/Code/pvz-ws/references/README.md（2026-09-26 vendor 外迁，裁决 D2）。本文属知识层候选（归属判定见知识库 migration-verdict.md）。
+
+
 - 状态：当前事实
 - 分析范围：`vendor/Godot-PVZ`（C# 版本）、`vendor/PVZ-Godot-Dream`（GDScript 版本）
 - 关联文档：[原版 PVZ 模式系统逆向分析](23-原版PVZ模式系统逆向分析.md)、[外部项目调研 PVZ-Godot-Dream](24-外部项目调研-PVZ-Godot-Dream.md)

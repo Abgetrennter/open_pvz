@@ -1,5 +1,8 @@
 # 外部项目调研：PVZ-Godot-Dream
 
+> 路径提示：本文中的 endor/... 引用已外迁至工作区 pvz-ws/references/，对照表见 E:/Code/pvz-ws/references/README.md（2026-09-26 vendor 外迁，裁决 D2）。本文属知识层候选（归属判定见知识库 migration-verdict.md）。
+
+
 - 状态：当前事实
 
 

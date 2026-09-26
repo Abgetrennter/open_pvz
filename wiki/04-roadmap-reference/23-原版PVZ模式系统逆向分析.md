@@ -1,5 +1,8 @@
 # 原版 PVZ 模式系统逆向分析
 
+> 路径提示：本文中的 endor/... 引用已外迁至工作区 pvz-ws/references/，对照表见 E:/Code/pvz-ws/references/README.md（2026-09-26 vendor 外迁，裁决 D2）。本文属知识层候选（归属判定见知识库 migration-verdict.md）。
+
+
 > 来源：`vendor/de-pvz`（反编译 C++ 代码），分析原版 Plants vs. Zombies 如何实现迷你游戏、无尽模式、砸罐子（Vasebreaker）、我是僵尸（I, Zombie），以及场景/模式区分机制。
 
 ---
