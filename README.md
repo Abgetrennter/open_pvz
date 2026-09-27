@@ -238,7 +238,7 @@ scenes/showcase/          展示场景
 extensions/               扩展包（样例、守卫、探测等）
 tools/                    验证运行工具（PowerShell）
 wiki/                     中文设计文档
-vendor/                   参考实现（PVZ-Godot-Dream），不属于引擎核心
+外部工作区 references/    固定版本参考镜像，不参与引擎构建
 ```
 
 ## 文档结构
@@ -254,7 +254,7 @@ wiki/                    结构化设计文档
 plans/                   规划稿、阶段总结与执行清单
 plans/archive/           已完成阶段归档总览
 plans/draft/             未来方向草案
-vendor/                  外部参考实现子模块
+外部工作区 references/    固定版本参考镜像
 ```
 
 推荐优先阅读：
@@ -288,43 +288,20 @@ vendor/                  外部参考实现子模块
 - PascalCase 用于类名，snake_case 用于变量/函数
 - StringName 用于驻留标识符，RefCounted 用于系统间传递数据
 
-## 参考实现
+## 参考实现与获取项目
 
-仓库中引入了一个参考子模块：
+公开引擎是独立仓，不需要递归拉取子模块。直接 `git clone <repo-url>` 即可；第三方参考与私有素材都不是公开构建依赖。
 
-- `vendor/PVZ-Godot-Dream`
+在 `pvz-ws` 工作区内，第三方参考由根配置和 `pin.json` 定位，存放于工作区的 `references/`，不再使用 `vendor/`。参考实现用于研究和对照；引擎自身的规则架构独立维护。
 
-对应上游项目：
-
-- [hsk-dream/PVZ-Godot-Dream](https://github.com/hsk-dream/PVZ-Godot-Dream)
-
-这个子模块的作用是：
-
-- 参考 Godot 下 PVZ 类项目的工程拆分
-- 借鉴其事件总线、角色组件化、投射物移动组件等局部实现
-
-它**不是**当前项目的直接代码基础。当前项目不会直接沿着其"原版复刻"主干继续开发，而是只提取适合规则引擎方向的实现经验。
-
-## 获取项目
-
-如果你需要连同参考子模块一起拉取：
-
-```bash
-git clone --recursive <repo-url>
-```
-
-如果已经 clone 但还没初始化子模块：
-
-```bash
-git submodule update --init --recursive
-```
+新 clone 或 worktree 先运行 `pwsh .codex/scripts/setup_openpvz_worktree.ps1`，解析 Godot 并生成导入缓存。工具路径优先级与独立 clone 用法见 [本地环境说明](.codex/scripts/README.md)。
 
 ## 运行方式
 
 ### 在 Godot 编辑器中运行
 
 1. 安装 Godot 4.x
-2. 拉取仓库和子模块
+2. 拉取引擎仓库并运行上述初始化脚本
 3. 用 Godot 打开项目目录
 4. 运行默认主场景 `res://scenes/main/main.tscn`
 
@@ -336,7 +313,7 @@ git submodule update --init --recursive
 # 运行所有验证场景
 pwsh tools/run_all_validations.ps1
 
-# 控制并行度（默认自动取 min(CPU核心数, 4)）
+# 控制并行度（默认 8；传入 0 自动取 min(CPU 核心数, 8)）
 pwsh tools/run_all_validations.ps1 -MaxParallel 8
 
 # 运行单个场景
@@ -350,4 +327,4 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/<scenario>.tres
 
 当前仓库许可证尚未最终确定。
 
-需要注意的是，`vendor/PVZ-Godot-Dream` 子模块使用的是其上游项目自己的许可证，不等同于本仓库后续采用的许可证。
+第三方参考项目遵循各自的上游许可证，不等同于本仓库后续采用的许可证。

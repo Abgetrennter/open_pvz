@@ -12,90 +12,21 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$DefaultGodotHome = "E:/SDK/Godot"
-$ReferenceSubmodules = @(
-	"vendor/de-pvz",
-	"vendor/PVZ-Godot-Dream"
-)
-
-function Resolve-FirstMatchingFile {
-	param(
-		[string[]]$Directories,
-		[string]$Filter
-	)
-
-	foreach ($Directory in $Directories) {
-		if ([string]::IsNullOrWhiteSpace($Directory)) {
-			continue
-		}
-		if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
-			continue
-		}
-		$Candidate = Get-ChildItem -LiteralPath $Directory -Filter $Filter -File |
-			Sort-Object Name -Descending |
-			Select-Object -First 1
-		if ($null -ne $Candidate) {
-			return $Candidate.FullName
-		}
-	}
-
-	return ""
-}
-
-function Resolve-OpenPvzPath {
-	param(
-		[string]$ExplicitPath,
-		[string[]]$FallbackDirectories,
-		[string]$Filter
-	)
-
-	if (-not [string]::IsNullOrWhiteSpace($ExplicitPath)) {
-		return $ExplicitPath
-	}
-
-	return Resolve-FirstMatchingFile -Directories $FallbackDirectories -Filter $Filter
-}
-
-function Assert-ExecutableExists {
-	param(
-		[string]$Path,
-		[string]$Name
-	)
-
-	if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-		throw "$Name was not found. Set the matching OPENPVZ_GODOT_* environment variable or install Godot under E:/SDK/Godot."
-	}
-}
+ . (Join-Path $PSScriptRoot 'openpvz_environment.ps1')
 
 function Initialize-OpenPvzSubmodules {
-	param(
-		[string]$Mode
-	)
-
-	if ([string]::IsNullOrWhiteSpace($Mode)) {
-		$Mode = "reference"
-	}
-	$Mode = $Mode.ToLowerInvariant()
-
-	if ($Mode -eq "none") {
-		Write-Host "[OpenPVZSetup] Skipping submodule setup."
-		return
-	}
-
-	git -C $ProjectRoot submodule sync --recursive
-
-	if ($Mode -eq "full") {
-		Write-Host "[OpenPVZSetup] Initializing all submodules."
-		git -C $ProjectRoot submodule update --init --recursive
-		return
-	}
-
-	if ($Mode -ne "reference") {
-		throw "Unsupported OPENPVZ_SETUP_SUBMODULES value: $Mode. Use none, reference, or full."
-	}
-
-	Write-Host "[OpenPVZSetup] Initializing reference submodules."
-	git -C $ProjectRoot submodule update --init -- $ReferenceSubmodules
+    param([string]$Mode)
+    if (!$Mode) { $Mode = 'none' }
+    if ($Mode -notin @('none', 'reference', 'full')) { throw "Invalid submodule mode: $Mode" }
+    if ($Mode -eq 'none' -or !(Test-Path (Join-Path $ProjectRoot '.gitmodules'))) {
+        Write-Host '[OpenPVZSetup] No submodule initialization required; references are optional workspace mirrors.'
+        return
+    }
+    if ($Mode -eq 'reference') { throw 'Legacy reference mode is unsupported; use workspace references, or explicitly select full for a clone with submodules.' }
+    & git -C $ProjectRoot submodule sync --recursive
+    if ($LASTEXITCODE -ne 0) { throw 'Submodule sync failed' }
+    & git -C $ProjectRoot submodule update --init --recursive
+    if ($LASTEXITCODE -ne 0) { throw 'Submodule initialization failed' }
 }
 
 function Initialize-PrivateAssetPack {
@@ -149,31 +80,21 @@ function Initialize-PrivateAssetPack {
 	Write-Host "[OpenPVZSetup] Linked private asset pack: $TargetPath -> $Source"
 }
 
-if ([string]::IsNullOrWhiteSpace($GodotHome)) {
-	$GodotHome = $DefaultGodotHome
-}
-
-$GodotConsole = Resolve-OpenPvzPath `
-	-ExplicitPath $GodotConsole `
-	-FallbackDirectories @($ProjectRoot, $GodotHome) `
-	-Filter "Godot_v*_win64_console.exe"
-$GodotGui = Resolve-OpenPvzPath `
-	-ExplicitPath $GodotGui `
-	-FallbackDirectories @($ProjectRoot, $GodotHome) `
-	-Filter "Godot_v*_win64.exe"
-
-Assert-ExecutableExists -Path $GodotConsole -Name "Godot console executable"
-Assert-ExecutableExists -Path $GodotGui -Name "Godot GUI executable"
+$GodotConsole = Resolve-OpenPvzExecutable -ProjectRoot $ProjectRoot -ExplicitPath $GodotConsole -GodotHome $GodotHome
+$GodotGui = Resolve-OpenPvzExecutable -ProjectRoot $ProjectRoot -ExplicitPath $GodotGui -GodotHome $GodotHome -Gui -Optional
 
 Write-Host "[OpenPVZSetup] Godot console: $GodotConsole"
 Write-Host "[OpenPVZSetup] Godot GUI: $GodotGui"
 
 if (-not $CheckOnly) {
-	Initialize-OpenPvzSubmodules -Mode $SetupSubmodules
+    Initialize-OpenPvzSubmodules -Mode $SetupSubmodules
 	Initialize-PrivateAssetPack `
 		-Mode $PrivateAssetPackMode `
 		-Source $PrivateAssetPackSource `
 		-Target $PrivateAssetPackTarget
+    # Fresh worktrees need Godot's generated class/resource cache before running scenarios.
+    & $GodotConsole --headless --editor --path $ProjectRoot --import
+    if ($LASTEXITCODE -ne 0) { throw "Godot import failed ($LASTEXITCODE)" }
 }
 
 Write-Host "[OpenPVZSetup] Environment check completed."

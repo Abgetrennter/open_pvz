@@ -9,37 +9,8 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$DefaultGodotHome = "E:/SDK/Godot"
-
-function Resolve-GodotConsole {
-	param(
-		[string]$ExplicitPath,
-		[string]$HomePath
-	)
-
-	if (-not [string]::IsNullOrWhiteSpace($ExplicitPath)) {
-		return $ExplicitPath
-	}
-	if ([string]::IsNullOrWhiteSpace($HomePath)) {
-		$HomePath = $DefaultGodotHome
-	}
-
-	foreach ($Directory in @($ProjectRoot, $HomePath)) {
-		if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
-			continue
-		}
-		$Candidate = Get-ChildItem -LiteralPath $Directory -Filter "Godot_v*_win64_console.exe" -File |
-			Sort-Object Name -Descending |
-			Select-Object -First 1
-		if ($null -ne $Candidate) {
-			return $Candidate.FullName
-		}
-	}
-
-	throw "Godot console executable was not found. Set OPENPVZ_GODOT_CONSOLE or OPENPVZ_GODOT_HOME."
-}
-
-$GodotConsole = Resolve-GodotConsole -ExplicitPath $GodotConsole -HomePath $GodotHome
+. (Join-Path $PSScriptRoot 'openpvz_environment.ps1')
+$GodotConsole = Resolve-OpenPvzExecutable -ProjectRoot $ProjectRoot -ExplicitPath $GodotConsole -GodotHome $GodotHome
 
 switch ($Action) {
 	"run" {
@@ -59,3 +30,5 @@ switch ($Action) {
 		break
 	}
 }
+
+exit $LASTEXITCODE
