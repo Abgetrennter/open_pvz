@@ -21,6 +21,13 @@ extends Node2D
 ##   S      trigger an extra volley on all shooters
 ##   B      trigger every flourish immediately
 ##   Z      toggle mushrooms between sleeping and idle
+##   Arrows/PageUp/PageDown/wheel  pan the view (the 8-row grid exceeds the window)
+##
+## Screenshot mode (M5 visual calibration aid; runs windowed, not headless):
+##   & .\Godot_v4.6.2-stable_win64.exe --path . res://scenes/validation/visual_reanim_native_actual_demo.tscn -- --screenshot-dir=<abs dir>
+##   Spawns one plant at a time over a ground line with an origin cross, saves
+##   <id>__<state|action-<name>>.png per state/action, then quits. Uses the
+##   engine renderer (headless produces blank frames).
 
 const NATIVE_ROOT := "res://local_extensions/classic_original_assets/generated/native"
 const IDLE_PHASE_SECONDS := 3.0
@@ -30,6 +37,12 @@ const FLOURISH_INTERVAL_SECONDS := 2.4
 const ANCHOR_MARKER_RADIUS := 4.0
 const ROW_YS: Array[float] = [150.0, 300.0, 450.0, 600.0, 750.0, 900.0, 1050.0, 1200.0]
 const COL_XS: Array[float] = [90.0, 218.0, 346.0, 474.0, 602.0, 730.0]
+
+# Screenshot layout: one plant over a ground line with an origin cross marker.
+const SHOT_GROUND_Y := 340.0
+const SHOT_ACTOR_POS := Vector2(400.0, SHOT_GROUND_Y)
+const SHOT_IDLE_HOLD := 0.5
+const SHOT_ACTION_HOLD := 0.45
 
 ## Row-major roster; shoot -> joins volleys, flourish -> cycled one-shots,
 ## sleeper -> toggles sleeping/idle with Z, anchors -> drawn as markers.
@@ -101,11 +114,24 @@ var _shoot_count := 0
 var _flourish_count := 0
 var _mushrooms_sleeping := false
 var _missing_ids: Array[String] = []
+var _camera: Camera2D = null
+var _screenshot_mode := false
+var _screenshot_dir := ""
 
 
 func _ready() -> void:
 	_build_backdrop()
 	_build_status_label()
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--screenshot-dir="):
+			_screenshot_mode = true
+			_screenshot_dir = arg.get_slice("=", 1)
+	if _screenshot_mode:
+		get_window().size = Vector2i(800, 600)
+		get_window().move_to_foreground()
+		_run_screenshot_mode()
+		return
+	_build_camera()
 	GameState.reset_simulation_time()
 	for index in ROSTER.size():
 		var config := ROSTER[index]
@@ -132,6 +158,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _screenshot_mode:
+		return
 	if _entries.is_empty():
 		return
 	if not _paused:
@@ -176,10 +204,25 @@ func _enter_phase(phase: StringName) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _screenshot_mode:
+		return
+	var wheel := event as InputEventMouseButton
+	if wheel != null and wheel.pressed \
+			and (wheel.button_index == MOUSE_BUTTON_WHEEL_UP or wheel.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+		_pan_view(Vector2(0.0, -160.0 if wheel.button_index == MOUSE_BUTTON_WHEEL_UP else 160.0))
+		return
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo:
 		return
 	match key.keycode:
+		KEY_UP, KEY_PAGEUP:
+			_pan_view(Vector2(0.0, -160.0))
+		KEY_DOWN, KEY_PAGEDOWN:
+			_pan_view(Vector2(0.0, 160.0))
+		KEY_LEFT:
+			_pan_view(Vector2(-160.0, 0.0))
+		KEY_RIGHT:
+			_pan_view(Vector2(160.0, 0.0))
 		KEY_SPACE:
 			_paused = not _paused
 		KEY_1:
@@ -197,6 +240,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _draw() -> void:
+	if _screenshot_mode:
+		draw_line(Vector2(60.0, SHOT_GROUND_Y), Vector2(740.0, SHOT_GROUND_Y), Color(0.35, 0.5, 0.35), 2.0)
+		draw_circle(SHOT_ACTOR_POS, ANCHOR_MARKER_RADIUS, Color(1.0, 0.35, 0.2, 0.9))
+		draw_line(SHOT_ACTOR_POS - Vector2(ANCHOR_MARKER_RADIUS + 4.0, 0.0), SHOT_ACTOR_POS + Vector2(ANCHOR_MARKER_RADIUS + 4.0, 0.0), Color.WHITE, 1.0)
+		draw_line(SHOT_ACTOR_POS - Vector2(0.0, ANCHOR_MARKER_RADIUS + 4.0), SHOT_ACTOR_POS + Vector2(0.0, ANCHOR_MARKER_RADIUS + 4.0), Color.WHITE, 1.0)
+		return
 	for row_y in ROW_YS:
 		draw_line(Vector2(30.0, row_y), Vector2(770.0, row_y), Color(0.35, 0.5, 0.35), 2.0)
 	for entry in _entries:
@@ -275,9 +324,74 @@ func _toggle_mushroom_sleep() -> void:
 func _build_backdrop() -> void:
 	var background := ColorRect.new()
 	background.color = Color(0.12, 0.14, 0.16)
-	background.size = Vector2(800.0, 600.0)
+	background.size = Vector2(800.0, 1300.0)
 	background.z_index = -10
 	add_child(background)
+
+
+func _build_camera() -> void:
+	_camera = Camera2D.new()
+	_camera.position = get_viewport_rect().size * 0.5
+	add_child(_camera)
+	_camera.make_current()
+
+
+func _pan_view(delta: Vector2) -> void:
+	if _camera == null:
+		return
+	var half := get_viewport_rect().size * 0.5
+	_camera.position = Vector2(
+		clampf(_camera.position.x + delta.x, half.x - 40.0, COL_XS[-1] - half.x + 40.0),
+		clampf(_camera.position.y + delta.y, half.y - 40.0, ROW_YS[-1] + 80.0 - half.y))
+	queue_redraw()
+
+
+## Screenshot mode: one plant at a time over the ground line, one PNG per
+## state and per flourish action. Engine renderer required (not headless).
+func _run_screenshot_mode() -> void:
+	DirAccess.make_dir_recursive_absolute(_screenshot_dir)
+	GameState.reset_simulation_time()
+	var shot_count := 0
+	for config in ROSTER:
+		var plant_id := String(config["id"])
+		var actor := _spawn_actor(plant_id, SHOT_ACTOR_POS)
+		if actor == null:
+			print("[ReanimGallery] screenshot skip (no actor): %s" % plant_id)
+			continue
+		shot_count += await _capture_plant_states(
+			actor, plant_id, bool(config.get("sleeper", false)), config.get("flourish", []))
+		actor.queue_free()
+		await get_tree().process_frame
+	print("[ReanimGallery] screenshots=%d dir=%s" % [shot_count, _screenshot_dir])
+	get_tree().quit(0)
+
+
+func _capture_plant_states(actor: Node2D, plant_id: String, sleeper: bool, actions: Array) -> int:
+	var count := 0
+	if actor.has_method("play_state"):
+		actor.call("play_state", &"idle")
+	await _capture_shot("%s__idle" % plant_id, SHOT_IDLE_HOLD)
+	count += 1
+	if sleeper and actor.has_method("play_state"):
+		actor.call("play_state", &"sleeping")
+		await _capture_shot("%s__sleeping" % plant_id, SHOT_IDLE_HOLD)
+		count += 1
+		actor.call("play_state", &"idle")
+	for action_name in actions:
+		if actor.has_method("play_action") and actor.call("play_action", StringName(action_name)):
+			await _capture_shot("%s__action-%s" % [plant_id, action_name], SHOT_ACTION_HOLD)
+			count += 1
+	return count
+
+
+func _capture_shot(file_base: String, hold_seconds: float) -> void:
+	GameState.advance_time(hold_seconds)
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	var image := get_viewport().get_texture().get_image()
+	var path := _screenshot_dir.path_join(file_base + ".png")
+	var err := image.save_png(path)
+	print("[ReanimGallery] shot %s (err=%d)" % [path, err])
 
 
 func _build_name_label(plant_id: String, at: Vector2) -> void:
