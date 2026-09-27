@@ -22,6 +22,7 @@
 - 当前基线：
   - 私有包 manifest：`local_extensions/classic_original_assets/manifests/reanim_visual_manifest.local.json` 当前 18 个 entries。
   - 私有包 runtime profile：`local_extensions/classic_original_assets/data/combat/visual_profiles/plants/` 当前 18 个 `.tres`。
+  - 视觉运行时链路（2026-08-01）：18 株 profile 与 `asset_index.json` 的 active `actor_scene` 已全部由旧链 wrapper actor（`actors/<id>/`）切到新链 `ReanimActor + ReanimActorDef + ReanimData`（`generated/native/<id>/actor.tscn`），详见 `plans/reanim-native-runtime-implementation-plan.md` 的 T6 执行记录；旧 `actors/<id>/` 产物已删除，manifest 仅保留其可选再生成目标。
   - 主仓 formal binding：`archetype_original_peashooter`、`archetype_original_sunflower`、`archetype_original_threepeater`、`archetype_original_chomper`、`archetype_original_squash` 已绑定 `classic_original.entity.plant.*.visual`。
   - 原版背景与 800x600 画布已对齐；草地背景按 `position = Vector2(-220, 0)`，植物展示按原版 `LAWN_XMIN = 40`、`LAWN_YMIN = 80`、格宽 `80`、草地行高 `100` 换算，并叠加 profile `ground_offset`。
 
@@ -80,9 +81,9 @@
 **Validation:**
 
 ```powershell
-./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_visual_manifest.gd --include-classic-original-assets
-./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_asset_pack.gd --include-classic-original-assets
-./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_plant_showcase_visual_binding.gd --include-classic-original-assets
+./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_visual_manifest.gd -- --include-classic-original-assets
+./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_asset_pack.gd -- --include-classic-original-assets
+./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_plant_showcase_visual_binding.gd -- --include-classic-original-assets
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_classic_asset_pack_smoke.tres" -ExtraUserArgs "--include-classic-original-assets"
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_classic_archetype_binding_smoke.tres" -ExtraUserArgs "--include-classic-original-assets"
 ```
@@ -129,7 +130,7 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_
 ```powershell
 ./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/reanim_importer/reanim_import_one.gd -- --source-dir res://local_extensions/classic_original_assets/sources/reanim --image-root res://local_extensions/classic_original_assets/sources/reanim --resources res://local_extensions/classic_original_assets/sources/properties/resources.xml --out-dir res://local_extensions/classic_original_assets/generated/reports/semantic
 ./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/reanim_importer/reanim_generate_composites.gd -- --manifest res://local_extensions/classic_original_assets/manifests/reanim_visual_manifest.local.json
-./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_visual_manifest.gd --include-classic-original-assets
+./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_visual_manifest.gd -- --include-classic-original-assets
 ```
 
 **Rollback risk:** 中。私有包生成物可从 manifest 重建；若某株报告不稳定，先从 manifest 移除该 entry，保留报告作为调查材料。
@@ -157,8 +158,8 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_
 **Validation:**
 
 ```powershell
-./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_plant_showcase_visual_binding.gd --include-classic-original-assets
-./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_migrated_plants_on_battlefield_showcase.gd --include-classic-original-assets
+./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_plant_showcase_visual_binding.gd -- --include-classic-original-assets
+./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_migrated_plants_on_battlefield_showcase.gd -- --include-classic-original-assets
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_classic_archetype_binding_smoke.tres" -ExtraUserArgs "--include-classic-original-assets"
 ```
 
@@ -185,7 +186,7 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_
 **Validation:**
 
 ```powershell
-./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_plant_showcase_visual_binding.gd --include-classic-original-assets
+./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_plant_showcase_visual_binding.gd -- --include-classic-original-assets
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/plant_original_squash_validation.tres" -ExtraUserArgs "--include-classic-original-assets"
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/plant_original_squash_no_immediate_damage_validation.tres" -ExtraUserArgs "--include-classic-original-assets"
 pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/plant_original_squash_locked_impact_position_validation.tres" -ExtraUserArgs "--include-classic-original-assets"
@@ -231,10 +232,10 @@ git diff --check
 
 | 验证目标 | 命令 | 通过标准 |
 |----------|------|----------|
-| 私有包启用与索引解析 | `./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_asset_pack.gd --include-classic-original-assets` | 所有 manifest/profile/index/actor/source 检查通过 |
-| manifest 批量一致性 | `./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_visual_manifest.gd --include-classic-original-assets` | manifest、asset_index、profile、actor、source reanim 数量一致 |
-| 主页面原版植物绑定 | `./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_plant_showcase_visual_binding.gd --include-classic-original-assets` | 已绑定为真实 actor，未绑定仍为占位，特殊 cue 日志符合预期 |
-| 原版背景实景展示 | `./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_migrated_plants_on_battlefield_showcase.gd --include-classic-original-assets` | 背景和展示植物按原版 grid + `ground_offset` 对齐 |
+| 私有包启用与索引解析 | `./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_asset_pack.gd -- --include-classic-original-assets` | 所有 manifest/profile/index/actor/source 检查通过 |
+| manifest 批量一致性 | `./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_private_classic_visual_manifest.gd -- --include-classic-original-assets` | manifest、asset_index、profile、actor、source reanim 数量一致 |
+| 主页面原版植物绑定 | `./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_plant_showcase_visual_binding.gd -- --include-classic-original-assets` | 已绑定为真实 actor，未绑定仍为占位，特殊 cue 日志符合预期 |
+| 原版背景实景展示 | `./Godot_v4.6.1-stable_win64_console.exe --headless --path . --script res://tools/check_original_migrated_plants_on_battlefield_showcase.gd -- --include-classic-original-assets` | 背景和展示植物按原版 grid + `ground_offset` 对齐 |
 | local_private validation | `pwsh tools/run_all_validations.ps1 -Layers "local_private" -MaxParallel 1` | local_private 层全部通过 |
 | 相邻战斗回归 | `pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_classic_archetype_binding_smoke.tres" -ExtraUserArgs "--include-classic-original-assets"` | 已绑定 archetype 均挂载私有 profile actor |
 | diff hygiene | `git diff --check` | 无空白错误 |

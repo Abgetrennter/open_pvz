@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the threepeater composite checks run"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_reanim_composite"]
+script = ExtResource("2_rule")
+rule_id = &"reanim_composite_threepeater_matches_golden_baseline"
+description = "ReanimActorDef-driven threepeater composite must expose the full play_state/play_action/set_visual_speed/get_anchor contract, match the golden wrapper anchors and head bindings, stay under the size budget, and fail closed on invalid defs"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"reanim_composite_threepeater",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_reanim_composite_threepeater"
+display_name = "Visual Reanim Composite ThreePeater"
+description = "Verify the generated ThreePeater ReanimActorDef composite (body + 3 hosted heads) reproduces the legacy wrapper anchors and host bindings, honors the actor contract with negative cases, and keeps native data within 25% of the raw actor size."
+goals = PackedStringArray("Verify play_state/play_action/set_visual_speed/get_anchor work end-to-end on the generated composite actor.", "Verify muzzle anchors and head host-track bases match the T0 golden composite wrapper baseline.", "Verify hosted head parts draw after the body part in a stable order.", "Verify native data volume stays at or below 25% of the raw actor.tscn size.", "Verify invalid defs (unknown host part) fail closed with a reanim_runtime diagnostic.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_reanim_composite")]

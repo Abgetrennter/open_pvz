@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the reanim angle compatibility checks run"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_reanim_angle"]
+script = ExtResource("2_rule")
+rule_id = &"reanim_angles_continuous_in_matrix_domain"
+description = "WallNut track rotations derived from the native transform matrix must stay continuous frame to frame (no >45 degree jumps), covering the known source angle warnings"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"reanim_angle_compatibility",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_reanim_angle_compatibility"
+display_name = "Visual Reanim Angle Compatibility"
+description = "Verify WallNut native matrix sampling produces continuous frame-to-frame rotations despite the known source angle warnings, with hidden frames resetting continuity."
+goals = PackedStringArray("Verify every visible frame-to-frame rotation delta on visual tracks stays within tolerance.", "Verify hidden frames reset continuity tracking instead of producing false jumps.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_reanim_angle")]

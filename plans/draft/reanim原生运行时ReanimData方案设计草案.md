@@ -1,8 +1,8 @@
 # Reanim 原生运行时（ReanimData + ReanimPlayer + ReanimActorDef）设计草案
 
 > 日期：2026-07-29
-> 状态：设计讨论草案
-> 结论等级：方向可行，但不可直接作为当前实现依据；需先完成双样本技术 Spike，再转实施计划
+> 状态：已由正式实施计划与当前 wiki 吸收，归档候选
+> 结论等级：历史设计来源，不再作为当前实现依据；当前实现见 `plans/reanim-native-runtime-implementation-plan.md` 与素材包 wiki
 
 ## 相关资料
 

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the reanim data import smoke checks run"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_reanim_data"]
+script = ExtResource("2_rule")
+rule_id = &"reanim_data_matches_golden_baseline"
+description = "ReanimData resources for peashooter/wallnut/threepeater should validate and match the T0 golden baseline (schema, source hash, fps, clips, feature flags)"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"reanim_data_import",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_reanim_data_import_smoke"
+display_name = "Visual Reanim Data Import Smoke"
+description = "Verify --emit-reanim-data output for the three spike samples stays consistent with the T0 golden baseline reports in the private classic asset pack."
+goals = PackedStringArray("Verify reanim_data.tres loads and passes ReanimData.validate() for all three spike samples.", "Verify schema version, source hash, fps and clip ranges match the T0 golden baseline reports.", "Verify feature flags are present so unsupported capabilities stay observable.")
+validation_time_limit = 3.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_reanim_data")]

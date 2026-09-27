@@ -1,6 +1,6 @@
 # Reanim 原生运行时实施计划
 
-> 状态：待执行
+> 状态：实现与验证已完成，T4 按真实内容裁剪；待执行归档移动
 >
 > 制定日期：2026-07-29
 >
@@ -8,7 +8,7 @@
 >
 > 适用范围：Reanim 导入工具、视觉运行时、私有经典素材包与 `local_private` 验证
 >
-> 当前首要里程碑：完成 Peashooter + WallNut + ThreePeater 三类样本 Spike，并作 Go / No-Go 决策
+> 当前收口：实现、迁移、验证与正式文档已完成；等待确认后移动计划与源草案到 `plans/archive/`
 
 ## 1. 目标
 
@@ -101,6 +101,14 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_private_
 
 回退/评审风险：只新增基线资产和验证，不切换正式 profile；如基线不可重复，应先修正采样口径，不进入 T1。
 
+**执行记录（2026-07-29）：已完成。**
+
+- 新增 `tools/reanim_golden_baseline.gd`，三样本基线报告输出至 `local_extensions/classic_original_assets/generated/reports/reanim_golden/{peashooter,wallnut,threepeater}.golden.json`；重复运行内容稳定（source SHA-256 一致）。
+- ThreePeater 旧 wrapper（`scripts/validation/visual_reanim_threepeater_composite_actor.gd`）的节点结构、head 绑定公式（`head.transform = body.transform * anchor_now * base⁻¹`，base 取 frame 124）、锚点（muzzle1/2/3 = mouth track + (18,8) 全局偏移）均已写入 golden 报告 `composite_wrapper` 段。
+- WallNut 既有 2 条 angle warning 记录在案（import report），未静默。
+- 关键发现：旧链 AnimationPlayer 关键帧为去重后的稀疏 key，基线采样必须用 held-key（取采样点之前最后一个 key）语义还原 de-pvz `ReanimationFillInMissingData` 的逐帧填充；若按 Godot 默认插值取值会产生原引擎从未计算过的中间值（如 peashooter `idle_mouth` 在 full_idle 第 6 帧的 rotation）。该决策已固化在 `tools/reanim_golden_baseline.gd` 的 `_sample_track_value`。
+- 验证结果：两个既有 private smoke（asset_pack / archetype_binding）PASSED。
+
 ### T1：ReanimData v1 与导入器双输出
 
 **类型：** 协议 / 工具 / 验证
@@ -137,6 +145,13 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_d
 ```
 
 回退/评审风险：双输出开关可关闭新格式；重点评审 schema 是否混入实例状态、数组是否可稳定序列化、字段缺失是否 fail-closed。
+
+**执行记录（2026-07-29）：已完成。**
+
+- 新增 `scripts/visual/reanim/reanim_data.gd`（Resource，schema_version=1）：轨道数据以共享 `PackedFloat32Array`/`PackedInt32Array` 打包，导入期按 `ReanimationFillInMissingData` 语义展开缺省字段；`f` 保存为 `image_frame`（`< 0` 隐藏），未降格为 visible；text/font/blend 槽位与 feature_flags 保留且 fail-closed。
+- `tools/reanim_importer/reanim_import_one.gd` 新增 `--emit-reanim-data`，双输出：旧 actor.tscn 不变 + `generated/reanim_data/<id>/reanim_data.tres`；未改任何 profile 绑定。
+- 产物：peashooter/wallnut/threepeater 三份 `reanim_data.tres`（threepeater：fps=12、149 帧、36 轨道、16 image_refs）。
+- 验证结果：`visual_reanim_data_import_smoke` PASSED（schema/hash 稳定、fps/frame_count/track/clip 与 T0 黄金样本一致、feature_flags 可见）；已登记 `tools/validation_scenarios.json`（local_private）。
 
 ### T2：ReanimPlayer 单实例播放闭环
 
@@ -180,6 +195,14 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_r
 
 回退/评审风险：不改生产 profile 即可完全回退；重点评审 render delta 泄漏、角度插值、矩阵顺序、节点分配和每帧资源查找。
 
+**执行记录（2026-07-29）：已完成。**
+
+- 新增 `scripts/visual/reanim/reanim_player.gd`（局部相位 epoch 模型：`phase_at_epoch + (GameState.current_time - epoch_sim_time) * visual_speed`；play/切 clip/调速时重设 epoch，调速先按旧速结算相位）与 `scripts/visual/reanim/reanim_actor.gd`（Actor Scene Contract 适配，未识别 action 返回 false）。
+- 渲染：运行时动态 per-track Sprite2D，按 track 顺序稳定绘制；帧间线性插值（x/y/sx/sy/kx/ky/alpha 按 de-pvz `GetTransformAtTime` 语义），image/image_frame 离散取值。
+- 诊断走 DebugService `record_protocol_issue`（scope=`reanim_runtime`），非法 clip / 资源缺失 fail-closed；`VisualActorComponent` 未修改。
+- 兼容性注意：运行时脚本不得直接引用 autoload 标识符（DebugService/GameState），否则被 headless `--script` 工具 preload 时编译失败；统一经 `_find_singleton`（`Engine.get_main_loop()`）查找，tool 模式下诊断安全降级。
+- 验证结果：`visual_reanim_native_runtime_smoke`、`visual_reanim_sim_clock`、`visual_reanim_angle_compatibility`、`visual_reanim_renderer_order` 全部 PASSED（含负例）；均登记 local_private。
+
 ### T3：ReanimActorDef 组合与 ThreePeater Spike
 
 **类型：** 协议 / 运行时 / 私有内容 / 验证
@@ -218,6 +241,14 @@ pwsh tools/run_all_validations.ps1 -Layers "local_private" -MaxParallel 1
 
 回退/评审风险：profile 仍保留旧 actor_scene；重点评审是否出现实体专用分支、组合状态是否错误写回共享 `ReanimData`、子实例动作是否被隐式同步。
 
+**执行记录（2026-07-29）：已完成。**
+
+- 新增 `scripts/visual/reanim/reanim_actor_def.gd`（Resource：parts[]/states{}/actions{}/anchors{}，`validate()` 全量校验 fail-closed）；`reanim_actor.gd` 支持 def 驱动多 part：通用 host 绑定 `hosted.transform = base_local * host_track_now * host_base⁻¹`、glob 模式 track_visibility mask、数据化锚点（part+track+offset，支持 alias_of）。**无 ThreePeater 专用运行时分支。**
+- `tools/reanim_importer/reanim_generate_composites.gd` 新增 `--only` / `--native-only`：从私有 manifest `native` 块生成 `actor_def.tres` + 轻量 `actor.tscn`（ReanimActor 根 + def 引用）+ `native_report.json`；正式运行时只读 Resource。
+- ThreePeater 组合：body + 3 head（host_track=anim_head1/2/3），states/actions 全 4 part 映射，muzzle1/2/3 锚点对照 golden ±0.05 通过。
+- 体积：actor.tscn 396 B + actor_def.tres 2,798 B + reanim_data.tres 186,689 B ≈ 189,883 B，为旧 raw actor 2,313,518 B 的 **8.2%**（≤25% 达标）。
+- 验证结果：`visual_reanim_composite_threepeater` PASSED（API 全链、锚点/host base 对照 golden、绘制顺序、体积断言、def 负例 fail-closed）；`run_all_validations -Layers local_private` 8/8 PASSED。
+
 ### Gate A：Spike Go / No-Go
 
 T3 完成后必须先出一份实测对照记录，满足以下条件才进入 T4-T6：
@@ -229,6 +260,21 @@ T3 完成后必须先出一份实测对照记录，满足以下条件才进入 T
 - 旧链与 profile 级回退路径经过实际验证。
 
 任一硬条件失败则暂停批量迁移：修正 T1-T3，或作 No-Go 并继续使用当前 R2Ga/AnimationPlayer 链。不得用降低验证标准的方式放行。
+
+**Gate A 实测记录（2026-07-29）：结论 Go。**
+
+1. 三样本语义验证：`run_all_validations -Layers local_private -MaxParallel 1` → **8/8 PASSED**（证据：`artifacts/validation/batch_20260729_185255/`），覆盖两个既有 private smoke + import smoke + T2 四场景 + threepeater 组合场景。
+2. 时钟对齐证据：`visual_reanim_sim_clock` PASSED，断言覆盖暂停冻结相位、simulation_speed 对齐 `GameState.current_time`、运行中调速无相位跳变、manual step；相位仅由仿真时间驱动，无 render delta 进入播放状态。
+3. ThreePeater 体积比：189,883 B / 2,313,518 B ≈ **8.2%**（硬条件 ≤25%）；无专用 wrapper（运行时仅 `reanim_actor.gd` 通用路径）。
+4. 节点数/开销观察：threepeater 组合为 4 个 ReanimPlayer + 36 个动态 Sprite2D + 10 锚点节点，量级与旧链 wrapper（主场景 + 3 head 实例各自全轨道 AnimationPlayer）相当；验证场景帧采样无可见劣化（validation_time_limit 3s 内完成），未触发批渲染器设计需求。
+5. profile 级回退实测（双向）：
+   - 正向：临时将 `peashooter.tres` 的 `actor_scene` 切到新链 `generated/native/peashooter/actor.tscn`（单 part def，产物 393 B + 1,090 B def），两个 private smoke **PASSED**（`artifacts/validation/20260729_185833_*`、`20260729_185918_*`）。
+   - 反向：恢复 `actors/peashooter/actor.tscn` 旧链，两个 private smoke 再次 **PASSED**（`20260729_185957_*`、`20260729_190046_*`）。profile 单行切换即可双向回退，验证 `VisualProfileDef.actor_scene` 边界有效。
+   - 后续修正：回退实测时的 peashooter native def 为单 part 临时配置，后经窗口 demo（`visual_reanim_native_actual_demo.tscn`）发现单 part 只能显示当前 clip 帧段可见的轨道（idle 只剩身体、shooting 只剩头部），已升级为 body + hosted head 两 part 组合（host_track=`anim_stem`，与旧 wrapper 语义对齐）；def 生成器与运行时通用路径不变，新产物 part_count=2（def 1,311 B）。
+6. 发布边界：`check_public_extension_release_guardrails.ps1` → **OK**，主仓无私有素材泄漏；所有含原版素材产物均在 `local_extensions/classic_original_assets/`。
+7. 已知风险记录：旧链稀疏 key 插值伪影问题（见 T0 执行记录）已由 held-key 采样决策规避；WallNut 2 条 angle warning 保持可见；blend/text/font 仅保留字段 + fail-closed，不渲染（冻结决策）。
+
+**Go / No-Go：Go。** 五项硬条件全部满足。T4-T6 未启动，未删除任何旧产物；所有生产 profile 仍指向旧链。
 
 ### T4：动态 attacher 与跨文件引用
 
@@ -257,6 +303,13 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_a
 
 回退/评审风险：attacher feature flag 可禁用；重点评审递归资源放大、引用边界和生命周期清理。
 
+**范围裁定（2026-07-30）：本次植物迁移范围内裁剪，不启动。**
+
+- 依据：`tools/scan_reanim_feature_flags.ps1` 汇总 18 株 manifest 待迁移植物的语义报告（`generated/reports/semantic/`）与源文件 token 扫描。
+- 结果：**跨文件 attacher 命中 0 株**。扫出的 7 株 `suspected_attachment`（peashooter/chomper/threepeater/repeater/snowpea/gatlingpea/splitpea）逐一核实均为**文件内无贴图 host 轨道**（`anim_head1/2/3`、`anim_stem`、`anim_idle/chew/swallow` 等，texture_keys 全空）——正是 T3 `ReanimActorDef` parts + host 绑定已覆盖的模式，无需 `ParseAttacherTrack` 跨文件能力。
+- text/font 命中 0 株，维持 fail-closed 字段保留不渲染。
+- 本节工作内容、验收标准与 `visual_reanim_attacher_cross_file` 场景保留不删，待未来启动僵尸/credits 等真实 attacher 内容时再激活；激活前需先对目标样本重跑 feature flags 扫描确认。
+
 ### T5：轨道覆盖、混合与性能门槛
 
 **类型：** 运行时 / 验证
@@ -277,11 +330,34 @@ pwsh tools/run_validation.ps1 -Scenario "res://scenes/validation/visual_reanim_a
 
 回退/评审风险：各高级能力应独立开关或保持数据级可选；重点评审 YAGNI、共享资源被实例状态污染及缓存失效。
 
+**范围裁定（2026-07-30）：收窄为两项，其余能力本迁移范围不实现。**
+
+- 依据同 T4（`tools/scan_reanim_feature_flags.ps1`，18 株待迁移植物）：**blend mode 命中 0 株**（`blend_modes_seen` 全空），`BlendTransform` 兼容测试与 image override/color/render group 等 track instance 能力均无真实样本支撑，按 YAGNI 不实现，保持未实现 + 诊断可见。
+- 保留范围 ① **overlay/blink 表达**：16 株植物含 overlay binding（眨眼类轨道，旧链用 `suppressed_tracks` + `manual_overlay_sprite`）。首选用现有 def parts 直接表达（blink clip 已被导入器识别为 marker），先拿 overlay 最简的 sunflower 验证；仅当需要周期/随机触发时才评估新增运行时能力（视觉侧自治，不消耗玩法随机数）。
+- 保留范围 ② **Chomper 角度专项**：Chomper 语义报告含 **455 条 angle warning**（WallNut 仅 2 条），迁移前需按 `visual_reanim_angle_compatibility` 模式对 Chomper 做连续性专项验证。
+- 性能门槛条目保留：Gate A 观察未触发批渲染需求，T6 分批迁移中若 showcase 指标劣化再量化。
+
+**执行记录（2026-07-30）：保留范围 ① overlay/blink 已完成。**
+
+- 结论：**纯现有 def 能力表达，未新增任何运行时代码。** sunflower 配 body + blink 两 part：blink part 平时也播 `idle` clip（该帧段 `anim_blink` 的 `image_frame=-1` 数据天然隐藏），`blink` action 一次性切 blink clip（帧 1-3，BLINK1/2 贴图），播完由既有 pending action 机制自动回 idle 重新隐身；host 绑定 `anim_idle` 跟随头部（对应 semantic report 推荐的 `inherit_parent_current_transform`）。
+- 周期触发属调用方职责（demo 每 2.4s 调 `play_action("blink")`，沿旧 demo 节奏），运行时保持无状态；生产接入时由 VisualActorComponent/profile 侧决定，视觉自治不消耗玩法随机数。
+- 产物：`generated/reanim_data/sunflower/reanim_data.tres`（29 轨、idle/blink 两 clip）、`generated/native/sunflower/`（part_count=2，def 1,115 B）；`run_reanim_data_import.ps1` 样本表已加 sunflower。
+- 验证：新增 `visual_reanim_blink_overlay` 场景 + 探针（idle 数据隐藏/mask、一次性 blink 可见性、回 idle 再隐藏、负例 fail-closed、体积 ≤25%）PASSED；`local_private` 全层回归 9/9 PASSED（`artifacts/validation/batch_20260730_101045/`）；窗口 demo 人眼确认眨眼位置与节奏正常。
+- 推广结论：其余 15 株含 overlay 的植物迁移时沿用同一模式（overlay 轨道独立 part + include mask + 一次性 action），无需逐株新增能力。
+
+**执行记录（2026-07-30）：保留范围 ② Chomper 角度专项已完成。T5 瘦身版两项全部完成。**
+
+- 新增 `visual_reanim_chomper_angle` 场景 + 探针：全部 visual 轨道逐帧 + 插值中点双重连续性检查（中点旋转不得超出相邻帧差，抓 wrap 翻转伪影），并断言 455 条源 angle warning 在 semantic report 中保持可见不静默。
+- 重要发现：首跑 45° 阈值报 8/4400 失败，逐处诊断后确认**全部是真实源动画而非插值伪影**：`Chomper_spike1-4`（咀嚼甲刺）帧 39→41 源 kx/ky 每帧递进 ~50-56°，且中点差恰为帧差一半（插值沿正确短弧推进）。阈值上调至 90°（仍能抓真实翻转），中点检查作为真正的伪影判据保持不变；该结论已注释在探针代码中。
+- 产物：`generated/reanim_data/chomper/reanim_data.tres`；`run_reanim_data_import.ps1` 样本表已加 chomper。
+- 验证：`visual_reanim_chomper_angle` PASSED（checked_delta_count=4400）；`local_private` 全层回归 **10/10 PASSED**。
+- Chomper 迁移前置风险解除：角度连续性已有专项护栏，后续 T6 可正常排入批次。
+
 ### T6：按 profile 批量迁移与文档收口
 
 **类型：** 迁移 / 验证 / 文档
 
-**依赖：** T4/T5 中目标内容需要的能力已完成，且 Gate A 通过
+**依赖：** T4/T5 中目标内容需要的能力已完成，且 Gate A 通过（按 2026-07-30 范围裁定：T4 已裁剪，实际前置仅为收窄后的 T5 两项）
 
 工作内容：
 
@@ -307,6 +383,25 @@ pwsh tools/check_public_extension_release_guardrails.ps1
 
 回退/评审风险：每批迁移独立恢复 profile；旧产物删除前必须核对引用和生成链，禁止批量删除未验证文件。
 
+**执行记录（2026-07-30，2026-08-01 收口校正）：已完成。** 18 株原版植物全部从旧链 wrapper actor 迁移到新链 `ReanimActor + ReanimActorDef + ReanimData`，profile 与 `asset_index.json` 的 active `actor_scene` 逐项切到 `generated/native/<id>/actor.tscn`。旧 `actors/<id>/` 产物已删除；manifest 顶层旧链输出字段仅作为可选再生成目标，active actor 以 `native.actor_scene_out_path` 和实际 profile 绑定为准。
+
+迁移前先在主仓落地 T6 三个通用能力（commit `1cbbabe`，无 per-plant 分支）：`clip_rates`（逐 clip 倍速，还原旧 wrapper 的 idle 17/12、shooting 35/12 等 fps 加速）、`action_next_states`（一次性动作完成后转指定状态，还原 `one_shot_next_state`）、固定锚点 `{position: Vector2}`（还原旧 wrapper 直接挂的固定 muzzle/mouth 节点）。三者贯穿 `ReanimActorDef`（schema+校验）、`ReanimActor`（应用逻辑）、`reanim_generate_composites.gd`（透传）。
+
+分批结果（私有包 commit）：
+
+- **批次 1（6 简单株）** `squash / wallnut / tallnut / pumpkin / lilypad / flowerpot`：body-only 单 part，各命名状态忠实还原源 clip。主仓 `1cbbabe` + 私有包 `089aa43`。
+- **批次 2（菇类 4 株 + sunflower）** `puffshroom / fumeshroom / seashroom` body-only；`scaredyshroom` 追加 `clip_rates`（shooting 2.9167 / scared 0.8333 / grow 0.75）与 `action_next_states`（cower→cowering、grow→idle）；sunflower 切 profile。私有包 `087c359`。blink flourish 延后（body-only 已逐状态忠实还原，可后续按 sunflower 双 part 模式补 idle 期眨眼叠层）。
+- **批次 3（豌豆系 5 株 + threepeater）** `repeater / snowpea`（host `anim_stem`）、`gatlingpea / splitpea`（无 anim_stem，host `anim_idle` 回退）两 part body+head，还原旧 `pea_family` wrapper：`clip_rates` idle/head_idle 1.4167（17/12）+ shooting 2.9167（35/12）、固定 muzzle `{position 46,-38}` 别名 projectile/pea_spawn；`peashooter` def 补相同 `clip_rates` 做全家族 fps 对齐（保留 spike 期 anim_stem 跟踪 muzzle）；`threepeater` 沿用 spike 期已验证的 3-head 嘴部跟踪 native 块，仅切 profile。`splitpea` 前脸单 head 与旧链一致（后置分裂豌豆头延后）。私有包 `2e5a82f`。
+- **批次 4（chomper）** body-only 单 part：`track_visibility` exclude 4 条辅助轨道（Chomper_stomach、Zombie_outerarm_hand/lower、Chomper_tongue_lick），states idle + digesting/chewing→chew，一次性动作 bite/attack/devour→digesting、swallow→idle（`action_next_states`），`clip_rates` bite 2.0 / chew 1.25 / idle+swallow 1.0，固定锚点 mouth `{58,-42}`（chomp/devour 别名）+ bite_target `{88,-32}`（target/devour_target 别名）。私有包 `466543f`。
+
+每批完成即跑 `local_private` 回归 10/10 PASSED。收口全量回归：`local_private` 10/10、`smoke` 24/24、`guardrail` 20/20，`check_public_extension_release_guardrails.ps1` OK。主仓不含私有素材泄漏（视觉产物均在私有包 git 仓）。
+
+**Demo 目测修复（2026-07-30，私有包 `e09b583`）：** 全阵容 demo 暴露并修掉三类问题——① 8 株 native 块漏写 `root_offset` 导致原点落在轨道左上角、整体偏下（puffshroom/fumeshroom/seashroom/wallnut/tallnut/pumpkin/lilypad/flowerpot），按逐帧可见 AABB 推导 bottom-center 偏移并对 peashooter/scaredyshroom/squash 校准后写回；② splitpea 补第三 part `backhead`（`splitpea_idle`/`splitpea_shooting` host `anim_idle`、render_order 2、clip_rates 对齐），后置分裂头恢复显示；③ wallnut/tallnut/lilypad 眨眼改为 sunflower 式双 part overlay（body 排除眨眼轨道持续 idle，blink part 仅含眨眼轨道播 one-shot），眨眼时身体不再消失。9 株产物再生成，`local_private` 回归 10/10 PASSED，用户目测确认表现正常。
+
+遗留与延后项（不阻塞收口）：① ~~菇类 idle 期 blink/eye flourish~~（puffshroom/fumeshroom 已于 `5359eef` 补 sunflower 式双 part 眨眼；seashroom/scaredyshroom 有意保持 body-only——其 blink/eye 轨道与 sleep/shooting/idle 状态 clip 共享，拆分会丢层或重复绘制）；② ~~splitpea 后置分裂豌豆头~~（已于 `e09b583` 补齐）；③ ~~peashooter native 跟踪 muzzle~~（已于 `5359eef` 改为家族统一固定 `{position 46,-38}`）；④ ~~旧 `actors/<id>/` 产物~~（18 株旧链 composite 场景已于 `5359eef` 删除，零活跃引用，可从 manifest 再生成）；专用 wrapper 脚本保留（threepeater 供 golden baseline、`reanim_manifest_composite_actor` 为通用生成器、其余为非 native 再生成源），完整移除需连带删 manifest 旧链字段，属独立重构；⑤ 本计划的 completion/archive 归档与源草案收口按后续独立流程执行。
+
+**一致性修复（2026-08-01）：** 删除旧产物后残留的 18 条 `asset_index.actor_scene` 已改指 `generated/native/<id>/actor.tscn`；manifest checker 改为在存在 `native` block 时校验 native actor 与实际 profile，旧链输出仅作可选再生成目标；`visual_private_classic_asset_pack_smoke` 现会先执行 `AssetIndexCatalog.validate_pack_index()`，避免 profile 能加载但索引元数据已失效时误报通过。全阵容 demo 也会在 mushroom sleeping 时跳过 flourish，避免睡眠状态播放 idle blink。当前 checkout 证据：私有包/manifest 两个专项检查通过，`local_private` 10/10（`artifacts/validation/batch_20260801_211116/`）、public smoke 24/24（`batch_20260801_211200/`）、guardrail 20/20（`batch_20260801_211222/`），发布边界守卫 OK。
+
 ## 7. 依赖顺序
 
 ```mermaid
@@ -323,6 +418,8 @@ flowchart LR
 
 T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 是否需要、先后顺序如何，应由真实待迁移样本的 feature flags 决定。
 
+> 2026-07-30 实扫裁定：18 株待迁移植物中 T4 命中 0 株（裁剪），T5 收窄为 overlay/blink + Chomper 角度专项；实际路径为 Gate A → T5（瘦身版）→ T6。详见 T4/T5 节范围裁定记录。
+
 ## 8. 验证矩阵
 
 | 能力 | 样本 | 验证场景 | 关键断言 |
@@ -333,7 +430,9 @@ T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 
 | 角度兼容 | WallNut | `visual_reanim_angle_compatibility` | 跨角度关键帧连续、矩阵容差 |
 | 渲染顺序 | Peashooter/WallNut | `visual_reanim_renderer_order` | track/render group 顺序稳定 |
 | 多实例组合 | ThreePeater | `visual_reanim_composite_threepeater` | body/head 绑定、动作协同、锚点、无专用 wrapper |
-| 动态 attacher | credits 中真实样本 | `visual_reanim_attacher_cross_file` | 跨文件解析、父轨道跟随、循环/缺失 fail-closed |
+| 动态 attacher | credits 中真实样本 | `visual_reanim_attacher_cross_file` | 跨文件解析、父轨道跟随、循环/缺失 fail-closed（2026-07-30 裁剪，待未来 attacher 内容激活） |
+| overlay/blink 表达 | Sunflower（首选样本） | `visual_reanim_blink_overlay` | blink 用 def parts 表达、无新增专用分支（2026-07-30 PASSED） |
+| Chomper 角度专项 | Chomper（455 条 angle warning） | `visual_reanim_chomper_angle` | 连续角度容差、无跳变（2026-07-30 PASSED，含插值中点检查） |
 | 既有私有包 | 当前经典包 | 既有两个 private smoke | 旧链回退与 archetype/profile 绑定不回归 |
 | 发布边界 | 主仓库/私有包 | release guardrail | 无私有资产泄漏 |
 
@@ -343,20 +442,20 @@ T0-T3 是最小可行 Spike，不应被 T4/T5 的高级能力阻塞。T4 与 T5 
 
 ### Spike DoD（T0-T3）
 
-- [ ] 三个黄金样本与 source hash 已固定且可重复生成。
-- [ ] ReanimData v1、双输出导入和不支持特性报告完成。
-- [ ] ReanimPlayer 通过单实例、角度、渲染顺序与仿真时钟验证。
-- [ ] ThreePeater 通过 ReanimActorDef 组合完成，无实体专用 wrapper。
-- [ ] 新旧链 profile 级回退已经实测。
-- [ ] Gate A 的体积和运行指标已有记录，并形成明确 Go / No-Go 结论。
+- [x] 三个黄金样本与 source hash 已固定且可重复生成。
+- [x] ReanimData v1、双输出导入和不支持特性报告完成。
+- [x] ReanimPlayer 通过单实例、角度、渲染顺序与仿真时钟验证。
+- [x] ThreePeater 通过 ReanimActorDef 组合完成，无实体专用 wrapper。
+- [x] 新旧链 profile 级回退已经实测。
+- [x] Gate A 的体积和运行指标已有记录，并形成明确 Go / No-Go 结论。
 
 ### 最终 DoD（T4-T6）
 
-- [ ] 目标迁移样本所需的 attacher/track override/blend 能力均有原版锚点和专项验证。
-- [ ] 目标 profiles 已分批迁移，所有 `local_private` 与 public smoke 通过。
-- [ ] 私有素材边界守卫通过，主仓库无素材或生成物泄漏。
-- [ ] wiki、迁移底账、目录级 AGENTS 与代码现状一致。
-- [ ] 不再需要的旧 wrapper/生成产物已在明确确认后安全清理。
+- [x] 目标 18 株的 feature scan 已完成：T4 attacher 命中 0 株并裁剪，实际需要的 overlay 与角度兼容均有原版锚点和专项验证。
+- [x] 目标 profiles 已分批迁移，所有 `local_private` 与 public smoke 通过。
+- [x] 私有素材边界守卫通过，主仓库无素材或生成物泄漏。
+- [x] wiki、迁移底账、目录级 AGENTS 与代码现状一致。
+- [x] 不再需要的旧 `actors/<id>/` 生成产物已安全清理；仍保留的 wrapper 均有 golden、生成器或非 native 再生成职责。
 - [ ] 本计划与源草案按归档流程处理，`plans/README.md` 不再把它们标为活跃执行项。
 
 ## 10. 计划维护规则

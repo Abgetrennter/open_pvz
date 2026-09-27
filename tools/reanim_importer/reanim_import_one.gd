@@ -1,6 +1,7 @@
 extends SceneTree
 
 const VisualProfileDefRef = preload("res://scripts/core/defs/visual_profile_def.gd")
+const ReanimDataRef = preload("res://scripts/visual/reanim/reanim_data.gd")
 
 const FIELD_NAMES := {
 	"f": true,
@@ -13,6 +14,8 @@ const FIELD_NAMES := {
 	"ky": true,
 	"a": true,
 	"bm": true,
+	"font": true,
+	"text": true,
 }
 
 const DEFAULT_STATE := {
@@ -33,6 +36,7 @@ var _image_fallback_map: Dictionary = {}
 var _loaded_textures: Dictionary = {}
 var _unresolved_textures: Dictionary = {}
 var _blend_modes: Dictionary = {}
+var _unknown_fields: Dictionary = {}
 var _warnings: Array[String] = []
 var _verification: Dictionary = {}
 
@@ -72,6 +76,13 @@ func _run() -> int:
 		print("Wrote reanim semantic report: %s" % report_path)
 		return 0
 
+	var reanim_data_exit := 0
+	if _args.has("emit-reanim-data"):
+		reanim_data_exit = _emit_reanim_data(reanim)
+
+	if _is_truthy(String(_args.get("reanim-data-only", "false"))):
+		return reanim_data_exit
+
 	var actor := _build_actor_scene(reanim)
 	var actor_path := out_dir.path_join("actor.tscn")
 	var actor_save_result := ResourceSaver.save(actor, actor_path)
@@ -88,7 +99,7 @@ func _run() -> int:
 
 	_save_report(out_dir.path_join("import_report.json"), actor_path, profile_path, reanim)
 	print("Imported reanim actor: %s" % actor_path)
-	return 0
+	return reanim_data_exit
 
 
 func _run_report_batch(out_dir: String) -> int:
@@ -166,10 +177,14 @@ func _validate_args(args: Dictionary) -> bool:
 		push_error("Missing required argument: --source or --source-dir")
 		return false
 
-	if not _is_truthy(String(args.get("report-only", "false"))) and not args.has("source-dir"):
+	if not _is_truthy(String(args.get("report-only", "false"))) and not args.has("source-dir") and not _is_truthy(String(args.get("reanim-data-only", "false"))):
 		if not args.has("profile-id") or String(args["profile-id"]).strip_edges() == "":
 			push_error("Missing required argument: --profile-id")
 			return false
+
+	if _is_truthy(String(args.get("reanim-data-only", "false"))) and not args.has("emit-reanim-data"):
+		push_error("--reanim-data-only requires --emit-reanim-data <res://dir>")
+		return false
 
 	if args.has("source") and not FileAccess.file_exists(String(args["source"])):
 		push_error("File not found for --source: %s" % String(args["source"]))
@@ -196,6 +211,7 @@ func _print_usage() -> void:
 	print("  godot --headless --script res://tools/reanim_importer/reanim_import_one.gd -- --source <file.reanim> --image-root <res://dir> --resources <resources.xml> --out-dir <res://dir> --profile-id <id>")
 	print("  godot --headless --script res://tools/reanim_importer/reanim_import_one.gd -- --source <file.reanim> --image-root <res://dir> --resources <resources.xml> --out-dir <res://dir> --report-only true")
 	print("  godot --headless --script res://tools/reanim_importer/reanim_import_one.gd -- --source-dir <res://dir> --image-root <res://dir> --resources <resources.xml> --out-dir <res://dir>")
+	print("  godot --headless --script res://tools/reanim_importer/reanim_import_one.gd -- --source <file.reanim> --image-root <res://dir> --resources <resources.xml> --out-dir <res://dir> --emit-reanim-data <res://dir> --reanim-id <id> [--reanim-data-only true]")
 
 
 func _normalize_res_dir(path: String) -> String:
@@ -214,6 +230,7 @@ func _reset_file_state() -> void:
 	_loaded_textures = {}
 	_unresolved_textures = {}
 	_blend_modes = {}
+	_unknown_fields = {}
 	_warnings = []
 	_verification = {}
 
@@ -300,6 +317,8 @@ func _parse_reanim(source_path: String) -> Dictionary:
 			elif node_name == "fps" or node_name == "name" or FIELD_NAMES.has(node_name):
 				current_field = node_name
 				current_text = ""
+			elif node_name != "root":
+				_unknown_fields[node_name] = int(_unknown_fields.get(node_name, 0)) + 1
 		elif node_type == XMLParser.NODE_TEXT or node_type == XMLParser.NODE_CDATA:
 			if current_field != "":
 				current_text += parser.get_node_data()
@@ -665,6 +684,200 @@ func _save_visual_profile(profile_path: String, actor_path: String, reanim: Dict
 	profile.animation_map = {}
 	profile.z_policy = {"layer": &"plant"}
 	return ResourceSaver.save(profile, profile_path)
+
+
+func _emit_reanim_data(reanim: Dictionary) -> int:
+	var out_dir := _normalize_res_dir(String(_args["emit-reanim-data"]))
+	if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out_dir)) != OK:
+		push_error("Failed to create reanim data output directory: %s" % out_dir)
+		return 7
+
+	var source_path := String(reanim["source"])
+	var reanim_id := String(_args.get("reanim-id", source_path.get_file().get_basename().to_lower()))
+	var frame_count := int(reanim["frame_count"])
+
+	var data = ReanimDataRef.new()
+	data.schema_version = ReanimDataRef.SCHEMA_VERSION
+	data.source_id = StringName(reanim_id)
+	data.source_path = source_path
+	data.source_hash = FileAccess.get_sha256(source_path)
+	data.fps = int(reanim["fps"])
+	data.frame_count = frame_count
+
+	var all_tracks: Array[Dictionary] = []
+	for track in reanim["tracks"]:
+		all_tracks.append({"track": track, "kind": ReanimDataRef.TRACK_KIND_VISUAL})
+	for track in reanim["markers"]:
+		all_tracks.append({"track": track, "kind": ReanimDataRef.TRACK_KIND_MARKER})
+
+	var track_names := PackedStringArray()
+	var track_kinds := PackedInt32Array()
+	var image_refs := PackedStringArray()
+	var image_paths := PackedStringArray()
+	var image_index_by_key: Dictionary = {}
+	var unresolved_textures: Array[String] = []
+	var font_refs := PackedStringArray()
+	var text_table := PackedStringArray()
+	var has_text := false
+	var has_font := false
+	var has_blend_mode := false
+	var has_attacher := false
+
+	var frame_floats := PackedFloat32Array()
+	frame_floats.resize(all_tracks.size() * frame_count * ReanimDataRef.FLOAT_STRIDE)
+	var frame_ints := PackedInt32Array()
+	frame_ints.resize(all_tracks.size() * frame_count * ReanimDataRef.INT_STRIDE)
+
+	for track_index in all_tracks.size():
+		var entry := all_tracks[track_index]
+		var track: Dictionary = entry["track"]
+		var track_name := String(track.get("name", ""))
+		track_names.append(track_name)
+		track_kinds.append(int(entry["kind"]))
+		if track_name.begins_with("attacher__"):
+			has_attacher = true
+
+		# Fill-in expansion following de-pvz ReanimationFillInMissingData:
+		# carry every field forward, defaults x=0 y=0 kx=0 ky=0 sx=1 sy=1 a=1 f=0 image=none.
+		var frames: Array = track.get("frames", [])
+		var pos_x := 0.0
+		var pos_y := 0.0
+		var skew_x_deg := 0.0
+		var skew_y_deg := 0.0
+		var scale_x := 1.0
+		var scale_y := 1.0
+		var alpha := 1.0
+		var image_frame := 0
+		var image_index := -1
+		for frame in frame_count:
+			if frame < frames.size():
+				var frame_dict: Dictionary = frames[frame]
+				if frame_dict.has("x"):
+					pos_x = float(frame_dict["x"])
+				if frame_dict.has("y"):
+					pos_y = float(frame_dict["y"])
+				if frame_dict.has("kx"):
+					skew_x_deg = float(frame_dict["kx"])
+				if frame_dict.has("ky"):
+					skew_y_deg = float(frame_dict["ky"])
+				if frame_dict.has("sx"):
+					scale_x = float(frame_dict["sx"])
+				if frame_dict.has("sy"):
+					scale_y = float(frame_dict["sy"])
+				if frame_dict.has("a"):
+					alpha = float(frame_dict["a"])
+				if frame_dict.has("f"):
+					image_frame = int(String(frame_dict["f"]))
+				if frame_dict.has("i"):
+					var texture_key := String(frame_dict["i"])
+					if not image_index_by_key.has(texture_key):
+						var resolved_path := _resolve_texture_path(texture_key)
+						if resolved_path == "" and not unresolved_textures.has(texture_key):
+							unresolved_textures.append(texture_key)
+						image_index_by_key[texture_key] = image_refs.size()
+						image_refs.append(texture_key)
+						image_paths.append(resolved_path)
+					image_index = int(image_index_by_key[texture_key])
+				if frame_dict.has("bm"):
+					has_blend_mode = true
+					_blend_modes[String(frame_dict["bm"])] = true
+				if frame_dict.has("font"):
+					has_font = true
+					var font_name := String(frame_dict["font"])
+					if font_name != "" and not font_refs.has(font_name):
+						font_refs.append(font_name)
+				if frame_dict.has("text"):
+					has_text = true
+					var text_value := String(frame_dict["text"])
+					if not text_table.has(text_value):
+						text_table.append(text_value)
+			var float_base := (track_index * frame_count + frame) * ReanimDataRef.FLOAT_STRIDE
+			frame_floats[float_base + ReanimDataRef.FLOAT_X] = pos_x
+			frame_floats[float_base + ReanimDataRef.FLOAT_Y] = pos_y
+			frame_floats[float_base + ReanimDataRef.FLOAT_KX_DEG] = skew_x_deg
+			frame_floats[float_base + ReanimDataRef.FLOAT_KY_DEG] = skew_y_deg
+			frame_floats[float_base + ReanimDataRef.FLOAT_SX] = scale_x
+			frame_floats[float_base + ReanimDataRef.FLOAT_SY] = scale_y
+			frame_floats[float_base + ReanimDataRef.FLOAT_ALPHA] = alpha
+			var int_base := (track_index * frame_count + frame) * ReanimDataRef.INT_STRIDE
+			frame_ints[int_base + ReanimDataRef.INT_IMAGE_INDEX] = image_index
+			frame_ints[int_base + ReanimDataRef.INT_IMAGE_FRAME] = image_frame
+
+	data.track_names = track_names
+	data.track_kinds = track_kinds
+	data.frame_floats = frame_floats
+	data.frame_ints = frame_ints
+	data.image_refs = image_refs
+	data.image_paths = image_paths
+	data.font_refs = font_refs
+	data.text_table = text_table
+
+	var clips: Array[Dictionary] = []
+	for animation_def in reanim["animations"]:
+		var clip_name := String(animation_def["name"])
+		var start_frame := int(animation_def["start_frame"])
+		var end_frame := int(animation_def["end_frame"])
+		var source_kind := String(animation_def.get("source_kind", "fallback" if clip_name == "all" else "marker"))
+		clips.append({
+			"name": clip_name,
+			"start_frame": start_frame,
+			"frame_count": max(1, end_frame - start_frame + 1),
+			"source_kind": source_kind,
+			"confirmed": source_kind == "marker",
+		})
+	data.clips = clips
+
+	data.feature_flags = {
+		"has_text": has_text,
+		"has_font": has_font,
+		"has_attacher": has_attacher,
+		"has_blend_mode": has_blend_mode,
+		"has_unknown_fields": not _unknown_fields.is_empty(),
+	}
+
+	var validation_problems := data.validate()
+	var failures: Array[String] = []
+	if not _unknown_fields.is_empty():
+		failures.append("unknown_fields: %s" % str(_unknown_fields))
+	if not unresolved_textures.is_empty():
+		failures.append("unresolved_textures: %s" % str(unresolved_textures))
+	for problem in validation_problems:
+		failures.append("validate: %s" % problem)
+
+	var data_path := out_dir.path_join("reanim_data.tres")
+	var save_result := OK
+	if failures.is_empty():
+		save_result = ResourceSaver.save(data, data_path)
+		if save_result != OK:
+			failures.append("save_failed: %s (error %d)" % [data_path, save_result])
+
+	var report := {
+		"ok": failures.is_empty(),
+		"reanim_id": reanim_id,
+		"source": source_path,
+		"source_hash": data.source_hash,
+		"reanim_data": data_path if failures.is_empty() else "",
+		"schema_version": data.schema_version,
+		"fps": data.fps,
+		"frame_count": data.frame_count,
+		"track_count": track_names.size(),
+		"visual_track_count": reanim["tracks"].size(),
+		"marker_track_count": reanim["markers"].size(),
+		"image_ref_count": image_refs.size(),
+		"clips": clips,
+		"feature_flags": data.feature_flags,
+		"unknown_fields": _unknown_fields,
+		"unresolved_textures": unresolved_textures,
+		"failures": failures,
+	}
+	_save_json(out_dir.path_join("reanim_data_report.json"), report)
+
+	if not failures.is_empty():
+		for failure in failures:
+			push_error("reanim data emit failed (%s): %s" % [reanim_id, failure])
+		return 8
+	print("Emitted reanim data: %s" % data_path)
+	return 0
 
 
 func _make_default_state_animation_map(animations: Array) -> Dictionary:

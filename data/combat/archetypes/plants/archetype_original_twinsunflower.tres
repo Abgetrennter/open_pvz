@@ -9,6 +9,7 @@
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_twinsunflower"
 display_name = "Twin Sunflower"
+visual_profile_id = &"classic_original.entity.plant.twinsunflower.visual"
 hit_height_band = ExtResource("4_height")
 entity_kind = &"plant"
 tags = PackedStringArray("archetype", "plant", "original", "twinsunflower", "upgrade", "producer", "sun")

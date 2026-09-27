@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="2_rule"]
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("2_rule")
+rule_id = &"game_tick"
+description = "battle runs normally while the reanim simulation clock checks run"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_reanim_clock"]
+script = ExtResource("2_rule")
+rule_id = &"reanim_phase_follows_simulation_clock"
+description = "ReanimPlayer phase must track GameState.current_time: advance while running, freeze on pause, advance by manual steps, and change speed without phase jumps"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"reanim_sim_clock",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_reanim_sim_clock"
+display_name = "Visual Reanim Simulation Clock"
+description = "Verify ReanimPlayer phase is anchored to the simulation clock: running advance, pause freeze, manual step advance, and jump-free visual speed changes."
+goals = PackedStringArray("Verify phase advances as phase0 + elapsed simulation time while running.", "Verify pausing the simulation freezes the phase exactly.", "Verify manual step_simulation_ticks advances the phase deterministically while paused.", "Verify set_visual_speed re-anchors the epoch without any phase jump.")
+validation_time_limit = 5.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_reanim_clock")]

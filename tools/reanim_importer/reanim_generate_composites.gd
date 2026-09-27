@@ -2,6 +2,9 @@ extends SceneTree
 
 const VisualProfileDefRef = preload("res://scripts/core/defs/visual_profile_def.gd")
 const CompositeActorScript = preload("res://scripts/validation/reanim_manifest_composite_actor.gd")
+const ReanimDataRef = preload("res://scripts/visual/reanim/reanim_data.gd")
+const ReanimActorDefRef = preload("res://scripts/visual/reanim/reanim_actor_def.gd")
+const ReanimActorScript = preload("res://scripts/visual/reanim/reanim_actor.gd")
 
 var _args: Dictionary = {}
 
@@ -21,18 +24,37 @@ func _run() -> int:
 	if manifest.is_empty():
 		return 3
 
+	var only_id := String(_args.get("only", ""))
+	var native_only := String(_args.get("native-only", "false")) == "true"
 	var generated: Array[Dictionary] = []
+	var native_failures := 0
 	for entry in manifest.get("entries", []):
 		if not entry is Dictionary:
 			continue
-		var result := _generate_entry(entry)
-		generated.append(result)
-		if not bool(result.get("ok", false)):
-			push_warning("Composite generation failed for %s: %s" % [String(result.get("id", "")), String(result.get("error", ""))])
-	_save_asset_index_if_requested(manifest, generated)
+		var typed_entry := entry as Dictionary
+		if only_id != "" and String(typed_entry.get("id", "")) != only_id:
+			continue
+		# Generate native first so a full compatibility pass can keep the
+		# VisualProfile and asset index bound to the active native actor.
+		if typed_entry.has("native"):
+			var native_result := _generate_native_entry(typed_entry)
+			if not bool(native_result.get("ok", false)):
+				native_failures += 1
+				push_warning("Native def generation failed for %s: %s" % [String(native_result.get("id", "")), String(native_result.get("error", ""))])
+			else:
+				print("Generated native reanim def for %s -> %s" % [String(native_result.get("id", "")), String(native_result.get("actor_scene", ""))])
+		if not native_only:
+			var result := _generate_entry(typed_entry)
+			generated.append(result)
+			if not bool(result.get("ok", false)):
+				push_warning("Composite generation failed for %s: %s" % [String(result.get("id", "")), String(result.get("error", ""))])
+	# Rebuilding the asset index from a filtered entry set would drop managed
+	# entries, so it only runs on full compatibility generation passes.
+	if not native_only and only_id == "":
+		_save_asset_index_if_requested(manifest, generated)
 
 	print("Generated %d manifest composite entries." % generated.size())
-	return 0
+	return 4 if native_failures > 0 else 0
 
 
 func _parse_args(raw_args: PackedStringArray) -> Dictionary:
@@ -172,7 +194,7 @@ func _apply_actor_properties(root: Node2D, value: Variant) -> void:
 func _save_profile(entry: Dictionary, actor_path: String, profile_path: String) -> int:
 	var profile = VisualProfileDefRef.new()
 	profile.id = StringName(entry.get("profile_id", "local.original.%s.composite" % String(entry.get("id", "unknown"))))
-	profile.actor_scene = ResourceLoader.load(actor_path) as PackedScene
+	profile.actor_scene = ResourceLoader.load(_active_actor_scene_path(entry, actor_path)) as PackedScene
 	profile.state_animation_map = _string_dict_to_string_name_dict(entry.get("state_animation_map", {}))
 	profile.action_animation_map = _profile_action_map(entry.get("action_animation_map", {}))
 	profile.animation_map = _string_dict_to_string_name_dict(entry.get("animation_map", {}))
@@ -261,6 +283,7 @@ func _is_number_like(value: Variant) -> bool:
 
 
 func _build_asset_index_entry(entry: Dictionary, actor_path: String, profile_path: String, report_path: String) -> Dictionary:
+	var active_actor_path := _active_actor_scene_path(entry, actor_path)
 	var generated := {
 		"raw_actor_scene": String(entry.get("raw_actor_scene", "")),
 		"composite_report": report_path,
@@ -278,7 +301,7 @@ func _build_asset_index_entry(entry: Dictionary, actor_path: String, profile_pat
 		"kind": "visual_profile",
 		"path": profile_path,
 		"profile": profile_path,
-		"actor_scene": actor_path,
+		"actor_scene": active_actor_path,
 		"source": source,
 		"generated": generated,
 		"semantic": {
@@ -289,6 +312,15 @@ func _build_asset_index_entry(entry: Dictionary, actor_path: String, profile_pat
 			"suppressed_tracks": entry.get("suppressed_tracks", []),
 		},
 	}
+
+
+func _active_actor_scene_path(entry: Dictionary, fallback_path: String) -> String:
+	var native_value: Variant = entry.get("native", {})
+	if native_value is Dictionary:
+		var native_path := _normalize_res_path(String((native_value as Dictionary).get("actor_scene_out_path", "")))
+		if not native_path.is_empty():
+			return native_path
+	return fallback_path
 
 
 func _save_asset_index_if_requested(manifest: Dictionary, generated: Array[Dictionary]) -> void:
@@ -385,3 +417,170 @@ func _save_json(path: String, payload: Dictionary) -> void:
 		return
 	file.store_string(JSON.stringify(payload, "\t"))
 	file.close()
+
+
+## Builds a ReanimActorDef resource plus a lightweight actor scene (ReanimActor
+## root referencing the def) from the entry's "native" block. Fails closed on
+## any invalid or missing data; the runtime only ever reads the .tres output.
+func _generate_native_entry(entry: Dictionary) -> Dictionary:
+	var id := String(entry.get("id", ""))
+	var native: Dictionary = entry.get("native", {})
+	var def_path := _normalize_res_path(String(native.get("def_out_path", "")))
+	var actor_path := _normalize_res_path(String(native.get("actor_scene_out_path", "")))
+	var report_path := _normalize_res_path(String(native.get("report_out_path", "")))
+	if id == "" or def_path == "" or actor_path == "":
+		return {"id": id, "ok": false, "error": "missing id/def_out_path/actor_scene_out_path"}
+
+	var def = ReanimActorDefRef.new()
+	def.def_id = StringName(String(native.get("def_id", id)))
+	def.initial_state = StringName(String(native.get("initial_state", "")))
+	def.root_offset = _to_vector2(native.get("root_offset", entry.get("actor_anchor_offset", [0.0, 0.0])))
+	def.root_scale = float(native.get("root_scale", 1.0))
+
+	var parts: Array[Dictionary] = []
+	for part_value in native.get("parts", []):
+		if not part_value is Dictionary:
+			return {"id": id, "ok": false, "error": "native part is not a Dictionary"}
+		var part_source := part_value as Dictionary
+		var data_path := _normalize_res_path(String(part_source.get("reanim_data", "")))
+		if not ResourceLoader.exists(data_path):
+			return {"id": id, "ok": false, "error": "reanim_data missing: %s" % data_path}
+		var data := ResourceLoader.load(data_path) as ReanimDataRef
+		if data == null:
+			return {"id": id, "ok": false, "error": "reanim_data not a ReanimData: %s" % data_path}
+		parts.append({
+			"id": String(part_source.get("id", "")),
+			"reanim_data": data,
+			"initial_clip": String(part_source.get("initial_clip", "")),
+			"loop": bool(part_source.get("loop", true)),
+			"host_part_id": String(part_source.get("host_part_id", "")),
+			"host_track": String(part_source.get("host_track", "")),
+			"render_order": int(part_source.get("render_order", 0)),
+			"track_visibility": _normalize_track_visibility(part_source.get("track_visibility", {})),
+			"image_override": part_source.get("image_override", {}) if part_source.get("image_override", {}) is Dictionary else {},
+		})
+	def.parts = parts
+	def.states = _normalize_native_clip_maps(native.get("states", {}))
+	def.actions = _normalize_native_clip_maps(native.get("actions", {}))
+	def.action_next_states = _normalize_string_dict(native.get("action_next_states", {}))
+	def.clip_rates = _normalize_clip_rates(native.get("clip_rates", {}))
+	def.anchors = _normalize_native_anchors(native.get("anchors", {}))
+
+	var problems: PackedStringArray = def.validate()
+	if not problems.is_empty():
+		return {"id": id, "ok": false, "error": "invalid native def: %s" % ", ".join(problems)}
+
+	for output_path in [def_path, actor_path]:
+		var dir_result := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(String(output_path).get_base_dir()))
+		if dir_result != OK:
+			return {"id": id, "ok": false, "error": "could not create native output dir"}
+	if ResourceSaver.save(def, def_path) != OK:
+		return {"id": id, "ok": false, "error": "could not save actor def"}
+	# Adopt the saved path so the packed scene references the def as an
+	# ExtResource without re-loading it (a cache-replacing load would trigger
+	# a script reload cascade that breaks in headless tool mode).
+	def.take_over_path(def_path)
+
+	var root := Node2D.new()
+	root.name = String(native.get("actor_node_name", "ReanimNativeActor"))
+	root.set_script(ReanimActorScript)
+	root.set("actor_def", def)
+	var packed := PackedScene.new()
+	var pack_result := packed.pack(root)
+	root.queue_free()
+	if pack_result != OK:
+		return {"id": id, "ok": false, "error": "could not pack native actor scene"}
+	if ResourceSaver.save(packed, actor_path) != OK:
+		return {"id": id, "ok": false, "error": "could not save native actor scene"}
+
+	if report_path != "":
+		var report := {
+			"id": id,
+			"ok": true,
+			"actor_def": def_path,
+			"actor_scene": actor_path,
+			"part_count": parts.size(),
+			"def_bytes": _file_size(def_path),
+			"actor_scene_bytes": _file_size(actor_path),
+		}
+		var report_dir_result := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(report_path.get_base_dir()))
+		if report_dir_result == OK:
+			_save_json(report_path, report)
+	return {"id": id, "ok": true, "actor_def": def_path, "actor_scene": actor_path}
+
+
+func _normalize_track_visibility(value: Variant) -> Dictionary:
+	if not value is Dictionary or (value as Dictionary).is_empty():
+		return {}
+	var source := value as Dictionary
+	var patterns: Array = []
+	for pattern in source.get("patterns", []):
+		patterns.append(String(pattern))
+	return {"mode": String(source.get("mode", "")), "patterns": patterns}
+
+
+func _normalize_native_clip_maps(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if not value is Dictionary:
+		return result
+	for map_id in (value as Dictionary).keys():
+		var mapping: Variant = (value as Dictionary)[map_id]
+		if not mapping is Dictionary:
+			continue
+		var clips: Dictionary = {}
+		for part_id in (mapping as Dictionary).keys():
+			clips[String(part_id)] = String((mapping as Dictionary)[part_id])
+		result[String(map_id)] = clips
+	return result
+
+
+func _normalize_native_anchors(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if not value is Dictionary:
+		return result
+	for anchor_name in (value as Dictionary).keys():
+		var config: Variant = (value as Dictionary)[anchor_name]
+		if not config is Dictionary:
+			continue
+		var config_dict := config as Dictionary
+		var alias_of := String(config_dict.get("alias_of", ""))
+		if alias_of != "":
+			result[String(anchor_name)] = {"alias_of": alias_of}
+		elif config_dict.has("position"):
+			result[String(anchor_name)] = {
+				"position": _to_vector2(config_dict.get("position", [0.0, 0.0])),
+			}
+		else:
+			result[String(anchor_name)] = {
+				"part": String(config_dict.get("part", "")),
+				"track": String(config_dict.get("track", "")),
+				"offset": _to_vector2(config_dict.get("offset", [0.0, 0.0])),
+			}
+	return result
+
+
+func _normalize_string_dict(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if not value is Dictionary:
+		return result
+	for key in (value as Dictionary).keys():
+		result[String(key)] = String((value as Dictionary)[key])
+	return result
+
+
+func _normalize_clip_rates(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if not value is Dictionary:
+		return result
+	for key in (value as Dictionary).keys():
+		result[String(key)] = float((value as Dictionary)[key])
+	return result
+
+
+func _file_size(res_path: String) -> int:
+	var file := FileAccess.open(res_path, FileAccess.READ)
+	if file == null:
+		return -1
+	var length := int(file.get_length())
+	file.close()
+	return length

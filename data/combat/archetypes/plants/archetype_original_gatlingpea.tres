@@ -12,6 +12,7 @@
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_gatlingpea"
 display_name = "Gatling Pea"
+visual_profile_id = &"classic_original.entity.plant.gatlingpea.visual"
 projectile_template = ExtResource("6_projectile_template")
 projectile_flight_profile = ExtResource("5_profile")
 hit_height_band = ExtResource("4_height")

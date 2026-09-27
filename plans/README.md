@@ -11,15 +11,15 @@
 | [original-plant-mechanism-audit.md](original-plant-mechanism-audit.md) | 机制审计依据；外部事实通过知识回流处理 |
 | [zombie-design-research-report.md](zombie-design-research-report.md) | 僵尸研究材料；原 vendor 路径按工作区 references/README.md 换算 |
 
-## Reanim：分支成果尚待集成
+## Reanim：集成与剩余校准
 
 | 文件 / 位置 | 状态与下一步 |
 |---|---|
 | [original-plant-visual-bulk-migration-plan.md](original-plant-visual-bulk-migration-plan.md) | 旧批量迁移方案；与分支全量 native 方案对照后再归档，勿重复执行 |
-| [reanim-native-runtime-implementation-plan.md](reanim-native-runtime-implementation-plan.md) | 主线仍保留旧计划快照；T0–T6 完成记录在 feature/private-assets，不能提前将主线标成完成 |
+| [reanim-native-runtime-implementation-plan.md](reanim-native-runtime-implementation-plan.md) | T0–T6 实现及完成记录已随分支集成；当前验收证据见 reanim-integration-2026-09-27.md，GUI 校准另列 M5 |
 | [draft/reanim原生运行时ReanimData方案设计草案.md](draft/reanim原生运行时ReanimData方案设计草案.md) | 与运行时计划一同等待集成验收后归档 |
-| `feature/private-assets:plans/reanim-native-full-original-plant-migration-plan.md` | M0–M4 分支成果，M5 GUI 校准/性能基线/归档未完；工作区任务 reanim-visual/integrate-native 与 reanim-visual/m5-archive |
-| `feature/private-assets:plans/reanim-native-migration-candidate-matrix.md` | 分支候选矩阵，主线尚无该文件；从分支读取，不当作失效本地链接 |
+| [reanim-native-full-original-plant-migration-plan.md](reanim-native-full-original-plant-migration-plan.md) | M0–M4 成果与本次缺失素材重建记录；M5 GUI 校准/性能基线/归档未完 |
+| [reanim-native-migration-candidate-matrix.md](reanim-native-migration-candidate-matrix.md) | 原 M0 候选矩阵，保留来源与分批依据 |
 
 ## 设计讨论与候选方向
 
@@ -42,3 +42,5 @@
 见 [archive/README.md](archive/README.md)。已完成阶段记录、被替代的设计、旧 Agent 笔记与历史验证证据在该目录分类保留。原始资料不因重复而删除。
 
 新增计划须在本索引登记状态、用途及对应任务；完成后将耐久规则写入 Wiki，将阶段记录归档。工作区治理文档在工作区根 `docs/governance/`，不在公开引擎仓复制。
+
+本次集成验收见 [Reanim 集成记录](reanim-integration-2026-09-27.md)。新增的 [工作区治理历史草案](draft/公开引擎受限素材与worktree治理草案.md) 仅作推导记录，当前规则以工作区根合同为准。
