@@ -16,5 +16,6 @@ The private asset pack should keep source files and runtime files separate:
 
 - `sources/`: private original inputs only.
 - `generated/raw/`: raw importer outputs used for debugging and composite construction.
-- `actors/` and `data/combat/visual_profiles/`: OpenPVZ runtime assets.
+- `generated/native/<id>/`: native actor definitions and scenes (`actor_def.tres` + `actor.tscn`); the legacy `actors/` composite outputs are retired.
+- `data/combat/visual_profiles/` and `generated/reanim_data/`: OpenPVZ runtime assets.
 - `asset_index.json`: logical visual IDs mapped to runtime assets, source inputs, and generated reports.

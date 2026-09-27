@@ -1,10 +1,10 @@
 # Reanim 原生运行时实施计划
 
-> 状态：实现与验证已完成，T4 按真实内容裁剪；待执行归档移动
+> 状态：实现与验证已完成（2026-09-27 随 M5 收尾归档）
 >
 > 制定日期：2026-07-29
 >
-> 设计来源：[`draft/reanim原生运行时ReanimData方案设计草案.md`](draft/reanim原生运行时ReanimData方案设计草案.md)
+> 设计来源：[reanim原生运行时ReanimData方案设计草案.md](reanim原生运行时ReanimData方案设计草案.md)（同目录）
 >
 > 适用范围：Reanim 导入工具、视觉运行时、私有经典素材包与 `local_private` 验证
 >

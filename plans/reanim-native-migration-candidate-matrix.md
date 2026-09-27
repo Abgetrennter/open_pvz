@@ -4,7 +4,7 @@
 >
 > 制定日期：2026-08-01
 >
-> 上游计划：[`plans/reanim-native-full-original-plant-migration-plan.md`](reanim-native-full-original-plant-migration-plan.md)
+> 上游计划：[archive/reanim-native-migration/reanim-native-full-original-plant-migration-plan.md](archive/reanim-native-migration/reanim-native-full-original-plant-migration-plan.md)（M0-M5 已完成归档）
 >
 > 数据来源：`tools/scan_reanim_feature_flags.ps1 -Roster original_plants`（48 株扫描）+ `local_extensions/classic_original_assets/generated/reports/semantic/<Source>.semantic_report.json`（逐株 clip / track / overlay 明细）
 >

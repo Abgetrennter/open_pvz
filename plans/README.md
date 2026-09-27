@@ -15,11 +15,9 @@
 
 | 文件 / 位置 | 状态与下一步 |
 |---|---|
-| [original-plant-visual-bulk-migration-plan.md](original-plant-visual-bulk-migration-plan.md) | 旧批量迁移方案；与分支全量 native 方案对照后再归档，勿重复执行 |
-| [reanim-native-runtime-implementation-plan.md](reanim-native-runtime-implementation-plan.md) | T0–T6 实现及完成记录已随分支集成；当前验收证据见 reanim-integration-2026-09-27.md，GUI 校准另列 M5 |
-| [draft/reanim原生运行时ReanimData方案设计草案.md](draft/reanim原生运行时ReanimData方案设计草案.md) | 与运行时计划一同等待集成验收后归档 |
-| [reanim-native-full-original-plant-migration-plan.md](reanim-native-full-original-plant-migration-plan.md) | M0–M4 成果与本次缺失素材重建记录；M5 GUI 校准/性能基线/归档未完 |
 | [reanim-native-migration-candidate-matrix.md](reanim-native-migration-candidate-matrix.md) | 原 M0 候选矩阵，保留来源与分批依据 |
+
+Reanim 全量迁移（M0-M5）已于 2026-09-27 完成并归档：全量迁移计划、T0-T6 runtime 实施计划、ReanimData 设计草案与旧批量迁移方案移入 [archive/reanim-native-migration/](archive/reanim-native-migration/)。当前验收证据见 [集成记录](reanim-integration-2026-09-27.md) 与工作区 `docs/baselines/2026-09-27-reanim-m5/`；root_offset 精修视实际游戏场景反馈另起迭代。
 
 ## 设计讨论与候选方向
 
@@ -31,7 +29,7 @@
 | [视觉表现层设计讨论.md](视觉表现层设计讨论.md)、[Open PVZ 视觉反馈层设计与路线图.md](Open PVZ 视觉反馈层设计与路线图.md)、[visual-feedback-layer/](visual-feedback-layer/README.md) | 视觉阶段与现状对照 |
 | [输入交互层设计讨论.md](输入交互层设计讨论.md)、[UI 框架层设计方案.md](UI 框架层设计方案.md)、[draft/卡牌供给与行动栏代码结构设计草案.md](draft/卡牌供给与行动栏代码结构设计草案.md) | 输入/UI/行动栏 |
 | [音频系统设计.md](音频系统设计.md) | 音频质量与覆盖 |
-| [reanim资源转换工具链规划.md](reanim资源转换工具链规划.md) | 工具链历史推导，随 Reanim 集成复核 |
+| [reanim资源转换工具链规划.md](reanim资源转换工具链规划.md) | 工具链历史推导；集成与 M5 校准已实测复用，保留推导记录 |
 | [attack-chain-family-compile-path.md](attack-chain-family-compile-path.md) | 攻击链协议方向 |
 | [draft/动态环境与天气系统设计草案.md](draft/动态环境与天气系统设计草案.md)、[draft/棋盘多样性与地形系统设计草案.md](draft/棋盘多样性与地形系统设计草案.md)、[draft/GridItem子系统设计草案.md](draft/GridItem子系统设计草案.md) | 棋盘、场地物件与环境 |
 | [draft/汉字图像默认视觉身份系统草案.md](draft/汉字图像默认视觉身份系统草案.md) | 默认视觉身份 |

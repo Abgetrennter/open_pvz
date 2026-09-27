@@ -8,7 +8,7 @@
       "kind": "visual_profile",
       "path": "data/combat/visual_profiles/plants/example.tres",
       "profile": "data/combat/visual_profiles/plants/example.tres",
-      "actor_scene": "actors/example/actor.tscn",
+      "actor_scene": "generated/native/example/actor.tscn",
       "source": {
         "reanim": "sources/reanim/Example.reanim",
         "resources": "sources/properties/resources.xml"

@@ -7,7 +7,7 @@
 
 > 本文档是阶段 0 产出物，为 49 个原版植物提供可追踪的迁移底账。
 
-> 视觉迁移补充（2026-08-02）：本地私有包中的原版植物已全部从旧 composite actor 切换为 `ReanimData + ReanimPlayer + ReanimActorDef/ReanimActor`，active scene 位于 `generated/native/<id>/actor.tscn`。**48/48 株已进私有 native 链**，**48 个 archetype 的 `visual_profile_id` 已全部正式绑定**。验证：`local_private` 10/10、公开 `smoke` 24/24、`guardrail` 20/20、发布边界检查 OK，48 actor demo headless 加载无 missing/error；玩法迁移完成度仍按下表独立计算。残留 GUI-only：root_offset 目测校准与 48 actor 性能基线实测。详见 `reanim-native-full-original-plant-migration-plan.md` 与 `reanim-native-migration-candidate-matrix.md`。
+> 视觉迁移补充（2026-08-02）：本地私有包中的原版植物已全部从旧 composite actor 切换为 `ReanimData + ReanimPlayer + ReanimActorDef/ReanimActor`，active scene 位于 `generated/native/<id>/actor.tscn`。**48/48 株已进私有 native 链**，**48 个 archetype 的 `visual_profile_id` 已全部正式绑定**。验证：`local_private` 10/10、公开 `smoke` 24/24、`guardrail` 20/20、发布边界检查 OK，48 actor demo headless 加载无 missing/error；玩法迁移完成度仍按下表独立计算。M5 收尾（2026-09-27）：root_offset 截图初修 14 株并经操作者粗看终审通过（落点带 +1..+22；实际场景精修视反馈另起），48 actor 性能基线 60 fps / 250 draw calls / 65 MB 静态内存，threepeater golden 锚点基线同步重定基。详见工作区 `docs/baselines/2026-09-27-reanim-m5/` 与 `plans/archive/reanim-native-migration/`。
 
 ---
 

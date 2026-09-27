@@ -14,3 +14,7 @@
 本次只做资料归位和链接更新，不宣告新功能完成。Reanim native 运行时的完成记录主要位于 `feature/private-assets`，其计划与源草案在集成验收前继续保留。
 
 恢复研究前先检查当前代码、Wiki 与任务账本，避免重新执行历史 TODO。原始文件历史可由 Git 跟踪重命名追溯。
+
+## 2026-09-27 M5 归档
+
+Reanim 全量迁移（M0-M5）当日完成收尾后，`reanim-native-migration/` 收入四份历史文档：全量迁移计划（含 M5 完成记录）、T0-T6 runtime 实施计划、ReanimData 设计草案、旧批量迁移方案。完成状态以 Wiki 44 页、迁移底账与工作区 `docs/baselines/2026-09-27-reanim-m5/` 为准；root_offset 精修视实际游戏场景反馈另起迭代。

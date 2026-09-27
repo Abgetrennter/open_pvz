@@ -1,12 +1,12 @@
 # Reanim 原生运行时全量植物视觉迁移计划
 
-> 状态：2026-09-27 集成验收已重建并核对 48/48 株产物与绑定；此前分支完成记录不代表素材已固定。当前证据见 [集成记录](reanim-integration-2026-09-27.md)。M5 GUI 校准、性能采样与归档仍待完成。
+> 状态：全部完成（M0-M5）。2026-09-27 集成验收重建并核对 48/48 株产物与绑定；同日 M5 收尾：root_offset 截图初修 14 株 + 操作者粗看终审、性能基线、文档同步，本文档归档至 `plans/archive/reanim-native-migration/`。集成证据见 [集成记录](../../reanim-integration-2026-09-27.md)，M5 证据见工作区 `docs/baselines/2026-09-27-reanim-m5/`。
 >
 > 制定日期：2026-08-01
 >
-> 设计来源：`plans/draft/reanim原生运行时ReanimData方案设计草案.md`
+> 设计来源：[reanim原生运行时ReanimData方案设计草案.md](reanim原生运行时ReanimData方案设计草案.md)（同目录）
 >
-> 已完成基线：`plans/reanim-native-runtime-implementation-plan.md`
+> 已完成基线：[reanim-native-runtime-implementation-plan.md](reanim-native-runtime-implementation-plan.md)（同目录）
 >
 > 候选矩阵：[`plans/reanim-native-migration-candidate-matrix.md`](reanim-native-migration-candidate-matrix.md)
 
@@ -169,6 +169,15 @@ pwsh tools/check_public_extension_release_guardrails.ps1
 
 完成后归档本计划及已完成的 18 株实施计划，更新 `plans/README.md`。
 
+#### M5 完成记录（2026-09-27）：✅
+
+- **root_offset 目测校准**：demo 增加 `--screenshot-dir` 截图模式（逐株逐状态离屏渲染，地面线+原点标记）与相机平移；像素测量 48 株渲染底沿 gap。修正 14 株：豌豆族 7 株与投手族 4 株为批量同值未逐株校准（悬空 +16..+21px），coffeebean 悬空 53px，potatomine 土堆陷线下 28px；修正后全部进入基线带 +1..+22。x 方向未动，留操作者终审；低地株（flowerpot/lilypad/seashroom）维持既有校准值。
+- **操作者终审**：实时窗口粗看通过；精修留待实际游戏场景反馈（见任务账本）。
+- **性能基线**：demo `--perf-report=18`（窗口渲染）：48 plants / 1342 nodes / 60 fps / 250 draw calls / 680 render objects / 65.1 MB static / 102.9 MB video。无阻塞性回退（首次记录即基线）。
+- **回归**：`local_private` 10/10、公开全量 225/225（mount=none）、Quick gate GREEN、manifest 校验 48 profiles valid。threepeater golden 锚点基线按 Δroot_offset(+15y) 重定基（anchors 与 exports；head base origin 为 track 本地值不随 offset 变动）；manifest 遗留 `actor_anchor_offset`（sunflower/threepeater）同步 native root_offset。
+- **文档**：素材包 README、迁移底账、wiki 44 页、公开 semantic 模板与 README 的旧 `actors/` 路径统一改为 `generated/native/`；本计划及 runtime 实施计划、设计草案、旧批量迁移方案归档至 `plans/archive/reanim-native-migration/`。
+- **证据**：工作区 `docs/baselines/2026-09-27-reanim-m5/`（baseline.json + gap 测量前后表 + seed 输出 + 测量脚本）。
+
 ## 5. 依赖顺序
 
 ```text
@@ -190,11 +199,11 @@ M1、M2 可按候选分类交错执行；M3 不阻塞已经能用现有能力迁
 - [x] 没有植物专用运行时分支；所有组合通过 `ReanimActorDef` 表达（无植物名判断、无植物专用 GDScript；body+blink/face overlay、host_track、action_next_states、clip_rates 全数据化）。
 - [x] 所有真实命中的不支持特性已实现或有明确、可验证的 fail-closed 处理（M0 确认 0 株命中 blend/text-font/unresolved_layer；M3 空集；attacher/overlay 计数被现有 host_track/track_visibility 吸收）。
 - [x] `local_private`、public smoke、guardrail 与发布边界检查全部通过（local_private 10/10、smoke 24/24、guardrail 20/20、release guardrail OK）。
-- [ ] 48 actor 性能基线已记录，没有阻塞性回退。（demo headless 加载无 missing/error；详细帧耗时/内存基线留作 M5/GUI 实测）。
-- [ ] wiki、公开模板、迁移底账与代码现状一致。（M5 文档同步进行中）。
-- [ ] 计划完成后按归档流程处理。（M5）。
+- [x] 48 actor 性能基线已记录，没有阻塞性回退。（2026-09-27 M5：60 fps / 250 draw calls / 65.1 MB static / 102.9 MB video，见工作区 baseline.json）。
+- [x] wiki、公开模板、迁移底账与代码现状一致。（2026-09-27 M5：素材包 README、底账、wiki 44、semantic 模板与 README 的 actors/ 路径统一为 generated/native/）。
+- [x] 计划完成后按归档流程处理。（2026-09-27：本计划与 runtime 计划、设计草案、旧批量方案移入 plans/archive/reanim-native-migration/）。
 
 ### 残留 GUI-only 待办
 
-- root_offset 目测校准：26 株新迁移植物用 AABB 候选值落点，headless 验证结构性正确但无法目测落点；用 GUI 窗口跑 `visual_reanim_native_actual_demo.tscn`（现已扩到 48 株，8×6 网格）逐株确认/微调 `root_offset`。
-- 48 actor 详细性能基线（节点数/帧耗时/内存）在 GUI 实测时记录。
+- root_offset 目测校准：✅ 2026-09-27 完成。48 株截图测量 + 初修 14 株 + 操作者实时窗口粗看终审通过；x 方向与个别带内偏悬株（seashroom/lilypad/sunshroom/chomper）保留现值，精修视实际游戏场景反馈另起迭代。
+- 48 actor 详细性能基线（节点数/帧耗时/内存）：✅ 2026-09-27 完成（perf-report 模式，数字见 M5 完成记录与工作区 baseline.json）。
