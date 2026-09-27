@@ -28,6 +28,8 @@
 
 ## 推荐阅读
 
+贡献代码前参阅根目录 [Repository Guidelines](../AGENTS.md)；详细规则见 [开发约束与按需阅读](05-governance/contributor-guide.md)。
+
 第一次进入仓库，建议按下面顺序阅读：
 
 1. [15 分钟上手路径](01-overview/03-15分钟上手路径.md)
