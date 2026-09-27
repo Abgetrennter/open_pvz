@@ -28,6 +28,11 @@ extends Node2D
 ##   Spawns one plant at a time over a ground line with an origin cross, saves
 ##   <id>__<state|action-<name>>.png per state/action, then quits. Uses the
 ##   engine renderer (headless produces blank frames).
+##
+## Perf mode (M5 baseline sampling; runs windowed so the render path is real):
+##   & .\Godot_v4.6.2-stable_win64_console.exe --path . res://scenes/validation/visual_reanim_native_actual_demo.tscn -- --perf-report=18
+##   Loads the full roster, runs the combat cycle for <seconds>, prints one
+##   [ReanimGallery] perf ... line (nodes/fps/draw calls/memory) and quits.
 
 const NATIVE_ROOT := "res://local_extensions/classic_original_assets/generated/native"
 const IDLE_PHASE_SECONDS := 3.0
@@ -117,6 +122,8 @@ var _missing_ids: Array[String] = []
 var _camera: Camera2D = null
 var _screenshot_mode := false
 var _screenshot_dir := ""
+var _perf_report_seconds := 0.0
+var _perf_elapsed := 0.0
 
 
 func _ready() -> void:
@@ -126,6 +133,8 @@ func _ready() -> void:
 		if arg.begins_with("--screenshot-dir="):
 			_screenshot_mode = true
 			_screenshot_dir = arg.get_slice("=", 1)
+		elif arg.begins_with("--perf-report="):
+			_perf_report_seconds = maxf(1.0, float(arg.get_slice("=", 1)))
 	if _screenshot_mode:
 		get_window().size = Vector2i(800, 600)
 		get_window().move_to_foreground()
@@ -162,6 +171,12 @@ func _process(delta: float) -> void:
 		return
 	if _entries.is_empty():
 		return
+	if _perf_report_seconds > 0.0:
+		_perf_elapsed += delta
+		if _perf_elapsed >= _perf_report_seconds:
+			_print_perf_report()
+			get_tree().quit(0)
+			return
 	if not _paused:
 		var step := delta * _time_scale
 		GameState.advance_time(step)
@@ -392,6 +407,29 @@ func _capture_shot(file_base: String, hold_seconds: float) -> void:
 	var path := _screenshot_dir.path_join(file_base + ".png")
 	var err := image.save_png(path)
 	print("[ReanimGallery] shot %s (err=%d)" % [path, err])
+
+
+## One-shot baseline sample for the M5 record. Windowed run only: headless has
+## no render path, so draw calls/VRAM would be meaningless there.
+func _print_perf_report() -> void:
+	var mb := 1024.0 * 1024.0
+	var draw_calls := -1
+	var render_objects := -1
+	var video_mem_mb := -1.0
+	draw_calls = RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
+	render_objects = RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_OBJECTS_IN_FRAME)
+	video_mem_mb = RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED) / mb
+	print("[ReanimGallery] perf plants=%d nodes=%d fps=%d draw_calls=%d render_objects=%d static_mem_mb=%.1f static_mem_peak_mb=%.1f video_mem_mb=%.1f sim_time=%.1f" % [
+		_entries.size(),
+		get_tree().get_node_count(),
+		Engine.get_frames_per_second(),
+		draw_calls,
+		render_objects,
+		OS.get_static_memory_usage() / mb,
+		OS.get_static_memory_peak_usage() / mb,
+		video_mem_mb,
+		GameState.current_time,
+	])
 
 
 func _build_name_label(plant_id: String, at: Vector2) -> void:
