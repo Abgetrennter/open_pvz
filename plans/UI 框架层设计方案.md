@@ -797,8 +797,8 @@ UI 框架在与扩展系统集成时，以下不变量必须维持：
 | `wiki/04-roadmap-reference/38-扩展系统总体规划.md` | 扩展系统总体规划 |
 | `plans/draft/extension-system/39-素材包系统设计草案.md` | 素材包系统设计（草案） |
 | `plans/draft/extension-system/41-扩展包-manifest-规范-v1.md` | 扩展包 manifest 规范（草案） |
-| `wiki/04-roadmap-reference/pvz-godot-dream/03-组件系统.md` | 参考项目组件架构 |
-| `wiki/04-roadmap-reference/pvz-godot-dream/04-管理器与全局服务.md` | 参考项目管理器体系 |
+| 知识层 `pgd-architecture-index.md`（E:/Code/pvz-ws/knowledge/） | 参考项目组件架构 |
+
 
 ---
 
@@ -810,5 +810,5 @@ UI 框架在与扩展系统集成时，以下不变量必须维持：
 - [扩展系统总体规划](../wiki/04-roadmap-reference/38-扩展系统总体规划.md)
 - [素材包系统设计草案（草案）](draft/extension-system/39-素材包系统设计草案.md)
 - [扩展包 manifest 规范-v1（草案）](draft/extension-system/41-扩展包-manifest-规范-v1.md)
-- [参考实现-组件系统](../wiki/04-roadmap-reference/pvz-godot-dream/03-组件系统.md)
-- [参考实现-管理器与全局服务](../wiki/04-roadmap-reference/pvz-godot-dream/04-管理器与全局服务.md)
+- [参考实现-组件系统（知识层）](知识层 `pgd-architecture-index.md`)
+

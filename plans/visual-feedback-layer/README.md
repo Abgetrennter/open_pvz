@@ -21,7 +21,7 @@
 - [../../wiki/01-overview/00-架构总览.md](../../wiki/01-overview/00-架构总览.md)
 - [../../wiki/02-runtime-protocol/08-连续行为模型.md](../../wiki/02-runtime-protocol/08-连续行为模型.md)
 - [../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md](../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md)
-- [../../wiki/04-roadmap-reference/pvz-godot-dream/03-组件系统.md](../../wiki/04-roadmap-reference/pvz-godot-dream/03-组件系统.md)
+- PGD 组件系统分析（正文已迁知识层 E:/Code/pvz-ws/knowledge/pgd-architecture-index.md）
 
 ## 推荐阅读顺序
 
