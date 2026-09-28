@@ -17,6 +17,7 @@
 - `ProjectileTemplate` 继续保留为抛射体内容资源，不再与实体旧作者模型并列为顶层入口。
 - battle 模式组织层 v1 已经进入主干：`BattleModeHost / BattleModeDef / BattleRuleModule / BattleInputProfile / BattleObjectiveDef` 已具备运行时主链和批量验证入口。
 - 规则基础设施第二轮已完成：多维 liveness、`SpatialIndex` / `spatial_query`、`height_range` 过滤和 tick budget 监控已经进入主干。
+- 视觉反馈层协议骨架已落地：VisualCue 事件反馈、VisualProfile 实体表现、VisualStageLayer 层级环境与验证入口详见 [视觉反馈层](02-runtime-protocol/19-视觉反馈层.md)。
 - 僵尸基础设施协议 Wave 0 已完成：HealthLayer、damage_layer_policy、Movement v1、State side-effects、exposure/weight 过滤已经进入主干。
 - 波次与组波系统 v1 已进入主干：显式 `WaveDef[]` 与 `WaveRecipeDef` 共存，`WaveComposer` 可将 recipe 编译为普通 wave，`WaveRunner` 只做确定性执行。
 
@@ -98,6 +99,7 @@
 - [编译链与 Mechanic 系统](02-runtime-protocol/11-编译链与Mechanic系统.md)
 - [战斗模式组织层](02-runtime-protocol/14-战斗模式组织层.md)
 - [波次与组波系统](02-runtime-protocol/18-波次与组波系统.md)
+- [视觉反馈层](02-runtime-protocol/19-视觉反馈层.md)
 - [调试与日志观察](02-runtime-protocol/12-调试与日志观察.md)
 
 ### 内容与验证
