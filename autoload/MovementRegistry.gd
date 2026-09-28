@@ -46,6 +46,10 @@ func _register_builtin_defs() -> void:
 	var drive_def = MovementDefRef.new()
 	drive_def.id = &"core.drive"
 	register_def(drive_def, {"kind": &"core", "source": &"core"})
+
+	var climb_def = MovementDefRef.new()
+	climb_def.id = &"core.climb_once"
+	register_def(climb_def, {"kind": &"core", "source": &"core"})
 	_register_builtin_strategies()
 
 
@@ -183,6 +187,65 @@ func _register_builtin_strategies() -> void:
 			command["height_velocity"] = float(params.get("jump_velocity", 220.0))
 		return command
 
+	_movement_strategies[&"core.climb_once"] = func(owner: Node, spec: Dictionary, _delta: float, blackboard: Dictionary) -> Dictionary:
+		# Ladder climb-over (original UpdateClimbingLadder semantics): constant
+		# ascent at climb_speed with slight forward drift while below the wall
+		# top, then gravity takes over past climb_height (HEIGHT_FALLING) until
+		# ground contact, where post_climb_movement resumes normal walking.
+		var params: Dictionary = Dictionary(spec.get("params", {}))
+		var drift_speed := _resolve_slots_speed(params, "climb_drift_slots_per_sec", 50.0)
+		var climb_speed := _resolve_slots_speed(params, "climb_speed_slots_per_sec", 80.0)
+		var climb_height := _resolve_slots_distance(params, "climb_height_slots", 90.0)
+		var direction := Vector2(params.get("direction", Vector2.LEFT))
+		if direction.length_squared() <= 0.0001:
+			direction = Vector2.LEFT
+		var height := 0.0
+		var ground_contact := true
+		if owner != null and owner.has_method("get_height"):
+			height = float(owner.call("get_height"))
+		if owner != null and owner.has_method("is_ground_contact"):
+			ground_contact = bool(owner.call("is_ground_contact"))
+		if bool(blackboard.get("landed", false)):
+			if params.get("post_climb_movement", null) is Dictionary and owner != null and owner.has_method("set_movement_spec"):
+				owner.call("set_movement_spec", Dictionary(params.get("post_climb_movement")).duplicate(true))
+			return {
+				"source_id": &"movement:core.climb_once",
+				"command_kind": &"base",
+				"ground_velocity": direction.normalized() * _resolve_slots_speed(params, "move_speed_slots_per_sec", drift_speed),
+				"ground_contact": true,
+				"exposure_state": &"ground",
+				"interruptible": true,
+				"pause_reason": StringName(),
+			}
+		if ground_contact and height <= 0.001 and bool(blackboard.get("started", false)):
+			blackboard["landed"] = true
+			return {
+				"source_id": &"movement:core.climb_once",
+				"command_kind": &"base",
+				"ground_velocity": direction.normalized() * drift_speed,
+				"ground_contact": true,
+				"exposure_state": &"ground",
+				"interruptible": true,
+				"pause_reason": StringName(),
+			}
+		blackboard["started"] = true
+		var command := {
+			"source_id": &"movement:core.climb_once",
+			"command_kind": &"base",
+			"ground_velocity": direction.normalized() * drift_speed,
+			"ground_contact": false,
+			"exposure_state": &"airborne",
+			"interruptible": false,
+			"pause_reason": StringName(),
+		}
+		if height >= climb_height:
+			# Wall top reached: stop thrusting and let gravity finish the arc.
+			command["gravity"] = float(params.get("gravity", -520.0))
+		else:
+			command["height_velocity"] = climb_speed
+			command["gravity"] = 0.0
+		return command
+
 	_movement_strategies[&"core.tunnel"] = func(_owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> Dictionary:
 		var params: Dictionary = Dictionary(spec.get("params", {}))
 		var fallback_speed := float(params.get("move_speed", 80.0))
@@ -268,6 +331,15 @@ func _resolve_slots_speed(params: Dictionary, slots_key: String, default_world_p
 	if params.has(slots_key):
 		return float(params.get(slots_key)) * 96.0
 	return default_world_per_sec
+
+
+func _resolve_slots_distance(params: Dictionary, slots_key: String, default_world: float) -> float:
+	var metrics := _get_battlefield_metrics()
+	if metrics != null and metrics.has_method("resolve_slots_distance"):
+		return float(metrics.call("resolve_slots_distance", params, slots_key, default_world))
+	if params.has(slots_key):
+		return float(params.get(slots_key)) * 96.0
+	return default_world
 
 
 func _get_battlefield_metrics() -> RefCounted:

@@ -845,7 +845,7 @@ static func _build_state_spec_inline(archetype, mechanic) -> Dictionary:
 
 static var _compile_controller_bite: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"attack_damage", &"attack_interval", &"attack_range", &"move_speed", &"move_speed_slots_per_sec", &"scan_range", &"scan_range_slots", &"range_mode", &"detection_id"])
+	_merge_controller_overrides(base_params, merged_params, [&"attack_damage", &"attack_interval", &"attack_range", &"move_speed", &"move_speed_slots_per_sec", &"scan_range", &"scan_range_slots", &"range_mode", &"detection_id", &"ladder_climb"])
 	return {
 		"controller_id": &"core.bite",
 		"mechanic_id": mechanic.mechanic_id,

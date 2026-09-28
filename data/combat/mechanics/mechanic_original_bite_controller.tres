@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.bite_controller"
+display_name = "Original Bite Controller"
+family = &"Controller"
+type_id = &"core.bite"
+priority = 10
+tags = PackedStringArray("original", "zombie", "controller", "bite")
+params = {
+"attack_damage": 10,
+"attack_interval": 0.3,
+"attack_range": 56.0,
+"detection_id": "lane_backward",
+"ladder_climb": {
+"ladder_tag": "ladder_grid_item",
+"movement": {
+"movement_id": &"core.climb_once",
+"params": {
+"climb_drift_slots_per_sec": 0.52,
+"climb_height_slots": 0.94,
+"climb_speed_slots_per_sec": 0.83,
+"direction": Vector2(-1, 0),
+"gravity": -520.0,
+"post_climb_movement": {
+"movement_id": &"core.walk",
+"params": {
+"direction": Vector2(-1, 0),
+"move_speed_slots_per_sec": 0.25
+}
+}
+}
+}
+}
+}

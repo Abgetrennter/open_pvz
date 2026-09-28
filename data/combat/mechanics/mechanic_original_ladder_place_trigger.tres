@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.ladder_place_trigger"
+display_name = "Original Ladder Place Trigger"
+family = &"Trigger"
+type_id = &"core.proximity"
+priority = 20
+tags = PackedStringArray("original", "zombie", "trigger", "ladder")
+params = {
+"binding_group": &"ladder_place",
+"detection_id": &"lane_backward",
+"interval": 0.15,
+"scan_range_slots": 0.6,
+"target_tags": PackedStringArray("defense")
+}

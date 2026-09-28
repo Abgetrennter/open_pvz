@@ -82,6 +82,7 @@
         "zombie_original_bungee_validation",
         "zombie_original_bungee_umbrella_validation",
         "zombie_original_ladder_validation",
+        "zombie_original_ladder_grid_validation",
         "zombie_original_catapult_validation",
         "zombie_original_vault_block_validation",
         "zombie_original_batch_d_validation"

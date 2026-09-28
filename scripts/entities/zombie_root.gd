@@ -32,6 +32,7 @@ const HEALTH_BAD := Color("c44a3d")
 
 var _attack_cooldown := 0.0
 var _attack_target: Node = null
+var _ladder_climb_started_target_id := -1
 var _is_dying := false
 var _death_elapsed := 0.0
 var _last_status_effect_signature := ""
@@ -302,6 +303,14 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 	if movement_component != null:
 		movement_component.velocity = Vector2.ZERO
 	_attack_target = _find_attack_target_with_range(resolved_attack_range)
+	# Ladder climb-over (original Zombie.cpp:6964 GetLadderAt override): a
+	# walker meeting a plant whose slot already carries a ladder stops
+	# chewing and climbs over instead. Content opts in per bite mechanic via
+	# the ladder_climb param carrying the climb movement spec.
+	if _attack_target != null and params.get("ladder_climb", null) is Dictionary \
+			and not Dictionary(params.get("ladder_climb")).is_empty() \
+			and _try_begin_ladder_climb(Dictionary(params.get("ladder_climb"))):
+		_attack_target = null
 	if _attack_target != null:
 		if movement_component != null:
 			movement_component.velocity = Vector2.ZERO
@@ -361,6 +370,45 @@ func _process_forward_movement(delta: float, base_move_speed: float) -> void:
 	else:
 		movement_component.velocity = fallback_velocity * get_effective_movement_scale()
 		movement_component.physics_process_movement(self, delta)
+
+
+func _try_begin_ladder_climb(climb_spec: Dictionary) -> bool:
+	# Returns true (and switches this walker onto the climb movement) when the
+	# current attack target's board slot carries a ladder grid item; chewers
+	# must then skip the bite loop entirely for that target.
+	if _attack_target == null or not is_instance_valid(_attack_target):
+		return false
+	var target_id := int(_attack_target.call("get_entity_id")) if _attack_target.has_method("get_entity_id") else -1
+	if target_id >= 0 and target_id == _ladder_climb_started_target_id:
+		# Already climbing over this plant; keep suppressing the bite loop.
+		return true
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("get_grid_item_state") or not battle.has_method("get_battlefield_metrics"):
+		return false
+	var grid_item_state: Variant = battle.call("get_grid_item_state")
+	if grid_item_state == null or not grid_item_state.has_method("get_grid_item_at"):
+		return false
+	var lane_value: Variant = _attack_target.get("lane_id")
+	if not (lane_value is int):
+		return false
+	var metrics: Variant = battle.call("get_battlefield_metrics")
+	if metrics == null or not metrics.has_method("world_to_slot_index"):
+		return false
+	var slot_index := int(metrics.call("world_to_slot_index", (_attack_target as Node2D).position.x))
+	var grid_item: Node = grid_item_state.call("get_grid_item_at", int(lane_value), slot_index)
+	if grid_item == null or not is_instance_valid(grid_item):
+		return false
+	var grid_tags: Variant = grid_item.get("tags")
+	if not (grid_tags is PackedStringArray or grid_tags is Array):
+		return false
+	var climb_tag := String(Dictionary(climb_spec).get("ladder_tag", "ladder_grid_item"))
+	if not PackedStringArray(grid_tags).has(climb_tag):
+		return false
+	_ladder_climb_started_target_id = target_id
+	if has_method("set_movement_spec"):
+		var movement_spec: Dictionary = Dictionary(climb_spec.get("movement", climb_spec)).duplicate(true)
+		set_movement_spec(movement_spec)
+	return true
 
 
 func _find_attack_target_with_range(resolved_attack_range: float) -> Node:

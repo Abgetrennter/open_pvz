@@ -380,6 +380,9 @@ func _register_builtin_defs() -> void:
 		"name": "target_exposure_states",
 		"type": "packed_string_array",
 		"default": PackedStringArray(["ground"]),
+	}, {
+		"name": "remove_grid_item_tags",
+		"type": "packed_string_array",
 	}]
 	explode.param_defs = explode_param_defs
 	explode.allow_extra_params = false
@@ -539,6 +542,10 @@ func _register_builtin_defs() -> void:
 		"max": 64,
 	}, {
 		"name": "occupies_blocker_role",
+		"type": "bool",
+		"default": false,
+	}, {
+		"name": "at_target_slot",
 		"type": "bool",
 		"default": false,
 	}, {
@@ -909,6 +916,11 @@ func _register_builtin_strategies() -> void:
 			if target == null or not target.has_method("take_damage"):
 				continue
 			target.call("take_damage", amount, effect_source, PackedStringArray(["explode", String(context.event_name)]), _build_damage_runtime(context, params))
+		# Fire clears lane grid items (original Plant.cpp:4286 / Zombie.cpp:2339:
+		# jalapeno and fire trails remove every ladder in the burned row).
+		var clear_tags := PackedStringArray(params.get("remove_grid_item_tags", PackedStringArray()))
+		if not clear_tags.is_empty():
+			_remove_lane_grid_items_with_tags(context, clear_tags)
 		return result
 	)
 
@@ -967,7 +979,7 @@ func _register_builtin_strategies() -> void:
 		return result
 	)
 
-	register_strategy(&"spawn_grid_item", func(_context, params: Dictionary, _node) -> Variant:
+	register_strategy(&"spawn_grid_item", func(context, params: Dictionary, _node) -> Variant:
 		var result: Variant = EffectResultRef.new()
 		var grid_item_state := _resolve_grid_item_state()
 		if grid_item_state == null:
@@ -975,11 +987,25 @@ func _register_builtin_strategies() -> void:
 			result.notes.append("No grid item state available.")
 			return result
 
+		var lane_id := int(params.get("lane_id", -1))
+		var slot_index := int(params.get("slot_index", -1))
+		# Context-slot placement (original Ladder semantics, de-pvz AddALadder
+		# at the chew target's board cell): resolve the owning slot of the
+		# context target plant instead of static lane/slot values.
+		if bool(params.get("at_target_slot", false)):
+			var slot_target := _resolve_target(context, params)
+			var resolved := _resolve_entity_grid_slot(slot_target)
+			if resolved.is_empty():
+				result.success = false
+				result.notes.append("Grid item context target slot missing or invalid.")
+				return result
+			lane_id = int(resolved["lane_id"])
+			slot_index = int(resolved["slot_index"])
 		var spawned_entity: Node = grid_item_state.call(
 			"spawn_grid_item_at",
 			StringName(params.get("archetype_id", StringName())),
-			int(params.get("lane_id", -1)),
-			int(params.get("slot_index", -1)),
+			lane_id,
+			slot_index,
 			Dictionary(params.get("spawn_overrides", {})).duplicate(true),
 			bool(params.get("occupies_blocker_role", false))
 		)
@@ -1737,6 +1763,58 @@ func _resolve_grid_item_state() -> Node:
 		return null
 	var state: Variant = GameState.current_battle.call("get_grid_item_state")
 	return state if state is Node else null
+
+
+func _remove_lane_grid_items_with_tags(context, clear_tags: PackedStringArray) -> void:
+	# Fire-row cleanup (original jalapeno/fire-trail semantics, Plant.cpp:4286):
+	# remove every grid item carrying any of clear_tags within the exploded lane.
+	var grid_item_state := _resolve_grid_item_state()
+	if grid_item_state == null or not grid_item_state.has_method("get_all_grid_items"):
+		return
+	var lane_id := int(context.core.get("lane_id", -1)) if context != null else -1
+	if lane_id < 0:
+		var source := _resolve_effect_source_node(context)
+		if source != null and source.get("lane_id") is int:
+			lane_id = int(source.get("lane_id"))
+	if lane_id < 0:
+		return
+	for item in Array(grid_item_state.call("get_all_grid_items")):
+		if item == null or not is_instance_valid(item):
+			continue
+		var item_lane := int(item.get("grid_lane_id")) if item.get("grid_lane_id") is int else -1
+		if item_lane != lane_id:
+			continue
+		var item_tags: Variant = item.get("tags")
+		if not (item_tags is PackedStringArray or item_tags is Array):
+			continue
+		var tag_set := PackedStringArray(item_tags)
+		for clear_tag: String in clear_tags:
+			if tag_set.has(clear_tag):
+				grid_item_state.call("remove_grid_item_for_entity", item, &"explode_cleared")
+				break
+
+
+func _resolve_entity_grid_slot(entity: Node) -> Dictionary:
+	# Maps a board-anchored entity (plant) to its owning grid slot via the
+	# battlefield metrics slot grid (lane + world_to_slot_index).
+	if entity == null or not is_instance_valid(entity) or not (entity is Node2D):
+		return {}
+	var lane_value: Variant = entity.get("lane_id")
+	if not (lane_value is int):
+		return {}
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("get_battlefield_metrics"):
+		return {}
+	var metrics: Variant = battle.call("get_battlefield_metrics")
+	if metrics == null or not metrics.has_method("world_to_slot_index"):
+		return {}
+	var slot_index := int(metrics.call("world_to_slot_index", (entity as Node2D).position.x))
+	if slot_index < 0:
+		return {}
+	return {
+		"lane_id": int(lane_value),
+		"slot_index": slot_index,
+	}
 
 
 func _resolve_slots_distance(params: Dictionary, slots_key: String, default_world: float) -> float:

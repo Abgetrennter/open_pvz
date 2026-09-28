@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.ladder_place_payload"
+display_name = "Original Ladder Place Payload"
+family = &"Payload"
+type_id = &"core.invoke_effect"
+priority = 20
+tags = PackedStringArray("original", "zombie", "payload", "ladder")
+params = {
+"archetype_id": &"archetype_ladder_grid_item",
+"at_target_slot": true,
+"binding_group": &"ladder_place",
+"effect_id": &"spawn_grid_item"
+}

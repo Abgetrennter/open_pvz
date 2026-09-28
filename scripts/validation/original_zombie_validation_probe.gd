@@ -44,6 +44,12 @@ func _process(_delta: float) -> void:
 			return
 		_emit_probe(probe_id, &"passed", {})
 		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_ladder_grid":
+		if not _validate_ladder_grid_behavior():
+			push_error("original zombie probe failed: ladder grid behavior")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
 	else:
 		_probe_single(probe_id)
 
@@ -469,6 +475,84 @@ func _validate_bungee_umbrella_interception() -> bool:
 	return intercepted \
 		and _entity_health(covered) == covered_before \
 		and _entity_health(uncovered) == 0
+
+
+func _validate_ladder_grid_behavior() -> bool:
+	# Behavior-level ladder pass (de-pvz UpdateLadder/UpdateClimbingLadder):
+	# wall-nuts are pre-planted via scenario spawns; the probe steps a few
+	# ticks so the plants are indexed, then drops a Ladder zombie and a basic
+	# walker in front of them. The Ladder zombie must place a ladder grid item
+	# on the covered slot, climb over without chewing, and pass the wall; the
+	# uncovered walker must chew its wall-nut normally.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var covered_wall := _find_entity_by_archetype(&"archetype_original_wallnut", 0)
+	var uncovered_wall := _find_entity_by_archetype(&"archetype_original_wallnut", 1)
+	if covered_wall == null or uncovered_wall == null:
+		return false
+	var covered_before := _entity_health(covered_wall)
+	var uncovered_before := _entity_health(uncovered_wall)
+	var ladder_zombie := _spawn_archetype(&"archetype_original_ladder", Vector2(320.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var walker_zombie := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(320.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if ladder_zombie == null or walker_zombie == null:
+		return false
+	# ~4.0s: ladder place (within 0.6s of approach), climb (1.1s), fall
+	# (0.6s), resume walking; walker covers 64px to its wall and chews.
+	_battle.call("step_simulation_ticks", 400)
+	var grid_item_state: Variant = (_battle.call("get_grid_item_state") if _battle.has_method("get_grid_item_state") else null)
+	if grid_item_state == null or not grid_item_state.has_method("get_grid_item_at"):
+		return false
+	var metrics: Variant = (_battle.call("get_battlefield_metrics") if _battle.has_method("get_battlefield_metrics") else null)
+	if metrics == null or not metrics.has_method("world_to_slot_index"):
+		return false
+	var covered_slot := int(metrics.call("world_to_slot_index", (covered_wall as Node2D).position.x))
+	var ladder_item: Node = grid_item_state.call("get_grid_item_at", 0, covered_slot)
+	if ladder_item == null or not is_instance_valid(ladder_item):
+		push_error("ladder probe: no ladder grid item on covered slot")
+		return false
+	var ladder_tags: Variant = ladder_item.get("tags")
+	if not PackedStringArray(ladder_tags).has("ladder_grid_item"):
+		push_error("ladder probe: grid item on covered slot is not a ladder")
+		return false
+	var uncovered_slot := int(metrics.call("world_to_slot_index", (uncovered_wall as Node2D).position.x))
+	if grid_item_state.call("get_grid_item_at", 1, uncovered_slot) != null:
+		push_error("ladder probe: uncovered slot unexpectedly occupied")
+		return false
+	if not is_instance_valid(ladder_zombie) or (ladder_zombie as Node2D).position.x > (covered_wall as Node2D).position.x - 40.0:
+		push_error("ladder probe: ladder zombie did not pass the covered wall (x=%.1f)" % (ladder_zombie.position.x if is_instance_valid(ladder_zombie) else -1.0))
+		return false
+	if _entity_health(covered_wall) != covered_before:
+		push_error("ladder probe: covered wall-nut was chewed")
+		return false
+	if _entity_health(uncovered_wall) >= uncovered_before:
+		push_error("ladder probe: uncovered wall-nut was not chewed")
+		return false
+	# Fire clears lane ladders (Plant.cpp:4286): execute the jalapeno lane
+	# explode against lane 0 and verify the ladder grid item is removed.
+	var removed_box := {"hit": false}
+	var grid_listener := func(event_data):
+		if StringName(event_data.core.get("reason", StringName())) == &"explode_cleared":
+			removed_box["hit"] = true
+	EventBus.subscribe(&"grid_item.removed", grid_listener)
+	var explode_context = RuleContextRef.new()
+	explode_context.owner_entity = covered_wall
+	explode_context.source_node = covered_wall
+	explode_context.target_node = covered_wall
+	explode_context.position = (covered_wall as Node2D).global_position
+	explode_context.event_name = &"original_zombie.probe"
+	explode_context.runtime = {"chain_id": "original_zombie_probe", "depth": 1}
+	explode_context.core["lane_id"] = 0
+	EffectExecutorRef.execute_node(EffectNodeRef.new(&"explode", {
+		"amount": 1,
+		"remove_grid_item_tags": PackedStringArray(["ladder_grid_item"]),
+		"target_mode": &"context_target",
+	}), explode_context)
+	EventBus.unsubscribe(&"grid_item.removed", grid_listener)
+	if not bool(removed_box["hit"]):
+		push_error("ladder probe: explode effect missing or ladder not cleared")
+		return false
+	return true
 
 
 func _find_entity_by_archetype(archetype_id: StringName, lane_id: int) -> Node:

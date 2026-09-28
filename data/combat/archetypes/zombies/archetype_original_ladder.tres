@@ -1,10 +1,12 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Script" path="res://scripts/core/defs/health_layer_def.gd" id="2_layer_script"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="3_height"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_walk.tres" id="4_walk"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="5_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bite_controller.tres" id="5_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_ladder_place_trigger.tres" id="6_ladder_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_ladder_place_payload.tres" id="7_ladder_payload"]
 
 [sub_resource type="Resource" id="Layer_ladder"]
 script = ExtResource("2_layer_script")
@@ -30,4 +32,4 @@ hit_height_band = ExtResource("3_height")
 default_params = {
 "move_speed_slots_per_sec": 0.8
 }
-mechanics = [ExtResource("4_walk"), ExtResource("5_bite")]
+mechanics = [ExtResource("4_walk"), ExtResource("5_bite"), ExtResource("6_ladder_trigger"), ExtResource("7_ladder_payload")]

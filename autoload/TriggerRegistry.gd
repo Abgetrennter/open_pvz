@@ -178,6 +178,20 @@ func _register_builtin_defs() -> void:
 		"min": 0.0,
 		"max": 64.0,
 	}, {
+		"name": "detection_id",
+		"type": "string_name",
+		"default": &"proximity",
+		"options": PackedStringArray(["proximity", "lane_forward", "lane_backward", "radius_around"]),
+	}, {
+		"name": "target_tags",
+		"type": "packed_string_array",
+	}, {
+		"name": "target_priority_tags",
+		"type": "packed_string_array",
+	}, {
+		"name": "target_exclude_tags",
+		"type": "packed_string_array",
+	}, {
 		"name": "required_state",
 		"type": "string_name",
 	}, {
@@ -327,14 +341,19 @@ func _register_builtin_strategies() -> void:
 			return false
 
 		var scan_range := float(condition_values.get("scan_range", 64.0))
+		var detection_id := StringName(condition_values.get("detection_id", &"proximity"))
+		if detection_id == StringName():
+			detection_id = &"proximity"
 		var detection_params := {
 			"scan_range": scan_range,
 			"target_tags": PackedStringArray(condition_values.get("target_tags", PackedStringArray())),
+			"target_priority_tags": PackedStringArray(condition_values.get("target_priority_tags", PackedStringArray())),
+			"target_exclude_tags": PackedStringArray(condition_values.get("target_exclude_tags", PackedStringArray())),
 			"respect_visibility": bool(condition_values.get("respect_visibility", false)),
 		}
 		if condition_values.has("scan_range_slots"):
 			detection_params["scan_range_slots"] = float(condition_values.get("scan_range_slots"))
-		var detection_result: Dictionary = DetectionRegistry.evaluate(&"proximity", instance.owner_entity, detection_params)
+		var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, instance.owner_entity, detection_params)
 		if not bool(detection_result.get("has_target", false)):
 			return false
 

@@ -13,5 +13,6 @@ tags = PackedStringArray("original", "instant", "explode", "lane")
 params = {
 "amount": 1800,
 "radius_slots": 10.416667,
+"remove_grid_item_tags": PackedStringArray("ladder_grid_item"),
 "target_mode": &"enemies_in_lane"
 }

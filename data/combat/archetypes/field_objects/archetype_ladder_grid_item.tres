@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CombatArchetype" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_archetype.gd" id="1_archetype"]
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_ladder_grid_item"
+entity_kind = &"field_object"
+display_name = "Ladder GridItem"
+tags = PackedStringArray("archetype", "field_object", "grid_item", "ladder_grid_item")
+placement_role = &"grid_item"
+granted_placement_tags = PackedStringArray("grid_item", "ladder_grid_item")
+max_health = -1
+hitbox_size = Vector2(40, 60)

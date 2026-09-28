@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_wallnut_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 0
+x_position = 256.0
+
+[sub_resource type="Resource" id="Spawn_wallnut_lane1"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 1
+x_position = 256.0
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"ladder_grid_probe_passed"
+description = "The ladder grid probe must pass: ladder placed on the covered slot, ladder zombie climbs over without chewing, walker chews the uncovered wall-nut."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_ladder_grid",
+"result": &"passed"
+}
+
+[sub_resource type="Resource" id="Rule_covered_not_chewed"]
+script = ExtResource("3_rule")
+rule_id = &"covered_wallnut_not_chewed"
+description = "The covered Wall-nut must never receive bite damage while the ladder zombie crosses."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_original_ladder",
+"target_archetype_id": &"archetype_original_wallnut",
+"lane_id": 0
+}
+
+[sub_resource type="Resource" id="Rule_ladder_spawned"]
+script = ExtResource("3_rule")
+rule_id = &"ladder_grid_item_spawned"
+description = "A ladder grid item must be spawned into the covered slot."
+event_name = &"grid_item.spawned"
+min_count = 1
+required_core_values = {
+"grid_item_archetype_id": &"archetype_ladder_grid_item"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_ladder_grid_validation"
+display_name = "Original Ladder GridItem Validation"
+description = "Validates Z-25/Z-26: the Ladder zombie places a persistent ladder grid item on the approached defense slot, climbs over it without chewing, and other walkers chew an uncovered wall-nut normally."
+goals = PackedStringArray("Ladder zombie places a ladder grid item at the wall-nut slot.", "Ladder zombie climbs over the wall without dealing bite damage.", "A plain walker still chews an uncovered wall-nut.")
+validation_time_limit = 12.0
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed"), SubResource("Rule_covered_not_chewed"), SubResource("Rule_ladder_spawned")]
+spawns = [SubResource("Spawn_wallnut_lane0"), SubResource("Spawn_wallnut_lane1")]

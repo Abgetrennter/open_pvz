@@ -1354,6 +1354,12 @@
     "layers": ["core"]
   },
   {
+    "id": "zombie_original_ladder_grid_validation",
+    "scenario": "res://scenes/validation/zombie_original_ladder_grid_validation.tres",
+    "description": "Validates ladder grid item lifecycle: the Ladder zombie places a persistent ladder on the defense slot, climbs over without chewing, and walkers chew an uncovered wall-nut.",
+    "layers": ["core"]
+  },
+  {
     "id": "zombie_original_yeti_validation",
     "scenario": "res://scenes/validation/zombie_original_yeti_validation.tres",
     "description": "Validates Original Yeti flee state movement side effect.",
