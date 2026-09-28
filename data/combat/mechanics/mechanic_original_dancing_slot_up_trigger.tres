@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.dancing_slot_up_trigger"
+display_name = "Original Dancing Slot Up Trigger"
+family = &"Trigger"
+type_id = &"core.periodic"
+priority = 10
+tags = PackedStringArray("original", "zombie", "trigger", "summon")
+params = {
+"binding_group": &"dancer_slot_up",
+"detection_id": &"proximity",
+"interval": 1.67,
+"lane_offset": -1,
+"require_no_target": true,
+"scan_range": 64.0,
+"start_delay": 1.0,
+"target_tags": PackedStringArray("backup_dancer"),
+"team_mode": &"allies"
+}

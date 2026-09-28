@@ -1,14 +1,17 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_walk.tres" id="3_walk"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bite_controller.tres" id="4_bite"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_trigger.tres" id="5_trigger"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_lane_up.tres" id="6_up"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_lane_down.tres" id="7_down"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_left.tres" id="8_left"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_spawn_right.tres" id="9_right"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_slot_up_trigger.tres" id="5_up_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_slot_up_payload.tres" id="6_up_payload"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_slot_down_trigger.tres" id="7_down_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_slot_down_payload.tres" id="8_down_payload"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_slot_left_trigger.tres" id="9_left_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_slot_left_payload.tres" id="10_left_payload"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_slot_right_trigger.tres" id="11_right_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_dancing_slot_right_payload.tres" id="12_right_payload"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -23,4 +26,4 @@ hit_height_band = ExtResource("2_height")
 default_params = {
 "move_speed_slots_per_sec": 0.45
 }
-mechanics = [ExtResource("3_walk"), ExtResource("5_trigger"), ExtResource("6_up"), ExtResource("7_down"), ExtResource("8_left"), ExtResource("9_right"), ExtResource("4_bite")]
+mechanics = [ExtResource("3_walk"), ExtResource("5_up_trigger"), ExtResource("6_up_payload"), ExtResource("7_down_trigger"), ExtResource("8_down_payload"), ExtResource("9_left_trigger"), ExtResource("10_left_payload"), ExtResource("11_right_trigger"), ExtResource("12_right_payload"), ExtResource("4_bite")]

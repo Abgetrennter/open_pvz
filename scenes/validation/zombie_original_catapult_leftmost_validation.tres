@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[sub_resource type="Resource" id="Spawn_sunflower0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_sunflower"
+lane_id = 0
+x_position = 160
+[sub_resource type="Resource" id="Spawn_peashooter0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_peashooter"
+lane_id = 0
+x_position = 400
+[sub_resource type="Resource" id="Spawn_spikeweed1"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_spikeweed"
+lane_id = 1
+x_position = 300
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"zombie_original_catapult_leftmost_validation_probe_passed"
+description = "The catapult_leftmost probe must pass."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_catapult_leftmost",
+"result": &"passed"
+}
+
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_catapult_leftmost_validation"
+display_name = "Original Catapult Leftmost-Column Targeting Validation"
+description = "Validates Z-29: the catapult targets the leftmost plant of its lane (FindCatapultTarget), excludes spiky plants, and keeps a 100px minimum range."
+goals = PackedStringArray("The leftmost sunflower takes the first basketball hits.", "The nearer peashooter stays untouched.", "A spikeweed-only lane never draws fire.")
+validation_time_limit = 12
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed")]
+spawns = [SubResource("Spawn_sunflower0"), SubResource("Spawn_peashooter0"), SubResource("Spawn_spikeweed1")]

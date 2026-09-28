@@ -3,6 +3,7 @@ class_name TriggerInstance
 
 const RuleContextRef = preload("res://scripts/core/runtime/rule_context.gd")
 const EffectExecutorRef = preload("res://scripts/core/runtime/effect_executor.gd")
+const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 
 var spec_id: StringName = StringName()
 var def_id: StringName = StringName()
@@ -17,6 +18,7 @@ var pending_context_overrides: Dictionary = {}
 var _timing_rng: RandomNumberGenerator = null
 var _schedule_initialized := false
 var _next_trigger_time := -1.0
+var _exhaustion_emitted := false
 
 
 func bind_owner(entity: Node) -> void:
@@ -85,7 +87,26 @@ func execute(incoming_event_name: StringName, event_data) -> Array:
 		results.append(EffectExecutorRef.execute_node(effect_root, context))
 
 	clear_pending_context_overrides()
+	_emit_exhaustion_if_reached()
 	return results
+
+
+func _emit_exhaustion_if_reached() -> void:
+	# Ammo-style exhaustion (original Catapult mSummonCounter == 0): once the
+	# final allowed execution has run, emit a one-shot event so state machines
+	# can switch the entity (e.g. Catapult to walk-and-bite) without polling.
+	if _exhaustion_emitted or owner_entity == null or not is_instance_valid(owner_entity):
+		return
+	var max_trigger_count := int(condition_values.get("max_trigger_count", 0))
+	if max_trigger_count <= 0 or fired_count < max_trigger_count:
+		return
+	_exhaustion_emitted = true
+	var event_data: Variant = EventDataRef.create(owner_entity, owner_entity, fired_count, PackedStringArray(["trigger", "exhausted"]))
+	event_data.core["spec_id"] = spec_id
+	event_data.core["def_id"] = def_id
+	event_data.core["fired_count"] = fired_count
+	event_data.core["max_trigger_count"] = max_trigger_count
+	EventBus.push_event(&"trigger.exhausted", event_data)
 
 
 func _apply_pending_context_overrides(context) -> void:

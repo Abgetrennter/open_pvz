@@ -123,3 +123,33 @@ static func derive_entity_seed(battle_seed_val: int, entity_id: int) -> int:
 
 static func derive_mechanic_seed(entity_seed_val: int, mechanic_id: StringName) -> int:
 	return hash(str(entity_seed_val) + "_" + String(mechanic_id))
+
+
+func resolve_ranged_value(owner: Variant, params: Dictionary, key: String) -> Variant:
+	# Range-sampled params (original PickRandomSpeed: zombies spawn with a
+	# speed sampled from a per-type range). When `key + "_min"/"_max"` are set,
+	# sample ONCE per entity+key with the deterministic per-mechanic RNG and
+	# cache the result on the entity, so every consumer (movement spec, bite
+	# fallback walk) agrees on the same roll. Returns null when no range.
+	var min_value := float(params.get(key + "_min", -1.0))
+	var max_value := float(params.get(key + "_max", -1.0))
+	if min_value < 0.0 or max_value < 0.0:
+		return null
+	if max_value < min_value:
+		var temp := min_value
+		min_value = max_value
+		max_value = temp
+	# Meta identifiers must be valid identifiers (no decimal points), so the
+	# range bounds are encoded as integer basis points.
+	var cache_key := "range_roll__%s__%d__%d" % [key, int(round(min_value * 10000.0)), int(round(max_value * 10000.0))]
+	if owner is Object and owner.has_meta(cache_key):
+		return owner.get_meta(cache_key)
+	var rng := RandomNumberGenerator.new()
+	var entity_seed := battle_seed
+	if owner != null and owner.has_method("get_entity_id"):
+		entity_seed = derive_entity_seed(battle_seed, int(owner.call("get_entity_id")))
+	rng.seed = derive_mechanic_seed(entity_seed, StringName(cache_key))
+	var sampled := min_value if is_equal_approx(min_value, max_value) else rng.randf_range(min_value, max_value)
+	if owner is Object:
+		owner.set_meta(cache_key, sampled)
+	return sampled

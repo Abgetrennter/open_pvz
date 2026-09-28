@@ -455,6 +455,11 @@ func _resolve_move_speed(params: Dictionary = {}) -> float:
 	}
 	for key: Variant in params.keys():
 		source_params[key] = params[key]
+	# Range keys roll once per entity and share the cached sample with the
+	# movement-spec path (original PickRandomSpeed per-zombie roll).
+	var sampled: Variant = GameState.resolve_ranged_value(self, source_params, "move_speed_slots_per_sec")
+	if sampled != null:
+		source_params["move_speed_slots_per_sec"] = float(sampled)
 	var metrics := _get_battlefield_metrics()
 	if metrics != null and metrics.has_method("resolve_slots_speed"):
 		return float(metrics.call("resolve_slots_speed", source_params, "move_speed_slots_per_sec", move_speed))

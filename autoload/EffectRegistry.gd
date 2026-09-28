@@ -628,6 +628,12 @@ func _register_builtin_defs() -> void:
 		"max": 200.0,
 		"default": -36.0,
 	}, {
+		"name": "x_offset",
+		"type": "float",
+		"min": -400.0,
+		"max": 400.0,
+		"default": 0.0,
+	}, {
 		"name": "value_by_state",
 		"type": "dictionary",
 		"default": {},
@@ -1149,7 +1155,10 @@ func _register_builtin_strategies() -> void:
 		var value := _resolve_produce_sun_value(context.owner_entity, params)
 		var source_type := StringName(params.get("source_type", &"plant_generated"))
 		var offset_y := float(params.get("offset_y", -36.0))
-		var spawn_pos: Vector2 = context.position + Vector2(0.0, offset_y)
+		# Horizontal spread for multi-drop payloads (original Yeti DropLoot
+		# spawns 4 diamonds at aCenterX-20/-30/-40/-50).
+		var x_offset := float(params.get("x_offset", 0.0))
+		var spawn_pos: Vector2 = context.position + Vector2(x_offset, offset_y)
 		var lane_id := -1
 		if context.owner_entity != null and context.owner_entity.get("lane_id") != null:
 			lane_id = int(context.owner_entity.get("lane_id"))

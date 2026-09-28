@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_drive.tres" id="3_drive"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_crush_controller.tres" id="4_crush"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_drive_over_controller.tres" id="4_crush"]
 
 [resource]
 script = ExtResource("1_archetype")

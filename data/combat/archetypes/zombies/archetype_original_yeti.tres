@@ -1,10 +1,15 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_walk.tres" id="3_walk"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="4_bite"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_yeti_flee_state.tres" id="5_flee"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_yeti_gift_trigger.tres" id="6_gift_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_yeti_gift_payload_a.tres" id="7_gift_a"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_yeti_gift_payload_b.tres" id="8_gift_b"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_yeti_gift_payload_c.tres" id="9_gift_c"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_yeti_gift_payload_d.tres" id="10_gift_d"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -19,4 +24,4 @@ hit_height_band = ExtResource("2_height")
 default_params = {
 "move_speed_slots_per_sec": 0.4
 }
-mechanics = [ExtResource("3_walk"), ExtResource("5_flee"), ExtResource("4_bite")]
+mechanics = [ExtResource("3_walk"), ExtResource("5_flee"), ExtResource("4_bite"), ExtResource("6_gift_trigger"), ExtResource("7_gift_a"), ExtResource("8_gift_b"), ExtResource("9_gift_c"), ExtResource("10_gift_d")]

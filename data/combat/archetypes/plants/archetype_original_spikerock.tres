@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_controller_ground_damage.tres" id="3_controller"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_spikerock_ground_damage.tres" id="3_controller"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -11,7 +11,7 @@ display_name = "Spikerock"
 visual_profile_id = &"classic_original.entity.plant.spikerock.visual"
 hit_height_band = ExtResource("2_height")
 entity_kind = &"plant"
-tags = PackedStringArray("archetype", "plant", "original", "spikerock", "upgrade", "defense", "ground")
+tags = PackedStringArray("archetype", "plant", "original", "spikerock", "upgrade", "defense", "ground", "spiky")
 required_components = PackedStringArray("ControllerComponent")
 optional_components = PackedStringArray("DebugViewComponent")
 placement_role = &"upgrade"

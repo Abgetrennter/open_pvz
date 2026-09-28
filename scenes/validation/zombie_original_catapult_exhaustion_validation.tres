@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[sub_resource type="Resource" id="Spawn_wallnut0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 0
+x_position = 500
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"zombie_original_catapult_exhaustion_validation_probe_passed"
+description = "The catapult_exhaustion probe must pass."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_catapult_exhaustion",
+"result": &"passed"
+}
+
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_catapult_exhaustion_validation"
+display_name = "Original Catapult Ammo Exhaustion Validation"
+description = "Validates the Z-28 tail: after the 20th basketball the catapult leaves the firing line (trigger.exhausted -> spent state) and switches to walking bite."
+goals = PackedStringArray("The last shot emits trigger.exhausted.", "The spent catapult abandons the 650 hold and walks.", "The wall-nut ahead gets bitten.")
+validation_time_limit = 12
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed")]
+spawns = [SubResource("Spawn_wallnut0")]

@@ -90,7 +90,7 @@ func _register_builtin_strategies() -> void:
 	_movement_strategies[&"core.walk"] = func(owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> Dictionary:
 		var params: Dictionary = Dictionary(spec.get("params", {}))
 		var fallback_speed := float(params.get("move_speed", 55.0))
-		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
+		var move_speed := _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", fallback_speed)
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
@@ -119,7 +119,7 @@ func _register_builtin_strategies() -> void:
 	_movement_strategies[&"core.leap_once"] = func(owner: Node, spec: Dictionary, _delta: float, blackboard: Dictionary) -> Dictionary:
 		var params: Dictionary = Dictionary(spec.get("params", {}))
 		var fallback_speed := float(params.get("move_speed", 80.0))
-		var move_speed := _resolve_slots_speed(params, "leap_speed_slots_per_sec", _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed))
+		var move_speed := _resolve_slots_speed(owner, params, "leap_speed_slots_per_sec", _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", fallback_speed))
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
@@ -193,8 +193,8 @@ func _register_builtin_strategies() -> void:
 		# top, then gravity takes over past climb_height (HEIGHT_FALLING) until
 		# ground contact, where post_climb_movement resumes normal walking.
 		var params: Dictionary = Dictionary(spec.get("params", {}))
-		var drift_speed := _resolve_slots_speed(params, "climb_drift_slots_per_sec", 50.0)
-		var climb_speed := _resolve_slots_speed(params, "climb_speed_slots_per_sec", 80.0)
+		var drift_speed := _resolve_slots_speed(owner, params, "climb_drift_slots_per_sec", 50.0)
+		var climb_speed := _resolve_slots_speed(owner, params, "climb_speed_slots_per_sec", 80.0)
 		var climb_height := _resolve_slots_distance(params, "climb_height_slots", 90.0)
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
@@ -211,7 +211,7 @@ func _register_builtin_strategies() -> void:
 			return {
 				"source_id": &"movement:core.climb_once",
 				"command_kind": &"base",
-				"ground_velocity": direction.normalized() * _resolve_slots_speed(params, "move_speed_slots_per_sec", drift_speed),
+				"ground_velocity": direction.normalized() * _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", drift_speed),
 				"ground_contact": true,
 				"exposure_state": &"ground",
 				"interruptible": true,
@@ -249,7 +249,7 @@ func _register_builtin_strategies() -> void:
 	_movement_strategies[&"core.tunnel"] = func(_owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> Dictionary:
 		var params: Dictionary = Dictionary(spec.get("params", {}))
 		var fallback_speed := float(params.get("move_speed", 80.0))
-		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
+		var move_speed := _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", fallback_speed)
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
@@ -266,7 +266,7 @@ func _register_builtin_strategies() -> void:
 	_movement_strategies[&"core.hop_cycle"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> Dictionary:
 		var params: Dictionary = Dictionary(spec.get("params", {}))
 		var fallback_speed := float(params.get("move_speed", 70.0))
-		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
+		var move_speed := _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", fallback_speed)
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
@@ -298,7 +298,7 @@ func _register_builtin_strategies() -> void:
 	_movement_strategies[&"core.drive"] = func(owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> Dictionary:
 		var params: Dictionary = Dictionary(spec.get("params", {}))
 		var fallback_speed := float(params.get("move_speed", 45.0))
-		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
+		var move_speed := _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", fallback_speed)
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
@@ -308,7 +308,7 @@ func _register_builtin_strategies() -> void:
 		if params.has("decel_start_x") and owner != null and owner is Node2D:
 			var decel_start_x := float(params.get("decel_start_x"))
 			var decel_end_x := float(params.get("decel_end_x", 300.0))
-			var min_speed := _resolve_slots_speed(params, "decel_min_slots_per_sec", 0.05 * 96.0)
+			var min_speed := _resolve_slots_speed(owner, params, "decel_min_slots_per_sec", 0.05 * 96.0)
 			if direction.x < 0.0 and owner.position.x <= decel_start_x:
 				var span := maxf(decel_start_x - decel_end_x, 1.0)
 				var t := clampf((decel_start_x - owner.position.x) / span, 0.0, 1.0)
@@ -324,7 +324,12 @@ func _register_builtin_strategies() -> void:
 		}
 
 
-func _resolve_slots_speed(params: Dictionary, slots_key: String, default_world_per_sec: float) -> float:
+func _resolve_slots_speed(owner: Node, params: Dictionary, slots_key: String, default_world_per_sec: float) -> float:
+	# Range keys (original PickRandomSpeed) resolve to one deterministic
+	# per-entity sample before unit conversion; see GameState.resolve_ranged_value.
+	var sampled: Variant = GameState.resolve_ranged_value(owner, params, slots_key)
+	if sampled != null:
+		params = {slots_key: float(sampled)}
 	var metrics := _get_battlefield_metrics()
 	if metrics != null and metrics.has_method("resolve_slots_speed"):
 		return float(metrics.call("resolve_slots_speed", params, slots_key, default_world_per_sec))

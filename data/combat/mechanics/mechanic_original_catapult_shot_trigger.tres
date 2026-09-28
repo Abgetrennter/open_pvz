@@ -15,7 +15,10 @@ params = {
 "detection_id": &"lane_backward",
 "interval": 2.0,
 "max_trigger_count": 20,
+"min_scan_range": 100.0,
 "range_mode": &"full_lane",
 "start_delay": 0.4,
+"target_exclude_tags": PackedStringArray("spiky"),
+"target_selection": &"leftmost",
 "target_tags": PackedStringArray("plant")
 }

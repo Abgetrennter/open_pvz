@@ -100,6 +100,39 @@ func _register_builtin_defs() -> void:
 		"type": "int",
 		"min": 0,
 		"max": 999,
+	}, {
+		"name": "require_no_target",
+		"type": "bool",
+		"default": false,
+	}, {
+		"name": "target_selection",
+		"type": "string_name",
+		"options": PackedStringArray(["leftmost"]),
+	}, {
+		"name": "min_scan_range",
+		"type": "float",
+		"min": 0.0,
+		"max": 4000.0,
+	}, {
+		"name": "min_scan_range_slots",
+		"type": "float",
+		"min": 0.0,
+		"max": 64.0,
+	}, {
+		"name": "team_mode",
+		"type": "string_name",
+		"options": PackedStringArray(["enemies", "allies"]),
+		"default": &"enemies",
+	}, {
+		"name": "lane_offset",
+		"type": "int",
+		"min": -2,
+		"max": 2,
+	}, {
+		"name": "x_offset",
+		"type": "float",
+		"min": -400.0,
+		"max": 400.0,
 	}]
 	periodically.id = &"periodically"
 	periodically.event_name = &"game.tick"
@@ -249,6 +282,9 @@ func _register_builtin_strategies() -> void:
 				instance.schedule_next_window(interval_min, interval_max, interval, game_time)
 			return true
 
+		if not _lane_offset_probe_in_bounds(instance, condition_values):
+			return false
+
 		var detection_params := {
 			"scan_range": float(condition_values.get("scan_range", 900.0)),
 			"range_mode": StringName(condition_values.get("range_mode", StringName())),
@@ -256,22 +292,41 @@ func _register_builtin_strategies() -> void:
 			"target_priority_tags": PackedStringArray(condition_values.get("target_priority_tags", PackedStringArray())),
 			"target_exclude_tags": PackedStringArray(condition_values.get("target_exclude_tags", PackedStringArray())),
 			"respect_visibility": bool(condition_values.get("respect_visibility", false)),
+			"team_mode": StringName(condition_values.get("team_mode", &"enemies")),
+			"target_selection": StringName(condition_values.get("target_selection", StringName())),
 		}
 		if condition_values.has("scan_range_slots"):
 			detection_params["scan_range_slots"] = float(condition_values.get("scan_range_slots"))
+		if condition_values.has("min_scan_range"):
+			detection_params["min_scan_range"] = float(condition_values.get("min_scan_range"))
+		if condition_values.has("min_scan_range_slots"):
+			detection_params["min_scan_range_slots"] = float(condition_values.get("min_scan_range_slots"))
+		if condition_values.has("lane_offset"):
+			detection_params["lane_offset"] = int(condition_values.get("lane_offset"))
+		if condition_values.has("x_offset"):
+			detection_params["x_offset"] = float(condition_values.get("x_offset"))
 		var detection_result: Dictionary = DetectionRegistry.evaluate(detection_id, instance.owner_entity, detection_params)
-		if not bool(detection_result.get("has_target", false)):
+		var require_no_target := bool(condition_values.get("require_no_target", false))
+
+		if require_no_target:
+			# Maintenance-style vacancy triggers (original SummonBackupDancers
+			# per-slot follower check) fire when the probe finds NO matching
+			# entity, so payloads must not depend on detection context.
+			if bool(detection_result.get("has_target", false)):
+				return false
+		elif not bool(detection_result.get("has_target", false)):
 			return false
 
-		var detected_target_ids := PackedInt32Array()
-		for target in Array(detection_result.get("targets", [])):
-			if target != null and target.has_method("get_entity_id"):
-				detected_target_ids.append(int(target.call("get_entity_id")))
-		instance.set_pending_context_overrides({
-			"target_node": detection_result.get("primary_target", null),
-			"detection_id": detection_id,
-			"detected_target_ids": detected_target_ids,
-		})
+		if not require_no_target:
+			var detected_target_ids := PackedInt32Array()
+			for target in Array(detection_result.get("targets", [])):
+				if target != null and target.has_method("get_entity_id"):
+					detected_target_ids.append(int(target.call("get_entity_id")))
+			instance.set_pending_context_overrides({
+				"target_node": detection_result.get("primary_target", null),
+				"detection_id": detection_id,
+				"detected_target_ids": detected_target_ids,
+			})
 		if timing_uses_window:
 			instance.schedule_next_window(interval_min, interval_max, interval, game_time)
 		return true
@@ -417,3 +472,19 @@ func _condition_uses_windowed_schedule(condition_values: Dictionary) -> bool:
 		if condition_values.has(key):
 			return true
 	return false
+
+
+func _lane_offset_probe_in_bounds(instance, condition_values: Dictionary) -> bool:
+	# A lane_offset vacancy probe must never fire when the probed lane falls
+	# outside the board (original SummonBackupDancer simply no-ops on invalid
+	# rows); firing there would clamp-summon onto the leader's own lane.
+	if not condition_values.has("lane_offset") or instance == null:
+		return true
+	var owner: Variant = instance.owner_entity if instance != null else null
+	if owner == null or not is_instance_valid(owner):
+		return false
+	var lane_id := int(owner.get("lane_id")) if owner.get("lane_id") != null else -1
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("is_valid_lane"):
+		return false
+	return bool(battle.call("is_valid_lane", lane_id + int(condition_values.get("lane_offset", 0))))

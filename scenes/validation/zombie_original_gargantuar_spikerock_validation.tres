@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[sub_resource type="Resource" id="Spawn_spikerock0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_spikerock"
+lane_id = 0
+x_position = 560
+[sub_resource type="Resource" id="Spawn_spikeweed1"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_spikeweed"
+lane_id = 1
+x_position = 560
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"zombie_original_gargantuar_spikerock_validation_probe_passed"
+description = "The gargantuar_spikerock probe must pass."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_gargantuar_spikerock",
+"result": &"passed"
+}
+
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_gargantuar_spikerock_validation"
+display_name = "Original Gargantuar x Spikerock Smash Validation"
+description = "Validates Z-31 (dual-side with G-15): Gargantuar smashes on Spikerock cost the plant 50hp (450 = 9 smashes) and retaliate 20 onto the smasher; a Zamboni drive-over never squishes spiky plants and dies to the spikes."
+goals = PackedStringArray("Spikerock absorbs 9 smashes then dies.", "The Gargantuar takes 20 self damage per smash and survives.", "The Zamboni is destroyed by spikes without squishing them.")
+validation_time_limit = 16
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed")]
+spawns = [SubResource("Spawn_spikerock0"), SubResource("Spawn_spikeweed1")]

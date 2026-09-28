@@ -103,6 +103,23 @@
       "showcases": []
     },
     {
+      "id": "original_zombies_batch_j",
+      "description": "Original zombie protocol gaps Batch J: Catapult leftmost targeting + ammo exhaustion (Z-29/Z-28), Dancer follower re-summon (Z-32), Gargantuar x Spikerock smash + Zamboni drive-over vs spikes (Z-31/G-15), Yeti gift drop (Z-05), PickRandomSpeed range sampling (Z-01).",
+      "validations": [
+        "zombie_original_catapult_validation",
+        "zombie_original_catapult_leftmost_validation",
+        "zombie_original_catapult_exhaustion_validation",
+        "zombie_original_dancing_validation",
+        "zombie_original_dancer_resummon_validation",
+        "zombie_original_gargantuar_validation",
+        "zombie_original_gargantuar_spikerock_validation",
+        "zombie_original_yeti_validation",
+        "zombie_original_yeti_gift_validation",
+        "zombie_original_speed_range_validation"
+      ],
+      "showcases": []
+    },
+    {
       "id": "board_and_battlefield_semantics_v1",
       "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
       "validations": [

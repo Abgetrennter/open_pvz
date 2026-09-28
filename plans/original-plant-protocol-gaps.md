@@ -36,7 +36,7 @@
 | G-12 | 环形范围攻击 | 已覆盖并已验证 | Gloom-shroom | `plant_original_gloomshroom_validation` 已覆盖 `radius_around` + detected targets |
 | G-13 | 全场追踪 targeting | 部分覆盖并已验证当前资源 | Cattail | `plant_original_cattail_validation` 覆盖当前 track-air projectile；是否改 `global_track` 作为精确语义后续评估 |
 | G-14 | 对空高度切换 | 已覆盖最小语义 | Cactus | HeightBand / `height_range` 已覆盖对空命中；视觉/状态切换后置 |
-| G-15 | 地面持续伤害 | 已覆盖 | Spikeweed, Spikerock | `Controller.core.ground_damage` 已覆盖最小语义 |
+| G-15 | 地面持续伤害 | 已覆盖（车辆交互补全 2026-09-29，与僵尸侧 Z-31 双侧联动） | Spikeweed, Spikerock | `Controller.core.ground_damage` 基础语义 + 车辆交互：`vehicle_damage` 1800（Zamboni/Catapult 一击毁）、`vehicle_hit_plant_damage`（Spikeweed 即死 / Spikerock 50 每击，450 血=9 次）；两植物拆分独立 mechanic 并挂 `spiky` 标签（同时服务 Z-29 投石车排除）；探针 `zombie_original_gargantuar_spikerock` |
 | G-16 | 投射物改写 | 已覆盖 | Torchwood | `Controller.core.projectile_transform` 已覆盖 |
 | G-17 | 全局飞行驱散 | 已覆盖 | Blover | `dispel_flying` + flying tag 已覆盖 |
 | G-18 | 反隐机制 | 已覆盖最小语义 | Plantern | `reveal` effect 已覆盖；完整雾场/视野系统后置 |

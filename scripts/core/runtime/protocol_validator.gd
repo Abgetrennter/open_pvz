@@ -118,6 +118,8 @@ const ALLOWED_SPAWN_OVERRIDE_KEYS := {
 	"turn_rate": true,
 	"direction": true,
 	"move_speed_slots_per_sec": true,
+	"move_speed_slots_per_sec_min": true,
+	"move_speed_slots_per_sec_max": true,
 	"move_speed": true,
 	"jump_velocity": true,
 	"gravity": true,
