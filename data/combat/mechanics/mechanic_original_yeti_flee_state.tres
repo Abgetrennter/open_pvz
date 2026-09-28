@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
 
 [ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
 
@@ -11,7 +11,7 @@ type_id = &"core.rage"
 priority = 6
 tags = PackedStringArray("original", "zombie", "state", "flee")
 params = {
-"event_name": &"entity.damaged",
+"after": 15.0,
 "from_state": &"calm",
 "initial_state": &"calm",
 "side_effects": [{
@@ -30,5 +30,5 @@ params = {
 "type": &"set_runtime_params"
 }],
 "to_state": &"fleeing",
-"trigger": "event"
+"trigger": "time"
 }

@@ -16,5 +16,5 @@ required_core_values = {
 script = ExtResource("1_scenario")
 scenario_id = &"zombie_original_batch_d_validation"
 display_name = "Original Zombies Batch D Validation"
-validation_time_limit = 1.5
+validation_time_limit = 18.0
 validation_rules = [SubResource("Rule_pass")]

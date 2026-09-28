@@ -52,6 +52,7 @@ func _probe_id_for_scenario(scenario_id: StringName) -> StringName:
 func _probe_batch(probe_id: StringName, slugs: Array) -> void:
 	for slug in slugs:
 		if not _validate_slug(StringName(slug)):
+			push_error("original zombie probe failed at slug: %s (%s)" % [String(slug), String(probe_id)])
 			return
 	_emit_probe(probe_id, &"passed", {"count": slugs.size()})
 	_emitted[probe_id] = true
@@ -99,8 +100,10 @@ func _validate_slug(slug: StringName) -> bool:
 			return _assert_layer(entity, &"screen_door", &"shield", 1100)
 		&"newspaper":
 			return _assert_layer(entity, &"newspaper", &"shield", 150) and _assert_newspaper_rage(entity)
-		&"pole_vaulter", &"dolphin_rider":
+		&"pole_vaulter":
 			return _assert_movement_source(entity, &"core.leap_once")
+		&"dolphin_rider":
+			return _assert_movement_source(entity, &"core.leap_once") and _assert_dolphin_post_landing_speed(runtime_spec)
 		&"ducky_tube":
 			return _has_required_tags(archetype, PackedStringArray(["spawn.medium.water"]))
 		&"snorkel":
@@ -110,9 +113,9 @@ func _validate_slug(slug: StringName) -> bool:
 		&"balloon":
 			return _assert_layer(entity, &"balloon", &"attachment", 20) and StringName(entity.call("get_exposure_state")) == &"flying" and _assert_balloon_grounding(entity)
 		&"jack_in_the_box":
-			return _assert_trigger_payload(runtime_spec, &"periodically", &"explode")
+			return _assert_trigger_payload(runtime_spec, &"periodically", &"explode") and _assert_jack_explode_radius(runtime_spec)
 		&"digger":
-			return _assert_movement_source(entity, &"core.tunnel") and StringName(entity.call("get_exposure_state")) == &"underground"
+			return _assert_movement_source(entity, &"core.tunnel") and StringName(entity.call("get_exposure_state")) == &"underground" and _assert_digger_surface_direction(runtime_spec)
 		&"pogo":
 			return _assert_movement_source(entity, &"core.hop_cycle")
 		&"yeti":
@@ -205,14 +208,68 @@ func _assert_trigger_payload(runtime_spec, trigger_id: StringName, effect_id: St
 
 
 func _assert_yeti_flee(entity: Node) -> bool:
-	entity.call("take_damage", 1, null, PackedStringArray(["probe"]))
-	var movement_spec: Variant = entity.call("get_entity_state_ref").call("get_value", &"movement_spec", {})
+	# Original Yeti flees on a timer (de-pvz UpdateYeti: phase counter), not on
+	# damage. Step simulation time past the flee threshold without damaging the
+	# entity, then assert the flee movement side effect.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 1510)
+	var state_ref: Variant = entity.call("get_entity_state_ref")
+	if StringName(state_ref.call("get_value", &"state_stage", StringName())) != &"fleeing":
+		return false
+	var movement_spec: Variant = state_ref.call("get_value", &"movement_spec", {})
 	if not (movement_spec is Dictionary):
 		return false
 	var params: Dictionary = Dictionary(movement_spec).get("params", {})
-	return StringName(entity.call("get_entity_state_ref").call("get_value", &"state_stage", StringName())) == &"fleeing" \
-		and Vector2(params.get("direction", Vector2.ZERO)).x > 0.0 \
+	return Vector2(params.get("direction", Vector2.ZERO)).x > 0.0 \
 		and absf(float(params.get("move_speed_slots_per_sec", 0.0)) - 0.8) < 0.001
+
+
+func _assert_digger_surface_direction(runtime_spec) -> bool:
+	for state_spec in Array(runtime_spec.get("state_specs")):
+		if state_spec == null:
+			continue
+		for transition in Array(state_spec.get("transitions", [])):
+			if StringName(transition.get("to_state", StringName())) != &"surfaced":
+				continue
+			for side_effect in Array(transition.get("side_effects", [])):
+				if StringName(Dictionary(side_effect).get("type", StringName())) != &"set_movement":
+					continue
+				var spec: Variant = Dictionary(side_effect).get("spec", {})
+				if not (spec is Dictionary):
+						return false
+				var params: Dictionary = Dictionary(spec).get("params", {})
+				# Original digger surfaces and walks back to the right (de-pvz
+				# IsWalkingBackwards: PHASE_DIGGER_WALKING returns true).
+				return Vector2(params.get("direction", Vector2.ZERO)).x > 0.0
+	return false
+
+
+func _assert_dolphin_post_landing_speed(runtime_spec) -> bool:
+	var movement_spec: Variant = runtime_spec.get("movement_spec")
+	if not (movement_spec is Dictionary):
+		return false
+	var post_landing: Variant = Dictionary(movement_spec).get("params", {}).get("post_landing_movement", null)
+	if not (post_landing is Dictionary):
+		return false
+	var params: Dictionary = Dictionary(post_landing).get("params", {})
+	# Original dolphin rider walks fast after landing (de-pvz PickRandomSpeed
+	# PHASE_DOLPHIN_WALKING: 0.89-0.91), pool riding is the slow phase.
+	return absf(float(params.get("move_speed_slots_per_sec", 0.0)) - 0.9) < 0.001
+
+
+func _assert_jack_explode_radius(runtime_spec) -> bool:
+	for trigger_spec in Array(runtime_spec.get("trigger_specs")):
+		if trigger_spec == null:
+			continue
+		var effect_root: Variant = trigger_spec.get("effect_root")
+		if effect_root == null or StringName(effect_root.get("effect_id")) != &"explode":
+			continue
+		var params: Dictionary = Dictionary(effect_root.get("params"))
+		# Original jack explosion radius (de-pvz Zombie.h: zombie radius 115px,
+		# plant radius 90px; single-radius model tracks the plant-facing radius).
+		return absf(float(params.get("radius_slots", 0.0)) - 0.94) < 0.001
+	return false
 
 
 func _assert_dancing_spawn(entity: Node) -> bool:

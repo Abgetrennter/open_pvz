@@ -60,6 +60,7 @@ func _physics_process(delta: float) -> void:
 func simulation_step(delta: float) -> void:
 	if _is_dying:
 		return
+	_process_state_component(delta)
 	if controller_component != null and controller_component.has_method("has_active_controllers") and bool(controller_component.call("has_active_controllers")):
 		controller_component.call("physics_process_controllers", delta)
 		return
@@ -348,6 +349,16 @@ func on_controllers_disabled(_delta: float) -> void:
 	set_state_value(&"velocity", Vector2.ZERO)
 	set_state_value(&"speed", 0.0)
 	sync_runtime_state()
+
+
+func _process_state_component(_delta: float) -> void:
+	# Central gameplay step skips StateComponent._physics_process, and the
+	# controller branch below returns early, so state time transitions are
+	# stepped here to mirror base_entity.simulation_step behavior.
+	if not is_liveness_enabled(&"state"):
+		return
+	if state_component != null and state_component.has_method("has_active_states") and bool(state_component.call("has_active_states")):
+		state_component.call("physics_process_states")
 
 
 func _process_forward_movement(delta: float, base_move_speed: float) -> void:

@@ -8,6 +8,7 @@
 |---|---|
 | [original-plant-migration-ledger.md](original-plant-migration-ledger.md) | 植物内容与验证底账 |
 | [original-plant-protocol-gaps.md](original-plant-protocol-gaps.md) | 已覆盖、部分覆盖和后置协议能力 |
+| [original-zombie-protocol-gaps.md](original-zombie-protocol-gaps.md) | 僵尸侧协议缺口底账（Z-01~Z-36）；对应 design/zombie-content 任务 |
 | [original-plant-mechanism-audit.md](original-plant-mechanism-audit.md) | 机制审计依据；外部事实通过知识回流处理 |
 | [zombie-design-research-report.md](zombie-design-research-report.md) | 僵尸研究材料；原 vendor 路径按工作区 references/README.md 换算 |
 
