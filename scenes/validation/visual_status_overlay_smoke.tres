@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_shooter"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_basic_shooter"
+lane_id = 0
+x_position = 160.0
+spawn_overrides = {
+"damage": 20,
+"interval": 1.0,
+"speed_slots_per_sec": 3.125
+}
+
+[sub_resource type="Resource" id="Spawn_dummy"]
+script = ExtResource("2_spawn")
+archetype_id = &"archetype_lane_dummy"
+lane_id = 0
+x_position = 650.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_tick"]
+script = ExtResource("3_rule")
+rule_id = &"game_tick"
+description = "battle should produce at least one game tick event"
+event_name = &"game.tick"
+min_count = 1
+
+[sub_resource type="Resource" id="Rule_no_profile_issues"]
+script = ExtResource("3_rule")
+rule_id = &"no_visual_profile_protocol_issues"
+description = "no protocol issues from optional visual profile binding"
+event_name = &"protocol.issue"
+required_tags = PackedStringArray("protocol")
+required_core_values = {
+"scope": &"visual_profiles"
+}
+min_count = 0
+max_count = 0
+
+[sub_resource type="Resource" id="Rule_status_overlay_probe"]
+script = ExtResource("3_rule")
+rule_id = &"visual_status_overlay_probe"
+description = "status overlay composition chain should apply, stack and clear tints via VisualActorComponent"
+event_name = &"visual.validation_probe"
+required_tags = PackedStringArray("visual", "validation")
+required_core_values = {
+"probe": &"status_overlay",
+"result": &"passed"
+}
+min_count = 1
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"visual_status_overlay_smoke"
+display_name = "Visual Status Overlay Smoke"
+description = "Verify VisualActorComponent consumes status_visual_map: data-declared frozen tint applies, builtin slowed tint stacks multiplicatively, removal restores composition, and no rule-layer state is touched."
+goals = PackedStringArray("Verify status_applied applies a data-declared frozen tint to the actor.", "Verify a second status stacks multiplicatively with the first.", "Verify status_removed restores the remaining overlay composition.", "Verify the probe battle runs without visual_profiles protocol issues.")
+validation_time_limit = 4.0
+validation_rules = [SubResource("Rule_tick"), SubResource("Rule_no_profile_issues"), SubResource("Rule_status_overlay_probe")]
+spawns = [SubResource("Spawn_shooter"), SubResource("Spawn_dummy")]

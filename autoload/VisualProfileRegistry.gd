@@ -28,6 +28,9 @@ func _register_builtin_defs() -> void:
 		&"attacking": &"attack",
 		&"dead": &"death",
 	}
+	placeholder_plant.status_visual_map = {
+		&"frozen": Color(0.6, 0.8, 1.0),
+	}
 	placeholder_plant.z_policy = {"layer": &"plant"}
 	register_def(placeholder_plant, {"kind": &"core", "source": &"core"})
 

@@ -1072,6 +1072,12 @@
     "layers": ["smoke"]
   },
   {
+    "id": "visual_status_overlay_smoke",
+    "scenario": "res://scenes/validation/visual_status_overlay_smoke.tres",
+    "description": "Validates that VisualActorComponent consumes status_visual_map: data-declared frozen tint applies, builtin slowed tint stacks multiplicatively, removal restores composition; no rule-layer state is touched.",
+    "layers": ["smoke"]
+  },
+  {
     "id": "ui_theme_switch_validation",
     "scenario": "res://scenes/validation/ui_theme_switch_validation.tres",
     "description": "Validates that UIThemeProfile.default() loads correctly and theme fields are accessible.",

@@ -10,6 +10,8 @@ const ReanimDataRef = preload("res://scripts/visual/reanim/reanim_data.gd")
 const ReanimPlayerRef = preload("res://scripts/visual/reanim/reanim_player.gd")
 const ReanimActorRef = preload("res://scripts/visual/reanim/reanim_actor.gd")
 const ReanimActorDefRef = preload("res://scripts/visual/reanim/reanim_actor_def.gd")
+const VisualActorComponentRef = preload("res://scripts/components/visual_actor_component.gd")
+const VisualStatusOverlayOwnerRef = preload("res://scripts/validation/visual_status_overlay_owner.gd")
 
 const PRIVATE_CLASSIC_PACK_ID := &"classic_original_assets"
 const REANIM_DATA_SAMPLE_IDS := ["peashooter", "wallnut", "threepeater"]
@@ -78,6 +80,8 @@ func _process(_delta: float) -> void:
 	_probe_ui_theme()
 	if scenario_id == &"visual_slot_guardrail":
 		_probe_guardrails()
+	if scenario_id == &"visual_status_overlay_smoke":
+		_probe_status_overlay()
 
 
 func _probe_registries() -> void:
@@ -977,6 +981,73 @@ func _probe_visual_log() -> void:
 			"action_type": action_type,
 			"action_result": StringName(entry.get("result", StringName())),
 		})
+
+
+## Status overlay consumption chain: bind a placeholder profile onto a
+## dummy owner, push status_applied/status_removed through the bus and
+## verify VisualActorComponent composes/clears the overlay modulate.
+## Data-declared status_visual_map entries win over builtin fallback tints.
+func _probe_status_overlay() -> void:
+	if _emitted.has(&"status_overlay"):
+		return
+	var profile := VisualProfileRegistry.get_def(&"core.placeholder_plant")
+	if profile == null:
+		return
+	if not profile.status_visual_map.has(&"frozen"):
+		return
+	var owner_node := VisualStatusOverlayOwnerRef.new()
+	add_child(owner_node)
+	var actor := VisualActorComponentRef.new()
+	owner_node.add_child(actor)
+	actor.bind_profile(profile, owner_node)
+	if actor.get_actor_root() == null:
+		return
+
+	# Applied: data-declared frozen tint must compose onto the actor modulate.
+	var applied: Variant = EventDataRef.create(null, owner_node, null, PackedStringArray(["status", "applied"]))
+	owner_node.entity_id = 77001
+	applied.core["status_id"] = &"frozen"
+	applied.core["target_id"] = 77001
+	EventBus.push_event(&"entity.status_applied", applied)
+	var frozen_tint: Variant = profile.status_visual_map[&"frozen"]
+	if not frozen_tint is Color:
+		return
+	var expected_frozen: Color = frozen_tint
+	if not actor.get_actor_root().modulate.is_equal_approx(expected_frozen):
+		_report_reanim_probe_failure(&"status_overlay", "frozen tint not applied: %s" % str(actor.get_actor_root().modulate))
+		actor.queue_free()
+		owner_node.queue_free()
+		return
+
+	# Stacking: slowed joins frozen; product must equal both tints multiplied.
+	var slowed: Variant = EventDataRef.create(null, owner_node, null, PackedStringArray(["status", "applied"]))
+	slowed.core["status_id"] = &"slowed"
+	slowed.core["source_id"] = 77001
+	EventBus.push_event(&"entity.status_applied", slowed)
+	var expected_both: Color = expected_frozen * VisualActorComponentRef.DEFAULT_STATUS_TINTS[&"slowed"]
+	if not actor.get_actor_root().modulate.is_equal_approx(expected_both):
+		_report_reanim_probe_failure(&"status_overlay", "stacked tint mismatch: %s" % str(actor.get_actor_root().modulate))
+		actor.queue_free()
+		owner_node.queue_free()
+		return
+
+	# Removed: clearing slowed must restore the single frozen tint.
+	var removed: Variant = EventDataRef.create(owner_node, null, null, PackedStringArray(["status", "removed"]))
+	removed.core["status_id"] = &"slowed"
+	removed.core["source_id"] = 77001
+	EventBus.push_event(&"entity.status_removed", removed)
+	if not actor.get_actor_root().modulate.is_equal_approx(expected_frozen):
+		_report_reanim_probe_failure(&"status_overlay", "frozen tint not restored after removal: %s" % str(actor.get_actor_root().modulate))
+		actor.queue_free()
+		owner_node.queue_free()
+		return
+
+	actor.queue_free()
+	owner_node.queue_free()
+	_emitted[&"status_overlay"] = true
+	_emit_probe(&"status_overlay", &"passed", {
+		"stack_depth": 2,
+	})
 
 
 func _probe_guardrails() -> void:

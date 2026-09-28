@@ -11,6 +11,7 @@ var _applied_damage_stages: Dictionary = {}  # stage_index -> true
 var _flash_tween: Tween = null     # reserved for tween-based flash (v1 uses timer)
 var _shadow_node: Node2D = null    # shadow node for projectile projection
 var _is_projectile: bool = false   # cached: owner is projectile with projection
+var _active_status_visuals: Dictionary = {}  # status_id (StringName) -> true
 
 # Event subscription tracking
 var _event_callables: Dictionary = {}
@@ -21,6 +22,31 @@ var _event_callables: Dictionary = {}
 const EVENT_DAMAGED: StringName = &"entity.damaged"
 const EVENT_DIED: StringName = &"entity.died"
 const EVENT_STATE_ENTERED: StringName = &"entity.state_entered"
+const EVENT_STATUS_APPLIED: StringName = &"entity.status_applied"
+const EVENT_STATUS_REMOVED: StringName = &"entity.status_removed"
+# Overlay composition order: base modulate -> hit flash -> status overlays.
+# Status overlays multiply on top of the (possibly flashed) actor modulate so
+# stacking statuses compose instead of overwrite each other.
+const OVERLAY_STATUS_PRIORITY: Array[StringName] = [
+	&"butter_stun",
+	&"frozen",
+	&"charred",
+	&"slowed",
+	&"jammed",
+	&"digesting",
+	&"hypno",
+]
+# Fallback overlay tints for known status ids when the profile's
+# status_visual_map does not declare an entry. Data-declared entries win.
+const DEFAULT_STATUS_TINTS := {
+	&"slowed": Color(0.55, 0.75, 1.0),
+	&"frozen": Color(0.45, 0.7, 1.0),
+	&"butter_stun": Color(1.0, 0.9, 0.4),
+	&"charred": Color(0.25, 0.2, 0.2),
+	&"jammed": Color(0.8, 0.8, 0.55),
+	&"digesting": Color(0.85, 0.6, 0.6),
+	&"hypno": Color(1.0, 0.55, 0.8),
+}
 
 
 # ── Lifecycle ───────────────────────────────────────────────────────
@@ -38,6 +64,7 @@ func shutdown() -> void:
 		_shadow_node.queue_free()
 	_shadow_node = null
 	_applied_damage_stages.clear()
+	_active_status_visuals.clear()
 	_flash_tween = null
 	_owner = null
 	_profile_def = null
@@ -55,18 +82,25 @@ func bind_profile(profile_def: Resource, owner: Node) -> void:
 	if _profile_def == null:
 		return
 
-	# Instantiate actor scene if available
+	# Instantiate actor scene if available; otherwise create an empty
+	# placeholder ActorRoot so flash/damage-stage/status-overlay chains still
+	# have a write target (degrade-to-placeholder, not degrade-to-nothing).
 	if _profile_def.actor_scene != null:
 		_actor_root = _profile_def.actor_scene.instantiate() as Node2D
 		if _actor_root != null:
 			_actor_root.name = "ActorRoot"
 			add_child(_actor_root)
 			_apply_profile_transform()
+	else:
+		_actor_root = Node2D.new()
+		_actor_root.name = "ActorRoot"
 
 	# Subscribe to visual-relevant events
 	_subscribe_event(EVENT_DAMAGED)
 	_subscribe_event(EVENT_DIED)
 	_subscribe_event(EVENT_STATE_ENTERED)
+	_subscribe_event(EVENT_STATUS_APPLIED)
+	_subscribe_event(EVENT_STATUS_REMOVED)
 
 	# Detect projectile projection mode
 	_is_projectile = _owner != null and StringName(_owner.get("entity_kind")) == &"projectile"
@@ -212,6 +246,10 @@ func _on_visual_event(event_data: Variant, event_name: StringName) -> void:
 			_on_entity_died(event_data)
 		EVENT_STATE_ENTERED:
 			_on_state_changed(event_data)
+		EVENT_STATUS_APPLIED:
+			_on_status_applied(event_data)
+		EVENT_STATUS_REMOVED:
+			_on_status_removed(event_data)
 
 
 # ── Event filtering ─────────────────────────────────────────────────
@@ -224,6 +262,22 @@ func _event_targets_owner(event_data: Variant, event_name: StringName) -> bool:
 		# These events target the damaged/dying entity
 		var target_id: int = core.get("target_id", -1)
 		return target_id == owner_id
+
+	if event_name == EVENT_STATUS_APPLIED:
+		# Applied events carry the affected entity as target_node (pushed by
+		# battle_status_state) or target_node may be null when the effect
+		# strategy pushes with (source, target) ordering preserved; check both.
+		var applied_target_id: int = core.get("target_id", -1)
+		if applied_target_id == owner_id:
+			return true
+		var applied_source_id: int = core.get("source_id", -1)
+		return applied_source_id == owner_id
+
+	if event_name == EVENT_STATUS_REMOVED:
+		# Removed events carry the affected entity as source_node (pushed by
+		# BaseEntity.update_statuses with self as source).
+		var removed_source_id: int = core.get("source_id", -1)
+		return removed_source_id == owner_id
 
 	if event_name == EVENT_STATE_ENTERED:
 		# State events: source is the entity entering the state
@@ -377,6 +431,97 @@ func _flash_actor_damage() -> void:
 func _restore_modulate(target: Node2D, original_modulate: Color) -> void:
 	if is_instance_valid(target):
 		target.modulate = original_modulate
+
+
+# ── Status overlay handler ──────────────────────────────────────
+
+func _on_status_applied(event_data: Variant) -> void:
+	if _owner == null or _profile_def == null:
+		return
+	var status_id: StringName = event_data.core.get("status_id", StringName())
+	if status_id == StringName():
+		return
+	if _active_status_visuals.has(status_id):
+		return
+	_active_status_visuals[status_id] = true
+	_recompose_status_overlays(status_id, &"applied")
+
+
+func _on_status_removed(event_data: Variant) -> void:
+	if _owner == null or _profile_def == null:
+		return
+	var status_id: StringName = event_data.core.get("status_id", StringName())
+	if status_id == StringName():
+		return
+	if not _active_status_visuals.has(status_id):
+		return
+	_active_status_visuals.erase(status_id)
+	_recompose_status_overlays(status_id, &"removed")
+
+
+## Recomputes the combined status overlay modulate from all active status
+## visuals (multiplicative composition in OVERLAY_STATUS_PRIORITY order) and
+## applies it to the actor root. Data-declared status_visual_map entries win
+## over the built-in DEFAULT_STATUS_TINTS fallback; unknown status ids only
+## log a visual event so no silent no-op happens. Read-only over rules.
+func _recompose_status_overlays(changed_status_id: StringName, change: StringName) -> void:
+	if _actor_root == null:
+		return
+
+	var combined := Color.WHITE
+	var applied_count := 0
+	for status_id: StringName in OVERLAY_STATUS_PRIORITY:
+		if not _active_status_visuals.has(status_id):
+			continue
+		var tint: Variant = _resolve_status_tint(status_id)
+		if tint == null:
+			continue
+		combined *= tint
+		applied_count += 1
+
+	_actor_root.modulate = combined
+
+	if changed_status_id != StringName() and not DEFAULT_STATUS_TINTS.has(changed_status_id):
+		var status_map := _get_profile_dictionary(&"status_visual_map")
+		if not status_map.has(changed_status_id):
+			DebugService.record_visual_event({
+				"cue_id": &"status_overlay",
+				"event_name": EVENT_STATUS_APPLIED if change == &"applied" else EVENT_STATUS_REMOVED,
+				"action_type": &"status_overlay",
+				"target_id": int(_owner.call("get_entity_id")),
+				"result": "no_op",
+				"skip_reason": "no tint declared for status_id %s" % String(changed_status_id),
+			})
+			return
+
+	DebugService.record_visual_event({
+		"cue_id": &"status_overlay",
+		"event_name": EVENT_STATUS_APPLIED if change == &"applied" else EVENT_STATUS_REMOVED,
+		"action_type": &"status_overlay",
+		"target_id": int(_owner.call("get_entity_id")),
+		"result": "applied" if applied_count > 0 else "cleared",
+		"status_id": String(changed_status_id),
+		"active_count": applied_count,
+	})
+
+
+## Returns the tint for a status id: data-declared status_visual_map entry
+## (Color or Dictionary with "color") wins; known built-in ids fall back to
+## DEFAULT_STATUS_TINTS; unknown ids return null (no visual contribution).
+func _resolve_status_tint(status_id: StringName) -> Variant:
+	var status_map := _get_profile_dictionary(&"status_visual_map")
+	if status_map.has(status_id):
+		var declared: Variant = status_map[status_id]
+		if declared is Color:
+			return declared
+		if declared is Dictionary and (declared as Dictionary).has("color"):
+			var color_value: Variant = (declared as Dictionary)["color"]
+			if color_value is Color:
+				return color_value
+		return null
+	if DEFAULT_STATUS_TINTS.has(status_id):
+		return DEFAULT_STATUS_TINTS[status_id]
+	return null
 
 
 # ── Death handler ───────────────────────────────────────────────────
