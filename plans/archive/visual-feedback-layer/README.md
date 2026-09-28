@@ -1,6 +1,6 @@
-# 视觉反馈层任务文档包
+# 视觉反馈层任务文档包（已归档）
 
-> 状态：设计拆解，实现已发生——Phase 0 对照结论见 [07-Phase0-实现对照与差距清单](./07-Phase0-实现对照与差距清单.md)。
+> 状态：已归档（2026-09-28）。本包已完成使命：四条链全部实现并有验证覆盖，当前事实以 [Wiki 19 页](../../../wiki/02-runtime-protocol/19-视觉反馈层.md) 为准。本目录保留设计拆解、阶段路线图、Phase 0 对照结论与两份父设计文档，作为实现依据与历史记录，不再作为活动计划维护。
 > 目标：把 `Open PVZ 视觉反馈层设计与路线图` 拆成后续 AI agent 可直接认领的任务文档。
 
 ## 文档定位
@@ -17,10 +17,10 @@
 
 建议先阅读：
 
-- [../Open PVZ 视觉反馈层设计与路线图.md](../Open%20PVZ%20视觉反馈层设计与路线图.md)
-- [../../wiki/01-overview/00-架构总览.md](../../wiki/01-overview/00-架构总览.md)
-- [../../wiki/02-runtime-protocol/08-连续行为模型.md](../../wiki/02-runtime-protocol/08-连续行为模型.md)
-- [../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md](../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md)
+- [../Open PVZ 视觉反馈层设计与路线图.md](Open%20PVZ%20视觉反馈层设计与路线图.md)
+- [../../wiki/01-overview/00-架构总览.md](../../../wiki/01-overview/00-架构总览.md)
+- [../../wiki/02-runtime-protocol/08-连续行为模型.md](../../../wiki/02-runtime-protocol/08-连续行为模型.md)
+- [../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md](../../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md)
 - PGD 组件系统分析（正文已迁知识层 E:/Code/pvz-ws/knowledge/pgd-architecture-index.md）
 
 ## 推荐阅读顺序

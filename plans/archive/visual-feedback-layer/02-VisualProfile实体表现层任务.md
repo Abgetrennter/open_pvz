@@ -27,8 +27,8 @@ Open PVZ 当前实体根节点偏规则与调试，`ProjectileRoot._draw()` 也�
 
 - [00-总览与边界.md](./00-总览与边界.md)
 - [01-VisualCue事件反馈层任务.md](./01-VisualCue事件反馈层任务.md)
-- [../../wiki/01-overview/00-架构总览.md](../../wiki/01-overview/00-架构总览.md)
-- [../../wiki/02-runtime-protocol/08-连续行为模型.md](../../wiki/02-runtime-protocol/08-连续行为模型.md)
+- [../../wiki/01-overview/00-架构总览.md](../../../wiki/01-overview/00-架构总览.md)
+- [../../wiki/02-runtime-protocol/08-连续行为模型.md](../../../wiki/02-runtime-protocol/08-连续行为模型.md)
 
 ## 任务清单
 

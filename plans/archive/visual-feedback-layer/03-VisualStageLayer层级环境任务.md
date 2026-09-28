@@ -26,7 +26,7 @@
 
 - [00-总览与边界.md](./00-总览与边界.md)
 - [02-VisualProfile实体表现层任务.md](./02-VisualProfile实体表现层任务.md)
-- [../../wiki/02-runtime-protocol/08-连续行为模型.md](../../wiki/02-runtime-protocol/08-连续行为模型.md)
+- [../../wiki/02-runtime-protocol/08-连续行为模型.md](../../../wiki/02-runtime-protocol/08-连续行为模型.md)
 
 ## 任务清单
 

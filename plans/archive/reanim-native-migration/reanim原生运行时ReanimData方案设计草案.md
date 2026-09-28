@@ -7,7 +7,7 @@
 ## 相关资料
 
 - reanim 工具链历史规划：`plans/reanim资源转换工具链规划.md`（AnimationPlayer 转码路线，本草案的对照与回退方案）
-- 视觉层设计：`plans/视觉表现层设计讨论.md`（Actor Scene Contract、Action Recipe、Part Slot）
+- 视觉层设计：`plans/archive/visual-feedback-layer/视觉表现层设计讨论.md`（Actor Scene Contract、Action Recipe、Part Slot）
 - 原版视觉批量迁移执行方案：`plans/original-plant-visual-bulk-migration-plan.md`
 - 素材包与本地私有包：`wiki/04-roadmap-reference/44-素材包系统与本地私有包.md`
 - 参考项目语义索引：`wiki/04-roadmap-reference/46-参考项目语义索引.md`

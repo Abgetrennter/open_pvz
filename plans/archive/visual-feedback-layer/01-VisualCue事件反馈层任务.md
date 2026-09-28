@@ -26,8 +26,8 @@
 ## 前置阅读
 
 - [00-总览与边界.md](./00-总览与边界.md)
-- [../../wiki/02-runtime-protocol/07-事件模型.md](../../wiki/02-runtime-protocol/07-事件模型.md)
-- [../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md](../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md)
+- [../../wiki/02-runtime-protocol/07-事件模型.md](../../../wiki/02-runtime-protocol/07-事件模型.md)
+- [../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md](../../../wiki/04-roadmap-reference/42-通用扩展插槽机制.md)
 
 ## 任务清单
 

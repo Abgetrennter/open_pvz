@@ -26,7 +26,6 @@ Reanim 全量迁移（M0-M5）已于 2026-09-27 完成并归档：全量迁移�
 | 文档 | 对应主题 |
 |---|---|
 | [未来计划.md](未来计划.md) | 有性能/内容证据才启动的基础设施候选 |
-| [视觉表现层设计讨论.md](视觉表现层设计讨论.md)、[Open PVZ 视觉反馈层设计与路线图.md](Open PVZ 视觉反馈层设计与路线图.md)、[visual-feedback-layer/](visual-feedback-layer/README.md) | 视觉阶段与现状对照 |
 | [输入交互层设计讨论.md](输入交互层设计讨论.md)、[UI 框架层设计方案.md](UI 框架层设计方案.md)、[draft/卡牌供给与行动栏代码结构设计草案.md](draft/卡牌供给与行动栏代码结构设计草案.md) | 输入/UI/行动栏 |
 | [音频系统设计.md](音频系统设计.md) | 音频质量与覆盖 |
 | [reanim资源转换工具链规划.md](reanim资源转换工具链规划.md) | 工具链历史推导；集成与 M5 校准已实测复用，保留推导记录 |
@@ -37,7 +36,7 @@ Reanim 全量迁移（M0-M5）已于 2026-09-27 完成并归档：全量迁移�
 
 ## 历史归档
 
-见 [archive/README.md](archive/README.md)。已完成阶段记录、被替代的设计、旧 Agent 笔记与历史验证证据在该目录分类保留。原始资料不因重复而删除。
+见 [archive/README.md](archive/README.md)。已完成阶段记录、被替代的设计、旧 Agent 笔记与历史验证证据在该目录分类保留。原始资料不因重复而删除。视觉反馈层设计材料（任务包与两份父设计文档）已于 2026-09-28 归档至 [archive/visual-feedback-layer/](archive/visual-feedback-layer/README.md)；协议现状见 [wiki 19 页](../wiki/02-runtime-protocol/19-视觉反馈层.md)。
 
 新增计划须在本索引登记状态、用途及对应任务；完成后将耐久规则写入 Wiki，将阶段记录归档。工作区治理文档在工作区根 `docs/governance/`，不在公开引擎仓复制。
 

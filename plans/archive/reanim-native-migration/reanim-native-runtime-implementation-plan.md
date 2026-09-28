@@ -50,7 +50,7 @@
 | 当前实现 | `tools/reanim_importer/reanim_import_one.gd` | 现有 XML 解析、clip 推断、角度转换和逐帧展开链 |
 | 当前实现 | `scripts/components/visual_actor_component.gd`、`scripts/core/defs/visual_profile_def.gd` | Actor Scene Contract 与外部接入边界 |
 | 当前实现 | `autoload/GameState.gd`、`scripts/battle/battle_manager.gd` | 100Hz 仿真时间与暂停/加速语义 |
-| 项目设计 | `plans/视觉表现层设计讨论.md` | Action Recipe、Part Slot、组合 actor 的既有设计边界 |
+| 项目设计 | `plans/archive/visual-feedback-layer/视觉表现层设计讨论.md` | Action Recipe、Part Slot、组合 actor 的既有设计边界 |
 | 私有素材规则 | `wiki/04-roadmap-reference/44-素材包系统与本地私有包.md` | 私有 manifest、生成物与发布边界 |
 | Godot 参考 | `vendor/PVZ-Godot-Dream/` 的 R2Ga / AnimationPlayer 链 | 仅用于 Godot 目录组织和工具链对照，不作为原版语义证据 |
 

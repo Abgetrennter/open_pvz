@@ -2,7 +2,7 @@
 
 > 日期：2026-04-20
 > 状态：规划阶段，待视觉表现层阶段 2 实施时启动
-> 前置依赖：视觉表现层设计（见 `视觉表现层设计讨论.md`）阶段 0-1 完成后
+> 前置依赖：视觉表现层设计（见 `plans/archive/visual-feedback-layer/视觉表现层设计讨论.md`）阶段 0-1 完成后
 > 相关 vendor：`vendor/r2ga/`（R2Ga 参考工具）、`vendor/de-pvz/`（原版反编译）
 
 ---
@@ -282,5 +282,5 @@ M = [ cos(rot)*sx  -sin(rot+skew)*sy  0  ]
 - 原版挂载系统：`vendor/de-pvz/Sexy.TodLib/Attachment.h`、`Attachment.cpp`
 - 原版 XML 解析：`vendor/de-pvz/Sexy.TodLib/Definition.h`、`Definition.cpp`
 - 原版 PAK 格式：`vendor/de-pvz/PakLib/PakInterface.h`
-- 视觉表现层设计：`plans/视觉表现层设计讨论.md`
+- 视觉表现层设计：`plans/archive/visual-feedback-layer/视觉表现层设计讨论.md`
 - 参考项目对比：`wiki/04-roadmap-reference/42-参考项目综合对比分析.md`

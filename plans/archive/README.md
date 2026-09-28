@@ -15,6 +15,10 @@
 
 恢复研究前先检查当前代码、Wiki 与任务账本，避免重新执行历史 TODO。原始文件历史可由 Git 跟踪重命名追溯。
 
+## 2026-09-28 视觉反馈层归档
+
+视觉反馈层四条链（VisualCue / VisualProfile / VisualStageLayer / AudioCue）已全部实现并有验证覆盖（公开层 226 场景含 8 个 visual smoke/guardrail，另 local_private 10 个），设计任务包完成使命后归档：`visual-feedback-layer/` 收入 Phase 0 对照盘点、六篇任务书、阶段路线图、两份父设计文档（视觉表现层设计讨论、Open PVZ 视觉反馈层设计与路线图）。当前事实以 [Wiki 19 页](../../wiki/02-runtime-protocol/19-视觉反馈层.md) 为准；status_visual_map 消费链由任务 `design/visual-status-overlay` 完成（commit aadd0a1）。剩余素材侧事项（FX 可见物、影子绘制）随素材批次走。
+
 ## 2026-09-27 M5 归档
 
 Reanim 全量迁移（M0-M5）当日完成收尾后，`reanim-native-migration/` 收入四份历史文档：全量迁移计划（含 M5 完成记录）、T0-T6 runtime 实施计划、ReanimData 设计草案、旧批量迁移方案。完成状态以 Wiki 44 页、迁移底账与工作区 `docs/baselines/2026-09-27-reanim-m5/` 为准；root_offset 精修视实际游戏场景反馈另起迭代。
