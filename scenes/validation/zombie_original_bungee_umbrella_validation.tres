@@ -1,0 +1,74 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_umbrella_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_umbrellaleaf"
+lane_id = 0
+x_position = 160.0
+
+[sub_resource type="Resource" id="Spawn_wallnut_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 0
+x_position = 256.0
+
+[sub_resource type="Resource" id="Spawn_bungee_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_bungee"
+lane_id = 0
+x_position = 256.0
+
+[sub_resource type="Resource" id="Spawn_wallnut_lane1"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 1
+x_position = 256.0
+
+[sub_resource type="Resource" id="Spawn_bungee_lane1"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_bungee"
+lane_id = 1
+x_position = 256.0
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"bungee_umbrella_probe_passed"
+description = "The interception probe must pass: covered plant undamaged, uncovered plant damaged, attack.intercepted emitted via effect damage."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_bungee_umbrella",
+"result": &"passed"
+}
+
+[sub_resource type="Resource" id="Rule_covered_not_damaged"]
+script = ExtResource("3_rule")
+rule_id = &"covered_wallnut_takes_no_bungee_damage"
+description = "The covered Wall-nut must never receive Bungee-tagged damage."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_original_bungee",
+"target_archetype_id": &"archetype_original_wallnut",
+"lane_id": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_bungee_umbrella_validation"
+display_name = "Original Bungee x Umbrella Validation"
+description = "Validates effect-damage interception: the Bungee drop damage declares overhead attack tags, Umbrella Leaf protectors cancel it via attack.intercepted, and uncovered plants take the damage."
+goals = PackedStringArray("Verify Bungee drop damage near an Umbrella Leaf emits attack.intercepted and deals no damage.", "Verify the same drop damages an uncovered plant in another lane.")
+validation_time_limit = 6.0
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed"), SubResource("Rule_covered_not_damaged")]
+spawns = [SubResource("Spawn_umbrella_lane0"), SubResource("Spawn_wallnut_lane0"), SubResource("Spawn_bungee_lane0"), SubResource("Spawn_wallnut_lane1"), SubResource("Spawn_bungee_lane1")]

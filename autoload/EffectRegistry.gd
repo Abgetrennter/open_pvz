@@ -116,6 +116,9 @@ func _register_builtin_defs() -> void:
 		"name": "damage_layer_policy",
 		"type": "dictionary",
 		"default": {},
+	}, {
+		"name": "attack_tags",
+		"type": "packed_string_array",
 	}]
 	damage.param_defs = damage_param_defs
 	damage.allow_extra_params = false
@@ -815,18 +818,32 @@ func _register_builtin_strategies() -> void:
 		var event_tag := String(context.event_name)
 		if not event_tag.is_empty() and not damage_tags.has(event_tag):
 			damage_tags.append(event_tag)
+		var attack_tags := PackedStringArray(params.get("attack_tags", PackedStringArray()))
 		var targets: Array = _resolve_targets(context, params)
 		if targets.is_empty():
 			result.success = false
 			result.notes.append("Damage target missing or invalid.")
 			return result
+		var applied := 0
 		for target in targets:
 			if target == null or not target.has_method("take_damage"):
 				continue
+			if not attack_tags.is_empty():
+				# Effect-side interception (mirrors projectile_root interception
+				# rules): an in-range protector whose intercept_tags intersect the
+				# declared attack_tags cancels the damage and emits
+				# attack.intercepted (original Umbrella Leaf vs Bungee drop).
+				var interceptor := _find_damage_interceptor(target, attack_tags)
+				if interceptor != null:
+					_emit_damage_intercepted(interceptor, target, effect_source, attack_tags, context)
+					continue
 			target.call("take_damage", amount, effect_source, damage_tags, _build_damage_runtime(context, params))
+			applied += 1
+		if applied == 0 and not attack_tags.is_empty():
+			result.success = false
+			result.notes.append("All damage targets intercepted.")
 		return result
 	)
-
 	register_strategy(&"spawn_projectile", func(context, params: Dictionary, node) -> Variant:
 		var result: Variant = EffectResultRef.new()
 		if GameState.current_battle == null or not GameState.current_battle.has_method("spawn_projectile_from_effect"):
@@ -1335,6 +1352,81 @@ func _resolve_target(context, params: Dictionary) -> Node:
 			return context.core.get("blocker_node", null)
 		_:
 			return context.target_node
+func _find_damage_interceptor(target: Node, attack_tags: PackedStringArray) -> Node:
+	# Same interception contract as projectile_root._find_attack_interceptor:
+	# protector on the target team, intercept_tags intersecting the attack
+	# tags, within intercept_radius, with controllers liveness enabled.
+	if not (target is Node2D):
+		return null
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("spatial_query"):
+		return null
+	var target_team: Variant = target.get("team")
+	if not (target_team is StringName or target_team is String):
+		return null
+	# Original FindUmbrellaPlant protects within its own board row; keep the
+	# interceptor lane-scoped so the radius cannot leak across lanes.
+	var target_lane := int(target.get("lane_id")) if target.get("lane_id") is int else -1
+	if target_lane < 0:
+		return null
+	var protected_position := _node_ground_position(target as Node2D)
+	var candidates: Array = battle.call("spatial_query", {
+		"team_include": StringName(target_team),
+		"lane_ids": PackedInt32Array([target_lane]),
+		"center": protected_position,
+		"radius": 400.0,
+	})
+	var best_interceptor: Node2D = null
+	var best_distance := INF
+	var best_entity_id := 9223372036854775807
+	for candidate in candidates:
+		var candidate_node := candidate as Node2D
+		if candidate_node == null or not is_instance_valid(candidate_node):
+			continue
+		if candidate_node == target:
+			continue
+		var candidate_state: Variant = candidate_node.get("entity_state")
+		if candidate_state == null or not candidate_state.has_method("get_value"):
+			continue
+		var intercept_tags_value: Variant = candidate_state.call("get_value", &"intercept_tags")
+		var intercept_tags := PackedStringArray()
+		if intercept_tags_value is PackedStringArray or intercept_tags_value is Array:
+			intercept_tags = PackedStringArray(intercept_tags_value)
+		if intercept_tags.is_empty():
+			continue
+		var matched := false
+		for attack_tag: String in attack_tags:
+			if intercept_tags.has(attack_tag):
+				matched = true
+				break
+		if not matched:
+			continue
+		if candidate_node.has_method("is_liveness_enabled") and not bool(candidate_node.call("is_liveness_enabled", &"controllers")):
+			continue
+		var radius_value: Variant = candidate_state.call("get_value", &"intercept_radius")
+		var intercept_radius := float(radius_value) if (radius_value is float or radius_value is int) else 0.0
+		if intercept_radius <= 0.0:
+			continue
+		var distance := protected_position.distance_to(_node_ground_position(candidate_node))
+		if distance > intercept_radius:
+			continue
+		var candidate_entity_id := int(candidate_node.call("get_entity_id")) if candidate_node.has_method("get_entity_id") else -1
+		if best_interceptor == null or distance < best_distance or (is_equal_approx(distance, best_distance) and candidate_entity_id < best_entity_id):
+			best_interceptor = candidate_node
+			best_distance = distance
+			best_entity_id = candidate_entity_id
+	return best_interceptor
+
+
+func _emit_damage_intercepted(interceptor: Node, target: Node, effect_source: Node, attack_tags: PackedStringArray, context) -> void:
+	var intercepted_event: Variant = EventDataRef.create(interceptor, target, 0, PackedStringArray(["attack", "intercepted", "effect"]))
+	intercepted_event.core["interceptor_archetype_id"] = StringName(interceptor.get("archetype_id")) if interceptor.get("archetype_id") != null else StringName()
+	intercepted_event.core["target_archetype_id"] = StringName(target.get("archetype_id")) if target.get("archetype_id") != null else StringName()
+	intercepted_event.core["attack_tags"] = attack_tags.duplicate()
+	intercepted_event.core["via"] = &"effect_damage"
+	if effect_source != null and effect_source.has_method("get_entity_id"):
+		intercepted_event.core["source_id"] = int(effect_source.call("get_entity_id"))
+	EventBus.push_event(&"attack.intercepted", intercepted_event)
 
 
 func _resolve_targets(context, params: Dictionary) -> Array:

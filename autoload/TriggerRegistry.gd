@@ -95,6 +95,11 @@ func _register_builtin_defs() -> void:
 		"name": "respect_visibility",
 		"type": "bool",
 		"default": false,
+	}, {
+		"name": "max_trigger_count",
+		"type": "int",
+		"min": 0,
+		"max": 999,
 	}]
 	periodically.id = &"periodically"
 	periodically.event_name = &"game.tick"

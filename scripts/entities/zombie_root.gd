@@ -273,21 +273,7 @@ func _on_died() -> void:
 
 
 func _find_attack_target() -> Node:
-	var battle := GameState.current_battle
-	if battle == null or not battle.has_method("spatial_query"):
-		return null
-	var targets: Array = battle.call("spatial_query", {
-		"team_exclude": team,
-		"lane_ids": PackedInt32Array([lane_id]),
-		"center": global_position,
-		"radius": attack_range,
-		"x_min": global_position.x - attack_range,
-		"x_max": global_position.x,
-		"filter": func(candidate): return candidate != self and candidate.has_method("take_damage") and _matches_default_attack_exposure(candidate) and (not candidate.has_method("is_targetable") or bool(candidate.call("is_targetable"))),
-		"sort_by_distance": true,
-		"max_results": 1,
-	})
-	return null if targets.is_empty() else targets[0]
+	return _find_attack_target_with_range(attack_range)
 
 
 func find_attack_target_for_controller(_spec: Dictionary = {}) -> Node:
@@ -380,6 +366,10 @@ func _process_forward_movement(delta: float, base_move_speed: float) -> void:
 func _find_attack_target_with_range(resolved_attack_range: float) -> Node:
 	var battle := GameState.current_battle
 	if battle == null or not battle.has_method("spatial_query"):
+		return null
+	# Original zombies never chew while off the ground (vaulters mid-leap,
+	# pogo bounces); airborne attackers skip target acquisition entirely.
+	if has_method("get_exposure_state") and StringName(call("get_exposure_state")) == &"airborne":
 		return null
 	var targets: Array = battle.call("spatial_query", {
 		"team_exclude": team,

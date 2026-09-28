@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_tallnut_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_tallnut"
+lane_id = 0
+x_position = 352.0
+
+[sub_resource type="Resource" id="Spawn_vaulter_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_pole_vaulter"
+lane_id = 0
+x_position = 480.0
+
+[sub_resource type="Resource" id="Spawn_wallnut_lane1"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 1
+x_position = 352.0
+
+[sub_resource type="Resource" id="Spawn_vaulter_lane1"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_pole_vaulter"
+lane_id = 1
+x_position = 480.0
+
+[sub_resource type="Resource" id="Rule_tallnut_bitten"]
+script = ExtResource("3_rule")
+rule_id = &"blocked_vaulter_bites_tallnut"
+description = "The Pole Vaulter blocked by the Tall-nut must land in front of it and bite the Tall-nut itself."
+event_name = &"entity.damaged"
+required_core_values = {
+"source_archetype_id": &"archetype_original_pole_vaulter",
+"target_archetype_id": &"archetype_original_tallnut"
+}
+
+[sub_resource type="Resource" id="Rule_tallnut_not_passed"]
+script = ExtResource("3_rule")
+rule_id = &"tallnut_blocks_pass"
+description = "The Tall-nut must never be damaged from the left side by the vaulter that passed over it."
+event_name = &"entity.died"
+min_count = 0
+max_count = 0
+required_core_values = {
+"target_archetype_id": &"archetype_original_tallnut",
+"source_archetype_id": &"archetype_original_pole_vaulter"
+}
+
+[sub_resource type="Resource" id="Rule_wallnut_vaulted"]
+script = ExtResource("3_rule")
+rule_id = &"wallnut_vaulted_over"
+description = "Control lane: against a plain Wall-nut the vaulter leaps over and lands behind, so the Wall-nut is never bitten."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_original_pole_vaulter",
+"target_archetype_id": &"archetype_original_wallnut"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_vault_block_validation"
+display_name = "Original Vault Block Validation"
+description = "Validates tag-driven vault blocking on core.leap_once: a Pole Vaulter is interrupted by the vault_blocker-tagged Tall-nut, lands in front of it and starts biting, while against a plain Wall-nut the vault resolves normally and the plant is never bitten."
+goals = PackedStringArray("Verify the vaulter blocked by Tall-nut bites the Tall-nut instead of passing it.", "Verify the same vaulter vaults a plain Wall-nut without biting it.")
+validation_time_limit = 8.0
+lane_count = 2
+validation_rules = [SubResource("Rule_tallnut_bitten"), SubResource("Rule_tallnut_not_passed"), SubResource("Rule_wallnut_vaulted")]
+spawns = [SubResource("Spawn_tallnut_lane0"), SubResource("Spawn_vaulter_lane0"), SubResource("Spawn_wallnut_lane1"), SubResource("Spawn_vaulter_lane1")]

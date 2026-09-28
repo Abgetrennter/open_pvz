@@ -91,6 +91,16 @@ func _register_builtin_strategies() -> void:
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
 		var exposure_state := StringName(params.get("exposure_state", &"ground"))
+		var pause_reason := StringName()
+		# Position hold (original Catapult semantics): stop advancing once
+		# the owner reaches stop_x (de-pvz mPosX <= 650 firing line).
+		# Expressed as movement params instead of a controller special case.
+		if params.has("stop_x") and owner != null and owner is Node2D:
+			var stop_x := float(params.get("stop_x"))
+			var reached_stop: bool = (direction.x < 0.0 and owner.position.x <= stop_x) or (direction.x > 0.0 and owner.position.x >= stop_x)
+			if reached_stop:
+				move_speed = 0.0
+				pause_reason = &"position_hold"
 		var ground_contact := bool(params.get("ground_contact", exposure_state != &"flying" and exposure_state != &"airborne"))
 		return {
 			"source_id": &"movement:core.walk",
@@ -99,13 +109,13 @@ func _register_builtin_strategies() -> void:
 			"ground_contact": ground_contact,
 			"exposure_state": exposure_state,
 			"interruptible": true,
-			"pause_reason": StringName(),
+			"pause_reason": pause_reason,
 		}
 
 	_movement_strategies[&"core.leap_once"] = func(owner: Node, spec: Dictionary, _delta: float, blackboard: Dictionary) -> Dictionary:
 		var params: Dictionary = Dictionary(spec.get("params", {}))
 		var fallback_speed := float(params.get("move_speed", 80.0))
-		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
+		var move_speed := _resolve_slots_speed(params, "leap_speed_slots_per_sec", _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed))
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
@@ -125,19 +135,39 @@ func _register_builtin_strategies() -> void:
 				"interruptible": true,
 				"pause_reason": StringName(),
 			}
-		if bool(blackboard.get("started", false)) and ground_contact and height <= 0.001:
-			blackboard["landed"] = true
-			if params.get("post_landing_movement", null) is Dictionary and owner != null and owner.has_method("set_movement_spec"):
-				owner.call("set_movement_spec", Dictionary(params.get("post_landing_movement")).duplicate(true))
-			return {
-				"source_id": &"movement:core.leap_once",
-				"command_kind": &"base",
-				"ground_velocity": direction.normalized() * move_speed,
-				"ground_contact": true,
-				"exposure_state": &"ground",
-				"interruptible": true,
-				"pause_reason": StringName(),
-			}
+		if bool(blackboard.get("started", false)):
+			# Vault blocking (original Tall-nut semantics): while mid-leap, a
+			# blocker whose tags intersect vault_block_tags interrupts the leap
+			# and the vaulter lands in front of it (de-pvz PHASE_POLEVAULTER_IN_VAULT
+			# Tall-nut bonk, DOLPHIN_IN_JUMP and POGO FORWARD_BOUNCE variants).
+			var blocker := _find_vault_blocker(owner, params, direction)
+			if blocker != null:
+				blackboard["landed"] = true
+				if params.get("blocked_landing_movement", null) is Dictionary and owner != null and owner.has_method("set_movement_spec"):
+					owner.call("set_movement_spec", Dictionary(params.get("blocked_landing_movement")).duplicate(true))
+				return {
+					"source_id": &"movement:core.leap_once",
+					"command_kind": &"base",
+					"ground_velocity": Vector2.ZERO,
+					"ground_contact": false,
+					"exposure_state": &"airborne",
+					"gravity": float(params.get("gravity", -520.0)),
+					"interruptible": true,
+					"pause_reason": &"vault_blocked",
+				}
+			if ground_contact and height <= 0.001:
+				blackboard["landed"] = true
+				if params.get("post_landing_movement", null) is Dictionary and owner != null and owner.has_method("set_movement_spec"):
+					owner.call("set_movement_spec", Dictionary(params.get("post_landing_movement")).duplicate(true))
+				return {
+					"source_id": &"movement:core.leap_once",
+					"command_kind": &"base",
+					"ground_velocity": direction.normalized() * move_speed,
+					"ground_contact": true,
+					"exposure_state": &"ground",
+					"interruptible": true,
+					"pause_reason": StringName(),
+				}
 		var command := {
 			"source_id": &"movement:core.leap_once",
 			"command_kind": &"base",
@@ -202,13 +232,24 @@ func _register_builtin_strategies() -> void:
 			blackboard["hop_cooldown"] = maxf(float(params.get("hop_interval", 0.7)), 0.05)
 		return command
 
-	_movement_strategies[&"core.drive"] = func(_owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> Dictionary:
+	_movement_strategies[&"core.drive"] = func(owner: Node, spec: Dictionary, _delta: float, _blackboard: Dictionary) -> Dictionary:
 		var params: Dictionary = Dictionary(spec.get("params", {}))
 		var fallback_speed := float(params.get("move_speed", 45.0))
 		var move_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", fallback_speed)
 		var direction := Vector2(params.get("direction", Vector2.LEFT))
 		if direction.length_squared() <= 0.0001:
 			direction = Vector2.LEFT
+		# Progressive deceleration (original Zamboni semantics): speed scales
+		# linearly toward decel_min_slots_per_sec while approaching the far
+		# side (de-pvz UpdateZamboni: 0.25 -> 0.05 between x 700 -> 300).
+		if params.has("decel_start_x") and owner != null and owner is Node2D:
+			var decel_start_x := float(params.get("decel_start_x"))
+			var decel_end_x := float(params.get("decel_end_x", 300.0))
+			var min_speed := _resolve_slots_speed(params, "decel_min_slots_per_sec", 0.05 * 96.0)
+			if direction.x < 0.0 and owner.position.x <= decel_start_x:
+				var span := maxf(decel_start_x - decel_end_x, 1.0)
+				var t := clampf((decel_start_x - owner.position.x) / span, 0.0, 1.0)
+				move_speed = lerpf(move_speed, min_speed, t)
 		return {
 			"source_id": &"movement:core.drive",
 			"command_kind": &"base",
@@ -236,3 +277,42 @@ func _get_battlefield_metrics() -> RefCounted:
 		return null
 	var metrics: Variant = GameState.current_battle.call("get_battlefield_metrics")
 	return metrics if metrics is RefCounted else null
+
+
+func _find_vault_blocker(owner: Node, params: Dictionary, direction: Vector2) -> Node:
+	# Tag-driven vault blocking (no entity-specific branches): returns the
+	# nearest candidate ahead of the owner whose tags intersect
+	# vault_block_tags, or null when nothing blocks the leap.
+	var block_tags := PackedStringArray(params.get("vault_block_tags", PackedStringArray()))
+	if block_tags.is_empty() or owner == null or not (owner is Node2D):
+		return null
+	if GameState.current_battle == null or not GameState.current_battle.has_method("spatial_query"):
+		return null
+	var scan_range := float(params.get("vault_scan_range", 60.0))
+	var owner_position: Vector2 = owner.position
+	var query := {
+		"team_exclude": StringName(owner.get("team")),
+		"center": owner_position,
+		"radius": scan_range,
+		"filter": func(candidate):
+			if candidate == owner or not (candidate is Node2D):
+				return false
+			if not candidate.has_method("is_targetable") or not bool(candidate.call("is_targetable")):
+				return false
+			var candidate_tags: Variant = candidate.get("tags")
+			if not (candidate_tags is PackedStringArray or candidate_tags is Array):
+				return false
+			var tag_set := PackedStringArray(candidate_tags)
+			for block_tag: String in block_tags:
+				if tag_set.has(block_tag):
+					return true
+			return false,
+		"sort_by_distance": true,
+		"max_results": 1,
+	}
+	if direction.x < 0.0:
+		query["x_max"] = owner_position.x + 8.0
+	else:
+		query["x_min"] = owner_position.x - 8.0
+	var results: Array = GameState.current_battle.call("spatial_query", query)
+	return null if results.is_empty() else results[0]

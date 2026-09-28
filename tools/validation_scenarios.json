@@ -1342,6 +1342,18 @@
     "layers": ["core"]
   },
   {
+    "id": "zombie_original_vault_block_validation",
+    "scenario": "res://scenes/validation/zombie_original_vault_block_validation.tres",
+    "description": "Validates tag-driven vault blocking: Pole Vaulter is interrupted by the Tall-nut and bites it, while vaulting a plain Wall-nut.",
+    "layers": ["core"]
+  },
+  {
+    "id": "zombie_original_bungee_umbrella_validation",
+    "scenario": "res://scenes/validation/zombie_original_bungee_umbrella_validation.tres",
+    "description": "Validates effect-damage interception: Bungee drop damage with overhead attack tags is cancelled by Umbrella Leaf protectors.",
+    "layers": ["core"]
+  },
+  {
     "id": "zombie_original_yeti_validation",
     "scenario": "res://scenes/validation/zombie_original_yeti_validation.tres",
     "description": "Validates Original Yeti flee state movement side effect.",

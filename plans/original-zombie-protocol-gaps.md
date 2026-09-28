@@ -8,6 +8,8 @@
 > 本文档记录原版僵尸移植过程中仍然影响"原版语义完成度"的协议缺口，口径与 `plans/original-plant-protocol-gaps.md` 对齐。数值与行为条件以 `references/de-pvz/Lawn/Zombie.cpp`、`Zombie.h` 实测为准；本文所有锚点均在 2026-09-28 逐条回源码核证。
 >
 > 更新（2026-09-28，Batch F）：Z-02（Digger 出土方向）、Z-04（Yeti 逃跑触发，计时器化）、Z-09（Dolphin 落地速度）、Z-22（Jack 爆炸半径）已修正并加深探针断言；连带修复 zombie_root 中央步进下 State 时间转换不执行的链路缺口，yeti/batch_d 验证窗口提到 18s。Z-32（Dancer 重召）经探测需“成员存活检测”，当前 Detection 只扫敌军，无协议变更无法表达，维持部分覆盖。
+>
+> 更新（2026-09-28，Batch G+H）：Z-19（Tall-nut 跳跃阻挡，leap_once 新增 vault_block_tags 标签驱动阻断 + 空中不咬修正）、Z-24（Bungee×Umbrella，damage effect 新增 attack_tags 参数补全拦截协议消费面，拦截 lane 限定）、Z-27/Z-28（Catapult 停位 stop_x + 弹药 max_trigger_count=20）、Z-12（Zamboni 位置驱动减速）已落地并补行为级验证（vault_block / bungee_umbrella 两场景）。Z-25/26（Ladder 持久物件）与 Z-29（最左列目标）留待后续批次。
 
 ---
 
@@ -38,23 +40,23 @@
 | Z-09 | Dolphin 落地后高速步行 | 已覆盖（2026-09-28） | Dolphin Rider | `post_landing_movement` 已改 0.9 档；探针断言落地速度 |
 | Z-10 | Dolphin 入水/出水序列 | 部分覆盖 | Dolphin Rider | 原版池外步行（0.66–0.68）→ `mX>700` 入水动画 → riding → 遇植物跳（`Zombie.cpp:1762-1813`）；当前 spawn 即 leap_once，缺入水触发。表现动画后置，位置/状态语义可先补 |
 | Z-11 | Zamboni 冰道生成 | 未覆盖（场地 modifier） | Zamboni | 原版行级 `mIceMinX/mIceTimer` 冰道，3000 ticks 续期（`Zombie.cpp:3908-3938`）；需 BoardSlot/field modifier，与植物侧 G-29 crater 同族，建议合并设计。Bobsled（Z-14）依赖此项 |
-| Z-12 | Zamboni 位置驱动减速 | 部分覆盖 | Zamboni | 原版 `mPosX>400` 时速度从 0.25 线性降到 0.05（`UpdateZamboni :3908-3914`）；当前固定 0.25 |
+| Z-12 | Zamboni 位置驱动减速 | 已覆盖（2026-09-28） | Zamboni | `core.drive` 新增 decel_start_x/decel_end_x/decel_min_slots_per_sec 线性减速（对应原版 0.25→0.05、x 700→300），探针断言参数 |
 | Z-13 | Zamboni/Bobsled 冰冻免疫 | 未覆盖 | Zamboni, Bobsled | `CanBeChilled()` 直接排除（`Zombie.cpp:7979-7981`）；status/element immunity 维度缺 |
 | Z-14 | Bobsled 队伍 | 未覆盖（P2 后置） | Bobsled | 组实体/队列 + sled 300 血 + 冰道依赖 + 解体后 3 独立僵尸；等 Z-11 与组队语义裁决（机制盘点开放问题 6） |
 | Z-15 | Balloon 水面落地死亡 | 部分覆盖 | Balloon | 原版落点为 pool 行则直接 `DieWithLoot`（`Zombie.cpp:1591-1593`）；当前落地无水陆判定。flying 20 attachment 层与落地状态机已覆盖 |
 | Z-16 | Pogo 弹跳高度序列 | 部分覆盖 | Pogo | 原版三段递增高跳（普通 40 → FORWARD_2 90 → FORWARD_7 170，`Zombie.cpp:1372-1414`）；当前 `hop_cycle` 单一 jump_velocity |
 | Z-17 | Pogo 弹簧破坏后步行 | 未覆盖 | Pogo | 原版 Tall-nut 碰撞或 Magnet 吸簧触发 `PogoBreak` 转步行（`Zombie.cpp:1332-1360`、`:1416-1425`）；依赖 G-19 与 Z-19 |
 | Z-18 | Pole Vaulter 跳跃距离公式 | 部分覆盖 | Pole Vaulter | 原版跳跃水平速度 = (mX - plantX - 80)/动画时长，落点整体前移 150（`Zombie.cpp:1671-1686`、`:1711-1715`）；当前 leap_once 固定 jump_velocity。近似语义已有，登记精度项 |
-| Z-19 | Tall-nut 跳跃阻挡 | 未覆盖（等对拍） | Pole Vaulter, Dolphin, Pogo | 原版三类跳越僵尸各自在跳跃中检测 Tall-nut 并 bonk 中断（`Zombie.cpp:1701-1708`、`:1821-1829`、`:1416-1425`）；与植物侧 G-28 互为对拍项，内容驱动 |
+| Z-19 | Tall-nut 跳跃阻挡 | 已覆盖（2026-09-28） | Pole Vaulter, Dolphin, Pogo | leap_once 新增 `vault_block_tags` 标签驱动阻断 + `blocked_landing_movement`，Tall-nut 挂 `vault_blocker` 标签；连带修正僵尸空中不咬（原版跳跃中不啃）；`zombie_original_vault_block_validation` 行为级验证（阻挡咬 Tall-nut / 越过 Wall-nut） |
 | Z-20 | Newspaper 狂暴速度 | 已覆盖 | Newspaper | 当前 rage 后 0.28→0.89，落在原版 0.89–0.91 区间起点；`layer_destroyed` 触发与原版 shield 摧毁一致 |
 | Z-21 | Jack 引信距离语义 | 部分覆盖 | Jack-in-the-Box | 原版引信按行走距离 450+Rand(300)px 折算，1/20 概率缩为 1/3（`Zombie.cpp:430-435`）；当前为纯时间区间（start_delay 1.5–5.0 + interval 2.5–4.5）。语义差异：原版"走多远爆"，当前"多久爆"，速度区间（Z-01）落地前两者不可等价 |
 | Z-22 | Jack 爆炸半径分目标 | 部分覆盖（单半径已校准 2026-09-28） | Jack-in-the-Box | 原版僵尸半径 115 / 植物半径 90（`Zombie.h:25-26`）；explode effect 协议（`allow_extra_params=false`）只支持单 `radius_slots`，已按植物面 90px≈0.94 校准；分目标双半径需 effect 协议扩展，维持部分覆盖 |
 | Z-23 | Bungee 完整偷取流程 | 部分覆盖 | Bungee | 原版：整列随机选格 → 俯冲（下落 8/tick）→ 底部停 300 ticks 抓植物 → 举起飞走（`Zombie.cpp:230-247`、`:1220-1264`）；当前 on_spawned 落地伤害 + consume_self 近似，无目标选择与飞走阶段 |
-| Z-24 | Bungee × Umbrella 反制 | 部分覆盖（待对拍） | Bungee | 原版落地时 `FindUmbrellaPlant` 命中即弹飞（`Zombie.cpp:1237-1250`）；植物侧 G-23 `protect_targets` 已落地，缺跨侧交互矩阵验证（interaction_matrix 双向对拍） |
+| Z-24 | Bungee × Umbrella 反制 | 已覆盖（2026-09-28） | Bungee | damage effect 新增正式参数 `attack_tags`，effect 侧拦截与 projectile 路径同判据（intercept_tags 交集 + intercept_radius + 同 lane），Bungee drop damage 声明 overhead/bungee；`zombie_original_bungee_umbrella_validation` 探针驱动验证（覆盖植物零伤害 + 未覆盖植物命中 + attack.intercepted） |
 | Z-25 | Ladder 持久梯子物件 | 未覆盖 | Ladder | 原版架梯生成 `GRIDITEM_LADDER`（`Board.cpp:449 AddALadder`），可被 Magnet/爆炸移除；当前 ladder 只是 500 attachment 层，无持久物件。复用 GridItem 第一片（crater）模式 |
 | Z-26 | 梯子越墙共用 | 未覆盖 | Ladder, 其他步行僵尸 | 原版任意僵尸遇梯子走 `HEIGHT_UP_LADDER` 越过高墙（`Zombie.cpp:1657-1665` Pole Vaulter 分支等）；依赖 Z-25 |
-| Z-27 | Catapult 停位条件 | 未覆盖 | Catapult | 原版 `mPosX <= 650 && FindCatapultTarget() && mSummonCounter > 0` 才停下开火（`Zombie.cpp:1517`）；当前 `core.periodic` 全程开火，无停位 |
-| Z-28 | Catapult 弹药与弹尽步行 | 未覆盖 | Catapult | 原版 20 发（`:402`），装填 300 ticks，弹尽转普通步行啃咬（`:1546-1561`）；当前无弹药计数 |
+| Z-27 | Catapult 停位条件 | 已覆盖（2026-09-28） | Catapult | `core.walk` 新增 `stop_x` 位置保持参数（对应原版 mPosX<=650 火线），探针断言 |
+| Z-28 | Catapult 弹药与弹尽步行 | 部分覆盖（弹药计数已落地 2026-09-28） | Catapult | periodically 新增正式参数 `max_trigger_count`（20 发，探针断言）；弹尽转普通啃咬（原版 anim_walk + PHASE_ZOMBIE_NORMAL）仍缺，依赖弹药耗尽后的 controller 切换，留后续 |
 | Z-29 | Catapult 目标选择 | 部分覆盖 | Catapult | 原版选本行最左列植物（`FindCatapultTarget :1483-1501`），无目标时盲射 mPosX-300；当前 `lane_backward + full_lane` 近似，缺"最左列"语义 |
 | Z-30 | Gargantuar 投掷条件与距离 | 部分覆盖 | Gargantuar, Redeye | 原版条件 `mHasObject && HP<50% && mPosX-360 > 40`（`:2208-2213`），投掷距离 `mPosX-360 - Rand(0,100)`、屋顶减 180（`:2133-2155`）；当前 `when_damaged` HP 阈值触发已近似，距离公式缺 |
 | Z-31 | Gargantuar × Spikerock 反伤 | 未覆盖 | Gargantuar, Redeye | 原版砸 Spikerock 自伤 20 且 Spikerock 有独立承伤次数（`:2049-2056`）；与植物侧 G-15 ground_damage 对拍 |

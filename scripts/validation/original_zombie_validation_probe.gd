@@ -38,6 +38,12 @@ func _process(_delta: float) -> void:
 		return
 	if BATCHES.has(probe_id):
 		_probe_batch(probe_id, Array(BATCHES[probe_id]))
+	elif probe_id == &"zombie_original_bungee_umbrella":
+		if not _validate_bungee_umbrella_interception():
+			push_error("original zombie probe failed: bungee umbrella interception")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
 	else:
 		_probe_single(probe_id)
 
@@ -101,15 +107,15 @@ func _validate_slug(slug: StringName) -> bool:
 		&"newspaper":
 			return _assert_layer(entity, &"newspaper", &"shield", 150) and _assert_newspaper_rage(entity)
 		&"pole_vaulter":
-			return _assert_movement_source(entity, &"core.leap_once")
+			return _assert_movement_source(entity, &"core.leap_once") and _assert_vault_block_params(runtime_spec)
 		&"dolphin_rider":
-			return _assert_movement_source(entity, &"core.leap_once") and _assert_dolphin_post_landing_speed(runtime_spec)
+			return _assert_movement_source(entity, &"core.leap_once") and _assert_dolphin_post_landing_speed(runtime_spec) and _assert_vault_block_params(runtime_spec)
 		&"ducky_tube":
 			return _has_required_tags(archetype, PackedStringArray(["spawn.medium.water"]))
 		&"snorkel":
 			return StringName(entity.call("get_exposure_state")) == &"submerged" and _assert_hidden_exposure_filter(entity, &"submerged")
 		&"zomboni":
-			return _assert_movement_source(entity, &"core.drive") and _assert_controller(entity, &"core.crush")
+			return _assert_movement_source(entity, &"core.drive") and _assert_controller(entity, &"core.crush") and _assert_zomboni_decel_params(runtime_spec)
 		&"balloon":
 			return _assert_layer(entity, &"balloon", &"attachment", 20) and StringName(entity.call("get_exposure_state")) == &"flying" and _assert_balloon_grounding(entity)
 		&"jack_in_the_box":
@@ -121,11 +127,11 @@ func _validate_slug(slug: StringName) -> bool:
 		&"yeti":
 			return _assert_yeti_flee(entity)
 		&"bungee":
-			return StringName(entity.call("get_exposure_state")) == &"flying" and _assert_trigger_payload(runtime_spec, &"on_spawned", &"damage")
+			return StringName(entity.call("get_exposure_state")) == &"flying" and _assert_trigger_payload(runtime_spec, &"on_spawned", &"damage") and _assert_bungee_attack_tags(runtime_spec)
 		&"ladder":
 			return _assert_layer(entity, &"ladder", &"attachment", 500)
 		&"catapult":
-			return _assert_trigger_payload(runtime_spec, &"periodically", &"spawn_projectile")
+			return _assert_trigger_payload(runtime_spec, &"periodically", &"spawn_projectile") and _assert_catapult_hold_and_ammo(runtime_spec)
 		&"dancing":
 			return _assert_dancing_spawn(entity)
 		&"gargantuar":
@@ -272,6 +278,60 @@ func _assert_jack_explode_radius(runtime_spec) -> bool:
 	return false
 
 
+func _assert_vault_block_params(runtime_spec) -> bool:
+	var movement_spec: Variant = runtime_spec.get("movement_spec")
+	if not (movement_spec is Dictionary):
+		return false
+	var params: Dictionary = Dictionary(movement_spec).get("params", {})
+	# Original vaulters are blocked by Tall-nut (de-pvz PHASE_POLEVAULTER_IN_VAULT
+	# bonk etc.); blocking is tag-driven via vault_block_tags.
+	return PackedStringArray(params.get("vault_block_tags", PackedStringArray())).has("vault_blocker")
+
+
+func _assert_zomboni_decel_params(runtime_spec) -> bool:
+	var movement_spec: Variant = runtime_spec.get("movement_spec")
+	if not (movement_spec is Dictionary):
+		return false
+	var params: Dictionary = Dictionary(movement_spec).get("params", {})
+	# Original Zamboni decelerates 0.25 -> 0.05 while approaching (de-pvz
+	# UpdateZamboni mPosX>400 linear curve).
+	return absf(float(params.get("decel_start_x", -1.0)) - 400.0) < 0.001 \
+		and absf(float(params.get("decel_min_slots_per_sec", -1.0)) - 0.05) < 0.001
+
+
+func _assert_bungee_attack_tags(runtime_spec) -> bool:
+	for trigger_spec in Array(runtime_spec.get("trigger_specs")):
+		if trigger_spec == null:
+			continue
+		var effect_root: Variant = trigger_spec.get("effect_root")
+		if effect_root == null or StringName(effect_root.get("effect_id")) != &"damage":
+			continue
+		var params: Dictionary = Dictionary(effect_root.get("params"))
+		var attack_tags := PackedStringArray(params.get("attack_tags", PackedStringArray()))
+		# Original Bungee drop is interceptable by Umbrella Leaf (de-pvz
+		# BungeeLanding FindUmbrellaPlant); declared via overhead attack tags.
+		return attack_tags.has("overhead") and attack_tags.has("bungee")
+	return false
+
+
+func _assert_catapult_hold_and_ammo(runtime_spec) -> bool:
+	var movement_spec: Variant = runtime_spec.get("movement_spec")
+	if not (movement_spec is Dictionary):
+		return false
+	var hold_ok := absf(float(Dictionary(movement_spec).get("params", {}).get("stop_x", -1.0)) - 650.0) < 0.001
+	var ammo_ok := false
+	for trigger_spec in Array(runtime_spec.get("trigger_specs")):
+		if trigger_spec == null:
+			continue
+		if StringName(trigger_spec.get("trigger_id")) != &"periodically":
+			continue
+		# Original catapult carries 20 basketballs and stops at the firing
+		# line (de-pvz mSummonCounter = 20, mPosX <= 650).
+		var conditions: Dictionary = Dictionary(trigger_spec.get("condition_values"))
+		ammo_ok = int(conditions.get("max_trigger_count", 0)) == 20
+	return hold_ok and ammo_ok
+
+
 func _assert_dancing_spawn(entity: Node) -> bool:
 	var base_count := _count_archetype(&"archetype_original_backup_dancer")
 	_spawn_archetype(&"archetype_original_dancing", Vector2(520.0, 320.0), {"spawn_reason": &"dancer_probe"}, true)
@@ -366,6 +426,60 @@ func _spawn_position_for(slug: StringName) -> Vector2:
 			return Vector2(520.0, 320.0)
 		_:
 			return Vector2(520.0, 220.0)
+
+
+func _validate_bungee_umbrella_interception() -> bool:
+	# The bungee drop damage fires from the entity.spawned event chain, before
+	# the spatial index has rebuilt for same-frame spawns. Step a few ticks
+	# after scenario setup so the protectors are indexed, then execute the
+	# drop damage effect directly against both covered and uncovered plants.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var covered := _find_entity_by_archetype(&"archetype_original_wallnut", 0)
+	var uncovered := _find_entity_by_archetype(&"archetype_original_wallnut", 1)
+	var umbrella := _find_entity_by_archetype(&"archetype_original_umbrellaleaf", 0)
+	if covered == null or uncovered == null or umbrella == null:
+		return false
+	var covered_before := _entity_health(covered)
+	var uncovered_before := _entity_health(uncovered)
+	var intercepted_box := {"hit": false}
+	var listener := func(event_data):
+		if StringName(event_data.core.get("via", StringName())) == &"effect_damage":
+			intercepted_box["hit"] = true
+	EventBus.subscribe(&"attack.intercepted", listener)
+	_execute_damage_effect(covered, {
+		"amount": 9999,
+		"attack_tags": PackedStringArray(["overhead", "bungee"]),
+		"target_mode": &"context_target",
+	})
+	_execute_damage_effect(uncovered, {
+		"amount": 9999,
+		"attack_tags": PackedStringArray(["overhead", "bungee"]),
+		"target_mode": &"context_target",
+	})
+	EventBus.unsubscribe(&"attack.intercepted", listener)
+	var intercepted := bool(intercepted_box["hit"])
+	if not intercepted:
+		push_error("bungee probe: no interception event")
+	elif _entity_health(covered) != covered_before:
+		push_error("bungee probe: covered damaged")
+	elif _entity_health(uncovered) != 0:
+		push_error("bungee probe: uncovered health=%d" % _entity_health(uncovered))
+	return intercepted \
+		and _entity_health(covered) == covered_before \
+		and _entity_health(uncovered) == 0
+
+
+func _find_entity_by_archetype(archetype_id: StringName, lane_id: int) -> Node:
+	if _battle == null or not _battle.has_method("get_runtime_combat_entities"):
+		return null
+	for entity in Array(_battle.call("get_runtime_combat_entities")):
+		if entity != null and is_instance_valid(entity) \
+				and entity.get("archetype_id") == archetype_id \
+				and int(entity.get("lane_id")) == lane_id:
+			return entity
+	return null
 
 
 func _emit_probe(probe: StringName, result: StringName, extra_core: Dictionary = {}) -> void:

@@ -1001,7 +1001,7 @@ static var _compile_movement_walk: Callable = func(mechanic, archetype, merged_p
 
 static var _compile_movement_leap_once: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"jump_velocity", &"gravity", &"post_landing_movement"])
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"jump_velocity", &"gravity", &"post_landing_movement", &"leap_speed_slots_per_sec"])
 	return {
 		"movement_id": &"core.leap_once",
 		"mechanic_id": mechanic.mechanic_id,

@@ -11,6 +11,7 @@ var condition_values: Dictionary = {}
 var effect_roots: Array = []
 var last_triggered_time := -1000000.0
 var bind_time := 0.0
+var fired_count := 0
 var owner_entity: Node = null
 var pending_context_overrides: Dictionary = {}
 var _timing_rng: RandomNumberGenerator = null
@@ -60,6 +61,10 @@ func should_trigger(incoming_event_name: StringName, event_data) -> bool:
 	if owner_entity.has_method("get_entity_state"):
 		entity_state = owner_entity.call("get_entity_state")
 
+	var max_trigger_count := int(condition_values.get("max_trigger_count", 0))
+	if max_trigger_count > 0 and fired_count >= max_trigger_count:
+		return false
+
 	clear_pending_context_overrides()
 	return TriggerRegistry.evaluate_trigger(def_id, event_data, condition_values, entity_state, self)
 
@@ -72,6 +77,7 @@ func execute(incoming_event_name: StringName, event_data) -> Array:
 		return results
 
 	last_triggered_time = GameState.current_time
+	fired_count += 1
 	var context: Variant = RuleContextRef.from_event_data(incoming_event_name, event_data, owner_entity)
 	_apply_pending_context_overrides(context)
 

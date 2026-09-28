@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
 
 [ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
 
@@ -14,6 +14,7 @@ params = {
 "binding_group": &"catapult_shot",
 "detection_id": &"lane_backward",
 "interval": 2.0,
+"max_trigger_count": 20,
 "range_mode": &"full_lane",
 "start_delay": 0.4,
 "target_tags": PackedStringArray("plant")
