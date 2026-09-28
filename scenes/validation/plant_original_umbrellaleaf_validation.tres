@@ -9,14 +9,14 @@ script = ExtResource("2_spawn")
 entity_kind = &"plant"
 archetype_id = &"archetype_original_umbrellaleaf"
 lane_id = 0
-x_position = 160.0
+x_position = 256.0
 
 [sub_resource type="Resource" id="Spawn_wallnut_protected"]
 script = ExtResource("2_spawn")
 entity_kind = &"plant"
 archetype_id = &"archetype_original_wallnut"
 lane_id = 0
-x_position = 256.0
+x_position = 160.0
 
 [sub_resource type="Resource" id="Spawn_catapult_lane0"]
 script = ExtResource("2_spawn")

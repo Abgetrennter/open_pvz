@@ -3,1444 +3,2040 @@
     "id": "minimal_battle_validation",
     "scenario": "res://scenes/validation/minimal_battle_validation.tres",
     "description": "Covers the minimum engine backbone validation scenario.",
-    "layers": ["smoke", "core"]
+    "layers": [
+      "smoke",
+      "core"
+    ]
   },
   {
     "id": "parabola_long_range_validation",
     "scenario": "res://scenes/validation/parabola_long_range_validation.tres",
     "description": "Covers long-range parabola hit behavior.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "height_hit_validation",
     "scenario": "res://scenes/validation/height_hit_validation.tres",
     "description": "Validates that hit height bands block low projectiles while allowing elevated projectiles to resolve against elevated targets.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "lane_isolation_validation",
     "scenario": "res://scenes/validation/lane_isolation_validation.tres",
     "description": "Validates that crossing projected paths do not cause off-lane interception during parabola flight.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "swept_segment_validation",
     "scenario": "res://scenes/validation/swept_segment_validation.tres",
     "description": "Validates that high-speed linear projectiles still register hits through swept-segment collision instead of skipping through targets.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "terminal_explode_validation",
     "scenario": "res://scenes/validation/terminal_explode_validation.tres",
     "description": "Validates that terminal-hit projectiles can drive explode-tagged area damage at their impact point.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_instantiation_validation",
     "scenario": "res://scenes/validation/archetype_instantiation_validation.tres",
     "description": "Validates the first Mechanic-first skeleton path from archetype resolution to compiled RuntimeTriggerSpec execution.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_attack_validation",
     "scenario": "res://scenes/validation/archetype_attack_validation.tres",
     "description": "Validates the first attack-side Mechanic-first skeleton path from archetype resolution to compiled RuntimeTriggerSpec damage execution.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_projectile_validation",
     "scenario": "res://scenes/validation/archetype_projectile_validation.tres",
     "description": "Validates the first projectile-side Mechanic-first skeleton path for linear and parabola projectile attacks.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_lifecycle_validation",
     "scenario": "res://scenes/validation/archetype_lifecycle_validation.tres",
     "description": "Validates the second-stage lifecycle path for on_spawned mechanics compiled into shared runtime triggers.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_on_place_validation",
     "scenario": "res://scenes/validation/archetype_on_place_validation.tres",
     "description": "Validates the second-stage on_place lifecycle path through the card and placement runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_state_validation",
     "scenario": "res://scenes/validation/archetype_state_validation.tres",
     "description": "Validates the third-stage state path for arming -> active gating before shared runtime damage begins.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_state_guard_validation",
     "scenario": "res://scenes/validation/archetype_state_guard_validation.tres",
     "description": "Negative validation for required_state gating before the active state is reached.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "projectile_movement_guardrail_validation",
     "scenario": "res://scenes/validation/projectile_movement_guardrail_validation.tres",
     "description": "Validates that unknown projectile movement ids are reported through protocol issues and safely fall back.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "archetype_zombie_runtime_validation",
     "scenario": "res://scenes/validation/archetype_zombie_runtime_validation.tres",
     "description": "Validates that a zombie archetype can enter through archetype_id and still reuse the existing continuous bite runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_mower_runtime_validation",
     "scenario": "res://scenes/validation/archetype_mower_runtime_validation.tres",
     "description": "Validates that an archetype-backed lawn mower field object uses the new sweep controller path.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "field_object_mower_contact_guard_validation",
     "scenario": "res://scenes/validation/field_object_mower_contact_guard_validation.tres",
     "description": "Validates that a lawn mower does not activate until an enemy enters contact range.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "field_object_mower_enemy_only_guard_validation",
     "scenario": "res://scenes/validation/field_object_mower_enemy_only_guard_validation.tres",
     "description": "Validates that a lawn mower does not activate on nearby non-zombie entities.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "archetype_multi_payload_validation",
     "scenario": "res://scenes/validation/archetype_multi_payload_validation.tres",
     "description": "Validates that a single trigger mechanic compiles and executes multiple payload mechanics independently.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "targeting_compile_validation",
     "scenario": "res://scenes/validation/targeting_compile_validation.tres",
     "description": "Validates that an independent Targeting mechanic compiles into trigger condition_values and enables correct detection.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "trajectory_compile_validation",
     "scenario": "res://scenes/validation/trajectory_compile_validation.tres",
     "description": "Validates that an independent Trajectory mechanic injects movement_mode into effect_params.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "hit_policy_compile_validation",
     "scenario": "res://scenes/validation/hit_policy_compile_validation.tres",
     "description": "Validates that an independent HitPolicy mechanic injects hit_strategy into effect_params.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "emission_burst_compile_validation",
     "scenario": "res://scenes/validation/emission_burst_compile_validation.tres",
     "description": "Validates that an independent Emission burst mechanic spawns multiple projectiles per trigger.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "emission_spread_compile_validation",
     "scenario": "res://scenes/validation/emission_spread_compile_validation.tres",
     "description": "Validates that an independent Emission spread mechanic spawns fan-pattern projectiles.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "full_chain_compile_validation",
     "scenario": "res://scenes/validation/full_chain_compile_validation.tres",
     "description": "Validates that an archetype with all 6 attack-chain family mechanics compiles and executes correctly.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "placement_compile_validation",
     "scenario": "res://scenes/validation/placement_compile_validation.tres",
     "description": "Validates that a Placement mechanic archetype compiles placement_spec metadata and can be placed on a ground slot.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "placement_runtime_spec_validation",
     "scenario": "res://scenes/validation/placement_runtime_spec_validation.tres",
     "description": "Validates that BattleCardState and BattleBoardState consume compiled placement_spec values, including placement_role overrides and required_present_roles.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "placement_field_fallback_validation",
     "scenario": "res://scenes/validation/placement_field_fallback_validation.tres",
     "description": "Validates that archetype field placement data is normalized into placement_spec_source=archetype_field and consumed by the shared placement runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "placement_guardrail_validation",
     "scenario": "res://scenes/validation/placement_guardrail_validation.tres",
     "description": "Validates that multiple enabled Placement mechanics are rejected before runtime spawn.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "spawn_override_priority_validation",
     "scenario": "res://scenes/validation/spawn_override_priority_validation.tres",
     "description": "Validates that BattleSpawnEntry can resolve archetypes by registry id and that scene-level overrides win over template projectile defaults.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "simulation_control_validation",
     "scenario": "res://scenes/validation/simulation_control_validation.tres",
     "description": "Validates simulation speed, pause-on-start, and headless fixed-step controls for the 100Hz gameplay clock.",
-    "layers": ["smoke", "guardrail"]
+    "layers": [
+      "smoke",
+      "guardrail"
+    ]
   },
   {
     "id": "air_interceptor_validation",
     "scenario": "res://scenes/validation/air_interceptor_validation.tres",
     "description": "Validates that the air interceptor sample can hit low and medium air targets through the shared projectile content chain.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "repeater_burst_validation",
     "scenario": "res://scenes/validation/repeater_burst_validation.tres",
     "description": "Validates that the repeater burst sample can spawn repeated projectiles and damage walker and runner targets in two lanes.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "lobber_catalog_validation",
     "scenario": "res://scenes/validation/lobber_catalog_validation.tres",
     "description": "Validates that cabbage and melon lobber samples can spawn their dedicated projectile templates and resolve direct-hit and explode-tagged damage.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_roster_attack_validation",
     "scenario": "res://scenes/validation/zombie_roster_attack_validation.tres",
     "description": "Validates that the new zombie roster samples can all attack the wall barrier sample through the common zombie runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_roster_v1_validation",
     "scenario": "res://scenes/validation/plant_roster_v1_validation.tres",
     "description": "Validates the first formal v1 plant roster additions for control and summon roles through shared built-in runtime effects.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_roster_v1_validation",
     "scenario": "res://scenes/validation/zombie_roster_v1_validation.tres",
     "description": "Validates the first formal v1 zombie roster additions for ranged special attack and support disruption.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "interaction_matrix_v1_validation",
     "scenario": "res://scenes/validation/interaction_matrix_v1_validation.tres",
     "description": "Validates the first formal v1 interaction matrix across control, summon pressure, armored resistance and ranged disruption.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "battlefield_v1_validation",
     "scenario": "res://scenes/validation/battlefield_v1_validation.tres",
     "description": "Validates formal battlefield presets by exercising water, ground and air-only placement semantics through the shared card and board runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "survival_goal_v1_validation",
     "scenario": "res://scenes/validation/survival_goal_v1_validation.tres",
     "description": "Validates the survive_duration battle goal variant without introducing battle-specific special cases.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "protect_goal_v1_validation",
     "scenario": "res://scenes/validation/protect_goal_v1_validation.tres",
     "description": "Validates the protect_archetype defeat condition by requiring a sunflower anchor to survive a ranged zombie attack.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "protocol_guardrail_validation",
     "scenario": "res://scenes/validation/protocol_guardrail_validation.tres",
     "description": "Validates that invalid protocol content, including unsupported target modes, is rejected through protocol.issue events before projectile or damage execution can continue.",
-    "layers": ["smoke", "guardrail"]
+    "layers": [
+      "smoke",
+      "guardrail"
+    ]
   },
   {
     "id": "effect_consume_reveal_guardrail_validation",
     "scenario": "res://scenes/validation/effect_consume_reveal_guardrail_validation.tres",
     "description": "Validates consume_self owner guardrails and reveal enemy-hidden target filtering.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "sun_resource_validation",
     "scenario": "res://scenes/validation/sun_resource_validation.tres",
     "description": "Validates the first-stage sun economy loop, including plant-generated and sky-drop sun, automatic collection, and spend failure/success resource events.",
-    "layers": ["smoke", "core"]
+    "layers": [
+      "smoke",
+      "core"
+    ]
   },
   {
     "id": "sunflower_sun_production_validation",
     "scenario": "res://scenes/validation/sunflower_sun_production_validation.tres",
     "description": "Validates sunflower sun production using the actual archetype_sunflower archetype across multiple lanes, including plant-generated sun with different intervals and values, sky-drop sun, automatic collection, and resource state changes.",
-    "layers": ["smoke", "core"]
+    "layers": [
+      "smoke",
+      "core"
+    ]
   },
   {
     "id": "card_flow_validation",
     "scenario": "res://scenes/validation/card_flow_validation.tres",
     "description": "Validates the first-stage card runtime, including sun spending via try_spend_sun, placement acceptance, entity spawn, cooldown rejection, and insufficient-resource rejection.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "card_place_validation",
     "scenario": "res://scenes/validation/card_place_validation.tres",
     "description": "Validates a data-driven card placement request through the shared card, board, and archetype runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "board_placement_validation",
     "scenario": "res://scenes/validation/board_placement_validation.tres",
     "description": "Validates the formal board placement layer by accepting one legal slot request and rejecting a second request into the occupied slot.",
-    "layers": ["smoke", "core"]
+    "layers": [
+      "smoke",
+      "core"
+    ]
   },
   {
     "id": "board_slot_tag_validation",
     "scenario": "res://scenes/validation/board_slot_tag_validation.tres",
     "description": "Validates that the formal board layer owns slot types and placement tags, rejecting mismatched requests and accepting matched ones.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "lane_config_default_compat_validation",
     "scenario": "res://scenes/validation/lane_config_default_compat_validation.tres",
     "description": "Validates that empty lane_configs keep the legacy all-ground board behavior.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "lane_config_pool_slots_validation",
     "scenario": "res://scenes/validation/lane_config_pool_slots_validation.tres",
     "description": "Validates lane type template expansion for grass and pool rows.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "lane_config_dirt_reject_validation",
     "scenario": "res://scenes/validation/lane_config_dirt_reject_validation.tres",
     "description": "Validates that dirt lanes expose no placement tags and reject ordinary ground placement.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "lane_y_positions_metrics_validation",
     "scenario": "res://scenes/validation/lane_y_positions_metrics_validation.tres",
     "description": "Validates that explicit lane_y_positions drive board metrics and slot positions.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "lane_config_wave_legacy_spawn_validation",
     "scenario": "res://scenes/validation/lane_config_wave_legacy_spawn_validation.tres",
     "description": "Validates that lane_configs alone keep legacy wave spawning for existing zombies without spawn.medium tags.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "terrain_profile_linear_metrics_validation",
     "scenario": "res://scenes/validation/terrain_profile_linear_metrics_validation.tres",
     "description": "Validates that linear terrain profiles drive BattlefieldMetrics slot positions and elevation samples.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "terrain_profile_stepped_metrics_validation",
     "scenario": "res://scenes/validation/terrain_profile_stepped_metrics_validation.tres",
     "description": "Validates that stepped terrain profiles drive BattlefieldMetrics slot positions and elevation samples.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "projectile_terrain_absolute_z_validation",
     "scenario": "res://scenes/validation/projectile_terrain_absolute_z_validation.tres",
     "description": "Validates terrain-follow projectile hit checks using absolute z on sloped terrain.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "spawn_zone_ground_water_validation",
     "scenario": "res://scenes/validation/spawn_zone_ground_water_validation.tres",
     "description": "Validates spawn zone resolution by zombie spawn.medium tags for ground and water lanes.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "spawn_zone_invalid_lane_guard_validation",
     "scenario": "res://scenes/validation/spawn_zone_invalid_lane_guard_validation.tres",
     "description": "Validates that spawn zones referencing invalid lanes emit protocol issues.",
-    "layers": ["guardrail", "terrain"]
+    "layers": [
+      "guardrail",
+      "terrain"
+    ]
   },
   {
     "id": "spawn_requirement_missing_guard_validation",
     "scenario": "res://scenes/validation/spawn_requirement_missing_guard_validation.tres",
     "description": "Validates that strict spawn zone scenarios reject zombies without spawn.medium requirements.",
-    "layers": ["guardrail", "terrain"]
+    "layers": [
+      "guardrail",
+      "terrain"
+    ]
   },
   {
     "id": "roof_slot_validation",
     "scenario": "res://scenes/validation/roof_slot_validation.tres",
     "description": "Validates that roof slots require a surface container before a primary plant can be placed.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "air_slot_validation",
     "scenario": "res://scenes/validation/air_slot_validation.tres",
     "description": "Validates that air-only slots reject unsupported archetypes and accept a template with matching static air-only constraints.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "cover_blocker_validation",
     "scenario": "res://scenes/validation/cover_blocker_validation.tres",
     "description": "Validates cover and blocker role semantics, including cover stacking on primary and blocker exclusion.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "status_system_validation",
     "scenario": "res://scenes/validation/status_system_validation.tres",
     "description": "Validates the first-stage status system through slowed and stunned examples that affect movement and attack.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "liveness_system_validation",
     "scenario": "res://scenes/validation/liveness_system_validation.tres",
     "description": "Validates state and status liveness overrides for arming, sleeping and stunned entities.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "spatial_index_consistency_validation",
     "scenario": "res://scenes/validation/spatial_index_consistency_validation.tres",
     "description": "Validates SpatialIndex query results against full-scan baselines for lane/team/x, tag/kind, height_range and stable ordering.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "tick_budget_monitor_validation",
     "scenario": "res://scenes/validation/tick_budget_monitor_validation.tres",
     "description": "Validates that tick budget monitoring emits simulation.control metadata when the configured threshold is crossed.",
-    "layers": ["smoke", "core"]
+    "layers": [
+      "smoke",
+      "core"
+    ]
   },
   {
     "id": "field_object_mower_validation",
     "scenario": "res://scenes/validation/field_object_mower_validation.tres",
     "description": "Validates the first-stage field object runtime through a lawn mower that activates, kills a zombie, and expires without triggering defeat.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "grid_item_crater_validation",
     "scenario": "res://scenes/validation/grid_item_crater_validation.tres",
     "description": "Validates the first GridItem slice through a crater that blocks placement, is removed by effect, and then allows placement.",
-    "layers": ["smoke", "core"]
+    "layers": [
+      "smoke",
+      "core"
+    ]
   },
   {
     "id": "wave_flow_validation",
     "scenario": "res://scenes/validation/wave_flow_validation.tres",
     "description": "Validates the first-stage battle flow, including phase changes, wave start/completion, wave spawns, and battle victory.",
-    "layers": ["smoke", "core"]
+    "layers": [
+      "smoke",
+      "core"
+    ]
   },
   {
     "id": "wave_recipe_compile_validation",
     "scenario": "res://scenes/validation/wave_recipe_compile_validation.tres",
     "description": "Validates that a WaveRecipeDef compiles into ordinary executable waves, including flag-wave insertion.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "wave_advance_health_threshold_validation",
     "scenario": "res://scenes/validation/wave_advance_health_threshold_validation.tres",
     "description": "Validates timer plus health-threshold wave advance and flag-wave warning events for compiled wave recipes.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "wave_recipe_spawn_zone_filter_validation",
     "scenario": "res://scenes/validation/wave_recipe_spawn_zone_filter_validation.tres",
     "description": "Validates recipe-level spawn tag filtering before entries reach the runtime spawn resolver.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "wave_recipe_roof_spawn_zone_validation",
     "scenario": "res://scenes/validation/wave_recipe_roof_spawn_zone_validation.tres",
     "description": "Validates recipe-level spawn tag filtering and runtime resolution for explicit roof spawn zones.",
-    "layers": ["core", "terrain"]
+    "layers": [
+      "core",
+      "terrain"
+    ]
   },
   {
     "id": "wave_recipe_special_injection_validation",
     "scenario": "res://scenes/validation/wave_recipe_special_injection_validation.tres",
     "description": "Validates controlled recipe-level special injection rules without arbitrary WaveRunner scripting.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "wave_guardrail_validation",
     "scenario": "res://scenes/validation/wave_guardrail_validation.tres",
     "description": "Validates that invalid wave definitions emit protocol issues and do not continue into wave-based spawns.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "reactive_retaliation_chaos_validation",
     "scenario": "res://scenes/validation/reactive_retaliation_chaos_validation.tres",
     "description": "Validates that repeated burst fire can drive a reactive counterattack chain through the shared runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "death_blossom_chaos_validation",
     "scenario": "res://scenes/validation/death_blossom_chaos_validation.tres",
     "description": "Validates that a reactive bomber death explosion can damage multiple nearby plants through the shared explode chain.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "tracking_barrage_chaos_validation",
     "scenario": "res://scenes/validation/tracking_barrage_chaos_validation.tres",
     "description": "Validates that ground and air tracking attackers can coexist as a fifth-stage chaos sample without new battle-specific scripts.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "extension_pack_smoke_validation",
     "scenario": "res://extensions/minimal_chaos_pack/scenes/validation/extension_pack_smoke_validation.tres",
     "description": "Validates that a minimal external content pack can register an archetype and validation scenario through the extension scan path.",
-    "layers": ["smoke", "extension"]
+    "layers": [
+      "smoke",
+      "extension"
+    ]
   },
   {
     "id": "projectile_movement_zigzag_smoke_validation",
     "scenario": "res://extensions/my_pack/scenes/validation/projectile_movement_zigzag_smoke_validation.tres",
     "description": "Validates extension-registered projectile movement and mechanic compiler dispatch through my_pack.zigzag.",
-    "layers": ["extension"]
+    "layers": [
+      "extension"
+    ]
   },
   {
     "id": "extension_manifest_guardrail_validation",
     "scenario": "res://scenes/validation/extension_manifest_guardrail_validation.tres",
     "description": "Validates extension manifest guardrails during extension pack scan, including malformed manifests and private asset publication boundaries.",
-    "layers": ["smoke", "guardrail"]
+    "layers": [
+      "smoke",
+      "guardrail"
+    ]
   },
   {
     "id": "extension_runtime_trust_guardrail_validation",
     "scenario": "res://scenes/validation/extension_runtime_trust_guardrail_validation.tres",
     "description": "Validates that data_only extension packs cannot register trusted runtime slots.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "extension_slot_guardrail_validation",
     "scenario": "res://scenes/validation/extension_slot_guardrail_validation.tres",
     "description": "Validates runtime slot guardrails for invalid projectile movement scripts and mechanic compiler contributions.",
-    "layers": ["guardrail", "extension"]
+    "layers": [
+      "guardrail",
+      "extension"
+    ]
   },
   {
     "id": "target_acquisition_validation",
     "scenario": "res://scenes/validation/target_acquisition_validation.tres",
     "description": "Validates the first-stage lane_forward detection gate, including same-lane firing, adjacent-lane rejection, and RuleContext target propagation for parabola targeting.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "chain_explosion_cascade_validation",
     "scenario": "res://scenes/validation/chain_explosion_cascade_validation.tres",
     "description": "Validates a cascading death-explosion chain where two reactive bombers trigger sequential on_death explosions through spatial proximity.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "splash_zone_cascade_validation",
     "scenario": "res://scenes/validation/splash_zone_cascade_validation.tres",
     "description": "Validates that a melon lobber terminal explosion can simultaneously damage a tank and a nearby walker through the shared on_hit explode runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "fast_pursuit_cascade_validation",
     "scenario": "res://scenes/validation/fast_pursuit_cascade_validation.tres",
     "description": "Validates that ground tracking projectiles can reliably pursue and hit a fast-moving brisk runner through the shared tracking runtime.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "multi_lane_retaliation_cascade_validation",
     "scenario": "res://scenes/validation/multi_lane_retaliation_cascade_validation.tres",
     "description": "Validates that when_damaged retaliation correctly targets the event source in each lane without cross-lane interference.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_basic_validation",
     "scenario": "res://scenes/validation/mode_basic_validation.tres",
     "description": "Validates that BattleModeHost resolves a mode, forwards events into rule modules, and lets objective evaluation mark battle victory.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_manual_aim_lane_validation",
     "scenario": "res://scenes/validation/mode_manual_aim_lane_validation.tres",
     "description": "Validates the pilot manual aim mode by selecting a spawned entity, targeting a board slot, and resolving a manual skill through the mode layer.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_input_profile_guard_validation",
     "scenario": "res://scenes/validation/mode_input_profile_guard_validation.tres",
     "description": "Validates that a mode input profile can disable entity selection and manual skill resolution without breaking standard placement.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "mode_objective_score_validation",
     "scenario": "res://scenes/validation/mode_objective_score_validation.tres",
     "description": "Validates score-threshold objective progression across multiple manual skill applications.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_objective_protect_archetype_validation",
     "scenario": "res://scenes/validation/mode_objective_protect_archetype_validation.tres",
     "description": "Validates mode-level protect_archetype objective evaluation and defeat handling.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_objective_clear_special_targets_validation",
     "scenario": "res://scenes/validation/mode_objective_clear_special_targets_validation.tres",
     "description": "Validates mode-level clear_special_targets objective evaluation and victory handling.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_objective_defeat_named_spawn_validation",
     "scenario": "res://scenes/validation/mode_objective_defeat_named_spawn_validation.tres",
     "description": "Validates mode-level defeat_named_spawn objective evaluation and victory handling.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_module_override_validation",
     "scenario": "res://scenes/validation/mode_module_override_validation.tres",
     "description": "Validates that scenario-level mode_rule_modules override default mode_def modules by module_id.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_conveyor_cards_validation",
     "scenario": "res://scenes/validation/mode_conveyor_cards_validation.tres",
     "description": "Validates the minimal conveyor_cards module path through the shared mode host.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "mode_no_mode_guardrail",
     "scenario": "res://scenes/validation/mode_no_mode_guardrail.tres",
     "description": "Validates that battles without mode_def still work correctly - backward compatibility guardrail.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "mode_protocol_guardrail_validation",
     "scenario": "res://scenes/validation/mode_protocol_guardrail_validation.tres",
     "description": "Validates that invalid BattleModeDef, BattleInputProfile, BattleObjectiveDef, and BattleRuleModule resources are rejected through battle_scenario protocol issues.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "plant_original_batch_a_validation",
     "scenario": "res://scenes/validation/plant_original_batch_a_validation.tres",
     "description": "Validates all 7 Batch A original PVZ plants: Peashooter (damage), Sunflower (sun production), Wall-nut (tank damage), Snow Pea (slow status), Repeater (burst damage), Cabbage-pult (lob hit), Melon-pult (splash explode).",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_batch_b_validation",
     "scenario": "res://scenes/validation/plant_original_batch_b_validation.tres",
     "description": "Validates Batch B original PVZ plants: Cherry Bomb (on_place explode), Jalapeno (lane explosion), Tall-nut (tank damage), Pumpkin (cover spawn).",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_potatomine_validation",
     "scenario": "res://scenes/validation/plant_original_potatomine_validation.tres",
     "description": "Validates Potato Mine arming state and active proximity explosion.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_squash_validation",
     "scenario": "res://scenes/validation/plant_original_squash_validation.tres",
     "description": "Validates Squash on-place telegraphed impact phases and delayed damage.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_squash_no_immediate_damage_validation",
     "scenario": "res://scenes/validation/plant_original_squash_no_immediate_damage_validation.tres",
     "description": "Validates Squash does not damage its locked target during the windup window.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_squash_locked_impact_position_validation",
     "scenario": "res://scenes/validation/plant_original_squash_locked_impact_position_validation.tres",
     "description": "Validates Squash impact resolves from its locked impact position instead of tracking a moved target.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_chomper_validation",
     "scenario": "res://scenes/validation/plant_original_chomper_validation.tres",
     "description": "Validates Chomper close-range devour damage.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_round1_validation",
     "scenario": "res://scenes/validation/plant_original_round1_validation.tres",
     "description": "Validates Round 1 protocol extensions: enemies_in_lane explode, dispel_flying, radius_around targeting, global_track targeting, metal tag filtering, and upgrade placement.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_batch_c_validation",
     "scenario": "res://scenes/validation/plant_original_batch_c_validation.tres",
     "description": "Validates Batch C night mushrooms: Puff-shroom sleeping spawn, Fume-shroom wake and damage, Ice-shroom and Doom-shroom on_place explode.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_coffeebean_wake_validation",
     "scenario": "res://scenes/validation/plant_original_coffeebean_wake_validation.tres",
     "description": "Validates Coffee Bean wakes only its covered sleeping plant.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_fumeshroom_pierce_validation",
     "scenario": "res://scenes/validation/plant_original_fumeshroom_pierce_validation.tres",
     "description": "Validates Fume-shroom wake flow and pierce hit policy.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_hypnoshroom_validation",
     "scenario": "res://scenes/validation/plant_original_hypnoshroom_validation.tres",
     "description": "Validates Hypno-shroom wake flow and proximity team switch.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_sunshroom_validation",
     "scenario": "res://scenes/validation/plant_original_sunshroom_validation.tres",
     "description": "Validates Sun-shroom wake flow and delayed sun production.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_scaredyshroom_validation",
     "scenario": "res://scenes/validation/plant_original_scaredyshroom_validation.tres",
     "description": "Validates Scaredy-shroom wake flow and forward projectile damage.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_scaredyshroom_cower_validation",
     "scenario": "res://scenes/validation/plant_original_scaredyshroom_cower_validation.tres",
     "description": "Validates Scaredy-shroom near-enemy cower liveness and stop-fire behavior.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_seashroom_validation",
     "scenario": "res://scenes/validation/plant_original_seashroom_validation.tres",
     "description": "Validates Sea-shroom water placement, wake flow, and short-range damage.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_batch_d_validation",
     "scenario": "res://scenes/validation/plant_original_batch_d_validation.tres",
     "description": "Validates Batch D field and multi-directional plants: Threepeater multi-lane damage, Spikeweed ground_damage, Peashooter+Torchwood combo.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_splitpea_validation",
     "scenario": "res://scenes/validation/plant_original_splitpea_validation.tres",
     "description": "Validates Split Pea dual-direction emission.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_starfruit_validation",
     "scenario": "res://scenes/validation/plant_original_starfruit_validation.tres",
     "description": "Validates Starfruit multi-angle emission.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_cactus_validation",
     "scenario": "res://scenes/validation/plant_original_cactus_validation.tres",
     "description": "Validates Cactus air-target projectile path.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_cactus_switch_validation",
     "scenario": "res://scenes/validation/plant_original_cactus_switch_validation.tres",
     "description": "Validates Cactus split air and ground target projectile paths.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_blover_validation",
     "scenario": "res://scenes/validation/plant_original_blover_validation.tres",
     "description": "Validates Blover air-only dispel path.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_magnetshroom_validation",
     "scenario": "res://scenes/validation/plant_original_magnetshroom_validation.tres",
     "description": "Validates Magnet-shroom sleep/wake and metal-tag targeting.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_gravebuster_validation",
     "scenario": "res://scenes/validation/plant_original_gravebuster_validation.tres",
     "description": "Validates Grave Buster tombstone-dependent placement, rejection without a tombstone, and blocker removal.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_garlic_validation",
     "scenario": "res://scenes/validation/plant_original_garlic_validation.tres",
     "description": "Validates Garlic bite-tag filtered when_damaged trigger, deterministic boundary lane_reroute, and non-bite damage immunity.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_umbrellaleaf_validation",
     "scenario": "res://scenes/validation/plant_original_umbrellaleaf_validation.tres",
     "description": "Validates Umbrella Leaf protect_targets interception of overhead-tagged projectiles, with unprotected-lane and bite negative assertions.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_imitater_validation",
     "scenario": "res://scenes/validation/plant_original_imitater_validation.tres",
     "description": "Validates Imitater card clone protocol: setup-time clone expansion with card.clone_resolved, independent cooldown timelines, imitater spawn metadata, and protocol.issue rejection for invalid clone sources.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_water_pair_validation",
     "scenario": "res://scenes/validation/plant_original_water_pair_validation.tres",
     "description": "Validates Lily Pad support placement and Sea-shroom primary placement on water slots.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_tanglekelp_plantern_validation",
     "scenario": "res://scenes/validation/plant_original_tanglekelp_plantern_validation.tres",
     "description": "Validates Tangle Kelp water placement, lethal proximity hit and self-consume, plus Plantern reveal against hidden enemies.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_kernelpult_validation",
     "scenario": "res://scenes/validation/plant_original_kernelpult_validation.tres",
     "description": "Validates Kernel-pult deterministic corn/butter cycle with damage and butter stun payloads.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_marigold_validation",
     "scenario": "res://scenes/validation/plant_original_marigold_validation.tres",
     "description": "Validates Marigold placement and coin-generated collectible production through the shared economy path.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_batch_e_validation",
     "scenario": "res://scenes/validation/plant_original_batch_e_validation.tres",
     "description": "Validates Batch E roof, upgrade and economy plants: Repeater damage, Sunflower sun production, Winter Melon splash damage, Flower Pot support spawn, and Marigold coin-generated collectible output.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_flowerpot_validation",
     "scenario": "res://scenes/validation/plant_original_flowerpot_validation.tres",
     "description": "Validates Flower Pot roof support placement and support-granted primary placement.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_e_upgrade_placement_validation",
     "scenario": "res://scenes/validation/plant_original_e_upgrade_placement_validation.tres",
     "description": "Validates E batch upgrade placement role and specific base archetype dependencies.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_gloomshroom_validation",
     "scenario": "res://scenes/validation/plant_original_gloomshroom_validation.tres",
     "description": "Validates Gloom-shroom upgrade placement and radius-based detected-target damage.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_cattail_validation",
     "scenario": "res://scenes/validation/plant_original_cattail_validation.tres",
     "description": "Validates Cattail water upgrade placement and current track-air projectile damage path.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_cattail_priority_validation",
     "scenario": "res://scenes/validation/plant_original_cattail_priority_validation.tres",
     "description": "Validates Cattail global tracking, air priority, and two-shot burst cadence.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_wintermelon_validation",
     "scenario": "res://scenes/validation/plant_original_wintermelon_validation.tres",
     "description": "Validates Winter Melon upgrade placement and terminal blast damage.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_spikerock_validation",
     "scenario": "res://scenes/validation/plant_original_spikerock_validation.tres",
     "description": "Validates Spikerock upgrade placement and ground damage controller behavior.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_goldmagnet_validation",
     "scenario": "res://scenes/validation/plant_original_goldmagnet_validation.tres",
     "description": "Validates Gold Magnet upgrade placement over Magnet-shroom.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "plant_original_cobcannon_validation",
     "scenario": "res://scenes/validation/plant_original_cobcannon_validation.tres",
     "description": "Validates Cob Cannon two-Kernel-pult upgrade footprint and one manual aimed area-damage shot.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "entity_replacement_validation",
     "scenario": "res://scenes/validation/entity_replacement_validation.tres",
     "description": "Validates generic entity.replaced semantics for card upgrades, multi-stage upgrades, and lifecycle-triggered automatic replacement.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "original_shooter_garden_validation",
     "scenario": "res://scenes/validation/original_shooter_garden_validation.tres",
     "description": "Showcase validation for original shooter plants with per-plant damage checks.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_frost_control_garden_validation",
     "scenario": "res://scenes/validation/original_frost_control_garden_validation.tres",
     "description": "Showcase validation for original frost/control plants across slow, air, water and upgrade contexts.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_lobber_garden_validation",
     "scenario": "res://scenes/validation/original_lobber_garden_validation.tres",
     "description": "Showcase validation for original lobber plants with hit and splash checks.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_production_garden_validation",
     "scenario": "res://scenes/validation/original_production_garden_validation.tres",
     "description": "Showcase validation for original production plants with sun, coin, wake and upgrade checks.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_mushroom_garden_validation",
     "scenario": "res://scenes/validation/original_mushroom_garden_validation.tres",
     "description": "Showcase validation for original mushroom plants through wake, water and upgrade contexts.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_explosion_garden_validation",
     "scenario": "res://scenes/validation/original_explosion_garden_validation.tres",
     "description": "Showcase validation for original explosion plants with placement-triggered and armed effects.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_defense_support_garden_validation",
     "scenario": "res://scenes/validation/original_defense_support_garden_validation.tres",
     "description": "Showcase validation for original defense/support plants with damage, cover, upgrade and support checks.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_special_garden_validation",
     "scenario": "res://scenes/validation/original_special_garden_validation.tres",
     "description": "Showcase validation for original special plants across placement, water, upgrade, air and wake contexts.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_tactics_garden_validation",
     "scenario": "res://scenes/validation/original_tactics_garden_validation.tres",
     "description": "Showcase validation for P0 tactical support plants: Garlic lane reroute, Umbrella Leaf overhead interception, and Imitater clone card placement.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "original_tactics_garden_validation",
     "scenario": "res://scenes/validation/original_tactics_garden_validation.tres",
     "description": "Showcase validation for P0 tactical support plants: Garlic lane reroute, Umbrella Leaf overhead interception, and Imitater clone card placement.",
-    "layers": ["showcase", "core"]
+    "layers": [
+      "showcase",
+      "core"
+    ]
   },
   {
     "id": "registry_duplicate_id_guardrail",
     "scenario": "res://scenes/validation/registry_duplicate_id_guardrail.tres",
     "description": "Validates that duplicate contributor ids are rejected by RegistryBase and surfaced as protocol issues.",
-    "layers": ["guardrail", "extension"]
+    "layers": [
+      "guardrail",
+      "extension"
+    ]
   },
   {
     "id": "registry_core_override_guardrail",
     "scenario": "res://scenes/validation/registry_core_override_guardrail.tres",
     "description": "Validates that extension packs cannot register contributor ids under the core.* namespace.",
-    "layers": ["guardrail", "extension"]
+    "layers": [
+      "guardrail",
+      "extension"
+    ]
   },
   {
     "id": "registry_trust_level_guardrail",
     "scenario": "res://scenes/validation/registry_trust_level_guardrail.tres",
     "description": "Validates that data_only extension packs cannot register trusted runtime contributors through the unified RegistryBase.",
-    "layers": ["guardrail"]
+    "layers": [
+      "guardrail"
+    ]
   },
   {
     "id": "registry_slot_extension_probe",
     "scenario": "res://extensions/registry_probe_pack/scenes/validation/registry_slot_extension_probe.tres",
     "description": "Validates extension detection, controller, trigger and effect contributors through RegistryBase dispatch plus source metadata and rebuild idempotency.",
-    "layers": ["smoke", "extension"]
+    "layers": [
+      "smoke",
+      "extension"
+    ]
   },
   {
     "id": "registry_strategy_script_guardrail",
     "scenario": "res://extensions/registry_strategy_guardrail_pack/scenes/validation/registry_strategy_script_guardrail.tres",
     "description": "Validates that invalid extension trigger, detection and controller strategy scripts are rejected before registry entry activation.",
-    "layers": ["guardrail", "extension"]
+    "layers": [
+      "guardrail",
+      "extension"
+    ]
   },
   {
     "id": "detection_registry_smoke",
     "scenario": "res://scenes/validation/detection_registry_smoke.tres",
     "description": "Validates that DetectionRegistry initializes correctly after migration to RegistryBase with all 6 builtin detections.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "controller_registry_smoke",
     "scenario": "res://scenes/validation/controller_registry_smoke.tres",
     "description": "Validates that ControllerRegistry initializes correctly after migration to RegistryBase with all 4 builtin controllers.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "trigger_registry_smoke",
     "scenario": "res://scenes/validation/trigger_registry_smoke.tres",
     "description": "Validates that TriggerRegistry initializes correctly after migration to RegistryBase with all 6 builtin triggers.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "visual_registry_smoke",
     "scenario": "res://scenes/validation/visual_registry_smoke.tres",
     "description": "Validates that all 4 visual registries (VisualCue, VisualFx, AudioCue, VisualProfile) initialize without protocol issues and contain core.* builtin entries.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "visual_cue_projectile_hit_smoke",
     "scenario": "res://scenes/validation/visual_cue_projectile_hit_smoke.tres",
     "description": "Validates that the visual feedback system processes projectile.hit and entity.damaged events through the visual cue pipeline.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "visual_projectile_projection_smoke",
     "scenario": "res://scenes/validation/visual_projectile_projection_smoke.tres",
     "description": "Validates that VisualStageLayerService creates layer hosts and VisualLayerPolicy provides z_index values for projectile projection.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "visual_actor_profile_smoke",
     "scenario": "res://scenes/validation/visual_actor_profile_smoke.tres",
     "description": "Validates that entities can exist with optional visual profiles, no protocol.issue with scope visual_profiles is emitted, and placeholder core profiles are registered.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "visual_slot_guardrail",
     "scenario": "res://scenes/validation/visual_slot_guardrail.tres",
     "description": "Validates that visual registries protect core.* namespace and reject bad registrations through guardrail checks.",
-    "layers": ["smoke", "guardrail"]
+    "layers": [
+      "smoke",
+      "guardrail"
+    ]
   },
   {
     "id": "visual_extension_pack_smoke",
     "scenario": "res://scenes/validation/visual_extension_pack_smoke.tres",
     "description": "Validates that new visual register kinds (visual_cues, visual_fx, audio_cues, visual_profiles) are accepted by ExtensionPackCatalog and battle runs normally.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "visual_private_classic_asset_pack_smoke",
     "scenario": "res://scenes/validation/visual_private_classic_asset_pack_smoke.tres",
     "description": "Validates that the ignored local classic_original_assets pack can be explicitly enabled and consumed through VisualProfileRegistry.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_private_classic_archetype_binding_smoke",
     "scenario": "res://scenes/validation/visual_private_classic_archetype_binding_smoke.tres",
     "description": "Validates that migrated original plant archetypes mount private classic visual profiles when the local asset pack is enabled.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_reanim_data_import_smoke",
     "scenario": "res://scenes/validation/visual_reanim_data_import_smoke.tres",
     "description": "Validates that ReanimData resources emitted for the three reanim spike samples stay consistent with the T0 golden baseline reports.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_reanim_native_runtime_smoke",
     "scenario": "res://scenes/validation/visual_reanim_native_runtime_smoke.tres",
     "description": "Validates native ReanimPlayer fixed-frame draw snapshots against the T0 golden baseline and fail-closed negative cases (unknown clip, missing texture).",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_reanim_sim_clock",
     "scenario": "res://scenes/validation/visual_reanim_sim_clock.tres",
     "description": "Validates ReanimPlayer phase alignment with the simulation clock: pause freeze, manual step, and jump-free visual speed changes.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_reanim_angle_compatibility",
     "scenario": "res://scenes/validation/visual_reanim_angle_compatibility.tres",
     "description": "Validates WallNut native matrix sampling keeps frame-to-frame rotations continuous despite the known source angle warnings.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_reanim_renderer_order",
     "scenario": "res://scenes/validation/visual_reanim_renderer_order.tres",
     "description": "Validates the native reanim renderer draw order equals the source visual track order and stays stable across instantiations.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_reanim_composite_threepeater",
     "scenario": "res://scenes/validation/visual_reanim_composite_threepeater.tres",
     "description": "Validates the generated ThreePeater ReanimActorDef composite: actor contract, golden anchor/host-binding parity, draw order, size budget, and fail-closed def negatives.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_reanim_blink_overlay",
     "scenario": "res://scenes/validation/visual_reanim_blink_overlay.tres",
     "description": "Validates the sunflower blink overlay expressed purely via ReanimActorDef parts: data-hidden idle, one-shot blink action visibility, body mask, fail-closed negatives, and size budget.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_reanim_chomper_angle",
     "scenario": "res://scenes/validation/visual_reanim_chomper_angle.tres",
     "description": "Validates chomper native matrix sampling keeps frame and interpolated-midpoint rotations continuous despite 455 source angle warnings, which stay on record.",
-    "layers": ["local_private", "smoke"],
-    "extra_user_args": ["--include-classic-original-assets"]
+    "layers": [
+      "local_private",
+      "smoke"
+    ],
+    "extra_user_args": [
+      "--include-classic-original-assets"
+    ]
   },
   {
     "id": "visual_action_types_smoke",
     "scenario": "res://scenes/validation/visual_action_types_smoke.tres",
     "description": "Validates that all 6 visual action types are wired and produce expected results when projectile.hit and entity.damaged events fire.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "visual_status_overlay_smoke",
     "scenario": "res://scenes/validation/visual_status_overlay_smoke.tres",
     "description": "Validates that VisualActorComponent consumes status_visual_map: data-declared frozen tint applies, builtin slowed tint stacks multiplicatively, removal restores composition; no rule-layer state is touched.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "ui_theme_switch_validation",
     "scenario": "res://scenes/validation/ui_theme_switch_validation.tres",
     "description": "Validates that UIThemeProfile.default() loads correctly and theme fields are accessible.",
-    "layers": ["smoke"]
+    "layers": [
+      "smoke"
+    ]
   },
   {
     "id": "environment_sunny_natural_sun_validation",
     "scenario": "res://scenes/validation/environment_sunny_natural_sun_validation.tres",
     "description": "Validates environment.core initialization and sunny natural sun generation.",
-    "layers": ["smoke", "core"]
+    "layers": [
+      "smoke",
+      "core"
+    ]
   },
   {
     "id": "environment_cloudy_natural_sun_validation",
     "scenario": "res://scenes/validation/environment_cloudy_natural_sun_validation.tres",
     "description": "Validates cloudy weather slows natural sun cadence and reduces natural sun value.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_cloudy_harsh_sun_validation",
     "scenario": "res://scenes/validation/environment_cloudy_harsh_sun_validation.tres",
     "description": "Validates harsh sun speeds natural sun cadence and increases natural sun value.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_night_no_natural_sun_validation",
     "scenario": "res://scenes/validation/environment_night_no_natural_sun_validation.tres",
     "description": "Validates night disables natural sun while preserving scripted sun_drop_entries.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_state_query_validation",
     "scenario": "res://scenes/validation/environment_state_query_validation.tres",
     "description": "Validates environment state registration and economy application through the mode module path.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_day_nocturnal_sleep_validation",
     "scenario": "res://scenes/validation/environment_day_nocturnal_sleep_validation.tres",
     "description": "Validates day environment liveness override for nocturnal entities.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_day_nocturnal_on_place_guard_validation",
     "scenario": "res://scenes/validation/environment_day_nocturnal_on_place_guard_validation.tres",
     "description": "Validates day environment sleep is applied before nocturnal instant on_place payloads fire.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_night_nocturnal_awake_validation",
     "scenario": "res://scenes/validation/environment_night_nocturnal_awake_validation.tres",
     "description": "Validates night environment wake path for nocturnal entities.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_day_night_timeline_validation",
     "scenario": "res://scenes/validation/environment_day_night_timeline_validation.tres",
     "description": "Validates discrete environment timeline changes and nocturnal synchronization.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_timeline_night_blocks_natural_sun_validation",
     "scenario": "res://scenes/validation/environment_timeline_night_blocks_natural_sun_validation.tres",
     "description": "Validates environment timeline changes apply before natural sun scheduling on the same tick.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_fog_alpha_validation",
     "scenario": "res://scenes/validation/environment_fog_alpha_validation.tres",
     "description": "Validates fog profile alpha grid generation.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_fog_clear_source_validation",
     "scenario": "res://scenes/validation/environment_fog_clear_source_validation.tres",
     "description": "Validates persistent clear source registration from Plantern.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_blover_clear_validation",
     "scenario": "res://scenes/validation/environment_blover_clear_validation.tres",
     "description": "Validates Blover fog clear request without losing air dispel behavior.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "environment_fog_detection_validation",
     "scenario": "res://scenes/validation/environment_fog_detection_validation.tres",
     "description": "Validates fog visibility query and default detection compatibility.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "health_layer_helm_routing_validation",
     "scenario": "res://scenes/validation/health_layer_helm_routing_validation.tres",
     "description": "Validates helm health layer routing and overflow into body health.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "health_layer_shield_routing_validation",
     "scenario": "res://scenes/validation/health_layer_shield_routing_validation.tres",
     "description": "Validates shield health layer routing and layer destroyed signaling.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "health_layer_attachment_routing_validation",
     "scenario": "res://scenes/validation/health_layer_attachment_routing_validation.tres",
     "description": "Validates attachment health layer absorb-only routing.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "damage_layer_policy_bypass_shield_validation",
     "scenario": "res://scenes/validation/damage_layer_policy_bypass_shield_validation.tres",
     "description": "Validates bypass_layer_kinds shield policy across direct and projectile damage paths.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "movement_walk_validation",
     "scenario": "res://scenes/validation/movement_walk_validation.tres",
     "description": "Validates Movement.core.walk command generation and integration.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "movement_command_merge_validation",
     "scenario": "res://scenes/validation/movement_command_merge_validation.tres",
     "description": "Validates movement command merge order with status modifiers and impulses.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "movement_leap_z_axis_validation",
     "scenario": "res://scenes/validation/movement_leap_z_axis_validation.tres",
     "description": "Validates Movement.core.leap_once height, airborne exposure, and landing state.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "movement_interrupt_validation",
     "scenario": "res://scenes/validation/movement_interrupt_validation.tres",
     "description": "Validates movement liveness interrupt produces zero motion and pause reason.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "state_side_effect_set_movement_validation",
     "scenario": "res://scenes/validation/state_side_effect_set_movement_validation.tres",
     "description": "Validates state side effects from health.layer_destroyed can set movement and exposure state.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "hit_policy_exposure_ground_default_validation",
     "scenario": "res://scenes/validation/hit_policy_exposure_ground_default_validation.tres",
     "description": "Validates default damage target exposure only hits ground entities.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "hit_policy_exposure_flying_validation",
     "scenario": "res://scenes/validation/hit_policy_exposure_flying_validation.tres",
     "description": "Validates explicit flying target exposure opt-in.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "hit_policy_exposure_hidden_validation",
     "scenario": "res://scenes/validation/hit_policy_exposure_hidden_validation.tres",
     "description": "Validates hidden exposure states require explicit opt-in.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "force_weight_filter_validation",
     "scenario": "res://scenes/validation/force_weight_filter_validation.tres",
     "description": "Validates dispel_flying filters by exposure and weight class.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_basic_zombie_validation",
     "scenario": "res://scenes/validation/zombie_original_basic_zombie_validation.tres",
     "description": "Validates Original Basic Zombie archetype compilation, spawn, walk movement, and bite controller wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_flag_zombie_validation",
     "scenario": "res://scenes/validation/zombie_original_flag_zombie_validation.tres",
     "description": "Validates Original Flag Zombie archetype compilation, spawn, walk movement, and bite controller wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_conehead_validation",
     "scenario": "res://scenes/validation/zombie_original_conehead_validation.tres",
     "description": "Validates Original Conehead helm health layer and common zombie runtime wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_buckethead_validation",
     "scenario": "res://scenes/validation/zombie_original_buckethead_validation.tres",
     "description": "Validates Original Buckethead helm health layer and common zombie runtime wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_football_validation",
     "scenario": "res://scenes/validation/zombie_original_football_validation.tres",
     "description": "Validates Original Football Zombie fast walk and helmet layer.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_screen_door_validation",
     "scenario": "res://scenes/validation/zombie_original_screen_door_validation.tres",
     "description": "Validates Original Screen Door shield layer and directional shield metadata tags.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_newspaper_validation",
     "scenario": "res://scenes/validation/zombie_original_newspaper_validation.tres",
     "description": "Validates Original Newspaper shield destruction state transition and rage speed side effect.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_pole_vaulter_validation",
     "scenario": "res://scenes/validation/zombie_original_pole_vaulter_validation.tres",
     "description": "Validates Original Pole Vaulter leap_once movement wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_ducky_tube_validation",
     "scenario": "res://scenes/validation/zombie_original_ducky_tube_validation.tres",
     "description": "Validates Original Ducky Tube water spawn tag and common zombie runtime wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_snorkel_validation",
     "scenario": "res://scenes/validation/zombie_original_snorkel_validation.tres",
     "description": "Validates Original Snorkel submerged exposure and hidden exposure hit filter behavior.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_dolphin_rider_validation",
     "scenario": "res://scenes/validation/zombie_original_dolphin_rider_validation.tres",
     "description": "Validates Original Dolphin Rider leap_once movement wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_zomboni_validation",
     "scenario": "res://scenes/validation/zombie_original_zomboni_validation.tres",
     "description": "Validates Original Zomboni drive movement and crush controller wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_balloon_validation",
     "scenario": "res://scenes/validation/zombie_original_balloon_validation.tres",
     "description": "Validates Original Balloon attachment layer, flying exposure, and grounded side effect.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_jack_in_the_box_validation",
     "scenario": "res://scenes/validation/zombie_original_jack_in_the_box_validation.tres",
     "description": "Validates Original Jack-in-the-Box periodic fuse and explode payload compilation.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_digger_validation",
     "scenario": "res://scenes/validation/zombie_original_digger_validation.tres",
     "description": "Validates Original Digger tunnel movement, underground exposure, and helmet layer.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_pogo_validation",
     "scenario": "res://scenes/validation/zombie_original_pogo_validation.tres",
     "description": "Validates Original Pogo hop_cycle movement wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_vault_block_validation",
     "scenario": "res://scenes/validation/zombie_original_vault_block_validation.tres",
     "description": "Validates tag-driven vault blocking: Pole Vaulter is interrupted by the Tall-nut and bites it, while vaulting a plain Wall-nut.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_bungee_umbrella_validation",
     "scenario": "res://scenes/validation/zombie_original_bungee_umbrella_validation.tres",
     "description": "Validates effect-damage interception: Bungee drop damage with overhead attack tags is cancelled by Umbrella Leaf protectors.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_ladder_grid_validation",
     "scenario": "res://scenes/validation/zombie_original_ladder_grid_validation.tres",
     "description": "Validates ladder grid item lifecycle: the Ladder zombie places a persistent ladder on the defense slot, climbs over without chewing, and walkers chew an uncovered wall-nut.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_yeti_validation",
     "scenario": "res://scenes/validation/zombie_original_yeti_validation.tres",
     "description": "Validates Original Yeti flee state movement side effect.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_bungee_validation",
     "scenario": "res://scenes/validation/zombie_original_bungee_validation.tres",
     "description": "Validates Original Bungee flying exposure and on-spawn drop damage payload compilation.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_ladder_validation",
     "scenario": "res://scenes/validation/zombie_original_ladder_validation.tres",
     "description": "Validates Original Ladder attachment layer and fast walk wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_catapult_validation",
     "scenario": "res://scenes/validation/zombie_original_catapult_validation.tres",
     "description": "Validates Original Catapult periodic basketball projectile payload compilation.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_dancing_validation",
     "scenario": "res://scenes/validation/zombie_original_dancing_validation.tres",
     "description": "Validates Original Dancing Zombie backup dancer summon effects.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_backup_dancer_validation",
     "scenario": "res://scenes/validation/zombie_original_backup_dancer_validation.tres",
     "description": "Validates Original Backup Dancer archetype compilation and common zombie runtime wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_gargantuar_validation",
     "scenario": "res://scenes/validation/zombie_original_gargantuar_validation.tres",
     "description": "Validates Original Gargantuar crush controller and one-shot Imp throw threshold.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_imp_validation",
     "scenario": "res://scenes/validation/zombie_original_imp_validation.tres",
     "description": "Validates Original Imp archetype compilation and fast walk wiring.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_redeye_gargantuar_validation",
     "scenario": "res://scenes/validation/zombie_original_redeye_gargantuar_validation.tres",
     "description": "Validates Original Redeye Gargantuar health, crush controller, and one-shot Imp throw threshold.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_batch_a_validation",
     "scenario": "res://scenes/validation/zombie_original_batch_a_validation.tres",
     "description": "Validates Original Zombies Batch A as a grouped content smoke: Basic, Flag, Conehead, Buckethead.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_batch_b_validation",
     "scenario": "res://scenes/validation/zombie_original_batch_b_validation.tres",
     "description": "Validates Original Zombies Batch B as a grouped content smoke: Football, Screen Door, Newspaper, Pole Vaulter.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_batch_c_validation",
     "scenario": "res://scenes/validation/zombie_original_batch_c_validation.tres",
     "description": "Validates Original Zombies Batch C as a grouped content smoke: Ducky Tube, Snorkel, Dolphin Rider, Zomboni.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_batch_d_validation",
     "scenario": "res://scenes/validation/zombie_original_batch_d_validation.tres",
     "description": "Validates Original Zombies Batch D as a grouped content smoke for complex special zombies.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
   },
   {
     "id": "zombie_original_batch_e_validation",
     "scenario": "res://scenes/validation/zombie_original_batch_e_validation.tres",
     "description": "Validates Original Zombies Batch E as a grouped content smoke for summoners and giants.",
-    "layers": ["core"]
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_catapult_leftmost_validation",
+    "scenario": "res://scenes/validation/zombie_original_catapult_leftmost_validation.tres",
+    "description": "Z-29: catapult leftmost-column targeting, spiky exclusion, 100px minimum range (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_catapult_exhaustion_validation",
+    "scenario": "res://scenes/validation/zombie_original_catapult_exhaustion_validation.tres",
+    "description": "Z-28 tail: 20th ball emits trigger.exhausted, catapult leaves the firing line and bites (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_dancer_resummon_validation",
+    "scenario": "res://scenes/validation/zombie_original_dancer_resummon_validation.tres",
+    "description": "Z-32: per-slot vacancy triggers fill and re-summon killed backup dancers (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_gargantuar_spikerock_validation",
+    "scenario": "res://scenes/validation/zombie_original_gargantuar_spikerock_validation.tres",
+    "description": "Z-31/G-15: Gargantuar smash absorption + retaliation, Zamboni drive-over vs spikes (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_yeti_gift_validation",
+    "scenario": "res://scenes/validation/zombie_original_yeti_gift_validation.tres",
+    "description": "Z-05: killed Yeti drops 4 yeti_diamond collectibles at distinct positions (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_speed_range_validation",
+    "scenario": "res://scenes/validation/zombie_original_speed_range_validation.tres",
+    "description": "Z-01: per-entity speed rolls inside PickRandomSpeed ranges with cross-entity variety (probe-driven).",
+    "layers": [
+      "core"
+    ]
   }
 ]

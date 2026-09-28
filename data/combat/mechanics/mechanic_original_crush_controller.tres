@@ -13,7 +13,11 @@ tags = PackedStringArray("original", "zombie", "controller", "crush")
 params = {
 "damage": 9999,
 "detection_id": &"lane_backward",
-"interval": 0.1,
+"hold_while_targeted": true,
+"interval": 1.0,
 "scan_range_slots": 0.75,
+"soft_target_damage": 50,
+"soft_target_self_damage": 20,
+"soft_target_tags": PackedStringArray("spikerock"),
 "target_tags": PackedStringArray("plant")
 }

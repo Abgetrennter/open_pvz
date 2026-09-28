@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit_large.tres" id="2_height"]
@@ -7,6 +7,8 @@
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_catapult_basketball_payload.tres" id="5_projectile"]
 [ext_resource type="Resource" path="res://data/combat/projectile_templates/basketball_arc.tres" id="6_projectile_template"]
 [ext_resource type="Resource" path="res://data/combat/projectile_profiles/parabola_cabbage_arc.tres" id="7_profile"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_catapult_bite_controller.tres" id="8_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_catapult_exhaustion_state.tres" id="9_exhaustion"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -16,12 +18,14 @@ display_name = "Original Catapult Zombie"
 projectile_template = ExtResource("6_projectile_template")
 projectile_flight_profile = ExtResource("7_profile")
 tags = PackedStringArray("archetype", "zombie", "original", "vehicle", "ranged", "projectile")
-required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent", "ControllerComponent", "StateComponent")
 max_health = 850
 weight_class = &"heavy"
 hitbox_size = Vector2(96, 72)
 hit_height_band = ExtResource("2_height")
 default_params = {
-"move_speed_slots_per_sec": 0.25
+"move_speed_slots_per_sec": 0.25,
+"move_speed_slots_per_sec_max": 0.32,
+"move_speed_slots_per_sec_min": 0.23
 }
-mechanics = [ExtResource("3_drive"), ExtResource("4_trigger"), ExtResource("5_projectile")]
+mechanics = [ExtResource("3_drive"), ExtResource("4_trigger"), ExtResource("5_projectile"), ExtResource("8_bite"), ExtResource("9_exhaustion")]

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.spikeweed_ground_damage"
+display_name = "Original Spikeweed Ground Damage"
+family = &"Controller"
+type_id = &"core.ground_damage"
+priority = 10
+tags = PackedStringArray("original", "plant", "controller", "ground", "spiky")
+params = {
+"damage": 20,
+"detection_range_slots": 0.5,
+"interval": 0.5,
+"vehicle_damage": 1800
+}

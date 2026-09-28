@@ -137,7 +137,8 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"forward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)), params)
+		targets = _apply_target_selection(targets, params)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -152,7 +153,8 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 900.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
+		var targets := _scan_enemies(owner, PackedInt32Array([lane_id]), scan_range, &"backward", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)), params)
+		targets = _apply_target_selection(targets, params)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -164,7 +166,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 180.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
+		var targets := _scan_enemies(owner, _resolve_probe_lane_ids(owner, params), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)), params)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -188,7 +190,7 @@ func _register_builtin_strategies() -> void:
 			return _empty_result()
 		var scan_range := _resolve_scan_range(owner, params, 64.0)
 		var target_tags: PackedStringArray = _resolve_target_tags(params)
-		var targets := _scan_enemies(owner, PackedInt32Array(), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)))
+		var targets := _scan_enemies(owner, _resolve_probe_lane_ids(owner, params), scan_range, &"both", target_tags, _resolve_target_priority_tags(params), _resolve_target_exclude_tags(params), bool(params.get("respect_visibility", false)), params)
 		return {
 			"has_target": not targets.is_empty(),
 			"targets": targets,
@@ -205,6 +207,7 @@ func _scan_enemies(
 	target_priority_tags: PackedStringArray = PackedStringArray(),
 	target_exclude_tags: PackedStringArray = PackedStringArray(),
 	respect_visibility: bool = false,
+	params: Dictionary = {},
 ) -> Array:
 	if source == null or not (source is Node2D):
 		return []
@@ -217,8 +220,11 @@ func _scan_enemies(
 
 	var source_team := StringName(source.get("team"))
 	var source_position := _node_ground_position(source)
+	# Position probe offsets (original SummonBackupDancers slot check): shift
+	# the scan center by x_offset px and, for offset-based probes, the lane by
+	# lane_offset rows without moving the owner.
+	source_position.x += float(params.get("x_offset", 0.0))
 	var query := {
-		"team_exclude": source_team,
 		"center": source_position,
 		"radius": scan_range,
 		"tags_any": target_tags,
@@ -229,14 +235,51 @@ func _scan_enemies(
 			and (not respect_visibility or _is_candidate_visible(candidate)),
 		"sort_by_distance": true,
 	}
+	# team_mode "allies" flips the faction filter from enemies to same-team
+	# (original NeedsMoreBackupDancers scans the dancer's own followers).
+	if StringName(params.get("team_mode", &"enemies")) == &"allies":
+		query["team_include"] = source_team
+	else:
+		query["team_exclude"] = source_team
 	if not lane_ids.is_empty():
 		query["lane_ids"] = lane_ids
+	var min_scan_range := _resolve_min_scan_range(params)
 	match direction:
 		&"forward":
-			query["x_min"] = source_position.x
+			query["x_min"] = source_position.x + min_scan_range
 		&"backward":
-			query["x_max"] = source_position.x
+			# Backward scans exclude candidates closer than min_scan_range
+			# (original FindCatapultTarget mX >= aPlant->mX + 100).
+			query["x_max"] = source_position.x - float(params.get("x_offset", 0.0)) - min_scan_range
 	return _prioritize_targets_by_tags(battle.call("spatial_query", query), target_priority_tags)
+
+
+func _resolve_probe_lane_ids(owner: Node, params: Dictionary) -> PackedInt32Array:
+	# Offset probes (team_mode allies + lane_offset) scan the lane lane_offset
+	# rows away from the owner; out-of-bounds lanes simply find nothing.
+	if not params.has("lane_offset"):
+		return PackedInt32Array()
+	var lane_id := int(owner.get("lane_id")) if owner != null and owner.get("lane_id") != null else -1
+	if lane_id < 0:
+		return PackedInt32Array()
+	return PackedInt32Array([lane_id + int(params.get("lane_offset", 0))])
+
+
+func _resolve_min_scan_range(params: Dictionary) -> float:
+	if params.has("min_scan_range_slots"):
+		return float(params.get("min_scan_range_slots")) * 96.0
+	return maxf(float(params.get("min_scan_range", 0.0)), 0.0)
+
+
+func _apply_target_selection(targets: Array, params: Dictionary) -> Array:
+	# Column-ordered selection (original FindCatapultTarget picks the leftmost
+	# plant in the lane, not the nearest one).
+	if StringName(params.get("target_selection", StringName())) != &"leftmost" or targets.size() < 2:
+		return targets
+	var sorted_targets := targets.duplicate()
+	sorted_targets.sort_custom(func(a, b) -> bool:
+		return _node_ground_position(a).x < _node_ground_position(b).x)
+	return sorted_targets
 
 
 func _node_ground_position(node: Node) -> Vector2:

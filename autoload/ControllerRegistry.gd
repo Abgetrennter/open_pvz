@@ -160,6 +160,15 @@ func _register_builtin_strategies() -> void:
 				continue
 			if not target.has_method("take_damage"):
 				continue
+			# Spikes versus vehicles (de-pvz Plant.cpp DoRowAreaDamage: Zamboni/
+			# Catapult take 1800 spike damage per tick; the plant itself pays
+			# SpikeRockTakeDamage (Spikerock -50hp) or dies outright (Spikeweed)).
+			var vehicle_damage := int(params.get("vehicle_damage", 0))
+			if vehicle_damage > 0 and _controller_node_has_any_tag(target, PackedStringArray(params.get("vehicle_tags", PackedStringArray(["vehicle"])))):
+				target.call("take_damage", vehicle_damage, owner, ["ground_damage", "spike", "vehicle"])
+				if owner.has_method("take_damage"):
+					owner.call("take_damage", int(params.get("vehicle_hit_plant_damage", 9999)), owner, ["ground_damage", "vehicle_hit"])
+				continue
 			target.call("take_damage", damage, owner, ["ground_damage", "spike"])
 
 	_controller_strategies[&"core.projectile_transform"] = func(owner: Node, spec: Dictionary, delta: float, blackboard: Dictionary) -> void:
@@ -314,16 +323,6 @@ func _process_crush(owner: Node, spec: Dictionary, delta: float, blackboard: Dic
 	if not owner is Node2D:
 		return
 	var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
-	var movement_component: Variant = owner.get_node_or_null("MovementComponent")
-	if movement_component != null and movement_component.has_method("physics_process_entity_movement"):
-		var fallback_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", float(params.get("move_speed", 45.0)))
-		movement_component.call("physics_process_entity_movement", owner, delta, Vector2.LEFT * fallback_speed, &"controller.core.crush", true)
-	var interval: float = maxf(float(params.get("interval", 0.1)), 0.01)
-	var acc_time: float = float(blackboard.get("acc_time", 0.0)) + delta
-	if acc_time < interval:
-		blackboard["acc_time"] = acc_time
-		return
-	blackboard["acc_time"] = acc_time - interval
 	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", float(params.get("scan_range", 64.0)))
 	var detection_id := StringName(params.get("detection_id", &"lane_backward"))
 	var target_tags := PackedStringArray(params.get("target_tags", PackedStringArray(["plant"])))
@@ -332,11 +331,68 @@ func _process_crush(owner: Node, spec: Dictionary, delta: float, blackboard: Dic
 		"target_tags": target_tags,
 		"range_mode": StringName(params.get("range_mode", StringName())),
 	})
+	var has_crush_targets := not Array(detection_result.get("targets", [])).is_empty()
+	var movement_component: Variant = owner.get_node_or_null("MovementComponent")
+	# Smash stance (original Gargantuar stops to smash; Zamboni drives over
+	# plants without stopping): while a crush target is present, override the
+	# bound movement command to a full stop instead of letting the walk spec
+	# re-assert its velocity every frame.
+	if bool(params.get("hold_while_targeted", false)) and has_crush_targets:
+		var hold_command := {
+			"ground_velocity": Vector2.ZERO,
+			"pause_reason": &"crush_hold",
+		}
+		if owner.has_method("submit_movement_override"):
+			owner.call("submit_movement_override", hold_command)
+		elif movement_component != null and movement_component.has_method("submit_command"):
+			var merged: Dictionary = hold_command.duplicate(true)
+			merged["command_kind"] = &"override"
+			movement_component.call("submit_command", merged)
+		if movement_component != null and movement_component.has_method("physics_process_entity_movement"):
+			movement_component.call("physics_process_entity_movement", owner, delta, Vector2.ZERO, &"controller.core.crush", true)
+		if owner.has_method("set_state_value"):
+			owner.call("set_state_value", &"velocity", Vector2.ZERO)
+			owner.call("set_state_value", &"speed", 0.0)
+			if owner.has_method("sync_runtime_state"):
+				owner.call("sync_runtime_state")
+	elif movement_component != null and movement_component.has_method("physics_process_entity_movement"):
+		var fallback_speed := _resolve_slots_speed(params, "move_speed_slots_per_sec", float(params.get("move_speed", 45.0)))
+		movement_component.call("physics_process_entity_movement", owner, delta, Vector2.LEFT * fallback_speed, &"controller.core.crush", true)
+	var interval: float = maxf(float(params.get("interval", 0.1)), 0.01)
+	var acc_time: float = float(blackboard.get("acc_time", 0.0)) + delta
+	if acc_time < interval:
+		blackboard["acc_time"] = acc_time
+		return
+	blackboard["acc_time"] = acc_time - interval
 	var damage := int(params.get("damage", 9999))
+	var soft_target_tags := PackedStringArray(params.get("soft_target_tags", PackedStringArray()))
+	var soft_target_damage := int(params.get("soft_target_damage", 50))
+	var soft_target_self_damage := int(params.get("soft_target_self_damage", 0))
+	var ignore_target_tags := PackedStringArray(params.get("ignore_target_tags", PackedStringArray()))
 	for target in Array(detection_result.get("targets", [])):
 		if target == null or not is_instance_valid(target):
 			continue
 		if not target.has_method("take_damage"):
+			continue
+		# Dying-but-fading targets stay in the spatial index; they can neither
+		# be crushed nor retaliate (original FindPlantTarget skips dead plants).
+		var target_health: Variant = target.get_node_or_null("HealthComponent")
+		if target_health != null and int(target_health.get("current_health")) <= 0:
+			continue
+		if target.has_method("is_damageable") and not bool(target.call("is_damageable")):
+			continue
+		# Drive-over crushers never squish spiky plants (de-pvz SquishAllInSquare
+		# ATTACKTYPE_DRIVE_OVER skips IsSpiky): the vehicle pays via the plant's
+		# ground damage instead.
+		if not ignore_target_tags.is_empty() and _controller_node_has_any_tag(target, ignore_target_tags):
+			continue
+		# Soft targets absorb smashes instead of dying (de-pvz Zombie.cpp
+		# Gargantuar smash: Spikerock takes SpikeRockTakeDamage (50hp per
+		# smash, 450hp = 9 smashes) and retaliates 20 damage onto the smasher).
+		if not soft_target_tags.is_empty() and _controller_node_has_any_tag(target, soft_target_tags):
+			target.call("take_damage", soft_target_damage, owner, PackedStringArray(["crush", "controller", "soft_target"]))
+			if soft_target_self_damage > 0 and owner.has_method("take_damage"):
+				owner.call("take_damage", soft_target_self_damage, owner, PackedStringArray(["crush", "self_damage"]))
 			continue
 		target.call("take_damage", damage, owner, PackedStringArray(["crush", "controller"]))
 
@@ -352,6 +408,21 @@ func _resolve_source_type_filter(raw_value: Variant) -> Array[StringName]:
 	elif raw_value != null:
 		resolved.append(StringName(raw_value))
 	return resolved
+
+
+func _controller_node_has_any_tag(node: Node, tags: PackedStringArray) -> bool:
+	if node == null or tags.is_empty():
+		return false
+	var raw_tags: Variant = node.get("tags")
+	var node_tags := PackedStringArray()
+	if raw_tags is PackedStringArray:
+		node_tags = PackedStringArray(raw_tags)
+	elif raw_tags is Array:
+		node_tags = PackedStringArray(raw_tags)
+	for tag in tags:
+		if node_tags.has(StringName(tag)):
+			return true
+	return false
 
 
 func _resolve_slots_distance(params: Dictionary, slots_key: String, default_world: float) -> float:

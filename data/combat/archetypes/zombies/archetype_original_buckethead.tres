@@ -28,6 +28,8 @@ health_layers = [SubResource("Layer_bucket")]
 hitbox_size = Vector2(44, 60)
 hit_height_band = ExtResource("3_height")
 default_params = {
-"move_speed_slots_per_sec": 0.28
+"move_speed_slots_per_sec": 0.28,
+"move_speed_slots_per_sec_max": 0.32,
+"move_speed_slots_per_sec_min": 0.23
 }
 mechanics = [ExtResource("4_walk"), ExtResource("5_bite")]

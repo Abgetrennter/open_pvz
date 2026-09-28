@@ -50,6 +50,42 @@ func _process(_delta: float) -> void:
 			return
 		_emit_probe(probe_id, &"passed", {})
 		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_catapult_leftmost":
+		if not _validate_catapult_leftmost():
+			push_error("original zombie probe failed: catapult leftmost targeting")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_catapult_exhaustion":
+		if not _validate_catapult_exhaustion():
+			push_error("original zombie probe failed: catapult ammo exhaustion")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_dancer_resummon":
+		if not _validate_dancer_resummon():
+			push_error("original zombie probe failed: dancer resummon")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_gargantuar_spikerock":
+		if not _validate_gargantuar_spikerock():
+			push_error("original zombie probe failed: gargantuar spikerock interaction")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_yeti_gift":
+		if not _validate_yeti_gift():
+			push_error("original zombie probe failed: yeti gift drop")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_speed_range":
+		if not _validate_speed_range():
+			push_error("original zombie probe failed: speed range sampling")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
 	else:
 		_probe_single(probe_id)
 
@@ -171,7 +207,11 @@ func _assert_newspaper_rage(entity: Node) -> bool:
 	var movement_spec: Variant = entity.call("get_entity_state_ref").call("get_value", &"movement_spec", {})
 	if state_stage != &"rage" or not (movement_spec is Dictionary):
 		return false
-	return absf(float(Dictionary(movement_spec).get("params", {}).get("move_speed_slots_per_sec", 0.0)) - 0.89) < 0.001
+	var params: Dictionary = Dictionary(movement_spec).get("params", {})
+	# Original newspaper rage speed (de-pvz PickRandomSpeed
+	# PHASE_NEWSPAPER_MAD: 0.89-0.91 range).
+	return absf(float(params.get("move_speed_slots_per_sec_min", -1.0)) - 0.89) < 0.001 \
+		and absf(float(params.get("move_speed_slots_per_sec_max", -1.0)) - 0.91) < 0.001
 
 
 func _assert_balloon_grounding(entity: Node) -> bool:
@@ -267,7 +307,8 @@ func _assert_dolphin_post_landing_speed(runtime_spec) -> bool:
 	var params: Dictionary = Dictionary(post_landing).get("params", {})
 	# Original dolphin rider walks fast after landing (de-pvz PickRandomSpeed
 	# PHASE_DOLPHIN_WALKING: 0.89-0.91), pool riding is the slow phase.
-	return absf(float(params.get("move_speed_slots_per_sec", 0.0)) - 0.9) < 0.001
+	return absf(float(params.get("move_speed_slots_per_sec_min", -1.0)) - 0.89) < 0.001 \
+		and absf(float(params.get("move_speed_slots_per_sec_max", -1.0)) - 0.91) < 0.001
 
 
 func _assert_jack_explode_radius(runtime_spec) -> bool:
@@ -338,9 +379,15 @@ func _assert_catapult_hold_and_ammo(runtime_spec) -> bool:
 	return hold_ok and ammo_ok
 
 
-func _assert_dancing_spawn(entity: Node) -> bool:
+func _assert_dancing_spawn(_entity: Node) -> bool:
+	# Backup dancers are summoned by per-slot vacancy triggers (de-pvz
+	# SummonBackupDancers slot loop, start_delay 1.0s), not an on_spawned
+	# burst. Drive the already-spawned leader past its first maintenance tick;
+	# a second leader here would cross-occupy the first leader's slots.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
 	var base_count := _count_archetype(&"archetype_original_backup_dancer")
-	_spawn_archetype(&"archetype_original_dancing", Vector2(520.0, 320.0), {"spawn_reason": &"dancer_probe"}, true)
+	_battle.call("step_simulation_ticks", 150)
 	return _count_archetype(&"archetype_original_backup_dancer") - base_count == 4
 
 
@@ -564,6 +611,269 @@ func _find_entity_by_archetype(archetype_id: StringName, lane_id: int) -> Node:
 				and int(entity.get("lane_id")) == lane_id:
 			return entity
 	return null
+
+
+func _validate_catapult_leftmost() -> bool:
+	# Z-29 (de-pvz FindCatapultTarget :1493-1510): the catapult targets the
+	# leftmost plant of its lane, skips spiky plants entirely, and never
+	# targets plants closer than 100px. Lane 0 carries sunflower (x=160,
+	# leftmost) + peashooter (x=400); lane 1 carries only a spikeweed.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var sunflower := _find_entity_by_archetype(&"archetype_original_sunflower", 0)
+	var peashooter := _find_entity_by_archetype(&"archetype_original_peashooter", 0)
+	var spikeweed := _find_entity_by_archetype(&"archetype_original_spikeweed", 1)
+	if sunflower == null or peashooter == null or spikeweed == null:
+		push_error("leftmost probe: scenario plants missing")
+		return false
+	var sunflower_before := _entity_health(sunflower)
+	var peashooter_before := _entity_health(peashooter)
+	var spikeweed_before := _entity_health(spikeweed)
+	var catapult_lane0 := _spawn_archetype(&"archetype_original_catapult", Vector2(660.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var catapult_lane1 := _spawn_archetype(&"archetype_original_catapult", Vector2(660.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if catapult_lane0 == null or catapult_lane1 == null:
+		push_error("leftmost probe: catapult spawn failed")
+		return false
+	# ~5.8s: stop at the 650 firing line, first shot (~0.4s) + parabola flight
+	# lands on the leftmost plant; second shot stays inside the window.
+	_battle.call("step_simulation_ticks", 350)
+	var sunflower_hit := _entity_health(sunflower) < sunflower_before
+	var peashooter_untouched := _entity_health(peashooter) == peashooter_before
+	var spikeweed_untouched := _entity_health(spikeweed) == spikeweed_before
+	if not sunflower_hit:
+		push_error("leftmost probe: leftmost plant never hit")
+	elif not peashooter_untouched:
+		push_error("leftmost probe: nearer plant hit before the leftmost one")
+	elif not spikeweed_untouched:
+		push_error("leftmost probe: spiky plant targeted")
+	return sunflower_hit and peashooter_untouched and spikeweed_untouched
+
+
+func _validate_catapult_exhaustion() -> bool:
+	# Z-28 tail (de-pvz UpdateZombieCatapult :1552-1556): when the 20th ball is
+	# launched the catapult drops to PHASE_ZOMBIE_NORMAL - it leaves the firing
+	# line and bites. Force the ammo counter to 19 with an expired cooldown so
+	# the next tick fires the last shot and emits trigger.exhausted.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var wallnut := _find_entity_by_archetype(&"archetype_original_wallnut", 0)
+	if wallnut == null:
+		push_error("exhaustion probe: scenario wall-nut missing")
+		return false
+	var wallnut_before := _entity_health(wallnut)
+	var catapult := _spawn_archetype(&"archetype_original_catapult", Vector2(660.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if catapult == null:
+		push_error("exhaustion probe: catapult spawn failed")
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var trigger_component: Variant = catapult.get_node_or_null("TriggerComponent")
+	if trigger_component == null:
+		push_error("exhaustion probe: no trigger component")
+		return false
+	var shot_instance = null
+	for instance in Array(trigger_component.get("trigger_instances")):
+		if int(Dictionary(instance.condition_values).get("max_trigger_count", 0)) == 20:
+			shot_instance = instance
+			break
+	if shot_instance == null:
+		push_error("exhaustion probe: shot trigger instance missing")
+		return false
+	shot_instance.fired_count = 19
+	shot_instance.last_triggered_time = GameState.current_time - 3.0
+	# ~3.3s: the forced 20th shot fires, the exhaustion transition swaps the
+	# movement off the firing line, and the catapult walks into bite range.
+	_battle.call("step_simulation_ticks", 200)
+	var state_ref: Variant = catapult.call("get_entity_state_ref")
+	if StringName(state_ref.call("get_value", &"state_stage", StringName())) != &"spent":
+		push_error("exhaustion probe: state is not spent")
+		return false
+	var movement_spec: Variant = state_ref.call("get_value", &"movement_spec", {})
+	if not (movement_spec is Dictionary) or Dictionary(movement_spec).get("params", {}).has("stop_x"):
+		push_error("exhaustion probe: movement still holds the firing line")
+		return false
+	if _entity_health(wallnut) >= wallnut_before:
+		push_error("exhaustion probe: wall-nut never damaged")
+		return false
+	return true
+
+
+func _validate_dancer_resummon() -> bool:
+	# Z-32 (de-pvz SummonBackupDancers :2812-2834 + :3005-3008): the initial
+	# summon fills the four follower slots, and a killed follower is re-summoned
+	# into the SAME slot on the next 100-tick maintenance pass.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var base_count := _count_archetype(&"archetype_original_backup_dancer")
+	var dancer := _spawn_archetype(&"archetype_original_dancing", Vector2(520.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if dancer == null:
+		push_error("resummon probe: dancer spawn failed")
+		return false
+	_battle.call("step_simulation_ticks", 150)
+	var after_initial := _count_archetype(&"archetype_original_backup_dancer")
+	if after_initial - base_count != 4:
+		push_error("resummon probe: initial summon count=%d" % (after_initial - base_count))
+		return false
+	var lane0_follower := _find_entity_by_archetype(&"archetype_original_backup_dancer", 0)
+	if lane0_follower == null:
+		push_error("resummon probe: lane-0 follower missing")
+		return false
+	lane0_follower.call("take_damage", 99999, null, PackedStringArray(["probe"]))
+	_battle.call("step_simulation_ticks", 400)
+	if _count_archetype(&"archetype_original_backup_dancer") != after_initial:
+		push_error("resummon probe: follower not re-summoned")
+		return false
+	if _find_entity_by_archetype(&"archetype_original_backup_dancer", 0) == null:
+		push_error("resummon probe: lane-0 slot stayed vacant")
+		return false
+	return true
+
+
+func _validate_gargantuar_spikerock() -> bool:
+	# Z-31 (de-pvz Zombie.cpp :2049-2056 + Plant.cpp DoRowAreaDamage/SpikeRock):
+	# the Gargantuar smash on Spikerock deals 50hp per smash (450hp = 9
+	# smashes) and retaliates 20 damage per smash; the Zamboni drive-over never
+	# squishes spiky plants, the spikes destroy it (1800) and the Spikeweed
+	# dies with it.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var spikerock := _find_entity_by_archetype(&"archetype_original_spikerock", 0)
+	var spikeweed := _find_entity_by_archetype(&"archetype_original_spikeweed", 1)
+	if spikerock == null or spikeweed == null:
+		push_error("spikerock probe: scenario plants missing")
+		return false
+	var gargantuar := _spawn_archetype(&"archetype_original_gargantuar", Vector2(620.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var zamboni := _spawn_archetype(&"archetype_original_zomboni", Vector2(680.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if gargantuar == null or zamboni == null:
+		push_error("spikerock probe: zombie spawn failed")
+		return false
+	var smash_hits := {"soft": 0, "self": 0, "vehicle": 0, "spike_tick": 0}
+	var listener := func(event_data):
+		var tags := PackedStringArray(event_data.core.get("tags", PackedStringArray()))
+		var target: Variant = event_data.core.get("target_node", null)
+		if target == gargantuar and tags.has("self_damage"):
+			smash_hits["self"] += 1
+		elif target == gargantuar and tags.has("ground_damage"):
+			smash_hits["spike_tick"] += 1
+		elif target == spikerock and tags.has("soft_target"):
+			smash_hits["soft"] += 1
+		elif target == zamboni and tags.has("vehicle"):
+			smash_hits["vehicle"] += 1
+	EventBus.subscribe(&"entity.damaged", listener)
+	# Ticks run at 100/s: 12s covers the 9 one-second smash cycles plus the
+	# zamboni drive-over, with margin past the spikerock death fade.
+	_battle.call("step_simulation_ticks", 1200)
+	EventBus.unsubscribe(&"entity.damaged", listener)
+	var soft := int(smash_hits["soft"])
+	var self_hits := int(smash_hits["self"])
+	var vehicle_hits := int(smash_hits["vehicle"])
+	if soft < 9:
+		push_error("spikerock probe: soft smashes=%d (<9)" % soft)
+		return false
+	if self_hits != soft:
+		push_error("spikerock probe: self retaliations=%d != soft smashes=%d" % [self_hits, soft])
+		return false
+	if is_instance_valid(spikerock) and _entity_health(spikerock) > 0:
+		push_error("spikerock probe: spikerock survived %d smashes" % soft)
+		return false
+	if not is_instance_valid(gargantuar) or _entity_health(gargantuar) <= 0:
+		push_error("spikerock probe: gargantuar died from retaliation")
+		return false
+	# The Gargantuar loses exactly the smash retaliation (20 per smash) plus
+	# the spikerock's own ground spikes while standing on it (20 per tick).
+	var expected_health := 3000 - 20 * soft - 20 * int(smash_hits["spike_tick"])
+	if _entity_health(gargantuar) != expected_health:
+		push_error("spikerock probe: gargantuar health=%d (expected %d)" % [_entity_health(gargantuar), expected_health])
+		return false
+	if vehicle_hits < 1 or (is_instance_valid(zamboni) and _entity_health(zamboni) > 0):
+		push_error("spikerock probe: zamboni not destroyed by spikes (hits=%d)" % vehicle_hits)
+		return false
+	if is_instance_valid(spikeweed) and _entity_health(spikeweed) > 0:
+		push_error("spikerock probe: spikeweed survived the zamboni")
+		return false
+	return true
+
+
+func _validate_yeti_gift() -> bool:
+	# Z-05 (de-pvz DropLoot :7236-7242): a killed Yeti drops 4 diamonds
+	# spread out to the left of its center.
+	if _battle == null or not _battle.has_method("get_economy_state"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var yeti := _spawn_archetype(&"archetype_original_yeti", Vector2(520.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if yeti == null:
+		push_error("yeti gift probe: yeti spawn failed")
+		return false
+	yeti.call("take_damage", 99999, null, PackedStringArray(["probe"]))
+	var economy: Variant = _battle.call("get_economy_state")
+	if economy == null or not (economy.get("active_suns") is Dictionary):
+		push_error("yeti gift probe: economy state unavailable")
+		return false
+	var gift_positions: Array = []
+	for collectible in Dictionary(economy.get("active_suns")).values():
+		if collectible == null or not is_instance_valid(collectible):
+			continue
+		if StringName(collectible.get("source_type")) == &"yeti_diamond":
+			gift_positions.append(float((collectible as Node2D).position.x))
+	if gift_positions.size() != 4:
+		push_error("yeti gift probe: dropped %d gifts (expected 4)" % gift_positions.size())
+		return false
+	var unique_x: Dictionary = {}
+	for x_value in gift_positions:
+		unique_x[x_value] = true
+	if unique_x.size() != 4:
+		push_error("yeti gift probe: gifts stacked on one spot")
+		return false
+	return true
+
+
+func _validate_speed_range() -> bool:
+	# Z-01 (de-pvz PickRandomSpeed :1096-1155): basic zombies spawn with a
+	# speed sampled per-entity from 0.23-0.32 slots/s; the roll must vary
+	# across entities of the same archetype. The production path caches the
+	# roll on the entity (GameState.resolve_ranged_value), so read it back.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var walkers: Array = []
+	for i in range(12):
+		var lane_y := 220.0 if i % 2 == 0 else 320.0
+		var walker := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(700.0 - 8.0 * i, lane_y), {"spawn_reason": &"original_zombie_probe"}, true)
+		if walker == null:
+			push_error("speed range probe: spawn %d failed" % i)
+			return false
+		walkers.append(walker)
+	_battle.call("step_simulation_ticks", 30)
+	var speeds: Array = []
+	for walker in walkers:
+		if not is_instance_valid(walker):
+			push_error("speed range probe: walker despawned")
+			return false
+		var roll: Variant = null
+		for meta_name in walker.get_meta_list():
+			if String(meta_name).begins_with("range_roll__move_speed_slots_per_sec__"):
+				roll = walker.get_meta(meta_name)
+				break
+		if roll == null:
+			push_error("speed range probe: walker has no cached speed roll")
+			return false
+		speeds.append(float(roll))
+	var min_allowed := 0.23 - 0.0001
+	var max_allowed := 0.32 + 0.0001
+	var distinct: Dictionary = {}
+	for speed_value in speeds:
+		var speed := float(speed_value)
+		if speed < min_allowed or speed > max_allowed:
+			push_error("speed range probe: sampled speed %.4f outside [0.23, 0.32]" % speed)
+			return false
+		distinct[String.num(speed, 4)] = true
+	if distinct.size() < 2:
+		push_error("speed range probe: all 12 walkers rolled the same speed")
+		return false
+	return true
 
 
 func _emit_probe(probe: StringName, result: StringName, extra_core: Dictionary = {}) -> void:

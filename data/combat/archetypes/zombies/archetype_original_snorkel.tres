@@ -18,6 +18,8 @@ initial_exposure_state = &"submerged"
 hitbox_size = Vector2(44, 60)
 hit_height_band = ExtResource("2_height")
 default_params = {
-"move_speed_slots_per_sec": 0.67
+"move_speed_slots_per_sec": 0.67,
+"move_speed_slots_per_sec_max": 0.68,
+"move_speed_slots_per_sec_min": 0.66
 }
 mechanics = [ExtResource("3_walk"), ExtResource("5_surface"), ExtResource("4_bite")]

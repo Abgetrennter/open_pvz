@@ -27,7 +27,8 @@ params = {
 "movement_id": &"core.walk",
 "params": {
 "direction": Vector2(-1, 0),
-"move_speed_slots_per_sec": 0.67
+"move_speed_slots_per_sec_max": 0.68,
+"move_speed_slots_per_sec_min": 0.66
 }
 },
 "type": &"set_movement"

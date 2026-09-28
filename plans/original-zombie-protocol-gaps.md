@@ -10,6 +10,8 @@
 > 更新（2026-09-28，Batch F）：Z-02（Digger 出土方向）、Z-04（Yeti 逃跑触发，计时器化）、Z-09（Dolphin 落地速度）、Z-22（Jack 爆炸半径）已修正并加深探针断言；连带修复 zombie_root 中央步进下 State 时间转换不执行的链路缺口，yeti/batch_d 验证窗口提到 18s。Z-32（Dancer 重召）经探测需“成员存活检测”，当前 Detection 只扫敌军，无协议变更无法表达，维持部分覆盖。
 >
 > 更新（2026-09-28，Batch I）：Z-25/Z-26（Ladder 持久梯子）已落地：新 GridItem `archetype_ladder_grid_item`（不占 blocker 位），`spawn_grid_item` effect 新增 `at_target_slot` 参数（从 context 目标植物解析 lane/slot），Ladder 僵尸 proximity 触发放梯（detection lane_backward + target_tags defense）；新 movement `core.climb_once`（恒速爬升 0.83 slots/s + 前移漂移 0.52，过顶后重力下落，落地切 post_climb walk）；`core.bite` 新增 `ladder_climb` 参数（遇有梯格 defense 不咬改爬，14 个地面步行 original 僵尸启用，Digger/Snorkel/Dolphin/Pogo/Balloon/Yeti 按原版语义排除）；explode effect 新增 `remove_grid_item_tags`（火清行内梯子，Jalapeno 启用）。proximity trigger def 补齐 detection_id/target_tags 正式参数。行为级验证 `zombie_original_ladder_grid_validation`（放梯/爬越不咬/对照啃咬/火清）。
+>
+> 更新（2026-09-29，Batch J）：Z-29（detection `target_selection: leftmost` + `target_exclude_tags` spiky + `min_scan_range` 100px，Catapult 盲射折入同拍 trigger/payload 语义附注）、Z-28 尾（periodically 弹尽发 `trigger.exhausted` 事件，Catapult 状态切 `spent` 换 walk+啃咬控制器）、Z-32（detection `team_mode: allies` + `lane_offset`/`x_offset` 槽位空缺探测 + `require_no_target`，Dancer 四槽逐位补员，槽位 x 偏移修正为原版 ±100）、Z-31/G-15 双侧（crush `soft_target_tags` Spikerock 吸收 50/自伤 20 + `ignore_target_tags` 车辆压过不压刺 + ground_damage `vehicle_damage` 1800/植物自付，Zamboni 拆分 drive_over 控制器）、Z-05（produce_sun `x_offset`，Yeti 死亡掉 4 颗 yeti_diamond）、Z-01（`move_speed_slots_per_sec_min/max` 区间 + `GameState.resolve_ranged_value` 实体级确定性采样，全表按 PickRandomSpeed 区间落数据，设计文档 `plans/zombie-speed-range-sampling.md`）落地。Z-11 冰道完成设计轮（`plans/zombie-ice-trail-field-modifier.md`），待 Bobsled/G-29 立项实施。
 
 ---
 
@@ -29,17 +31,17 @@
 
 | ID | 名称 | 当前状态 | 关联僵尸 | 当前判断 |
 |----|------|----------|----------|----------|
-| Z-01 | 速度区间随机采样 | 部分覆盖 | 几乎全部 | `PickRandomSpeed()`（`Zombie.cpp:1096`）按类型从区间采样（如普通 0.23–0.32）；当前 archetype 一律固定值（0.28）。确定性随机设施已有，缺 Movement params 的区间表达；v1 固定中值可接受，登记为精度项 |
+| Z-01 | 速度区间随机采样 | 已覆盖（2026-09-29） | 几乎全部 | `move_speed_slots_per_sec_min/max` 区间键 + `GameState.resolve_ranged_value` 按实体种子确定性采样（movement 与 bite 回退两路同值缓存）；全表按 PickRandomSpeed 区间落位（默认 0.23–0.32、快跑 0.66–0.68、搬梯 0.79–0.81、狂暴/海豚 0.89–0.91）；探针 `zombie_original_speed_range`。设计：`plans/zombie-speed-range-sampling.md`；Zamboni 0.25 与共享 bite post-climb 0.25 保留为注明的近似 |
 | Z-02 | Digger 出土方向 | 已覆盖（2026-09-28） | Digger | surface state side-effect 已改向右回头（+1,0），探针断言 `surfaced` 转换的方向 |
 | Z-03 | Digger 出土触发条件 | 部分覆盖 | Digger | 原版挖到最左端 `mPosX < 10.0f` 触发出土（`Zombie.cpp:2678-2679`），出土先 STUNNED 再步行；当前为固定 3 秒定时。可先用 x 阈值条件近似，精确语义见开放问题 |
 | Z-04 | Yeti 逃跑触发 | 已覆盖（2026-09-28） | Yeti | flee state 已改 `trigger: "time"`（`after: 15.0`，对应原版 1500-2000 ticks 下界），探针推 1510 tick 断言无伤逃跑 |
-| Z-05 | Yeti 死亡掉礼物 | 未覆盖 | Yeti | 原版 `mHasObject` 为 true 时死亡掉 4 个礼物（`Zombie.cpp:5004` IsWalkingBackwards 返回 mHasObject 佐证携带物语义）；需要 collectible/economy 配合，与植物侧 G-24 金币经济同族后置 |
+| Z-05 | Yeti 死亡掉礼物 | 已覆盖（2026-09-29） | Yeti | on_death trigger + 4×produce_sun（新增 `x_offset` 参数，-20/-30/-40/-50 对应原版 aCenterX 偏移），source_type `yeti_diamond`、value 50；钻石计价待 G-24 经济轮核定（现为 coin 同价名义值）；原版 award 门控（mDroppedLoot/HasLevelAwardDropped）无对应系统未表达，探针 `zombie_original_yeti_gift` |
 | Z-06 | Yeti 稀有生成权重 | 后置（wave 层） | Yeti | `gZombieDefs[]` weight=1、startingLevel=40（`Zombie.cpp:44`）；待 Z-34 original pool 落地时一并表达 |
 | Z-07 | Snorkel 接近上浮/下潜循环 | 部分覆盖 | Snorkel | 原版水中保持 submerged，接近可攻击植物上浮啃咬、吃完下潜（`Zombie.cpp:1936-1963`）；当前为 spawn 后固定 1.5 秒永久上浮。隐藏过滤验证已有，缺行为循环 |
 | Z-08 | Snorkel 端点出水步行 | 部分覆盖 | Snorkel | 原版到左端 `mX <= 25` 出水转普通步行（`Zombie.cpp:1914-1919`），右端反向同理；当前 surfaced 后无端点行为 |
 | Z-09 | Dolphin 落地后高速步行 | 已覆盖（2026-09-28） | Dolphin Rider | `post_landing_movement` 已改 0.9 档；探针断言落地速度 |
 | Z-10 | Dolphin 入水/出水序列 | 部分覆盖 | Dolphin Rider | 原版池外步行（0.66–0.68）→ `mX>700` 入水动画 → riding → 遇植物跳（`Zombie.cpp:1762-1813`）；当前 spawn 即 leap_once，缺入水触发。表现动画后置，位置/状态语义可先补 |
-| Z-11 | Zamboni 冰道生成 | 未覆盖（场地 modifier） | Zamboni | 原版行级 `mIceMinX/mIceTimer` 冰道，3000 ticks 续期（`Zombie.cpp:3908-3938`）；需 BoardSlot/field modifier，与植物侧 G-29 crater 同族，建议合并设计。Bobsled（Z-14）依赖此项 |
+| Z-11 | Zamboni 冰道生成 | 已设计待实施 | Zamboni | 设计轮完成（2026-09-29，`plans/zombie-ice-trail-field-modifier.md`）：行级区间 field modifier 通道（ice_trail/crater 两 kind 复用），冰面 ×0.5 速度、3000 ticks 续期；实施触发 = Bobsled（Z-14）或 G-29 立项 |
 | Z-12 | Zamboni 位置驱动减速 | 已覆盖（2026-09-28） | Zamboni | `core.drive` 新增 decel_start_x/decel_end_x/decel_min_slots_per_sec 线性减速（对应原版 0.25→0.05、x 700→300），探针断言参数 |
 | Z-13 | Zamboni/Bobsled 冰冻免疫 | 未覆盖 | Zamboni, Bobsled | `CanBeChilled()` 直接排除（`Zombie.cpp:7979-7981`）；status/element immunity 维度缺 |
 | Z-14 | Bobsled 队伍 | 未覆盖（P2 后置） | Bobsled | 组实体/队列 + sled 300 血 + 冰道依赖 + 解体后 3 独立僵尸；等 Z-11 与组队语义裁决（机制盘点开放问题 6） |
@@ -56,11 +58,11 @@
 | Z-25 | Ladder 持久梯子物件 | 已覆盖（2026-09-28） | Ladder | `archetype_ladder_grid_item` GridItem 全生命周期（放置/格占用/移除事件），`spawn_grid_item` 新增 `at_target_slot`（从 context 目标植物解析 lane/slot，对应 AddALadder(col,row)）；Ladder 僵尸 proximity（lane_backward+defense 标签）放梯；火清：explode 新增 `remove_grid_item_tags`，Jalapeno 行爆启用 |
 | Z-26 | 梯子越墙共用 | 已覆盖（2026-09-28） | Ladder, 其他步行僵尸 | 新 movement `core.climb_once`（恒速爬升 0.83 slots/s≈原版 0.8px/tick、前移漂移 0.52≈0.5px/tick、climb_height 0.94≈90px、过顶重力下落、落地切 post_climb walk）；`core.bite` 新增 `ladder_climb` 参数（遇有梯格 defense 不咬改爬）；14 个地面步行 original 僵尸启用（Digger 按原版 :6964 排除，Snorkel/Dolphin/Pogo/Balloon/Yeti 特殊运动链排除）；行为级验证 ladder_grid 双 lane 对照 |
 | Z-27 | Catapult 停位条件 | 已覆盖（2026-09-28） | Catapult | `core.walk` 新增 `stop_x` 位置保持参数（对应原版 mPosX<=650 火线），探针断言 |
-| Z-28 | Catapult 弹药与弹尽步行 | 部分覆盖（弹药计数已落地 2026-09-28） | Catapult | periodically 新增正式参数 `max_trigger_count`（20 发，探针断言）；弹尽转普通啃咬（原版 anim_walk + PHASE_ZOMBIE_NORMAL）仍缺，依赖弹药耗尽后的 controller 切换，留后续 |
-| Z-29 | Catapult 目标选择 | 部分覆盖 | Catapult | 原版选本行最左列植物（`FindCatapultTarget :1483-1501`），无目标时盲射 mPosX-300；当前 `lane_backward + full_lane` 近似，缺"最左列"语义 |
+| Z-28 | Catapult 弹药与弹尽步行 | 已覆盖（2026-09-29） | Catapult | 弹药计数（Batch G+H）+ 弹尽链路（Batch J）：TriggerInstance 达到 max_trigger_count 后一次性发 `trigger.exhausted` 事件（core 带 spec_id/fired_count），Catapult `core.rage` 状态机 armed→spent 监听之，set_movement 换无 stop_x 的 walk（区间 0.23–0.32）并激活啃咬控制器（出生即挂、停位线天然隔离）；探针 `zombie_original_catapult_exhaustion` |
+| Z-29 | Catapult 目标选择 | 已覆盖（2026-09-29） | Catapult | detection 新增 `target_selection: leftmost`（按 x 升序取最左）、`target_exclude_tags`（spiky，对应 IsSpiky 排除 Spikeweed/Spikerock 两 archetype 新挂 `spiky` 标签）、`min_scan_range` 100px（对应 mX >= plantX+100）；探针 `zombie_original_catapult_leftmost`。近似附注：原版盲射 mPosX-300 仅发生在发射动画中段目标消失（300 ticks 窗口），本引擎 trigger/payload 同拍执行使该窗口不存在，无目标→不射击语义与原版一致；TOPPLANT_CATAPULT_ORDER 同格叠层取舍无对应（单植物/格） |
 | Z-30 | Gargantuar 投掷条件与距离 | 部分覆盖 | Gargantuar, Redeye | 原版条件 `mHasObject && HP<50% && mPosX-360 > 40`（`:2208-2213`），投掷距离 `mPosX-360 - Rand(0,100)`、屋顶减 180（`:2133-2155`）；当前 `when_damaged` HP 阈值触发已近似，距离公式缺 |
-| Z-31 | Gargantuar × Spikerock 反伤 | 未覆盖 | Gargantuar, Redeye | 原版砸 Spikerock 自伤 20 且 Spikerock 有独立承伤次数（`:2049-2056`）；与植物侧 G-15 ground_damage 对拍 |
-| Z-32 | Dancer 召唤刷新 | 部分覆盖 | Dancing | 原版首次入场舞步完成后召唤 4 个（row±1 同 x，本行 x±100，`SummonBackupDancers :2812-2835`），之后每 100 ticks 检查缺员即重召（`:3005-3008`）；当前 on_spawned 一次性 4 方位，缺刷新。位置与数量已对齐 |
+| Z-31 | Gargantuar × Spikerock 反伤 | 已覆盖（2026-09-29，双侧联动） | Gargantuar, Redeye | crush 新增 `soft_target_tags`（spikerock）`soft_target_damage` 50（450 血=9 次承伤，即原版独立承伤次数）`soft_target_self_damage` 20；Zamboni/Catapult 拆分 `mechanic_original_drive_over_controller`（`ignore_target_tags` spiky，对应 SquishAllInSquare DRIVE_OVER 跳过）；植物侧 ground_damage 新增 `vehicle_damage` 1800 + `vehicle_hit_plant_damage`（Spikeweed 9999 即死/Spikerock 50），Spikeweed/Spikerock 各自独立 mechanic；砸 Spikeweed 仍走 9999 即压死（原版 else 分支）；探针 `zombie_original_gargantuar_spikerock`；G-15 状态同步见植物侧底账 |
+| Z-32 | Dancer 召唤刷新 | 已覆盖（2026-09-29） | Dancing | 撤 on_spawned 一次性召唤，改为 4 个逐槽位维护 trigger：periodically（interval 1.67s ≈ 100 ticks）+ proximity 探测 `team_mode: allies`（detection 新增友军扫描）`target_tags: backup_dancer`（新标签）`lane_offset/x_offset`（±1 行/±100px，修正原 ±64）`scan_range` 64 + `require_no_target`（槽空才触发）；槽位 lane 越界由 trigger 侧 `is_valid_lane` 守卫短路（对应原版无效行 no-op）。近似附注：空缺按位置而非身份判定，相邻双舞王极端场景可能互相补位；mHasHead 门控未表达；探针 `zombie_original_dancer_resummon` |
 | Z-33 | Screen Door 方向性挡弹 | 未覆盖 | Screen Door | 原版 door shield 有方向判定（`TakeShieldDamage` 路由 + directional），背面投射物直通本体；当前 `damage_layer_policy` 只有 bypass 语义，无方向维度 |
 | Z-34 | Original 正式波次 pool | 未覆盖（内容层） | 全部 | `gZombieDefs[]` 的 value/startingLevel/pickWeight 三元组（`Zombie.cpp:20-53`）可直接映射 `WavePoolEntryDef.power/first_allowed_wave/weight`；协议就绪，缺 original pool 数据与衰减规则核证（衰减公式在 `Challenge.cpp`/`Board.cpp`，未逐行核证） |
 | Z-35 | Dr. Zomboss | 后置（P2） | Boss | 需独立 Boss mode（踩踏/投车/火冰球/召唤/bungee 协同），已裁决不进普通 roster |
@@ -70,12 +72,9 @@
 
 ## 当前未完成项分层
 
-### A. 无新协议即可修的精度偏差（建议下一批）
+### A. 无新协议即可修的精度偏差
 
-> Batch F（2026-09-28）已消化 Z-02、Z-04、Z-09、Z-22（单半径校准）；剩余：
-
-- **Z-12 Zamboni 减速**：先按两段近似（>400px 区间 0.25→0.05），或等 Z-01 区间表达一并做。
-- **Z-32 Dancer 刷新**：需“成员存活检测”（原版 `NeedsMoreBackupDancers` 检查 follower 存活）；当前 Detection 只扫敌军，无协议变更无法表达，维持一次性召唤 + 底账留账。
+> Batch F（2026-09-28）消化 Z-02/Z-04/Z-09/Z-22；Batch G+H 消化 Z-12/Z-19/Z-24/Z-27；Batch J（2026-09-29）消化 Z-01/Z-05/Z-28 尾/Z-29/Z-31/Z-32。A 层已清零，剩余精度项见各行"近似附注"（Z-27 停位无目标不放行、Z-29 盲射窗口、Z-32 身份判定等）。
 
 ### B. 需要最小协议/能力设计的交互
 
@@ -88,20 +87,20 @@
 
 ### C. 明确后置基础设施
 
-- **Z-01 速度区间**：影响全部僵尸的 Movement params 表达，值得单独一轮设计（含 Z-12、Z-18、Z-21 的精确化）。
-- **Z-11 冰道 + Z-14 Bobsled**：等 field modifier（与 G-29 合并设计）。
-- **Z-05 Yeti 礼物 + 金币经济**：与植物侧 G-24 同族。
+- ~~**Z-01 速度区间**~~（Batch J 已落地）；**Z-18 撑杆距离公式 / Z-21 小丑按距离引爆**：速度区间已就绪，可转精确语义，留下一内容批次。
+- **Z-11 冰道 + Z-14 Bobsled**：设计已完成（`plans/zombie-ice-trail-field-modifier.md`），等 G-29 或 Bobsled 立项实施。
+- ~~**Z-05 Yeti 礼物**~~（Batch J 已落地 spawn 侧）；钻石计价与经济消费面仍与 G-24 同族。
 - **Z-35 Boss / Z-36 Zombotany**：独立模式线。
-- **Z-34 original pool**：内容层，待 Z-01/Z-06 语义定形后按解锁曲线建数据。
+- **Z-34 original pool**：内容层，Z-01 已定形，待按 gZombieDefs 解锁曲线建数据（衰减公式仍需核证）。
 
 ---
 
 ## 推荐下一批
 
-1. **Batch F（精度修正）**：Z-02、Z-04、Z-09、Z-22、Z-32 + 对应探针断言加深；全部 A 层，无协议变更。
-2. **Batch G（交互对拍）**：Z-19 + Z-24（与植物侧 G-28/G-23 联合验证，入 interaction_matrix）。
-3. **Batch H（Catapult/Ladder 行为）**：Z-27、Z-28、Z-29、Z-25、Z-26。
-4. **设计轮**：Z-01 速度区间、Z-33 方向性、Z-11 冰道（各出一个最小设计再实施）。
+1. **Batch K（精度收尾）**：Z-18 撑杆距离公式、Z-21 小丑按行走距离引爆（速度区间 Z-01 已就绪，两者精确化条件齐备）。
+2. **Z-33 Screen Door 方向性**：HitPolicy/damage_layer_policy 方向维度，协议扩展需设计审批（最小设计轮）。
+3. **Z-34 original pool**：按 gZombieDefs 三元组建数据 + 解锁曲线核证。
+4. **Z-11/Z-14/G-29**：冰道设计已备，随 Bobsled 或坑洞任一立项一并实施。
 
 ---
 

@@ -29,6 +29,8 @@ health_layers = [SubResource("Layer_newspaper")]
 hitbox_size = Vector2(46, 60)
 hit_height_band = ExtResource("3_height")
 default_params = {
-"move_speed_slots_per_sec": 0.28
+"move_speed_slots_per_sec": 0.28,
+"move_speed_slots_per_sec_max": 0.32,
+"move_speed_slots_per_sec_min": 0.23
 }
 mechanics = [ExtResource("4_walk"), ExtResource("6_rage"), ExtResource("5_bite")]

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"zombie_original_dancer_resummon_validation_probe_passed"
+description = "The dancer_resummon probe must pass."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_dancer_resummon",
+"result": &"passed"
+}
+
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_dancer_resummon_validation"
+display_name = "Original Dancer Follower Re-Summon Validation"
+description = "Validates Z-32: the four follower slots fill via per-slot vacancy triggers and a killed backup dancer is re-summoned into the same slot."
+goals = PackedStringArray("All four slots summon on arrival.", "A killed follower is replaced on the next maintenance pass.", "The replacement lands in the same lane slot.")
+validation_time_limit = 14
+lane_count = 3
+validation_rules = [SubResource("Rule_probe_passed")]
+spawns = []

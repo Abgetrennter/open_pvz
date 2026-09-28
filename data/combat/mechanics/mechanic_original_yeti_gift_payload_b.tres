@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.yeti_gift_b"
+display_name = "Original Yeti Gift B"
+family = &"Payload"
+type_id = &"core.produce_sun"
+priority = 21
+tags = PackedStringArray("original", "zombie", "payload", "loot")
+params = {
+"binding_group": &"yeti_gifts",
+"source_type": &"yeti_diamond",
+"value": 50,
+"x_offset": -30.0
+}

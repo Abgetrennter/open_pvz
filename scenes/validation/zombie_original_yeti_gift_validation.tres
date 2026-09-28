@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"zombie_original_yeti_gift_validation_probe_passed"
+description = "The yeti_gift probe must pass."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_yeti_gift",
+"result": &"passed"
+}
+
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_yeti_gift_validation"
+display_name = "Original Yeti Gift Drop Validation"
+description = "Validates Z-05: a killed Yeti drops 4 diamonds spread to the left of its center (DropLoot)."
+goals = PackedStringArray("Four yeti_diamond collectibles spawn on death.", "The drops land at four distinct positions.")
+validation_time_limit = 6
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed")]
+spawns = []

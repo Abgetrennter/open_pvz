@@ -845,7 +845,7 @@ static func _build_state_spec_inline(archetype, mechanic) -> Dictionary:
 
 static var _compile_controller_bite: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"attack_damage", &"attack_interval", &"attack_range", &"move_speed", &"move_speed_slots_per_sec", &"scan_range", &"scan_range_slots", &"range_mode", &"detection_id", &"ladder_climb"])
+	_merge_controller_overrides(base_params, merged_params, [&"attack_damage", &"attack_interval", &"attack_range", &"move_speed", &"move_speed_slots_per_sec", &"move_speed_slots_per_sec_min", &"move_speed_slots_per_sec_max", &"scan_range", &"scan_range_slots", &"range_mode", &"detection_id", &"ladder_climb"])
 	return {
 		"controller_id": &"core.bite",
 		"mechanic_id": mechanic.mechanic_id,
@@ -855,7 +855,7 @@ static var _compile_controller_bite: Callable = func(mechanic, archetype, merged
 
 static var _compile_controller_crush: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"damage", &"interval", &"scan_range", &"scan_range_slots", &"range_mode", &"detection_id", &"target_tags"])
+	_merge_controller_overrides(base_params, merged_params, [&"damage", &"interval", &"scan_range", &"scan_range_slots", &"range_mode", &"detection_id", &"target_tags", &"soft_target_tags", &"soft_target_damage", &"soft_target_self_damage", &"ignore_target_tags"])
 	return {
 		"controller_id": &"core.crush",
 		"mechanic_id": mechanic.mechanic_id,
@@ -990,7 +990,7 @@ static var _compile_state_sleeping: Callable = func(mechanic, archetype, _merged
 
 static var _compile_movement_walk: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"exposure_state", &"ground_contact"])
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"move_speed_slots_per_sec_min", &"move_speed_slots_per_sec_max", &"direction", &"exposure_state", &"ground_contact"])
 	return {
 		"movement_id": &"core.walk",
 		"mechanic_id": mechanic.mechanic_id,
@@ -1001,7 +1001,7 @@ static var _compile_movement_walk: Callable = func(mechanic, archetype, merged_p
 
 static var _compile_movement_leap_once: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"jump_velocity", &"gravity", &"post_landing_movement", &"leap_speed_slots_per_sec"])
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"move_speed_slots_per_sec_min", &"move_speed_slots_per_sec_max", &"direction", &"jump_velocity", &"gravity", &"post_landing_movement", &"leap_speed_slots_per_sec"])
 	return {
 		"movement_id": &"core.leap_once",
 		"mechanic_id": mechanic.mechanic_id,
@@ -1011,7 +1011,7 @@ static var _compile_movement_leap_once: Callable = func(mechanic, archetype, mer
 
 static var _compile_movement_generic: Callable = func(mechanic, archetype, merged_params: Dictionary) -> Dictionary:
 	var base_params: Dictionary = Dictionary(mechanic.params).duplicate(true)
-	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"direction", &"jump_velocity", &"gravity", &"hop_interval", &"exposure_state"])
+	_merge_controller_overrides(base_params, merged_params, [&"move_speed", &"move_speed_slots_per_sec", &"move_speed_slots_per_sec_min", &"move_speed_slots_per_sec_max", &"direction", &"jump_velocity", &"gravity", &"hop_interval", &"exposure_state"])
 	return {
 		"movement_id": mechanic.type_id,
 		"mechanic_id": mechanic.mechanic_id,

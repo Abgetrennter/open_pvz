@@ -30,6 +30,8 @@ health_layers = [SubResource("Layer_ladder")]
 hitbox_size = Vector2(48, 68)
 hit_height_band = ExtResource("3_height")
 default_params = {
-"move_speed_slots_per_sec": 0.8
+"move_speed_slots_per_sec": 0.8,
+"move_speed_slots_per_sec_max": 0.81,
+"move_speed_slots_per_sec_min": 0.79
 }
 mechanics = [ExtResource("4_walk"), ExtResource("5_bite"), ExtResource("6_ladder_trigger"), ExtResource("7_ladder_payload")]

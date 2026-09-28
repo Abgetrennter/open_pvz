@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"zombie_original_speed_range_validation_probe_passed"
+description = "The speed_range probe must pass."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_speed_range",
+"result": &"passed"
+}
+
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_speed_range_validation"
+display_name = "Original Zombie Speed Range Sampling Validation"
+description = "Validates Z-01: walkers spawn with a per-entity speed roll inside the original PickRandomSpeed range and the roll varies across entities."
+goals = PackedStringArray("Every sampled speed lies inside the declared range.", "At least two distinct speeds among twelve walkers.")
+validation_time_limit = 8
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed")]
+spawns = []

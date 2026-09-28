@@ -4,15 +4,16 @@
 
 [resource]
 script = ExtResource("1_mechanic")
-mechanic_id = &"core.original.dancing_spawn_right"
-display_name = "Original Dancing Spawn Right"
+mechanic_id = &"core.original.dancing_slot_down_payload"
+display_name = "Original Dancing Slot Down Payload"
 family = &"Payload"
 type_id = &"core.spawn_entity"
-priority = 23
+priority = 21
 tags = PackedStringArray("original", "zombie", "payload", "summon")
 params = {
 "archetype_id": &"archetype_original_backup_dancer",
-"binding_group": &"dancer_summon",
+"binding_group": &"dancer_slot_down",
+"lane_offset": 1,
 "spawn_reason": &"dancer_summon",
-"x_offset": 64.0
+"x_offset": 0.0
 }

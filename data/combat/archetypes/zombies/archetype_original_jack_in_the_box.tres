@@ -18,6 +18,8 @@ max_health = 500
 hitbox_size = Vector2(46, 60)
 hit_height_band = ExtResource("2_height")
 default_params = {
-"move_speed_slots_per_sec": 0.67
+"move_speed_slots_per_sec": 0.67,
+"move_speed_slots_per_sec_max": 0.68,
+"move_speed_slots_per_sec_min": 0.66
 }
 mechanics = [ExtResource("3_walk"), ExtResource("5_trigger"), ExtResource("6_explode"), ExtResource("4_bite")]
