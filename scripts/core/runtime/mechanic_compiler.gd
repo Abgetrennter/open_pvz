@@ -33,6 +33,7 @@ static func register_builtin_mechanic_types() -> void:
 		&"core.wake": &"Payload",
 		&"core.team_switch": &"Payload",
 		&"core.consume_self": &"Payload",
+		&"core.emit_event": &"Payload",
 		&"core.reveal": &"Payload",
 		&"core.clear_fog": &"Payload",
 		&"core.lane_reroute": &"Payload",
@@ -587,6 +588,8 @@ static func _map_payload_type(type_id: StringName) -> Dictionary:
 			return {"effect_id": &"team_switch"}
 		&"core.consume_self":
 			return {"effect_id": &"consume_self"}
+		&"core.emit_event":
+			return {"effect_id": &"emit_event"}
 		&"core.reveal":
 			return {"effect_id": &"reveal"}
 		&"core.clear_fog":
@@ -959,6 +962,12 @@ static var _compile_state_rage: Callable = func(mechanic, archetype, _merged_par
 		transition["after"] = float(mechanic.params.get("after", 0.0))
 	if mechanic.params.has("required_layer_id"):
 		transition["required_layer_id"] = StringName(mechanic.params.get("required_layer_id", StringName()))
+	if mechanic.params.has("position_axis"):
+		transition["position_axis"] = String(mechanic.params.get("position_axis", "x"))
+	if mechanic.params.has("position_compare"):
+		transition["position_compare"] = String(mechanic.params.get("position_compare", "below"))
+	if mechanic.params.has("position_threshold"):
+		transition["position_threshold"] = float(mechanic.params.get("position_threshold", 0.0))
 	if mechanic.params.has("required_state_id"):
 		transition["required_state_id"] = StringName(mechanic.params.get("required_state_id", StringName()))
 	if mechanic.params.get("side_effects", null) is Array or mechanic.params.get("side_effects", null) is Dictionary:

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.snorkel_chew_dive_payload"
+display_name = "Original Snorkel Chew Dive Payload"
+family = &"Payload"
+type_id = &"core.emit_event"
+priority = 20
+tags = PackedStringArray("original", "zombie", "payload", "snorkel")
+params = {
+"binding_group": &"snorkel_dive",
+"event_name": &"snorkel.chew_ended"
+}

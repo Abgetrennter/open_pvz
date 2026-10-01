@@ -303,6 +303,14 @@ func perform_attack_cycle_for_controller(spec: Dictionary, delta: float) -> void
 	if movement_component != null:
 		movement_component.velocity = Vector2.ZERO
 	_attack_target = _find_attack_target_with_range(resolved_attack_range)
+	# Exposure-gated chewing (original Snorkel stays submerged until it
+	# surfaces to eat): specs listing the owner's current exposure state in
+	# suppress_exposure_states keep walking instead of chewing.
+	var suppress_exposures := PackedStringArray(params.get("suppress_exposure_states", PackedStringArray()))
+	if _attack_target != null and not suppress_exposures.is_empty() \
+			and has_method("get_exposure_state") \
+			and suppress_exposures.has(String(call("get_exposure_state"))):
+		_attack_target = null
 	# Ladder climb-over (original Zombie.cpp:6964 GetLadderAt override): a
 	# walker meeting a plant whose slot already carries a ladder stops
 	# chewing and climbs over instead. Content opts in per bite mechanic via

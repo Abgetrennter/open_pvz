@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Script" path="res://scripts/core/defs/health_layer_def.gd" id="2_layer_script"]
@@ -6,6 +6,8 @@
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_flying_walk.tres" id="4_walk"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="5_bite"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_balloon_drop_state.tres" id="6_drop"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_balloon_water_death_trigger.tres" id="7_wdeath_t"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_balloon_water_death_payload.tres" id="8_wdeath_p"]
 
 [sub_resource type="Resource" id="Layer_balloon"]
 script = ExtResource("2_layer_script")
@@ -34,4 +36,4 @@ default_params = {
 "move_speed_slots_per_sec_max": 0.32,
 "move_speed_slots_per_sec_min": 0.23
 }
-mechanics = [ExtResource("4_walk"), ExtResource("6_drop"), ExtResource("5_bite")]
+mechanics = [ExtResource("4_walk"), ExtResource("6_drop"), ExtResource("5_bite"), ExtResource("7_wdeath_t"), ExtResource("8_wdeath_p")]

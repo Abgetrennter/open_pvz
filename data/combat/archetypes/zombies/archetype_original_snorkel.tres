@@ -1,9 +1,15 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_submerged_walk.tres" id="3_walk"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="4_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_bite_controller.tres" id="4_bite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_chew_surface_trigger.tres" id="6_chew_t"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_chew_surface_payload.tres" id="7_chew_p"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_chew_dive_trigger.tres" id="8_dive_t"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_chew_dive_payload.tres" id="9_dive_p"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_dive_state.tres" id="10_dive"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_shore_state.tres" id="11_shore"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_snorkel_surface_state.tres" id="5_surface"]
 
 [resource]
@@ -22,4 +28,4 @@ default_params = {
 "move_speed_slots_per_sec_max": 0.68,
 "move_speed_slots_per_sec_min": 0.66
 }
-mechanics = [ExtResource("3_walk"), ExtResource("5_surface"), ExtResource("4_bite")]
+mechanics = [ExtResource("3_walk"), ExtResource("6_chew_t"), ExtResource("7_chew_p"), ExtResource("8_dive_t"), ExtResource("9_dive_p"), ExtResource("5_surface"), ExtResource("10_dive"), ExtResource("11_shore"), ExtResource("4_bite")]

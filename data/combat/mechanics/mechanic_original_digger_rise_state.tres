@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.digger_rise"
+display_name = "Original Digger Rise"
+family = &"State"
+type_id = &"core.rage"
+priority = 6
+tags = PackedStringArray("original", "zombie", "state", "digger")
+params = {
+"from_state": &"tunneling",
+"initial_state": &"tunneling",
+"position_axis": "x",
+"position_compare": "below",
+"position_threshold": 10.0,
+"side_effects": [{
+"spec": {
+"movement_id": &"core.walk",
+"params": {
+"direction": Vector2(1, 0),
+"move_speed_slots_per_sec": 0.0
+}
+},
+"type": &"set_movement"
+}],
+"to_state": &"rising",
+"trigger": "position"
+}

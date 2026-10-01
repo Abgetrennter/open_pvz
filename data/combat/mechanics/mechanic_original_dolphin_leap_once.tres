@@ -22,6 +22,13 @@ params = {
 "gravity": -520.0,
 "jump_velocity": 220.0,
 "leap_speed_slots_per_sec": 2.8,
+"pre_leap_ride_speed_slots_per_sec": 0.3,
+"vault_block_tags": PackedStringArray("vault_blocker"),
+"vault_scan_range": 64.0,
+"vault_trigger_after_x": 700.0,
+"vault_trigger_exclude_tags": PackedStringArray("spiky"),
+"vault_trigger_scan_range": 96.0,
+"vault_trigger_tags": PackedStringArray("plant"),
 "post_landing_movement": {
 "movement_id": &"core.walk",
 "params": {
@@ -29,7 +36,5 @@ params = {
 "move_speed_slots_per_sec_max": 0.91,
 "move_speed_slots_per_sec_min": 0.89
 }
-},
-"vault_block_tags": PackedStringArray("vault_blocker"),
-"vault_scan_range": 64.0
+}
 }

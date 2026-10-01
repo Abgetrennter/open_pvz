@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.snorkel_chew_dive_trigger"
+display_name = "Original Snorkel Chew Dive Trigger"
+family = &"Trigger"
+type_id = &"core.periodic"
+priority = 10
+tags = PackedStringArray("original", "zombie", "trigger", "snorkel")
+params = {
+"binding_group": &"snorkel_dive",
+"detection_id": &"lane_backward",
+"interval": 0.25,
+"require_no_target": true,
+"scan_range": 56.0,
+"start_delay": 0.1,
+"target_tags": PackedStringArray("plant")
+}

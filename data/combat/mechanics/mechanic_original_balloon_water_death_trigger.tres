@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.balloon_water_death"
+display_name = "Original Balloon Water Landing Death"
+family = &"Trigger"
+type_id = &"core.when_layer_destroyed"
+priority = 10
+tags = PackedStringArray("original", "zombie", "trigger", "balloon")
+params = {
+"binding_group": &"balloon_water_death",
+"max_trigger_count": 1,
+"required_layer_id": &"balloon",
+"required_lane_tags": PackedStringArray("terrain.pool")
+}
