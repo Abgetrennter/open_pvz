@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.bobsled_rider_1"
+display_name = "Original Bobsled Rider 1 Spawn"
+family = &"Payload"
+type_id = &"core.spawn_entity"
+priority = 20
+tags = PackedStringArray("original", "zombie", "payload", "bobsled")
+params = {
+"archetype_id": &"archetype_original_bobsled",
+"binding_group": &"bobsled_disband",
+"spawn_reason": &"bobsled_crash",
+"x_offset": 50.0
+}

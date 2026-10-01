@@ -1,6 +1,6 @@
 # 冰道场地修改器（Z-11）最小设计
 
-- 状态：设计轮完成，待实施（实施触发：Bobsled Z-14 或植物侧坑洞 G-29 任一立项）
+- 状态：已实施（2026-10-01，冰道批次：Z-11/Z-14/G-29 一并落地；实施偏差见文末附记）
 - 关联文件：`plans/original-zombie-protocol-gaps.md`（Z-11/Z-14）、`plans/original-plant-protocol-gaps.md`（G-29）
 - 创建日期：2026-09-29
 
@@ -34,3 +34,12 @@
 
 - 行为级场景：Zamboni 过境后同 lane 后续僵尸速度减半、跨 lane 对照不变、3000 ticks 后消退。
 - G-29 联动：Doom-shroom 后目标格不可种植。
+
+---
+
+## 实施附记（2026-10-01）
+
+- 落地形态与设计一致：`scripts/battle/battle_field_state.gd` 单区间/行级计时器、`apply_modifier`/`renew_lane_modifier`/`query`/`get_ice_trail_speed_scale`、事件 field.modifier_applied|expired；Zamboni `lay_ice_trail` 3000 ticks；walk 与 bite 回退两路 ×0.5，vehicle 豁免。
+- 偏差 1：crater 未走 field modifier 通道，按本文"边界与不做"条款改走 GridItem（`archetype_crater` + explode `crater_at_source_slot` + `schedule_expiry` 寿命）——格级需求归 GridItem。
+- 偏差 2：Bobsled 续冰实现为 `ice_renewal_ticks`（只刷新已有冰道计时、不扩区间），比设计的"槽位 span 续期"更贴原版行全局 mIceTimer 语义。
+- 新增触发器 `core.when_layer_destroyed`（health.layer_destroyed + required_layer_id）承载橇坏解体，替代设计中留白的"Bobsled 消费面"触发机制。

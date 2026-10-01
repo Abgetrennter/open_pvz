@@ -14,13 +14,15 @@
 > 更新（2026-09-29，Batch J）：Z-29（detection `target_selection: leftmost` + `target_exclude_tags` spiky + `min_scan_range` 100px，Catapult 盲射折入同拍 trigger/payload 语义附注）、Z-28 尾（periodically 弹尽发 `trigger.exhausted` 事件，Catapult 状态切 `spent` 换 walk+啃咬控制器）、Z-32（detection `team_mode: allies` + `lane_offset`/`x_offset` 槽位空缺探测 + `require_no_target`，Dancer 四槽逐位补员，槽位 x 偏移修正为原版 ±100）、Z-31/G-15 双侧（crush `soft_target_tags` Spikerock 吸收 50/自伤 20 + `ignore_target_tags` 车辆压过不压刺 + ground_damage `vehicle_damage` 1800/植物自付，Zamboni 拆分 drive_over 控制器）、Z-05（produce_sun `x_offset`，Yeti 死亡掉 4 颗 yeti_diamond）、Z-01（`move_speed_slots_per_sec_min/max` 区间 + `GameState.resolve_ranged_value` 实体级确定性采样，全表按 PickRandomSpeed 区间落数据，设计文档 `plans/zombie-speed-range-sampling.md`）落地。Z-11 冰道完成设计轮（`plans/zombie-ice-trail-field-modifier.md`），待 Bobsled/G-29 立项实施。
 >
 > 更新（2026-10-01，Batch K）：Z-18（leap_once 新增 `vault_trigger_tags`/`vault_trigger_exclude_tags`/`vault_trigger_scan_range` 助跑段 + `vault_landing_beyond_px` 70 落点公式：跳速 = (起跳x−(目标x−70))/滞空时间，助跑 0.66–0.68、有梯格不跳改爬、spiky 排除）、Z-21（periodically 新增 `fuse_distance_min/max`+`early_trigger_probability/scale`+`fuse_speed_factor` 距离折算定时引信：fuse = (450+Rand(300))px ÷ 实体采样速度 × ZOMBIE_LIMP_SPEED_FACTOR 2，1/20 缩 1/3，啃食不停摆引信，`max_trigger_count=1` 一次爆，explode+consume_self 双 payload）落地。探针 `zombie_original_vault_formula`/`zombie_original_jack_distance_fuse`。附注：Z-21 的 1.1s 爆开动画窗口（POP 110 ticks）与全冻停摆引信（IsImmobilizied 门）未表达；Z-18 两段式落点（弧落 plantX+80 再瞬移 −150）合并为单弧直达 plantX−70。
+>
+> 更新（2026-10-01，冰道批次）：Z-11（新子系统 `battle_field_state`：每 (lane,kind) 单区间+行级计时器，`apply_modifier`/`renew_lane_modifier`/`query`/`get_ice_trail_speed_scale`，事件 field.modifier_applied|expired；Zamboni `core.drive` 铺冰 3000 ticks，冰面 walk 与 bite 回退两路 ×0.5、车辆豁免）、Z-14（archetype_original_bobsled_team：橇=300 血 attachment 层、滑速 0.625 slots/s、`ice_renewal_ticks` 500 只续时不扩区间、离冰每 tick 自磨 6 点，新触发器 `core.when_layer_destroyed`（required_layer_id+max_trigger_count）驱动 4×spawn_entity 解体 + consume_self；archetype_original_bobsled 步行个体 0.23–0.32）、G-29 双侧（explode 新增 `crater_at_source_slot`+`crater_duration_ticks` 18000，复用 archetype_crater GridItem blocker 占格；battle_grid_item_state 新增 `schedule_expiry` game.tick 寿命通道）落地。探针 `zombie_original_ice_trail`/`zombie_original_bobsled_team` + 场景 `plant_original_doomshroom_crater_validation`。附注：滑行队伍不啃咬（原版 SLIDING 相无攻击分派）；队伍单体血池近似（原版 4 独立实体 270×4，宽 hitbox 由领队吸收投射物的语义下差异有限）；坑洞设计文档第 3 点的"crater 走 field modifier"按边界条款改走 GridItem 通道（格级归 GridItem）；Z-13 冰冻免疫仍开放。
 
 ---
 
 ## 当前结论
 
-- 原版 `ConstEnums.h:ZombieType` 共 33 种（不含 2 个缓存变体）；OpenPVZ 已落地 26 个 `archetype_original_*`（冒险 24 + Redeye Gargantuar + Backup Dancer），批次 A-E 验证与正式映射均已登记。
-- 数量缺口 7 个：Bobsled、Dr. Zomboss、Zombotany ×6，均为已裁决的 P2 独立系统（见机制盘点草案），不阻塞主线。
+- 原版 `ConstEnums.h:ZombieType` 共 33 种（不含 2 个缓存变体）；OpenPVZ 已落地 28 个 `archetype_original_*`（冒险 24 + Redeye Gargantuar + Backup Dancer + Bobsled Team + Bobsled），批次 A-E 验证与正式映射均已登记。
+- 数量缺口 6 个：Dr. Zomboss、Zombotany ×6，均为已裁决的 P2 独立系统（见机制盘点草案），不阻塞主线。
 - **本轮源码比对发现两处与原版方向相反/不同的行为语义**（Z-02 Digger 出土方向、Z-04 Yeti 逃跑触发），属于无新协议即可修的精度偏差，建议最先处理。
 - 大部分已有僵尸的验证停留在结构断言（mechanic/layer 存在），行为精度缺口集中在：状态触发条件（计时器 vs 事件）、端点行为（入水/出水/停位）、持续交互（冰道、梯子、召唤刷新）。
 - 波次层 `WavePoolEntryDef` 的 `power / weight / first_allowed_wave` 已能承载 `gZombieDefs[]` 三元组，缺的是按原版解锁曲线组织的 original 正式 pool，不是协议。
@@ -43,10 +45,10 @@
 | Z-08 | Snorkel 端点出水步行 | 部分覆盖 | Snorkel | 原版到左端 `mX <= 25` 出水转普通步行（`Zombie.cpp:1914-1919`），右端反向同理；当前 surfaced 后无端点行为 |
 | Z-09 | Dolphin 落地后高速步行 | 已覆盖（2026-09-28） | Dolphin Rider | `post_landing_movement` 已改 0.9 档；探针断言落地速度 |
 | Z-10 | Dolphin 入水/出水序列 | 部分覆盖 | Dolphin Rider | 原版池外步行（0.66–0.68）→ `mX>700` 入水动画 → riding → 遇植物跳（`Zombie.cpp:1762-1813`）；当前 spawn 即 leap_once，缺入水触发。表现动画后置，位置/状态语义可先补 |
-| Z-11 | Zamboni 冰道生成 | 已设计待实施 | Zamboni | 设计轮完成（2026-09-29，`plans/zombie-ice-trail-field-modifier.md`）：行级区间 field modifier 通道（ice_trail/crater 两 kind 复用），冰面 ×0.5 速度、3000 ticks 续期；实施触发 = Bobsled（Z-14）或 G-29 立项 |
+| Z-11 | Zamboni 冰道生成 | 已覆盖（2026-10-01） | Zamboni | `battle_field_state` 子系统：每 (lane,kind) 单区间 [x_min,x_max] + 行级计时器（对应 mIceMinX/mIceTimer 行全局语义）；Zamboni `core.drive` `lay_ice_trail` 每步并集扩区间、3000 ticks 幂等续期；`core.walk` 与 zombie_root bite 回退两路 `get_ice_trail_speed_scale` ×0.5（vehicle 标签豁免）；超时整体消退发 field.modifier_expired；探针 `zombie_original_ice_trail`（同 lane 半速/跨 lane 对照/车辆豁免/到期消退） |
 | Z-12 | Zamboni 位置驱动减速 | 已覆盖（2026-09-28） | Zamboni | `core.drive` 新增 decel_start_x/decel_end_x/decel_min_slots_per_sec 线性减速（对应原版 0.25→0.05、x 700→300），探针断言参数 |
 | Z-13 | Zamboni/Bobsled 冰冻免疫 | 未覆盖 | Zamboni, Bobsled | `CanBeChilled()` 直接排除（`Zombie.cpp:7979-7981`）；status/element immunity 维度缺 |
-| Z-14 | Bobsled 队伍 | 未覆盖（P2 后置） | Bobsled | 组实体/队列 + sled 300 血 + 冰道依赖 + 解体后 3 独立僵尸；等 Z-11 与组队语义裁决（机制盘点开放问题 6） |
+| Z-14 | Bobsled 队伍 | 已覆盖（2026-10-01） | Bobsled | archetype_original_bobsled_team（vehicle/bobsled/team）：橇=300 血 attachment 层（route_order 10 先吸收），`core.drive` 恒速 0.625 slots/s（原版 0.6px/tick）+ `ice_renewal_ticks` 500（只刷新已有冰道计时，不扩区间，对应 max(500,mIceTimer)）+ `off_ice_damage_per_tick` 6（x+10 < 冰道 x_min 起每 tick 自磨，300 血约 0.5s 破橇）；破橇走新触发器 `core.when_layer_destroyed`（required_layer_id sled）→ 4×spawn_entity（x_offset 0/50/100/150 对应原版追随者间距）+ consume_self；解体后 archetype_original_bobsled 常规步行 0.23–0.32（冰上半速）；探针 `zombie_original_bobsled_team`（橇层结构/滑速/离冰自磨/四员解体/独立行走）。近似附注：滑行期不啃咬（原版 SLIDING 相无攻击分派）；单体血池近似（原版 4×270 独立实体，本引擎单实体 270+300 层）；BOARDING 动画相未表达 |
 | Z-15 | Balloon 水面落地死亡 | 部分覆盖 | Balloon | 原版落点为 pool 行则直接 `DieWithLoot`（`Zombie.cpp:1591-1593`）；当前落地无水陆判定。flying 20 attachment 层与落地状态机已覆盖 |
 | Z-16 | Pogo 弹跳高度序列 | 部分覆盖 | Pogo | 原版三段递增高跳（普通 40 → FORWARD_2 90 → FORWARD_7 170，`Zombie.cpp:1372-1414`）；当前 `hop_cycle` 单一 jump_velocity |
 | Z-17 | Pogo 弹簧破坏后步行 | 未覆盖 | Pogo | 原版 Tall-nut 碰撞或 Magnet 吸簧触发 `PogoBreak` 转步行（`Zombie.cpp:1332-1360`、`:1416-1425`）；依赖 G-19 与 Z-19 |
@@ -90,7 +92,7 @@
 ### C. 明确后置基础设施
 
 - ~~**Z-01 速度区间**~~（Batch J 已落地）；~~**Z-18 撑杆距离公式 / Z-21 小丑按距离引爆**~~（Batch K 已落地，2026-10-01）。
-- **Z-11 冰道 + Z-14 Bobsled**：设计已完成（`plans/zombie-ice-trail-field-modifier.md`），等 G-29 或 Bobsled 立项实施。
+- ~~**Z-11 冰道 + Z-14 Bobsled**~~（冰道批次已落地，2026-10-01；G-29 坑洞生产路径同步落地）。
 - ~~**Z-05 Yeti 礼物**~~（Batch J 已落地 spawn 侧）；钻石计价与经济消费面仍与 G-24 同族。
 - **Z-35 Boss / Z-36 Zombotany**：独立模式线。
 - **Z-34 original pool**：内容层，Z-01 已定形，待按 gZombieDefs 解锁曲线建数据（衰减公式仍需核证）。
@@ -102,7 +104,7 @@
 1. ~~**Batch K（精度收尾）**：Z-18 撑杆距离公式、Z-21 小丑按行走距离引爆~~（已落地，2026-10-01）。
 2. **Z-33 Screen Door 方向性**：HitPolicy/damage_layer_policy 方向维度，协议扩展需设计审批（最小设计轮）。
 3. **Z-34 original pool**：按 gZombieDefs 三元组建数据 + 解锁曲线核证（衰减公式已于 Board.cpp:2478-2519 核证：生存模式 normal/cone 权重衰减、红眼/伽刚出怪上限曲线、Bungee 旗帜波限定——依赖旗帜计数器，待生存模式立项再实施）。
-4. **Z-11/Z-14/G-29**：冰道设计已备，随 Bobsled 或坑洞任一立项一并实施。
+4. ~~**Z-11/Z-14/G-29**~~（冰道批次已落地，2026-10-01）。
 
 ---
 

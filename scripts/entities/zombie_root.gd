@@ -460,10 +460,25 @@ func _resolve_move_speed(params: Dictionary = {}) -> float:
 	var sampled: Variant = GameState.resolve_ranged_value(self, source_params, "move_speed_slots_per_sec")
 	if sampled != null:
 		source_params["move_speed_slots_per_sec"] = float(sampled)
+	var resolved_speed := float(source_params.get("move_speed_slots_per_sec", move_speed_slots_per_sec)) * 96.0
 	var metrics := _get_battlefield_metrics()
 	if metrics != null and metrics.has_method("resolve_slots_speed"):
-		return float(metrics.call("resolve_slots_speed", source_params, "move_speed_slots_per_sec", move_speed))
-	return float(source_params.get("move_speed_slots_per_sec", move_speed_slots_per_sec)) * 96.0
+		resolved_speed = float(metrics.call("resolve_slots_speed", source_params, "move_speed_slots_per_sec", move_speed))
+	# Bite-fallback walking keeps the same terrain scaling as the movement
+	# spec path (ice halves walkers; vehicles exempt).
+	return resolved_speed * _field_speed_scale()
+
+
+func _field_speed_scale() -> float:
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("get_field_state"):
+		return 1.0
+	var field: Variant = battle.call("get_field_state")
+	if field == null or not field.has_method("get_ice_trail_speed_scale"):
+		return 1.0
+	var tags_value: Variant = get("tags")
+	var tags := PackedStringArray(tags_value) if tags_value is PackedStringArray or tags_value is Array else PackedStringArray()
+	return float(field.call("get_ice_trail_speed_scale", lane_id, position.x, tags))
 
 
 func _get_battlefield_metrics() -> RefCounted:

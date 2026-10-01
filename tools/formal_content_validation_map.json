@@ -132,6 +132,18 @@
       "showcases": []
     },
     {
+      "id": "original_zombies_ice_bobsled",
+      "description": "Ice trail field modifiers and the Bobsled team (Z-11/Z-14) plus the Doom-shroom crater production path (G-29).",
+      "validations": [
+        "zombie_original_zomboni_validation",
+        "zombie_original_ice_trail_validation",
+        "zombie_original_bobsled_team_validation",
+        "plant_original_doomshroom_crater_validation",
+        "grid_item_crater_validation"
+      ],
+      "showcases": []
+    },
+    {
       "id": "board_and_battlefield_semantics_v1",
       "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
       "validations": [

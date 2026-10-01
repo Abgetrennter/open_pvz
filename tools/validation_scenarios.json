@@ -2054,5 +2054,29 @@
     "layers": [
       "core"
     ]
+  },
+  {
+    "id": "zombie_original_ice_trail_validation",
+    "scenario": "res://scenes/validation/zombie_original_ice_trail_validation.tres",
+    "description": "Z-11: row-interval ice field halves walkers, exempts vehicles, expires by tick budget; crater lifetimes (G-29) share the expiry channel (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_bobsled_team_validation",
+    "scenario": "res://scenes/validation/zombie_original_bobsled_team_validation.tres",
+    "description": "Z-14: 300hp sled layer, 0.625 slots/s slide, off-ice grind, four-walker disband (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "plant_original_doomshroom_crater_validation",
+    "scenario": "res://scenes/validation/plant_original_doomshroom_crater_validation.tres",
+    "description": "G-29: Doom-shroom blast leaves a blocker-occupying crater on its slot that rejects replanting.",
+    "layers": [
+      "core"
+    ]
   }
 ]

@@ -105,6 +105,9 @@ func _register_builtin_strategies() -> void:
 			if reached_stop:
 				move_speed = 0.0
 				pause_reason = &"position_hold"
+		# Ice trail halves walking speed (original GetSpeedModifier); vehicles
+		# are exempt and the field state owns the lane-interval query.
+		move_speed *= _field_speed_scale(owner)
 		var ground_contact := bool(params.get("ground_contact", exposure_state != &"flying" and exposure_state != &"airborne"))
 		return {
 			"source_id": &"movement:core.walk",
@@ -353,6 +356,31 @@ func _register_builtin_strategies() -> void:
 				var span := maxf(decel_start_x - decel_end_x, 1.0)
 				var t := clampf((decel_start_x - owner.position.x) / span, 0.0, 1.0)
 				move_speed = lerpf(move_speed, min_speed, t)
+		# Field-terrain vehicle interactions (original Zamboni/Bobsled):
+		# lay_ice_trail extends the lane interval under the vehicle as it
+		# drives (de-pvz UpdateZamboni mIceMinX advance, 3000-tick renewal);
+		# ice_renewal_ticks only refreshes an EXISTING trail's timer (de-pvz
+		# UpdateZombieBobsled mIceTimer = max(500, m)); a sled past the ice's
+		# left edge takes off_ice_damage_per_tick per step until the sled
+		# layer breaks (de-pvz TakeDamage(6, ...) once mPosX+10 < mIceMinX).
+		if owner != null and owner is Node2D:
+			var field := _get_field_state()
+			if field != null:
+				var lane_value: Variant = owner.get("lane_id")
+				var lane_id := int(lane_value) if lane_value is int else -1
+				if lane_id >= 0:
+					if bool(params.get("lay_ice_trail", false)):
+						var pad := maxf(move_speed * maxf(_delta, 0.0), 2.0) + 2.0
+						var entity_id := int(owner.get("entity_id")) if owner.get("entity_id") is int else -1
+						field.call("apply_modifier", lane_id, &"ice_trail", owner.position.x - pad, owner.position.x + pad, int(params.get("ice_trail_duration_ticks", 3000)), entity_id)
+					if params.has("ice_renewal_ticks"):
+						field.call("renew_lane_modifier", lane_id, &"ice_trail", int(params.get("ice_renewal_ticks", 500)))
+					if params.has("off_ice_damage_per_tick"):
+						var ice_x_min := float(field.call("lane_modifier_x_min", lane_id, &"ice_trail"))
+						var check_offset := float(params.get("off_ice_check_offset_px", 10.0))
+						var off_ice: bool = (not is_finite(ice_x_min)) or owner.position.x + check_offset < ice_x_min
+						if off_ice and owner.has_method("take_damage"):
+							owner.call("take_damage", int(params.get("off_ice_damage_per_tick", 6)), owner, PackedStringArray(["ice_grind", "vehicle"]))
 		return {
 			"source_id": &"movement:core.drive",
 			"command_kind": &"base",
@@ -394,6 +422,31 @@ func _get_battlefield_metrics() -> RefCounted:
 		return null
 	var metrics: Variant = GameState.current_battle.call("get_battlefield_metrics")
 	return metrics if metrics is RefCounted else null
+
+
+func _get_field_state() -> Node:
+	if GameState.current_battle == null:
+		return null
+	if not GameState.current_battle.has_method("get_field_state"):
+		return null
+	var field: Variant = GameState.current_battle.call("get_field_state")
+	return field if field is Node else null
+
+
+func _field_speed_scale(owner: Node) -> float:
+	# Terrain speed factor from the row-interval field state (ice halves
+	# walkers, vehicles exempt); 1.0 whenever no battle/field state exists.
+	if owner == null or not (owner is Node2D):
+		return 1.0
+	var field := _get_field_state()
+	if field == null or not field.has_method("get_ice_trail_speed_scale"):
+		return 1.0
+	var lane_value: Variant = owner.get("lane_id")
+	if not (lane_value is int) or int(lane_value) < 0:
+		return 1.0
+	var tags_value: Variant = owner.get("tags")
+	var tags := PackedStringArray(tags_value) if tags_value is PackedStringArray or tags_value is Array else PackedStringArray()
+	return float(field.call("get_ice_trail_speed_scale", int(lane_value), owner.position.x, tags))
 
 
 func _find_vault_blocker(owner: Node, params: Dictionary, direction: Vector2) -> Node:
