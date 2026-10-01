@@ -2110,5 +2110,13 @@
     "layers": [
       "core"
     ]
+  },
+  {
+    "id": "zombie_original_batch_n_interactions_validation",
+    "scenario": "res://scenes/validation/zombie_original_batch_n_interactions_validation.tres",
+    "description": "Z-16/Z-17/Z-22/Z-23/Z-30: pogo bounce sequence + spring break, jack split radii, bungee steal chain, gargantuar throw gate (probe-driven).",
+    "layers": [
+      "core"
+    ]
   }
 ]

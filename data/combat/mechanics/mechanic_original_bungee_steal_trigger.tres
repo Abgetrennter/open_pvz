@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.bungee_steal_trigger"
+display_name = "Original Bungee Steal Trigger"
+family = &"Trigger"
+type_id = &"core.periodic"
+priority = 10
+tags = PackedStringArray("original", "zombie", "trigger", "bungee")
+params = {
+"binding_group": &"bungee_steal",
+"detection_id": &"proximity",
+"interval": 60.0,
+"max_trigger_count": 1,
+"required_state": &"grabbing",
+"scan_range": 30.0,
+"start_delay": 4.9,
+"target_tags": PackedStringArray("plant")
+}

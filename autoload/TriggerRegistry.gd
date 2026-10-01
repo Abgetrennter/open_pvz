@@ -187,6 +187,11 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "required_damage_tags",
 		"type": "packed_string_array",
+	}, {
+		"name": "min_owner_x",
+		"type": "float",
+		"min": -4000.0,
+		"max": 4000.0,
 	}]
 	when_damaged.id = &"when_damaged"
 	when_damaged.event_name = &"entity.damaged"
@@ -409,6 +414,14 @@ func _register_builtin_strategies() -> void:
 	register_strategy(&"when_damaged", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
 		if event_data.core.get("target_node", null) != instance.owner_entity:
 			return false
+		# Position-gated reactions (original Gargantuar throws only while
+		# aThrowingDistance > 40, i.e. mPosX > 400, de-pvz Zombie.cpp:2208-2213).
+		if condition_values.has("min_owner_x"):
+			var owner: Variant = instance.owner_entity if instance != null else null
+			if owner == null or not (owner is Node2D):
+				return false
+			if (owner as Node2D).position.x < float(condition_values.get("min_owner_x", 0.0)):
+				return false
 		var min_damage := int(condition_values.get("min_damage", 0))
 		if int(event_data.core.get("value", 0)) < min_damage:
 			return false

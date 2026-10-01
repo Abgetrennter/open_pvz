@@ -50,7 +50,7 @@
 | G-26 | 多格占用 | 未覆盖 | Cob Cannon | 需要 Placement multi_tile / composite occupant |
 | G-27 | 卡片复制 | 已覆盖 | Imitater | CardDef `clone_source_card_id` + BattleCardState setup 展开 + `card.clone_resolved`，冷却独立；`plant_original_imitater_validation` |
 | G-28 | 跳跃高度阻挡 | 后置 | Tall-nut | 当前无跳跃僵尸正式内容；HeightBand 基线已在，collision/jump 语义等内容驱动 |
-| G-29 | 坑洞/crater | 已覆盖（2026-10-01，与僵尸侧 Z-11/Z-14 联动） | Doom-shroom | explode 新增 `crater_at_source_slot` + `crater_duration_ticks` 18000（原版 AddACrater->mGridItemCounter=18000）：爆后于源格生成 archetype_crater GridItem（occupies_blocker_role 阻挡补种，占格语义由 grid_item_crater_validation 覆盖）；battle_grid_item_state 新增 `schedule_expiry` game.tick 寿命通道（到期 remove+grid_item.removed reason expired）；场景 `plant_original_doomshroom_crater_validation`（夜环境唤醒→爆炸→坑洞落格）。附注：同格补种在尸体淡出完成前会先命中 placement_role_occupied（尸体占格为既有引擎缺口，非坑洞语义） |
+| G-29 | 坑洞/crater | 已覆盖（2026-10-01，与僵尸侧 Z-11/Z-14 联动） | Doom-shroom | explode 新增 `crater_at_source_slot` + `crater_duration_ticks` 18000（原版 AddACrater->mGridItemCounter=18000）：爆后于源格生成 archetype_crater GridItem（occupies_blocker_role 阻挡补种，占格语义由 grid_item_crater_validation 覆盖）；battle_grid_item_state 新增 `schedule_expiry` game.tick 寿命通道（到期 remove+grid_item.removed reason expired）；场景 `plant_original_doomshroom_crater_validation`（夜环境唤醒→爆炸→坑洞落格→补种拒绝 required_empty_role_occupied 全链）。Batch N 连带修复：Doom-shroom 补 consume_self payload（原版爆后 Die()，此前爆炸后存活占 primary）；board_state 监听 entity.died|entity.consumed 即时释放 slot 角色 |
 | G-30 | 随机 payload 选择 | 已覆盖 | Kernel-pult | `Emission.core.shuffle_cycle` 确定性轮换已覆盖 |
 
 ---

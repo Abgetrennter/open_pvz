@@ -12,6 +12,7 @@ priority = 10
 tags = PackedStringArray("original", "zombie", "trigger", "summon")
 params = {
 "binding_group": &"gargantuar_throw",
+"min_owner_x": 400.0,
 "max_health_fraction_at_or_below": 0.5,
 "min_damage": 1,
 "once_key": &"gargantuar_imp_thrown"

@@ -330,6 +330,30 @@ func _register_builtin_strategies() -> void:
 			ground_contact = bool(owner.call("is_ground_contact"))
 		var cooldown := maxf(float(blackboard.get("hop_cooldown", 0.0)) - delta, 0.0)
 		blackboard["hop_cooldown"] = cooldown
+		# Escalating bounce heights (original Pogo bounce phases, de-pvz
+		# Zombie.cpp:1372-1382: normal 40 -> FORWARD_BOUNCE_2 90 ->
+		# FORWARD_BOUNCE_7 170): hop_height_sequence lists per-bounce apex
+		# heights in px, converted to a takeoff velocity over the hop gravity;
+		# the sequence cycles. Mid-air Tall-nut contact breaks the spring
+		# (original FORWARD_BOUNCE_2 PogoBreak, :1416-1425): strip the pogo
+		# layer via a spillover-free hit and drop to the blocked walk spec.
+		if not ground_contact and params.has("vault_block_tags"):
+			var blocker := _find_vault_blocker(owner, params, direction)
+			if blocker != null:
+				if owner.has_method("take_damage"):
+					owner.call("take_damage", 9999, owner, PackedStringArray(["pogo_break"]), {"damage_layer_policy": {"spillover": false}})
+				if params.get("blocked_landing_movement", null) is Dictionary and owner.has_method("set_movement_spec"):
+					owner.call("set_movement_spec", Dictionary(params.get("blocked_landing_movement")).duplicate(true))
+				return {
+					"source_id": &"movement:core.hop_cycle",
+					"command_kind": &"base",
+					"ground_velocity": Vector2.ZERO,
+					"ground_contact": false,
+					"exposure_state": &"airborne",
+					"gravity": float(params.get("gravity", -520.0)),
+					"interruptible": true,
+					"pause_reason": &"pogo_blocked",
+				}
 		var command := {
 			"source_id": &"movement:core.hop_cycle",
 			"command_kind": &"base",
@@ -341,9 +365,16 @@ func _register_builtin_strategies() -> void:
 			"pause_reason": StringName(),
 		}
 		if ground_contact and height <= 0.001 and cooldown <= 0.0:
+			var takeoff_velocity := float(params.get("jump_velocity", 160.0))
+			var sequence: Variant = params.get("hop_height_sequence", null)
+			if sequence is Array and not Array(sequence).is_empty():
+				var bounce_index := int(blackboard.get("hop_index", 0))
+				var apex_height := float(sequence[bounce_index % Array(sequence).size()])
+				blackboard["hop_index"] = bounce_index + 1
+				takeoff_velocity = sqrt(2.0 * absf(float(params.get("gravity", -520.0))) * apex_height)
 			command["ground_contact"] = false
 			command["exposure_state"] = &"airborne"
-			command["height_velocity"] = float(params.get("jump_velocity", 160.0))
+			command["height_velocity"] = takeoff_velocity
 			blackboard["hop_cooldown"] = maxf(float(params.get("hop_interval", 0.7)), 0.05)
 		return command
 

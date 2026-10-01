@@ -80,6 +80,8 @@ func setup(battle_node: Node, scenario: Resource) -> void:
 	_slots.clear()
 	_rebuild_slots()
 	EventBus.subscribe(&"game.tick", Callable(self, "_on_game_tick"))
+	EventBus.subscribe(&"entity.died", Callable(self, "_on_entity_died"))
+	EventBus.subscribe(&"entity.consumed", Callable(self, "_on_entity_died"))
 
 
 func get_debug_name() -> String:
@@ -259,6 +261,22 @@ func get_debug_slot_lines(limit: int = 4) -> PackedStringArray:
 
 func is_valid_lane(lane_id: int) -> bool:
 	return battle != null and is_instance_valid(battle) and bool(battle.is_valid_lane(lane_id))
+
+
+func _on_entity_died(event_data: Variant) -> void:
+	# Dead entities release their slot roles immediately (original: a eaten
+	# plant's cell is plantable the moment it disappears) instead of waiting
+	# for the deferred queue_free to invalidate the occupant reference.
+	if event_data == null:
+		return
+	var dead: Variant = event_data.core.get("target_node", null)
+	if dead == null or not is_instance_valid(dead):
+		return
+	for key: Variant in _slots.keys():
+		var slot: Variant = _slots[key]
+		if slot == null or not is_instance_valid(slot):
+			continue
+		slot.remove_occupant(dead)
 
 
 func _on_game_tick(_event_data: Variant) -> void:

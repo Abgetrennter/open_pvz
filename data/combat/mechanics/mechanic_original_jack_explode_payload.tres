@@ -13,5 +13,7 @@ tags = PackedStringArray("original", "zombie", "payload", "explode")
 params = {
 "binding_group": &"jack_fuse",
 "radius_slots": 0.94,
+"radius_slots_plant": 0.9375,
+"radius_slots_zombie": 1.197917,
 "target_mode": &"enemies_in_radius"
 }

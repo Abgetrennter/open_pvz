@@ -1,16 +1,28 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_hop_cycle.tres" id="3_hop"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_bite_controller.tres" id="4_bite"]
+[ext_resource type="Script" path="res://scripts/core/defs/health_layer_def.gd" id="5_layer_script"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_pogo_break_state.tres" id="6_break"]
+
+[sub_resource type="Resource" id="Layer_pogo_stick"]
+script = ExtResource("5_layer_script")
+layer_id = &"pogo_stick"
+layer_kind = &"attachment"
+armor_type = &"pogo"
+max_health = 20
+route_order = 10
+material_tags = PackedStringArray("metal", "pogo")
+overflow_policy = &"spill_to_next"
 
 [resource]
 script = ExtResource("1_archetype")
 archetype_id = &"archetype_original_pogo"
 entity_kind = &"zombie"
 display_name = "Original Pogo Zombie"
-tags = PackedStringArray("archetype", "zombie", "original", "hop", "pogo")
+tags = PackedStringArray("archetype", "zombie", "original", "metal", "hop", "pogo")
 required_components = PackedStringArray("TriggerComponent", "MovementComponent")
 max_health = 500
 hitbox_size = Vector2(44, 68)
@@ -18,4 +30,5 @@ hit_height_band = ExtResource("2_height")
 default_params = {
 "move_speed_slots_per_sec": 0.45
 }
-mechanics = [ExtResource("3_hop"), ExtResource("4_bite")]
+health_layers = [SubResource("Layer_pogo_stick")]
+mechanics = [ExtResource("3_hop"), ExtResource("6_break"), ExtResource("4_bite")]

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.bungee_dive_state"
+display_name = "Original Bungee Dive and Grab"
+family = &"State"
+type_id = &"core.rage"
+priority = 6
+tags = PackedStringArray("original", "zombie", "state", "bungee")
+params = {
+"after": 1.9,
+"from_state": &"diving",
+"initial_state": &"diving",
+"side_effects": [],
+"to_state": &"grabbing",
+"trigger": "time"
+}

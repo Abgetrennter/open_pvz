@@ -13,8 +13,7 @@ tags = PackedStringArray("original", "zombie", "payload", "bungee")
 params = {
 "amount": 9999,
 "attack_tags": PackedStringArray("overhead", "bungee"),
-"binding_group": &"bungee_drop",
-"radius_slots": 1.0,
-"target_mode": &"enemies_in_radius",
+"binding_group": &"bungee_steal",
+"target_mode": &"context_target",
 "target_tags": PackedStringArray("plant")
 }
