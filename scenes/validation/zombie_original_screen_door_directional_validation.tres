@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_screen_door"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_screen_door"
+lane_id = 0
+x_position = 400.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Spawn_peashooter_frontal"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_peashooter"
+lane_id = 0
+x_position = 320.0
+
+[sub_resource type="Resource" id="Spawn_splitpea_rear"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_splitpea"
+lane_id = 0
+x_position = 480.0
+
+[sub_resource type="Resource" id="Spawn_forward_sponge"]
+script = ExtResource("2_spawn")
+entity_kind = &"zombie"
+archetype_id = &"archetype_original_basic_zombie"
+lane_id = 0
+x_position = 620.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"directional_probe_passed"
+description = "The directional shield probe must pass: frontal shots hit the shield, rear and lobbed markers bypass to the body, and a Split Pea behind the zombie chips the body while the frontal peashooter chips the shield."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_screen_door_directional",
+"result": &"passed"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_screen_door_directional_validation"
+display_name = "Original Screen Door Directional Validation"
+description = "Validates Z-33: the Screen Door shield only absorbs frontal hits - leftward-flying projectiles (Split Pea back head) and lobbed arcs carry hit.rear/hit.overhead markers that bypass the layer straight to the body (de-pvz Projectile.cpp:382-404)."
+goals = PackedStringArray("Plain frontal projectile damage is absorbed by the shield layer only.", "hit.rear and hit.overhead marked damage bypasses the shield to the body.", "A Split Pea behind the zombie damages the body while the frontal peashooter damages the shield.")
+validation_time_limit = 8.0
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed")]
+spawns = [SubResource("Spawn_screen_door"), SubResource("Spawn_peashooter_frontal"), SubResource("Spawn_splitpea_rear"), SubResource("Spawn_forward_sponge")]

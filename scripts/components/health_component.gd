@@ -163,7 +163,7 @@ func _apply_layered_damage(amount: int, source_node: Node, tags: PackedStringArr
 	var remaining := amount
 	var applied := 0
 	var policy := _normalize_damage_layer_policy(runtime_overrides.get("damage_layer_policy", {}))
-	var route := _build_damage_route(policy)
+	var route := _build_damage_route(policy, tags)
 	for layer_index in route:
 		if remaining <= 0:
 			break
@@ -190,7 +190,7 @@ func _apply_layered_damage(amount: int, source_node: Node, tags: PackedStringArr
 	return applied
 
 
-func _build_damage_route(policy: Dictionary) -> PackedInt32Array:
+func _build_damage_route(policy: Dictionary, tags: PackedStringArray = PackedStringArray()) -> PackedInt32Array:
 	var bypass := PackedStringArray(policy.get("bypass_layer_kinds", PackedStringArray()))
 	var route := PackedInt32Array()
 	for index in range(health_layers.size()):
@@ -198,6 +198,19 @@ func _build_damage_route(policy: Dictionary) -> PackedInt32Array:
 		var layer_kind := StringName(layer.get("layer_kind", StringName()))
 		if bypass.has(String(layer_kind)):
 			continue
+		# Directional armor (original TakeShieldDamage routing, de-pvz
+		# Projectile.cpp:382-404): a layer declaring bypass_on_damage_tags is
+		# skipped when the incoming damage carries any of those hit markers
+		# (rear/overhead approaches go straight to the body).
+		var bypass_tags := PackedStringArray(layer.get("bypass_on_damage_tags", PackedStringArray()))
+		if not bypass_tags.is_empty():
+			var marker_hit := false
+			for bypass_tag: String in bypass_tags:
+				if tags.has(bypass_tag):
+					marker_hit = true
+					break
+			if marker_hit:
+				continue
 		route.append(index)
 	return route
 

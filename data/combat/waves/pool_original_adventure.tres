@@ -1,0 +1,228 @@
+[gd_resource type="Resource" script_class="WavePoolDef" load_steps=27 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/wave_pool_def.gd" id="1_pool"]
+[ext_resource type="Script" path="res://scripts/battle/wave_pool_entry_def.gd" id="2_entry"]
+
+[sub_resource type="Resource" id="Entry_0"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_basic_zombie"
+power = 1
+weight = 1
+first_allowed_wave = 0
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_1"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_flag_zombie"
+power = 1
+weight = 0
+first_allowed_wave = 0
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_2"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_conehead"
+power = 2
+weight = 1
+first_allowed_wave = 2
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_3"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_pole_vaulter"
+power = 2
+weight = 5
+first_allowed_wave = 5
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_4"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_buckethead"
+power = 4
+weight = 1
+first_allowed_wave = 7
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_5"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_newspaper"
+power = 2
+weight = 1
+first_allowed_wave = 10
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_6"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_screen_door"
+power = 4
+weight = 5
+first_allowed_wave = 12
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_7"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_football"
+power = 7
+weight = 5
+first_allowed_wave = 15
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_8"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_dancing"
+power = 5
+weight = 5
+first_allowed_wave = 17
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_9"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_ducky_tube"
+power = 1
+weight = 5
+first_allowed_wave = 20
+lane_id = 0
+x_position = 900.0
+required_spawn_tags = PackedStringArray("spawn.medium.water")
+
+[sub_resource type="Resource" id="Entry_10"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_snorkel"
+power = 3
+weight = 10
+first_allowed_wave = 22
+lane_id = 0
+x_position = 900.0
+required_spawn_tags = PackedStringArray("spawn.medium.water")
+
+[sub_resource type="Resource" id="Entry_11"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_zomboni"
+power = 7
+weight = 10
+first_allowed_wave = 25
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_12"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_bobsled_team"
+power = 3
+weight = 10
+first_allowed_wave = 25
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_13"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_dolphin_rider"
+power = 3
+weight = 10
+first_allowed_wave = 27
+lane_id = 0
+x_position = 900.0
+required_spawn_tags = PackedStringArray("spawn.medium.water")
+
+[sub_resource type="Resource" id="Entry_14"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_jack_in_the_box"
+power = 3
+weight = 10
+first_allowed_wave = 30
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_15"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_balloon"
+power = 2
+weight = 10
+first_allowed_wave = 32
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_16"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_digger"
+power = 4
+weight = 10
+first_allowed_wave = 35
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_17"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_pogo"
+power = 4
+weight = 10
+first_allowed_wave = 37
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_18"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_yeti"
+power = 4
+weight = 1
+first_allowed_wave = 39
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_19"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_bungee"
+power = 3
+weight = 10
+first_allowed_wave = 40
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_20"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_ladder"
+power = 4
+weight = 10
+first_allowed_wave = 42
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_21"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_catapult"
+power = 5
+weight = 10
+first_allowed_wave = 45
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_22"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_gargantuar"
+power = 10
+weight = 15
+first_allowed_wave = 47
+lane_id = 0
+x_position = 900.0
+
+[sub_resource type="Resource" id="Entry_23"]
+script = ExtResource("2_entry")
+archetype_id = &"archetype_original_imp"
+power = 10
+weight = 1
+first_allowed_wave = 47
+lane_id = 0
+x_position = 900.0
+
+[resource]
+script = ExtResource("1_pool")
+pool_id = &"original_adventure_pool"
+entries = [SubResource("Entry_0"), SubResource("Entry_1"), SubResource("Entry_2"), SubResource("Entry_3"), SubResource("Entry_4"), SubResource("Entry_5"), SubResource("Entry_6"), SubResource("Entry_7"), SubResource("Entry_8"), SubResource("Entry_9"), SubResource("Entry_10"), SubResource("Entry_11"), SubResource("Entry_12"), SubResource("Entry_13"), SubResource("Entry_14"), SubResource("Entry_15"), SubResource("Entry_16"), SubResource("Entry_17"), SubResource("Entry_18"), SubResource("Entry_19"), SubResource("Entry_20"), SubResource("Entry_21"), SubResource("Entry_22"), SubResource("Entry_23")]

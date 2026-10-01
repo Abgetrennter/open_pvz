@@ -216,7 +216,16 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 
 	var hit_runtime := _runtime_overrides.duplicate(true)
 	hit_runtime["depth"] = int(hit_runtime.get("depth", 1)) + 1
-	var hit_event = EventDataRef.create(owner_entity, target, damage, PackedStringArray(["projectile"]), hit_runtime)
+	# Directional hit markers (original Projectile::GetDamageFlags, de-pvz
+	# Projectile.cpp:382-404): leftward-flying shots reach the target from
+	# behind and lobbed arcs drop in from above - both bypass held shields
+	# (Screen Door / Ladder), unlike frontal rightward shots.
+	var hit_tags := PackedStringArray(["projectile"])
+	if _launch_direction.x < 0.0:
+		hit_tags.append(&"hit.rear")
+	if _move_mode == &"parabola":
+		hit_tags.append(&"hit.overhead")
+	var hit_event = EventDataRef.create(owner_entity, target, damage, hit_tags, hit_runtime)
 	hit_event.core["move_mode"] = _move_mode
 	hit_event.core["profile_id"] = _flight_profile_id
 	hit_event.core["projectile_height_above_ground"] = _height
@@ -240,7 +249,7 @@ func _on_hit(target: Node, terminal_reason: StringName = StringName()) -> void:
 		direct_runtime["depth"] = int(hit_event.runtime.get("depth", 1)) + 1
 		direct_runtime["chain_id"] = str(hit_event.runtime.get("chain_id", ""))
 		direct_runtime["origin_event_name"] = &"projectile.hit"
-		target.call("take_damage", damage, owner_entity, PackedStringArray(["projectile"]), direct_runtime)
+		target.call("take_damage", damage, owner_entity, hit_tags, direct_runtime)
 
 	set_status(&"consumed")
 	sync_runtime_state()
