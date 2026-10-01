@@ -2078,5 +2078,21 @@
     "layers": [
       "core"
     ]
+  },
+  {
+    "id": "zombie_original_screen_door_directional_validation",
+    "scenario": "res://scenes/validation/zombie_original_screen_door_directional_validation.tres",
+    "description": "Z-33: screen door shield absorbs frontal shots only; rear/overhead markers bypass to the body (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_wave_pool_validation",
+    "scenario": "res://scenes/validation/zombie_original_wave_pool_validation.tres",
+    "description": "Z-34: original adventure pool maps gZombieDefs triples with zone gates; seeded compile respects budget/unlock waves (probe-driven).",
+    "layers": [
+      "core"
+    ]
   }
 ]

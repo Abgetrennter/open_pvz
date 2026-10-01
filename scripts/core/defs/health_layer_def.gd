@@ -8,6 +8,7 @@ class_name HealthLayerDef
 @export var route_order := 0
 @export var material_tags: PackedStringArray = PackedStringArray()
 @export var overflow_policy: StringName = &"spill_to_next"
+@export var bypass_on_damage_tags: PackedStringArray = PackedStringArray()
 
 
 func to_runtime_layer() -> Dictionary:
@@ -20,5 +21,6 @@ func to_runtime_layer() -> Dictionary:
 		"route_order": route_order,
 		"material_tags": PackedStringArray(material_tags),
 		"overflow_policy": overflow_policy,
+		"bypass_on_damage_tags": PackedStringArray(bypass_on_damage_tags),
 		"alive": max_health > 0,
 	}

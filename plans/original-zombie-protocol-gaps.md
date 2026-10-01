@@ -15,7 +15,9 @@
 >
 > 更新（2026-10-01，Batch K）：Z-18（leap_once 新增 `vault_trigger_tags`/`vault_trigger_exclude_tags`/`vault_trigger_scan_range` 助跑段 + `vault_landing_beyond_px` 70 落点公式：跳速 = (起跳x−(目标x−70))/滞空时间，助跑 0.66–0.68、有梯格不跳改爬、spiky 排除）、Z-21（periodically 新增 `fuse_distance_min/max`+`early_trigger_probability/scale`+`fuse_speed_factor` 距离折算定时引信：fuse = (450+Rand(300))px ÷ 实体采样速度 × ZOMBIE_LIMP_SPEED_FACTOR 2，1/20 缩 1/3，啃食不停摆引信，`max_trigger_count=1` 一次爆，explode+consume_self 双 payload）落地。探针 `zombie_original_vault_formula`/`zombie_original_jack_distance_fuse`。附注：Z-21 的 1.1s 爆开动画窗口（POP 110 ticks）与全冻停摆引信（IsImmobilizied 门）未表达；Z-18 两段式落点（弧落 plantX+80 再瞬移 −150）合并为单弧直达 plantX−70。
 >
-> 更新（2026-10-01，冰道批次）：Z-11（新子系统 `battle_field_state`：每 (lane,kind) 单区间+行级计时器，`apply_modifier`/`renew_lane_modifier`/`query`/`get_ice_trail_speed_scale`，事件 field.modifier_applied|expired；Zamboni `core.drive` 铺冰 3000 ticks，冰面 walk 与 bite 回退两路 ×0.5、车辆豁免）、Z-14（archetype_original_bobsled_team：橇=300 血 attachment 层、滑速 0.625 slots/s、`ice_renewal_ticks` 500 只续时不扩区间、离冰每 tick 自磨 6 点，新触发器 `core.when_layer_destroyed`（required_layer_id+max_trigger_count）驱动 4×spawn_entity 解体 + consume_self；archetype_original_bobsled 步行个体 0.23–0.32）、G-29 双侧（explode 新增 `crater_at_source_slot`+`crater_duration_ticks` 18000，复用 archetype_crater GridItem blocker 占格；battle_grid_item_state 新增 `schedule_expiry` game.tick 寿命通道）落地。探针 `zombie_original_ice_trail`/`zombie_original_bobsled_team` + 场景 `plant_original_doomshroom_crater_validation`。附注：滑行队伍不啃咬（原版 SLIDING 相无攻击分派）；队伍单体血池近似（原版 4 独立实体 270×4，宽 hitbox 由领队吸收投射物的语义下差异有限）；坑洞设计文档第 3 点的"crater 走 field modifier"按边界条款改走 GridItem 通道（格级归 GridItem）；Z-13 冰冻免疫仍开放。
+> 更新（2026-10-01，冰道批次）：Z-11（新子系统 `battle_field_state`：每 (lane,kind) 单区间+行级计时器，`apply_modifier`/`renew_lane_modifier`/`query`/`get_ice_trail_speed_scale`，事件 field.modifier_applied|expired；Zamboni `core.drive` 铺冰 3000 ticks，冰面 walk 与 bite 回退两路 ×0.5、车辆豁免）、Z-14（archetype_original_bobsled_team：橇=300 血 attachment 层、滑速 0.625 slots/s、`ice_renewal_ticks` 500 只续时不扩区间、离冰每 tick 自磨 6 点，新触发器 `core.when_layer_destroyed`（required_layer_id+max_trigger_count）驱动 4×spawn_entity 解体 + consume_self；archetype_original_bobsled 步行个体 0.23–0.32）、G-29 双侧（explode 新增 `crater_at_source_slot`+`crater_duration_ticks` 18000，复用 archetype_crater GridItem blocker 占格；battle_grid_item_state 新增 `schedule_expiry` game.tick 寿命通道）落地。探针 `zombie_original_ice_trail`/`zombie_original_bobsled_team` + 场景 `plant_original_doomshroom_crater_validation`。附注：滑行队伍不啃咬（原版 SLIDING 相无攻击分派）；队伍单体血池近似（原版 4 独立实体 270×4，宽 hitbox 由领队吸收投射物的语义下差异有限）；坑洞设计文档第 3 点的"crater 走 field modifier"按边界条款改走 GridItem 通道（格级归 GridItem）；Z-13 冰冻免疫仍开放。>
+>
+> 更新（2026-10-01，Batch L）：Z-33（投射物命中打方向标记：`_launch_direction.x < 0` → hit.rear、`_move_mode == parabola` → hit.overhead，事件与直伤 tags 双路；HealthLayerDef 新增 `bypass_on_damage_tags`，`_build_damage_route` 按伤害 tags 跳层；screen_door 与 ladder 两层声明 bypass；damage 效果 attack_tags 并入伤害 tags）、Z-34（`data/combat/waves/pool_original_adventure.tres`：24 条目按 gZombieDefs 三元组落位，value→power、startingLevel−1→first_allowed_wave、pickWeight→weight，水生三系挂 spawn.medium.water zone 门，flag 条目 weight 0；衰减公式已核证并记录，实施等生存模式旗帜计数器立项）。探针 `zombie_original_screen_door_directional`（正面吃盾/背面与越顶直击本体/Split Pea 后向头实战路径）+ `zombie_original_wave_pool`（三元组 spot-check/zone 门/种子编译预算与解锁曲线）。附注：melon 溅射走 on_hit 效果链不带方向标记（原版溅射为盾体双伤 DAMAGE_HITS_SHIELD_AND_BODY，本引擎仍单发路由）；backup_dancer 不入池（原版召唤专用）；redeye 仅生存模式出现（入池与否等生存模式立项再定）。
 
 ---
 
@@ -67,8 +69,8 @@
 | Z-30 | Gargantuar 投掷条件与距离 | 部分覆盖 | Gargantuar, Redeye | 原版条件 `mHasObject && HP<50% && mPosX-360 > 40`（`:2208-2213`），投掷距离 `mPosX-360 - Rand(0,100)`、屋顶减 180（`:2133-2155`）；当前 `when_damaged` HP 阈值触发已近似，距离公式缺 |
 | Z-31 | Gargantuar × Spikerock 反伤 | 已覆盖（2026-09-29，双侧联动） | Gargantuar, Redeye | crush 新增 `soft_target_tags`（spikerock）`soft_target_damage` 50（450 血=9 次承伤，即原版独立承伤次数）`soft_target_self_damage` 20；Zamboni/Catapult 拆分 `mechanic_original_drive_over_controller`（`ignore_target_tags` spiky，对应 SquishAllInSquare DRIVE_OVER 跳过）；植物侧 ground_damage 新增 `vehicle_damage` 1800 + `vehicle_hit_plant_damage`（Spikeweed 9999 即死/Spikerock 50），Spikeweed/Spikerock 各自独立 mechanic；砸 Spikeweed 仍走 9999 即压死（原版 else 分支）；探针 `zombie_original_gargantuar_spikerock`；G-15 状态同步见植物侧底账 |
 | Z-32 | Dancer 召唤刷新 | 已覆盖（2026-09-29） | Dancing | 撤 on_spawned 一次性召唤，改为 4 个逐槽位维护 trigger：periodically（interval 1.67s ≈ 100 ticks）+ proximity 探测 `team_mode: allies`（detection 新增友军扫描）`target_tags: backup_dancer`（新标签）`lane_offset/x_offset`（±1 行/±100px，修正原 ±64）`scan_range` 64 + `require_no_target`（槽空才触发）；槽位 lane 越界由 trigger 侧 `is_valid_lane` 守卫短路（对应原版无效行 no-op）。近似附注：空缺按位置而非身份判定，相邻双舞王极端场景可能互相补位；mHasHead 门控未表达；探针 `zombie_original_dancer_resummon` |
-| Z-33 | Screen Door 方向性挡弹 | 未覆盖 | Screen Door | 原版 door shield 有方向判定（`TakeShieldDamage` 路由 + directional），背面投射物直通本体；当前 `damage_layer_policy` 只有 bypass 语义，无方向维度 |
-| Z-34 | Original 正式波次 pool | 未覆盖（内容层） | 全部 | `gZombieDefs[]` 的 value/startingLevel/pickWeight 三元组（`Zombie.cpp:20-53`）可直接映射 `WavePoolEntryDef.power/first_allowed_wave/weight`；协议就绪，缺 original pool 数据与衰减规则核证（衰减公式在 `Challenge.cpp`/`Board.cpp`，未逐行核证） |
+| Z-33 | Screen Door 方向性挡弹 | 已覆盖（2026-10-01） | Screen Door, Ladder | projectile_root `_on_hit` 按运动打方向标记（左飞 `hit.rear` 对应 MOTION_BACKWARDS/星形 mVelX<0、抛物 `hit.overhead` 对应 MOTION_LOBBED，de-pvz Projectile.cpp:382-404），事件与直伤 tags 双路；HealthLayerDef 新增 `bypass_on_damage_tags`，`_build_damage_route(policy, tags)` 命中即跳层直击本体；screen_door（1100 shield）与 ladder（500 attachment）两层声明 bypass；damage 效果声明 attack_tags 并入伤害 tags（探针可注入标记）；探针 `zombie_original_screen_door_directional`（正面/背面/越顶三路效果级 + Split Pea 后向头实战）。近似附注：melon 溅射走 on_hit 效果链不带方向标记，且原版溅射为盾体双伤（DAMAGE_HITS_SHIELD_AND_BODY），本引擎单发路由维持近似 |
+| Z-34 | Original 正式波次 pool | 已覆盖（2026-10-01，数据层） | 全部 | `data/combat/waves/pool_original_adventure.tres` 24 条目：value→power、startingLevel−1→first_allowed_wave（原版门槛 waveIndex+1 ≥ startingLevel 的 0 基换算）、pickWeight→weight；snorkel/dolphin/ducky_tube 挂 `spawn.medium.water` required_spawn_tags（对应 IsZombieTypePoolOnly 水池限定）；flag 条目 weight 0 留作 flag_entry；探针 `zombie_original_wave_pool`（三元组 spot-check + 种子编译预算/解锁曲线断言）。衰减公式已核证（Board.cpp:2478-2519：生存 endless 首现波前移 18→50 旗帜 0→15；normal/cone 权重衰减至 1/10、1/4；伽刚/雪橇出怪上限曲线；红眼旗帜波与累计上限曲线+非旗波权重 1000；Bungee endless 限旗帜波）——依赖旗帜计数器，随生存模式立项实施。backup_dancer 不入池（召唤专用），redeye/imp 照表入池 |
 | Z-35 | Dr. Zomboss | 后置（P2） | Boss | 需独立 Boss mode（踩踏/投车/火冰球/召唤/bungee 协同），已裁决不进普通 roster |
 | Z-36 | Zombotany ×6 | 后置（P2） | 6 种植物头 | Pea/Wallnut/Jalapeno/Gatling/Squash/Tallnut Head，power 1–4；作为 mode/content pack 专项，复用植物 mechanic 挂 zombie 载体 |
 
@@ -87,7 +89,7 @@
 - **Z-25/Z-26 Ladder 持久物件**：复用 GridItem 第一片（crater）模式扩展。
 - **Z-27/Z-28 Catapult 停位与弹药**：停位条件（x 阈值 + 目标存在）可能需要 trigger 条件扩展，弹药计数可用 runtime params 近似。
 - **Z-30 Gargantuar 投掷距离**：spawn_entity payload 加落点公式参数。
-- **Z-33 Screen Door 方向性**：HitPolicy/damage_layer_policy 增加方向维度，属协议扩展，需设计审批。
+- ~~**Z-33 Screen Door 方向性**~~（Batch L 已落地：命中方向标记 + 层级 bypass_on_damage_tags，非 HitPolicy 扩展路线）。
 
 ### C. 明确后置基础设施
 
@@ -95,15 +97,15 @@
 - ~~**Z-11 冰道 + Z-14 Bobsled**~~（冰道批次已落地，2026-10-01；G-29 坑洞生产路径同步落地）。
 - ~~**Z-05 Yeti 礼物**~~（Batch J 已落地 spawn 侧）；钻石计价与经济消费面仍与 G-24 同族。
 - **Z-35 Boss / Z-36 Zombotany**：独立模式线。
-- **Z-34 original pool**：内容层，Z-01 已定形，待按 gZombieDefs 解锁曲线建数据（衰减公式仍需核证）。
+- ~~**Z-34 original pool**~~（Batch L 已落地，2026-10-01；生存衰减曲线已核证待生存模式立项实施）。
 
 ---
 
 ## 推荐下一批
 
 1. ~~**Batch K（精度收尾）**：Z-18 撑杆距离公式、Z-21 小丑按行走距离引爆~~（已落地，2026-10-01）。
-2. **Z-33 Screen Door 方向性**：HitPolicy/damage_layer_policy 方向维度，协议扩展需设计审批（最小设计轮）。
-3. **Z-34 original pool**：按 gZombieDefs 三元组建数据 + 解锁曲线核证（衰减公式已于 Board.cpp:2478-2519 核证：生存模式 normal/cone 权重衰减、红眼/伽刚出怪上限曲线、Bungee 旗帜波限定——依赖旗帜计数器，待生存模式立项再实施）。
+2. ~~**Z-33 Screen Door 方向性**~~（Batch L 已落地，2026-10-01）。
+3. ~~**Z-34 original pool**~~（Batch L 已落地，2026-10-01；生存衰减曲线等生存模式立项）。
 4. ~~**Z-11/Z-14/G-29**~~（冰道批次已落地，2026-10-01）。
 
 ---

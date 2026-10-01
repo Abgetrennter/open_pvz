@@ -4,6 +4,8 @@ class_name OriginalZombieValidationProbe
 const EventDataRef = preload("res://scripts/core/runtime/event_data.gd")
 const EntityFactoryRef = preload("res://scripts/battle/entity_factory.gd")
 const BattleSpawnEntryRef = preload("res://scripts/battle/battle_spawn_entry.gd")
+const WaveComposerRef = preload("res://scripts/battle/wave_composer.gd")
+const WaveRecipeDefRef = preload("res://scripts/battle/wave_recipe_def.gd")
 const EffectNodeRef = preload("res://scripts/core/runtime/effect_node.gd")
 const RuleContextRef = preload("res://scripts/core/runtime/rule_context.gd")
 const EffectExecutorRef = preload("res://scripts/core/runtime/effect_executor.gd")
@@ -107,6 +109,18 @@ func _process(_delta: float) -> void:
 	elif probe_id == &"zombie_original_bobsled_team":
 		if not _validate_bobsled_team():
 			push_error("original zombie probe failed: bobsled team")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_wave_pool":
+		if not _validate_wave_pool():
+			push_error("original zombie probe failed: original wave pool")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_screen_door_directional":
+		if not _validate_screen_door_directional():
+			push_error("original zombie probe failed: screen door directional shield")
 			return
 		_emit_probe(probe_id, &"passed", {})
 		_emitted[probe_id] = true
@@ -1186,6 +1200,142 @@ func _read_range_roll(entity: Node, key: String) -> Variant:
 		if String(meta_name).begins_with("range_roll__%s__" % key):
 			return entity.get_meta(meta_name)
 	return null
+
+
+func _validate_screen_door_directional() -> bool:
+	# Z-33 (de-pvz Projectile.cpp:382-404 GetDamageFlags): frontal shots are
+	# absorbed by the held shield; rear shots (leftward-flying, Split Pea back
+	# head / Starfruit) and lobbed arcs (hit.overhead) bypass it straight to
+	# the body. The effect-level cases pin the layer routing, the split-pea
+	# case pins the projectile-side tagging.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var door := _find_entity_by_archetype(&"archetype_original_screen_door", 0)
+	if door == null:
+		push_error("directional probe: scenario screen door zombie missing")
+		return false
+	var shield_before := int(_layer_snapshot(door, &"screen_door").get("current_health", -1))
+	var body_before := _entity_health(door)
+	# Frontal (plain projectile tags): shield absorbs, body untouched.
+	_execute_damage_effect(door, {"amount": 20, "attack_tags": PackedStringArray(["projectile"]), "target_mode": &"context_target"})
+	var shield_after_front := int(_layer_snapshot(door, &"screen_door").get("current_health", -1))
+	if shield_after_front != shield_before - 20 or _entity_health(door) != body_before:
+		push_error("directional probe: frontal shot did not land on the shield only")
+		return false
+	# Rear (hit.rear): body takes it, shield untouched.
+	_execute_damage_effect(door, {"amount": 20, "attack_tags": PackedStringArray(["projectile", "hit.rear"]), "target_mode": &"context_target"})
+	if int(_layer_snapshot(door, &"screen_door").get("current_health", -1)) != shield_after_front or _entity_health(door) != body_before - 20:
+		push_error("directional probe: rear shot did not bypass the shield")
+		return false
+	# Overhead (hit.overhead): lobbed arcs bypass too.
+	_execute_damage_effect(door, {"amount": 20, "attack_tags": PackedStringArray(["projectile", "hit.overhead"]), "target_mode": &"context_target"})
+	if int(_layer_snapshot(door, &"screen_door").get("current_health", -1)) != shield_after_front or _entity_health(door) != body_before - 40:
+		push_error("directional probe: lobbed shot did not bypass the shield")
+		return false
+	# Projectile path: a Split Pea standing to the zombie's right fires its
+	# back head leftward; those peas must chip the BODY while the frontal
+	# peashooter to the left chips the SHIELD.
+	var body_at_start := _entity_health(door)
+	var shield_at_start := int(_layer_snapshot(door, &"screen_door").get("current_health", -1))
+	_battle.call("step_simulation_ticks", 420)
+	var shield_after := int(_layer_snapshot(door, &"screen_door").get("current_health", -1))
+	var body_after := _entity_health(door)
+	if shield_after >= shield_at_start:
+		push_error("directional probe: frontal peashooter never dented the shield")
+		return false
+	if body_after >= body_at_start:
+		push_error("directional probe: rear split-pea shots never reached the body")
+		return false
+	return true
+
+
+func _validate_wave_pool() -> bool:
+	# Z-34 (de-pvz gZombieDefs Zombie.cpp:20-53): the original adventure pool
+	# maps value->power, startingLevel->first_allowed_wave (the original gate
+	# is waveIndex+1 >= startingLevel, i.e. 0-based startingLevel-1) and
+	# pickWeight->weight; water types are gated to water lanes and the flag
+	# entry stays weight-0 for flag waves only.
+	var pool_res: Variant = load("res://data/combat/waves/pool_original_adventure.tres")
+	if pool_res == null or not (pool_res is Resource):
+		push_error("wave pool probe: pool resource missing")
+		return false
+	var entries: Array = Array(pool_res.get("entries"))
+	if entries.size() != 24:
+		push_error("wave pool probe: %d entries (expected 24)" % entries.size())
+		return false
+	var by_archetype: Dictionary = {}
+	for entry in entries:
+		var archetype_id := StringName(entry.get("archetype_id"))
+		if not SceneRegistry.has_archetype(archetype_id):
+			push_error("wave pool probe: unresolvable archetype %s" % String(archetype_id))
+			return false
+		if int(entry.get("power")) <= 0 or int(entry.get("first_allowed_wave")) < 0 or int(entry.get("weight")) < 0:
+			push_error("wave pool probe: negative triple on %s" % String(archetype_id))
+			return false
+		by_archetype[archetype_id] = entry
+	# Spot checks against gZombieDefs rows.
+	var spot_checks: Dictionary = {
+		&"archetype_original_basic_zombie": [1, 0, 1],
+		&"archetype_original_conehead": [2, 2, 1],
+		&"archetype_original_pole_vaulter": [2, 5, 5],
+		&"archetype_original_screen_door": [4, 12, 5],
+		&"archetype_original_zomboni": [7, 25, 10],
+		&"archetype_original_bobsled_team": [3, 25, 10],
+		&"archetype_original_jack_in_the_box": [3, 30, 10],
+		&"archetype_original_gargantuar": [10, 47, 15],
+		&"archetype_original_flag_zombie": [1, 0, 0],
+	}
+	for archetype_id: StringName in spot_checks.keys():
+		var entry: Variant = by_archetype.get(archetype_id)
+		if entry == null:
+			push_error("wave pool probe: spot-check archetype missing %s" % String(archetype_id))
+			return false
+		var expected: Array = spot_checks[archetype_id]
+		if int(entry.get("power")) != expected[0] or int(entry.get("first_allowed_wave")) != expected[1] or int(entry.get("weight")) != expected[2]:
+			push_error("wave pool probe: %s triple %d/%d/%d != %d/%d/%d" % [String(archetype_id), int(entry.get("power")), int(entry.get("first_allowed_wave")), int(entry.get("weight")), expected[0], expected[1], expected[2]])
+			return false
+	for water_id: StringName in [&"archetype_original_snorkel", &"archetype_original_dolphin_rider", &"archetype_original_ducky_tube"]:
+		if not PackedStringArray(by_archetype[water_id].get("required_spawn_tags")).has("spawn.medium.water"):
+			push_error("wave pool probe: %s missing water zone gate" % String(water_id))
+			return false
+	# Compile a seeded recipe over the pool and check the budget gate plus
+	# the wave-0 unlock curve (only basic zombies are eligible at wave 0).
+	var composer := WaveComposerRef.new()
+	var recipe: Resource = WaveRecipeDefRef.new()
+	recipe.recipe_id = "original_pool_probe"
+	recipe.total_waves = 6
+	recipe.waves_per_flag = 6
+	recipe.base_budget = 1
+	recipe.budget_per_wave = 2
+	recipe.flag_budget_multiplier = 1.0
+	recipe.pool_def = pool_res
+	recipe.flag_entry = by_archetype.get(&"archetype_original_flag_zombie")
+	var waves: Array = composer.compile(recipe, 20261001, null)
+	if waves.size() != 6:
+		push_error("wave pool probe: compiled %d waves (expected 6)" % waves.size())
+		return false
+	var pool_ids: Dictionary = {}
+	for archetype_id: StringName in by_archetype.keys():
+		pool_ids[archetype_id] = true
+	for wave_index in range(waves.size()):
+		var wave = waves[wave_index]
+		var spend := 0
+		for spawn_wrapper in Array(wave.get("spawn_entries")):
+			var spawn_entry: Variant = spawn_wrapper.get("spawn_entry") if spawn_wrapper.get("spawn_entry") != null else spawn_wrapper
+			var archetype_id := StringName(str(spawn_entry.get("archetype_id")))
+			if not pool_ids.has(archetype_id):
+				push_error("wave pool probe: wave %d spawned non-pool archetype %s" % [wave_index, String(archetype_id)])
+				return false
+			spend += 1
+			if wave_index == 0 and archetype_id != &"archetype_original_basic_zombie":
+				push_error("wave pool probe: wave 0 spawned %s before its unlock wave" % String(archetype_id))
+				return false
+		var budget := 1 + 2 * wave_index
+		if spend > budget:
+			push_error("wave pool probe: wave %d spent %d > budget %d" % [wave_index, spend, budget])
+			return false
+	return true
 
 
 func _emit_probe(probe: StringName, result: StringName, extra_core: Dictionary = {}) -> void:

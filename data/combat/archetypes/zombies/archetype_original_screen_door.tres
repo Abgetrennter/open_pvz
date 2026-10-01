@@ -15,6 +15,7 @@ max_health = 1100
 route_order = 20
 material_tags = PackedStringArray("metal", "directional")
 overflow_policy = &"spill_to_next"
+bypass_on_damage_tags = PackedStringArray("hit.rear", "hit.overhead")
 
 [resource]
 script = ExtResource("1_archetype")

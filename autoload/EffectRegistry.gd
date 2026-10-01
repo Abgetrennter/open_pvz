@@ -842,6 +842,12 @@ func _register_builtin_strategies() -> void:
 		if not event_tag.is_empty() and not damage_tags.has(event_tag):
 			damage_tags.append(event_tag)
 		var attack_tags := PackedStringArray(params.get("attack_tags", PackedStringArray()))
+		# Declared attack markers ride the damage itself (directional shield
+		# routing consumes hit.rear/hit.overhead; interception below checks
+		# the same declared tags).
+		for attack_tag: String in attack_tags:
+			if not damage_tags.has(attack_tag):
+				damage_tags.append(attack_tag)
 		var targets: Array = _resolve_targets(context, params)
 		if targets.is_empty():
 			result.success = false

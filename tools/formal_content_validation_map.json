@@ -144,6 +144,17 @@
       "showcases": []
     },
     {
+      "id": "original_zombies_batch_l",
+      "description": "Original zombie protocol gaps Batch L: Screen Door directional shield (Z-33) and the original adventure wave pool (Z-34).",
+      "validations": [
+        "zombie_original_screen_door_validation",
+        "zombie_original_screen_door_directional_validation",
+        "zombie_original_wave_pool_validation",
+        "wave_recipe_compile_validation"
+      ],
+      "showcases": []
+    },
+    {
       "id": "board_and_battlefield_semantics_v1",
       "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
       "validations": [
