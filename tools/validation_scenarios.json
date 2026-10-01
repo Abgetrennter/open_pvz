@@ -2038,5 +2038,21 @@
     "layers": [
       "core"
     ]
+  },
+  {
+    "id": "zombie_original_vault_formula_validation",
+    "scenario": "res://scenes/validation/zombie_original_vault_formula_validation.tres",
+    "description": "Z-18: pole vaulter approach run + landing 70px past the vaulted plant, no bite (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_jack_distance_fuse_validation",
+    "scenario": "res://scenes/validation/zombie_original_jack_distance_fuse_validation.tres",
+    "description": "Z-21: jack walking-distance fuse keeps ticking while chewing, single explosion + consume (probe-driven).",
+    "layers": [
+      "core"
+    ]
   }
 ]

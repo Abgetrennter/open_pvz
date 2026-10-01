@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="2_height"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bite_controller.tres" id="4_bite"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_jack_fuse_trigger.tres" id="5_trigger"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_jack_explode_payload.tres" id="6_explode"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_jack_consume_payload.tres" id="7_consume"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -22,4 +23,4 @@ default_params = {
 "move_speed_slots_per_sec_max": 0.68,
 "move_speed_slots_per_sec_min": 0.66
 }
-mechanics = [ExtResource("3_walk"), ExtResource("5_trigger"), ExtResource("6_explode"), ExtResource("4_bite")]
+mechanics = [ExtResource("3_walk"), ExtResource("5_trigger"), ExtResource("6_explode"), ExtResource("7_consume"), ExtResource("4_bite")]

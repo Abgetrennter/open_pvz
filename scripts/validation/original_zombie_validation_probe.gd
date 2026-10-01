@@ -86,6 +86,18 @@ func _process(_delta: float) -> void:
 			return
 		_emit_probe(probe_id, &"passed", {})
 		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_vault_formula":
+		if not _validate_vault_formula():
+			push_error("original zombie probe failed: pole vaulter landing formula")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_jack_distance_fuse":
+		if not _validate_jack_distance_fuse():
+			push_error("original zombie probe failed: jack distance fuse")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
 	else:
 		_probe_single(probe_id)
 
@@ -149,7 +161,7 @@ func _validate_slug(slug: StringName) -> bool:
 		&"newspaper":
 			return _assert_layer(entity, &"newspaper", &"shield", 150) and _assert_newspaper_rage(entity)
 		&"pole_vaulter":
-			return _assert_movement_source(entity, &"core.leap_once") and _assert_vault_block_params(runtime_spec)
+			return _assert_movement_source(entity, &"core.leap_once") and _assert_vault_block_params(runtime_spec) and _assert_vault_formula_params(runtime_spec)
 		&"dolphin_rider":
 			return _assert_movement_source(entity, &"core.leap_once") and _assert_dolphin_post_landing_speed(runtime_spec) and _assert_vault_block_params(runtime_spec)
 		&"ducky_tube":
@@ -161,7 +173,7 @@ func _validate_slug(slug: StringName) -> bool:
 		&"balloon":
 			return _assert_layer(entity, &"balloon", &"attachment", 20) and StringName(entity.call("get_exposure_state")) == &"flying" and _assert_balloon_grounding(entity)
 		&"jack_in_the_box":
-			return _assert_trigger_payload(runtime_spec, &"periodically", &"explode") and _assert_jack_explode_radius(runtime_spec)
+			return _assert_trigger_payload(runtime_spec, &"periodically", &"explode") and _assert_jack_explode_radius(runtime_spec) and _assert_jack_fuse_params(runtime_spec)
 		&"digger":
 			return _assert_movement_source(entity, &"core.tunnel") and StringName(entity.call("get_exposure_state")) == &"underground" and _assert_digger_surface_direction(runtime_spec)
 		&"pogo":
@@ -872,6 +884,146 @@ func _validate_speed_range() -> bool:
 		distinct[String.num(speed, 4)] = true
 	if distinct.size() < 2:
 		push_error("speed range probe: all 12 walkers rolled the same speed")
+		return false
+	return true
+
+
+func _assert_vault_formula_params(runtime_spec) -> bool:
+	var movement_spec: Variant = runtime_spec.get("movement_spec")
+	if not (movement_spec is Dictionary):
+		return false
+	var params: Dictionary = Dictionary(movement_spec).get("params", {})
+	# Original vault landing (de-pvz Zombie.cpp:1671-1686 + :1711-1715): the
+	# arc aims at plantX+80 and the landing shifts -150, netting a landing
+	# fixed 70px past the vaulted plant; the approach run targets plants.
+	return PackedStringArray(params.get("vault_trigger_tags", PackedStringArray())).has("plant") \
+		and absf(float(params.get("vault_landing_beyond_px", -1.0)) - 70.0) < 0.001
+
+
+func _assert_jack_fuse_params(runtime_spec) -> bool:
+	for trigger_spec in Array(runtime_spec.get("trigger_specs")):
+		if trigger_spec == null or StringName(trigger_spec.get("trigger_id")) != &"periodically":
+			continue
+		var conditions: Dictionary = Dictionary(trigger_spec.get("condition_values"))
+		# Original walking fuse (de-pvz Zombie.cpp:429-434): 450+Rand(300)px
+		# converted to a time fuse over the sampled walk speed, 1/20 early pop
+		# at one third the distance, exploding exactly once.
+		return absf(float(conditions.get("fuse_distance_min", -1.0)) - 450.0) < 0.001 \
+			and absf(float(conditions.get("fuse_distance_max", -1.0)) - 750.0) < 0.001 \
+			and int(conditions.get("max_trigger_count", 0)) == 1
+	return false
+
+
+func _validate_vault_formula() -> bool:
+	# Z-18 (de-pvz UpdateZombiePolevaulter :1666-1686 + :1711-1715): the vaulter
+	# runs fast until the first living plant enters range, then leaps with a
+	# horizontal speed that lands the arc a fixed 70px past that plant. The
+	# landing must clear the wall-nut without a single bite.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var wallnut := _find_entity_by_archetype(&"archetype_original_wallnut", 0)
+	if wallnut == null:
+		push_error("vault formula probe: scenario wall-nut missing")
+		return false
+	var wallnut_x := (wallnut as Node2D).position.x
+	var wallnut_before := _entity_health(wallnut)
+	var vaulter := _spawn_archetype(&"archetype_original_pole_vaulter", Vector2(620.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if vaulter == null:
+		push_error("vault formula probe: vaulter spawn failed")
+		return false
+	_battle.call("step_simulation_ticks", 20)
+	var run_start_x := (vaulter as Node2D).position.x
+	_battle.call("step_simulation_ticks", 30)
+	var run_speed := (run_start_x - (vaulter as Node2D).position.x) / 0.3
+	# Pre-vault approach run (de-pvz PHASE_POLEVAULTER_PRE_VAULT: 0.66-0.68).
+	if run_speed < 0.65 * 96.0 or run_speed > 0.69 * 96.0:
+		push_error("vault formula probe: approach run speed %.1f px/s outside 0.66-0.68 slots/s" % run_speed)
+		return false
+	var landing_box := {"x": -1.0}
+	var landed_listener := func(event_data):
+		if event_data.core.get("target_node", null) == vaulter and landing_box["x"] < 0.0:
+			landing_box["x"] = float((vaulter as Node2D).position.x)
+	EventBus.subscribe(&"entity.landed", landed_listener)
+	for i in range(40):
+		if float(landing_box["x"]) >= 0.0:
+			break
+		_battle.call("step_simulation_ticks", 10)
+	EventBus.unsubscribe(&"entity.landed", landed_listener)
+	var landed_x := float(landing_box["x"])
+	var expected_landing := wallnut_x - 70.0
+	if landed_x < 0.0:
+		push_error("vault formula probe: vaulter never landed")
+		return false
+	if absf(landed_x - expected_landing) > 14.0:
+		push_error("vault formula probe: landed at %.1f, expected %.1f (wall %.1f - 70)" % [landed_x, expected_landing, wallnut_x])
+		return false
+	if _entity_health(wallnut) != wallnut_before:
+		push_error("vault formula probe: wall-nut was bitten during the vault")
+		return false
+	if not is_instance_valid(vaulter):
+		push_error("vault formula probe: vaulter despawned")
+		return false
+	var state_ref: Variant = vaulter.call("get_entity_state_ref")
+	var movement_spec: Variant = state_ref.call("get_value", &"movement_spec", {})
+	if not (movement_spec is Dictionary):
+		push_error("vault formula probe: no post-landing movement spec")
+		return false
+	var params: Dictionary = Dictionary(movement_spec).get("params", {})
+	# Post-vault walking drops to the default range (de-pvz PickRandomSpeed).
+	if absf(float(params.get("move_speed_slots_per_sec_min", -1.0)) - 0.23) > 0.001 \
+			or absf(float(params.get("move_speed_slots_per_sec_max", -1.0)) - 0.32) > 0.001:
+		push_error("vault formula probe: post-landing walk is not the default range")
+		return false
+	return true
+
+
+func _validate_jack_distance_fuse() -> bool:
+	# Z-21 (de-pvz Zombie.cpp:429-434 + UpdateZombieJackInTheBox :1977-2012):
+	# the fuse is a WALKING-DISTANCE draw (450+Rand(300)px, 1/20 early pop at
+	# one third) converted to time over the sampled walk speed, so chewing
+	# halts movement but never the fuse, and the jack explodes exactly once.
+	# The ranged rolls are entity-cached (GameState.resolve_ranged_value), so
+	# seeding them before stepping makes the fuse deterministic:
+	# distance 600, early pop (roll 0.01 < 0.05) -> 200px, speed 0.67 ->
+	# fuse = 200 * 2 / (0.67 * 96) = 6.219s.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var wallnut := _find_entity_by_archetype(&"archetype_original_wallnut", 0)
+	if wallnut == null:
+		push_error("jack fuse probe: scenario wall-nut missing")
+		return false
+	var wallnut_before := _entity_health(wallnut)
+	var jack := _spawn_archetype(&"archetype_original_jack_in_the_box", Vector2(700.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if jack == null:
+		push_error("jack fuse probe: jack spawn failed")
+		return false
+	jack.set_meta("range_roll__fuse_distance__4500000__7500000", 600.0)
+	jack.set_meta("range_roll__early_roll__0__10000", 0.01)
+	jack.set_meta("range_roll__move_speed_slots_per_sec__6600__6800", 0.67)
+	var bind_time := float(GameState.current_time)
+	var fuse_seconds := 600.0 * (1.0 / 3.0) * 2.0 / (0.67 * 96.0)
+	var consume_box := {"count": 0, "time": -1.0}
+	var consume_listener := func(event_data):
+		if event_data.core.get("target_node", null) == jack:
+			consume_box["count"] = int(consume_box["count"]) + 1
+			consume_box["time"] = float(GameState.current_time)
+	EventBus.subscribe(&"entity.consumed", consume_listener)
+	_battle.call("step_simulation_ticks", 700)
+	EventBus.unsubscribe(&"entity.consumed", consume_listener)
+	var consumed_at := float(consume_box["time"])
+	if int(consume_box["count"]) != 1:
+		push_error("jack fuse probe: consumed %d times (expected 1)" % int(consume_box["count"]))
+		return false
+	var drift := absf(consumed_at - bind_time - fuse_seconds)
+	if drift > 0.35:
+		push_error("jack fuse probe: exploded %.3fs after spawn, expected %.3fs" % [consumed_at - bind_time, fuse_seconds])
+		return false
+	# queue_free defers to the frame end, so liveness cannot be probed here;
+	# the exactly-once entity.consumed count carries the die-on-explode check.
+	if _entity_health(wallnut) >= wallnut_before:
+		push_error("jack fuse probe: wall-nut untouched by chewing or the blast")
 		return false
 	return true
 

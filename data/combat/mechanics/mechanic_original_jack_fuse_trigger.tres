@@ -12,8 +12,10 @@ priority = 10
 tags = PackedStringArray("original", "zombie", "trigger", "fuse")
 params = {
 "binding_group": &"jack_fuse",
-"interval_max": 4.5,
-"interval_min": 2.5,
-"start_delay_max": 5.0,
-"start_delay_min": 1.5
+"early_trigger_probability": 0.05,
+"early_trigger_scale": 0.333333,
+"fuse_distance_max": 750.0,
+"fuse_distance_min": 450.0,
+"fuse_speed_factor": 2.0,
+"max_trigger_count": 1
 }
