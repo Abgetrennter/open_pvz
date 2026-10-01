@@ -31,5 +31,9 @@ params = {
 }
 },
 "vault_block_tags": PackedStringArray("vault_blocker"),
-"vault_scan_range": 64.0
+"vault_landing_beyond_px": 70.0,
+"vault_scan_range": 64.0,
+"vault_trigger_exclude_tags": PackedStringArray("spiky"),
+"vault_trigger_scan_range": 96.0,
+"vault_trigger_tags": PackedStringArray("plant")
 }

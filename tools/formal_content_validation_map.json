@@ -120,6 +120,18 @@
       "showcases": []
     },
     {
+      "id": "original_zombies_batch_k",
+      "description": "Original zombie protocol gaps Batch K: pole vaulter landing formula (Z-18) and Jack-in-the-Box walking-distance fuse (Z-21).",
+      "validations": [
+        "zombie_original_pole_vaulter_validation",
+        "zombie_original_vault_block_validation",
+        "zombie_original_vault_formula_validation",
+        "zombie_original_jack_in_the_box_validation",
+        "zombie_original_jack_distance_fuse_validation"
+      ],
+      "showcases": []
+    },
+    {
       "id": "board_and_battlefield_semantics_v1",
       "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
       "validations": [

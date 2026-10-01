@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_wallnut_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 0
+x_position = 400.0
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"vault_formula_probe_passed"
+description = "The vault formula probe must pass: fast approach run, arc landing 70px past the plant, no bite, default-range walking afterwards."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_vault_formula",
+"result": &"passed"
+}
+
+[sub_resource type="Resource" id="Rule_wallnut_not_bitten"]
+script = ExtResource("3_rule")
+rule_id = &"vaulted_wallnut_not_bitten"
+description = "The vaulted Wall-nut must never receive bite damage while the pole vaulter crosses."
+event_name = &"entity.damaged"
+min_count = 0
+max_count = 0
+required_core_values = {
+"source_archetype_id": &"archetype_original_pole_vaulter",
+"target_archetype_id": &"archetype_original_wallnut"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_vault_formula_validation"
+display_name = "Original Pole Vaulter Landing Formula Validation"
+description = "Validates Z-18: the pole vaulter runs fast until the first plant enters range, then leaps with a horizontal speed derived from the landing formula, landing a fixed 70px past the vaulted plant without biting it."
+goals = PackedStringArray("Approach run stays in the 0.66-0.68 slots/s range.", "The arc lands 70px past the vaulted Wall-nut.", "The Wall-nut is never bitten and the vaulter walks on at the default range.")
+validation_time_limit = 8.0
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed"), SubResource("Rule_wallnut_not_bitten")]
+spawns = [SubResource("Spawn_wallnut_lane0")]

@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="2_spawn"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Spawn_wallnut_lane0"]
+script = ExtResource("2_spawn")
+entity_kind = &"plant"
+archetype_id = &"archetype_original_wallnut"
+lane_id = 0
+x_position = 300.0
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"jack_fuse_probe_passed"
+description = "The jack distance-fuse probe must pass: fuse fired at the distance-derived time even while chewing, exactly one explosion, jack consumed."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_jack_distance_fuse",
+"result": &"passed"
+}
+
+[sub_resource type="Resource" id="Rule_jack_consumed_once"]
+script = ExtResource("3_rule")
+rule_id = &"jack_consumed_once"
+description = "The jack must be consumed exactly once by its own explosion."
+event_name = &"entity.consumed"
+min_count = 1
+max_count = 1
+required_core_values = {
+"target_archetype_id": &"archetype_original_jack_in_the_box",
+"reason": &"jack_explode"
+}
+
+[sub_resource type="Resource" id="Rule_wallnut_damaged"]
+script = ExtResource("3_rule")
+rule_id = &"wallnut_damaged_by_jack"
+description = "The Wall-nut must be damaged by the jack (chewing and/or the blast) before the fuse ends."
+event_name = &"entity.damaged"
+min_count = 1
+required_core_values = {
+"source_archetype_id": &"archetype_original_jack_in_the_box",
+"target_archetype_id": &"archetype_original_wallnut"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_jack_distance_fuse_validation"
+display_name = "Original Jack Distance Fuse Validation"
+description = "Validates Z-21: the Jack-in-the-Box fuse is a walking-distance draw (450+Rand(300)px, 1/20 early pop at one third) converted to time over the sampled walk speed, so chewing never halts it and the jack explodes exactly once."
+goals = PackedStringArray("The fuse fires at the distance-derived time even while the jack chews.", "The jack explodes exactly once and is consumed.", "The Wall-nut takes damage from chewing or the blast.")
+validation_time_limit = 12.0
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed"), SubResource("Rule_jack_consumed_once"), SubResource("Rule_wallnut_damaged")]
+spawns = [SubResource("Spawn_wallnut_lane0")]

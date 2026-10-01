@@ -129,6 +129,13 @@ func _register_builtin_strategies() -> void:
 			height = float(owner.call("get_height"))
 		if owner != null and owner.has_method("is_ground_contact"):
 			ground_contact = bool(owner.call("is_ground_contact"))
+		# Vault speed from the landing formula (original Pole Vaulter, de-pvz
+		# Zombie.cpp:1671-1686: mVelX = (mX - plantX - 80) / animDuration, then
+		# :1711-1715 shifts the landing -150 once the jump animation completes,
+		# netting a landing fixed distance past the vaulted plant).
+		var vault_speed := float(blackboard.get("vault_speed_px", 0.0))
+		if vault_speed > 0.0:
+			move_speed = vault_speed
 		if bool(blackboard.get("landed", false)):
 			return {
 				"source_id": &"movement:core.leap_once",
@@ -172,6 +179,39 @@ func _register_builtin_strategies() -> void:
 					"interruptible": true,
 					"pause_reason": StringName(),
 				}
+		# Pre-vault approach run (original PHASE_POLEVAULTER_PRE_VAULT): walk at
+		# normal speed until the first vaultable target enters scan range, then
+		# start the leap with a horizontal speed that lands the arc a fixed
+		# distance past that target. Specs without vault_trigger_tags keep the
+		# legacy spawn-time leap (dolphin).
+		var trigger_tags := PackedStringArray(params.get("vault_trigger_tags", PackedStringArray()))
+		if not bool(blackboard.get("started", false)) and not trigger_tags.is_empty():
+			var vault_target := _find_vault_target(owner, params, direction)
+			if vault_target == null:
+				# Approach run at the walking range (original PRE_VAULT runs at
+				# 0.66-0.68), never at the vaulting leap speed.
+				var run_speed := _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", fallback_speed)
+				return {
+					"source_id": &"movement:core.leap_once",
+					"command_kind": &"base",
+					"ground_velocity": direction.normalized() * run_speed,
+					"ground_contact": true,
+					"exposure_state": &"ground",
+					"interruptible": true,
+					"pause_reason": StringName(),
+				}
+			var jump_velocity := float(params.get("jump_velocity", 220.0))
+			var gravity := absf(float(params.get("gravity", -520.0)))
+			var air_time := 2.0 * jump_velocity / maxf(gravity, 1.0)
+			var landing_beyond := float(params.get("vault_landing_beyond_px", 70.0))
+			var landing_x := (vault_target as Node2D).position.x + direction.x * landing_beyond
+			# Ground to cover from takeoff to the landing point, positive in
+			# the movement direction (owner starts up-range of the landing).
+			var travel := (landing_x - (owner as Node2D).position.x) * direction.x
+			blackboard["vault_speed_px"] = maxf(travel, 1.0) / maxf(air_time, 0.01)
+			move_speed = float(blackboard["vault_speed_px"])
+			# Fall through to the airborne command; the tail below owns the
+			# started flag so the takeoff frame still injects height_velocity.
 		var command := {
 			"source_id": &"movement:core.leap_once",
 			"command_kind": &"base",
@@ -393,3 +433,87 @@ func _find_vault_blocker(owner: Node, params: Dictionary, direction: Vector2) ->
 		query["x_min"] = owner_position.x - 8.0
 	var results: Array = GameState.current_battle.call("spatial_query", query)
 	return null if results.is_empty() else results[0]
+
+
+func _find_vault_target(owner: Node, params: Dictionary, direction: Vector2) -> Node:
+	# Pre-vault scan (original FindPlantTarget(ATTACKTYPE_VAULT)): the nearest
+	# living target ahead whose tags intersect vault_trigger_tags; spiky ground
+	# plants are not vaultable, and a slot carrying a ladder defers to the climb
+	# path instead of vaulting (de-pvz UpdateZombiePolevaulter GetLadderAt).
+	var trigger_tags := PackedStringArray(params.get("vault_trigger_tags", PackedStringArray()))
+	if trigger_tags.is_empty() or owner == null or not (owner is Node2D):
+		return null
+	if GameState.current_battle == null or not GameState.current_battle.has_method("spatial_query"):
+		return null
+	var exclude_tags := PackedStringArray(params.get("vault_trigger_exclude_tags", PackedStringArray()))
+	var scan_range := float(params.get("vault_trigger_scan_range", 96.0))
+	var owner_position: Vector2 = owner.position
+	var owner_lane := int(owner.get("lane_id")) if owner.get("lane_id") is int else -1
+	var query := {
+		"team_exclude": StringName(owner.get("team")),
+		"center": owner_position,
+		"radius": scan_range,
+		"filter": func(candidate):
+			if candidate == owner or not (candidate is Node2D):
+				return false
+			if not candidate.has_method("is_targetable") or not bool(candidate.call("is_targetable")):
+				return false
+			if owner_lane >= 0 and int(candidate.get("lane_id")) != owner_lane:
+				return false
+			# Fading corpses still answer spatial queries; vault only over
+			# living targets (original FindPlantTarget skips dead plants).
+			if candidate.has_node("HealthComponent"):
+				var candidate_health: Variant = candidate.get_node("HealthComponent").get("current_health")
+				if candidate_health is int and int(candidate_health) <= 0:
+					return false
+			var candidate_tags: Variant = candidate.get("tags")
+			if not (candidate_tags is PackedStringArray or candidate_tags is Array):
+				return false
+			var tag_set := PackedStringArray(candidate_tags)
+			var matches := false
+			for trigger_tag: String in trigger_tags:
+				if tag_set.has(trigger_tag):
+					matches = true
+					break
+			if not matches:
+				return false
+			for exclude_tag: String in exclude_tags:
+				if tag_set.has(exclude_tag):
+					return false
+			return true,
+		"sort_by_distance": true,
+		"max_results": 1,
+	}
+	if direction.x < 0.0:
+		query["x_max"] = owner_position.x + 8.0
+	else:
+		query["x_min"] = owner_position.x - 8.0
+	var results: Array = GameState.current_battle.call("spatial_query", query)
+	if results.is_empty():
+		return null
+	var target: Node = results[0]
+	if _slot_has_ladder(target):
+		return null
+	return target
+
+
+func _slot_has_ladder(target: Node) -> bool:
+	var battle = GameState.current_battle
+	if battle == null:
+		return false
+	if not battle.has_method("get_battlefield_metrics") or not battle.has_method("get_grid_item_state"):
+		return false
+	var metrics: Variant = battle.call("get_battlefield_metrics")
+	var grid_item_state: Variant = battle.call("get_grid_item_state")
+	if metrics == null or not metrics.has_method("world_to_slot_index"):
+		return false
+	if grid_item_state == null or not grid_item_state.has_method("get_grid_item_at"):
+		return false
+	var lane_id := int(target.get("lane_id")) if target.get("lane_id") is int else -1
+	if lane_id < 0:
+		return false
+	var slot_index := int(metrics.call("world_to_slot_index", (target as Node2D).position.x))
+	var item: Node = grid_item_state.call("get_grid_item_at", lane_id, slot_index)
+	if item == null or not is_instance_valid(item):
+		return false
+	return PackedStringArray(item.get("tags")).has("ladder_grid_item")

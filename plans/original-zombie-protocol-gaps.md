@@ -12,6 +12,8 @@
 > 更新（2026-09-28，Batch I）：Z-25/Z-26（Ladder 持久梯子）已落地：新 GridItem `archetype_ladder_grid_item`（不占 blocker 位），`spawn_grid_item` effect 新增 `at_target_slot` 参数（从 context 目标植物解析 lane/slot），Ladder 僵尸 proximity 触发放梯（detection lane_backward + target_tags defense）；新 movement `core.climb_once`（恒速爬升 0.83 slots/s + 前移漂移 0.52，过顶后重力下落，落地切 post_climb walk）；`core.bite` 新增 `ladder_climb` 参数（遇有梯格 defense 不咬改爬，14 个地面步行 original 僵尸启用，Digger/Snorkel/Dolphin/Pogo/Balloon/Yeti 按原版语义排除）；explode effect 新增 `remove_grid_item_tags`（火清行内梯子，Jalapeno 启用）。proximity trigger def 补齐 detection_id/target_tags 正式参数。行为级验证 `zombie_original_ladder_grid_validation`（放梯/爬越不咬/对照啃咬/火清）。
 >
 > 更新（2026-09-29，Batch J）：Z-29（detection `target_selection: leftmost` + `target_exclude_tags` spiky + `min_scan_range` 100px，Catapult 盲射折入同拍 trigger/payload 语义附注）、Z-28 尾（periodically 弹尽发 `trigger.exhausted` 事件，Catapult 状态切 `spent` 换 walk+啃咬控制器）、Z-32（detection `team_mode: allies` + `lane_offset`/`x_offset` 槽位空缺探测 + `require_no_target`，Dancer 四槽逐位补员，槽位 x 偏移修正为原版 ±100）、Z-31/G-15 双侧（crush `soft_target_tags` Spikerock 吸收 50/自伤 20 + `ignore_target_tags` 车辆压过不压刺 + ground_damage `vehicle_damage` 1800/植物自付，Zamboni 拆分 drive_over 控制器）、Z-05（produce_sun `x_offset`，Yeti 死亡掉 4 颗 yeti_diamond）、Z-01（`move_speed_slots_per_sec_min/max` 区间 + `GameState.resolve_ranged_value` 实体级确定性采样，全表按 PickRandomSpeed 区间落数据，设计文档 `plans/zombie-speed-range-sampling.md`）落地。Z-11 冰道完成设计轮（`plans/zombie-ice-trail-field-modifier.md`），待 Bobsled/G-29 立项实施。
+>
+> 更新（2026-10-01，Batch K）：Z-18（leap_once 新增 `vault_trigger_tags`/`vault_trigger_exclude_tags`/`vault_trigger_scan_range` 助跑段 + `vault_landing_beyond_px` 70 落点公式：跳速 = (起跳x−(目标x−70))/滞空时间，助跑 0.66–0.68、有梯格不跳改爬、spiky 排除）、Z-21（periodically 新增 `fuse_distance_min/max`+`early_trigger_probability/scale`+`fuse_speed_factor` 距离折算定时引信：fuse = (450+Rand(300))px ÷ 实体采样速度 × ZOMBIE_LIMP_SPEED_FACTOR 2，1/20 缩 1/3，啃食不停摆引信，`max_trigger_count=1` 一次爆，explode+consume_self 双 payload）落地。探针 `zombie_original_vault_formula`/`zombie_original_jack_distance_fuse`。附注：Z-21 的 1.1s 爆开动画窗口（POP 110 ticks）与全冻停摆引信（IsImmobilizied 门）未表达；Z-18 两段式落点（弧落 plantX+80 再瞬移 −150）合并为单弧直达 plantX−70。
 
 ---
 
@@ -48,10 +50,10 @@
 | Z-15 | Balloon 水面落地死亡 | 部分覆盖 | Balloon | 原版落点为 pool 行则直接 `DieWithLoot`（`Zombie.cpp:1591-1593`）；当前落地无水陆判定。flying 20 attachment 层与落地状态机已覆盖 |
 | Z-16 | Pogo 弹跳高度序列 | 部分覆盖 | Pogo | 原版三段递增高跳（普通 40 → FORWARD_2 90 → FORWARD_7 170，`Zombie.cpp:1372-1414`）；当前 `hop_cycle` 单一 jump_velocity |
 | Z-17 | Pogo 弹簧破坏后步行 | 未覆盖 | Pogo | 原版 Tall-nut 碰撞或 Magnet 吸簧触发 `PogoBreak` 转步行（`Zombie.cpp:1332-1360`、`:1416-1425`）；依赖 G-19 与 Z-19 |
-| Z-18 | Pole Vaulter 跳跃距离公式 | 部分覆盖 | Pole Vaulter | 原版跳跃水平速度 = (mX - plantX - 80)/动画时长，落点整体前移 150（`Zombie.cpp:1671-1686`、`:1711-1715`）；当前 leap_once 固定 jump_velocity。近似语义已有，登记精度项 |
+| Z-18 | Pole Vaulter 跳跃距离公式 | 已覆盖（2026-10-01） | Pole Vaulter | leap_once 新增助跑段（`vault_trigger_tags` plant + `vault_trigger_exclude_tags` spiky + `vault_trigger_scan_range` 96px，同 lane、活体过滤、有梯格不跳改爬）与落点公式（`vault_landing_beyond_px` 70：跳速 = (起跳x−落点x)/滞空时间，滞空 = 2×jump_velocity/|gravity|）；落地切默认区间 walk（0.23–0.32）；探针 `zombie_original_vault_formula`（助跑速度区间/落点 ±14px/不啃咬/落地后区间）。近似附注：原版两段式（弧落 plantX+80、动画完成瞬移 −150）合并为单弧直达 plantX−70，净语义等价；原版 anim_jump 时长由 reanim 决定，本引擎用自弧物理时长归一 |
 | Z-19 | Tall-nut 跳跃阻挡 | 已覆盖（2026-09-28） | Pole Vaulter, Dolphin, Pogo | leap_once 新增 `vault_block_tags` 标签驱动阻断 + `blocked_landing_movement`，Tall-nut 挂 `vault_blocker` 标签；连带修正僵尸空中不咬（原版跳跃中不啃）；`zombie_original_vault_block_validation` 行为级验证（阻挡咬 Tall-nut / 越过 Wall-nut） |
 | Z-20 | Newspaper 狂暴速度 | 已覆盖 | Newspaper | 当前 rage 后 0.28→0.89，落在原版 0.89–0.91 区间起点；`layer_destroyed` 触发与原版 shield 摧毁一致 |
-| Z-21 | Jack 引信距离语义 | 部分覆盖 | Jack-in-the-Box | 原版引信按行走距离 450+Rand(300)px 折算，1/20 概率缩为 1/3（`Zombie.cpp:430-435`）；当前为纯时间区间（start_delay 1.5–5.0 + interval 2.5–4.5）。语义差异：原版"走多远爆"，当前"多久爆"，速度区间（Z-01）落地前两者不可等价 |
+| Z-21 | Jack 引信距离语义 | 已覆盖（2026-10-01） | Jack-in-the-Box | periodically 新增距离折算引信参数（`fuse_distance_min/max` 450/750 + `early_trigger_probability` 0.05 + `early_trigger_scale` 1/3 + `fuse_speed_factor` 2 即 ZOMBIE_LIMP_SPEED_FACTOR）：fuse 秒数 = 距离采样 × 2 ÷ (实体采样速度×96)，速度读自 Z-01 同一缓存 roll；`max_trigger_count=1` 一次性爆炸 + explode/consume_self 双 payload（爆后自灭）；啃食停走不停引信（原版 mPhaseCounter 与移动无关）；探针 `zombie_original_jack_distance_fuse`（seeded roll 断言爆点时刻 ±0.35s/恰一次 consume/啃+爆伤害）。近似附注：POP 110 ticks 爆开动画窗口未表达（爆在阈值达时刻）；IsImmobilizied 全冻停摆引信未表达（本引擎冻结状态尚无停摆通道） |
 | Z-22 | Jack 爆炸半径分目标 | 部分覆盖（单半径已校准 2026-09-28） | Jack-in-the-Box | 原版僵尸半径 115 / 植物半径 90（`Zombie.h:25-26`）；explode effect 协议（`allow_extra_params=false`）只支持单 `radius_slots`，已按植物面 90px≈0.94 校准；分目标双半径需 effect 协议扩展，维持部分覆盖 |
 | Z-23 | Bungee 完整偷取流程 | 部分覆盖 | Bungee | 原版：整列随机选格 → 俯冲（下落 8/tick）→ 底部停 300 ticks 抓植物 → 举起飞走（`Zombie.cpp:230-247`、`:1220-1264`）；当前 on_spawned 落地伤害 + consume_self 近似，无目标选择与飞走阶段 |
 | Z-24 | Bungee × Umbrella 反制 | 已覆盖（2026-09-28） | Bungee | damage effect 新增正式参数 `attack_tags`，effect 侧拦截与 projectile 路径同判据（intercept_tags 交集 + intercept_radius + 同 lane），Bungee drop damage 声明 overhead/bungee；`zombie_original_bungee_umbrella_validation` 探针驱动验证（覆盖植物零伤害 + 未覆盖植物命中 + attack.intercepted） |
@@ -87,7 +89,7 @@
 
 ### C. 明确后置基础设施
 
-- ~~**Z-01 速度区间**~~（Batch J 已落地）；**Z-18 撑杆距离公式 / Z-21 小丑按距离引爆**：速度区间已就绪，可转精确语义，留下一内容批次。
+- ~~**Z-01 速度区间**~~（Batch J 已落地）；~~**Z-18 撑杆距离公式 / Z-21 小丑按距离引爆**~~（Batch K 已落地，2026-10-01）。
 - **Z-11 冰道 + Z-14 Bobsled**：设计已完成（`plans/zombie-ice-trail-field-modifier.md`），等 G-29 或 Bobsled 立项实施。
 - ~~**Z-05 Yeti 礼物**~~（Batch J 已落地 spawn 侧）；钻石计价与经济消费面仍与 G-24 同族。
 - **Z-35 Boss / Z-36 Zombotany**：独立模式线。
@@ -97,9 +99,9 @@
 
 ## 推荐下一批
 
-1. **Batch K（精度收尾）**：Z-18 撑杆距离公式、Z-21 小丑按行走距离引爆（速度区间 Z-01 已就绪，两者精确化条件齐备）。
+1. ~~**Batch K（精度收尾）**：Z-18 撑杆距离公式、Z-21 小丑按行走距离引爆~~（已落地，2026-10-01）。
 2. **Z-33 Screen Door 方向性**：HitPolicy/damage_layer_policy 方向维度，协议扩展需设计审批（最小设计轮）。
-3. **Z-34 original pool**：按 gZombieDefs 三元组建数据 + 解锁曲线核证。
+3. **Z-34 original pool**：按 gZombieDefs 三元组建数据 + 解锁曲线核证（衰减公式已于 Board.cpp:2478-2519 核证：生存模式 normal/cone 权重衰减、红眼/伽刚出怪上限曲线、Bungee 旗帜波限定——依赖旗帜计数器，待生存模式立项再实施）。
 4. **Z-11/Z-14/G-29**：冰道设计已备，随 Bobsled 或坑洞任一立项一并实施。
 
 ---

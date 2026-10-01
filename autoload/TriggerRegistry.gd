@@ -128,12 +128,37 @@ func _register_builtin_defs() -> void:
 		"type": "int",
 		"min": -2,
 		"max": 2,
-	}, {
-		"name": "x_offset",
-		"type": "float",
-		"min": -400.0,
-		"max": 400.0,
-	}]
+		}, {
+			"name": "x_offset",
+			"type": "float",
+			"min": -400.0,
+			"max": 400.0,
+		}, {
+			"name": "fuse_distance_min",
+			"type": "float",
+			"min": 1.0,
+			"max": 4000.0,
+		}, {
+			"name": "fuse_distance_max",
+			"type": "float",
+			"min": 1.0,
+			"max": 4000.0,
+		}, {
+			"name": "early_trigger_probability",
+			"type": "float",
+			"min": 0.0,
+			"max": 1.0,
+		}, {
+			"name": "early_trigger_scale",
+			"type": "float",
+			"min": 0.01,
+			"max": 1.0,
+		}, {
+			"name": "fuse_speed_factor",
+			"type": "float",
+			"min": 0.1,
+			"max": 4.0,
+		}]
 	periodically.id = &"periodically"
 	periodically.event_name = &"game.tick"
 	periodically.weight = 100
@@ -258,6 +283,28 @@ func _register_builtin_strategies() -> void:
 			var current_state := StringName(_entity_state.get("values", {}).get(&"state_stage", StringName()))
 			if current_state != required_state:
 				return false
+
+		# Walking-distance fuse (original Jack-in-the-Box init, de-pvz
+		# Zombie.cpp:429-434): fuse ticks = (450+Rand(300)) / mVelX *
+		# ZOMBIE_LIMP_SPEED_FACTOR, with a 1/20 early-pop at one third of the
+		# distance. Expressed as a time fuse derived once from the entity's own
+		# sampled walk speed, so chewing (which halts movement) never halts the
+		# fuse - matching the original counter that ticks regardless of biting.
+		if condition_values.has("fuse_distance_min") or condition_values.has("fuse_distance_max"):
+			var fuse_owner: Node = instance.owner_entity if instance != null else null
+			if fuse_owner == null:
+				return false
+			var distance_roll: Variant = GameState.resolve_ranged_value(fuse_owner, condition_values, "fuse_distance")
+			var fuse_distance := float(distance_roll) if distance_roll != null else float(condition_values.get("fuse_distance_min", 450.0))
+			var early_probability := float(condition_values.get("early_trigger_probability", 0.0))
+			if early_probability > 0.0:
+				var early_roll := float(GameState.resolve_ranged_value(fuse_owner, {"early_roll_min": 0.0, "early_roll_max": 1.0}, "early_roll"))
+				if early_roll < early_probability:
+					fuse_distance *= float(condition_values.get("early_trigger_scale", 1.0))
+			var walk_speed := _resolve_fuse_walk_speed(fuse_owner)
+			var speed_factor := float(condition_values.get("fuse_speed_factor", 1.0))
+			var fuse_seconds := fuse_distance * speed_factor / maxf(walk_speed * 96.0, 1.0)
+			return game_time + 0.0001 - instance.bind_time >= fuse_seconds
 
 		var start_delay := float(condition_values.get("start_delay", 0.0))
 		var timing_uses_window := _condition_uses_windowed_schedule(condition_values)
@@ -472,6 +519,24 @@ func _condition_uses_windowed_schedule(condition_values: Dictionary) -> bool:
 		if condition_values.has(key):
 			return true
 	return false
+
+
+func _resolve_fuse_walk_speed(owner: Node) -> float:
+	# The distance fuse divides by the owner's OWN sampled walk speed (the
+	# original reads mVelX right after PickRandomSpeed). Resolving through the
+	# same ranged-value cache the movement path uses means both consumers see
+	# one roll per entity.
+	var speed_params: Dictionary = {}
+	if owner.has_method("get_entity_state_ref"):
+		var state_ref: Variant = owner.call("get_entity_state_ref")
+		if state_ref != null and state_ref.has_method("get_value"):
+			var movement_spec: Variant = state_ref.call("get_value", &"movement_spec", {})
+			if movement_spec is Dictionary:
+				speed_params = Dictionary(Dictionary(movement_spec).get("params", {}))
+	var sampled: Variant = GameState.resolve_ranged_value(owner, speed_params, "move_speed_slots_per_sec")
+	if sampled != null:
+		return float(sampled)
+	return float(speed_params.get("move_speed_slots_per_sec", 0.275))
 
 
 func _lane_offset_probe_in_bounds(instance, condition_values: Dictionary) -> bool:
