@@ -4,16 +4,18 @@
 
 [resource]
 script = ExtResource("1_mechanic")
-mechanic_id = &"core.original.snorkel_surface"
-display_name = "Original Snorkel Surface"
+mechanic_id = &"core.original.snorkel_shore"
+display_name = "Original Snorkel Shore Exit"
 family = &"State"
 type_id = &"core.rage"
 priority = 6
 tags = PackedStringArray("original", "zombie", "state", "snorkel")
 params = {
-"event_name": &"snorkel.chew_started",
 "from_state": &"submerged",
 "initial_state": &"submerged",
+"position_axis": "x",
+"position_compare": "below",
+"position_threshold": 25.0,
 "side_effects": [{
 "spec": {
 "height": 0.0,
@@ -27,12 +29,12 @@ params = {
 "movement_id": &"core.walk",
 "params": {
 "direction": Vector2(-1, 0),
-"move_speed_slots_per_sec_max": 0.68,
-"move_speed_slots_per_sec_min": 0.66
+"move_speed_slots_per_sec_max": 0.32,
+"move_speed_slots_per_sec_min": 0.23
 }
 },
 "type": &"set_movement"
 }],
-"to_state": &"surfaced",
-"trigger": "event"
+"to_state": &"ashore",
+"trigger": "position"
 }

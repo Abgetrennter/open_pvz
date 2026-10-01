@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.balloon_water_death_payload"
+display_name = "Original Balloon Water Death Payload"
+family = &"Payload"
+type_id = &"core.damage"
+priority = 20
+tags = PackedStringArray("original", "zombie", "payload", "balloon")
+params = {
+"amount": 9999,
+"binding_group": &"balloon_water_death",
+"target_mode": &"context_target"
+}

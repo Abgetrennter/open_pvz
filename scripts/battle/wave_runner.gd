@@ -202,6 +202,13 @@ func _check_defeat() -> void:
 				continue
 			if entity.has_method("is_runtime_alive") and not bool(entity.call("is_runtime_alive")):
 				continue
+			# Underground diggers and swimming snorkels are not "at the house"
+			# yet (original phase gating: Digger surfaces at mPosX<10, Snorkel
+			# exits the pool at mX<=25 before walking the last stretch).
+			if entity.has_method("get_exposure_state"):
+				var exposure := StringName(entity.call("get_exposure_state"))
+				if exposure == &"underground" or exposure == &"submerged":
+					continue
 			if not (entity is Node2D):
 				continue
 			if (entity as Node2D).global_position.x <= defeat_line_x:

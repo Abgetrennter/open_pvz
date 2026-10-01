@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battlefield_preset.gd" id="2_preset"]
+[ext_resource type="Script" path="res://scripts/battle/lane_config.gd" id="3_lane"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="4_rule"]
+
+[sub_resource type="Resource" id="LaneConfig_pool"]
+script = ExtResource("3_lane")
+lane_index = 0
+lane_type = &"pool"
+
+[sub_resource type="Resource" id="LaneConfig_grass"]
+script = ExtResource("3_lane")
+lane_index = 1
+lane_type = &"grass"
+
+[sub_resource type="Resource" id="BattlefieldPreset_aquatic"]
+script = ExtResource("2_preset")
+preset_id = &"aquatic_cycle"
+display_name = "Aquatic Cycle"
+lane_count = 2
+board_slot_count = 5
+board_slot_origin_x = 160.0
+board_slot_spacing = 96.0
+lane_configs = [SubResource("LaneConfig_pool"), SubResource("LaneConfig_grass")]
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("4_rule")
+rule_id = &"aquatic_cycle_probe_passed"
+description = "The aquatic cycle probe must pass: snorkel submerge-surface-dive cycle around a plant, dolphin pool entry ride then vault, balloon water death."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_aquatic_cycle",
+"result": &"passed"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_aquatic_cycle_validation"
+display_name = "Original Aquatic Cycle Validation"
+description = "Validates Z-07/Z-08/Z-10/Z-15 on a pool lane: the Snorkel stays submerged until chew range and dives when the plant dies, the Dolphin walks the land stretch, rides past the pool line and vaults the first plant, and the popped Balloon dies over water."
+goals = PackedStringArray("Snorkel surfaces to chew and dives after the plant dies.", "Dolphin rides past the pool line and vaults the first plant with a fast post-landing walk.", "Popped Balloon dies over the pool lane.")
+validation_time_limit = 14.0
+lane_count = 2
+battlefield_preset = SubResource("BattlefieldPreset_aquatic")
+validation_rules = [SubResource("Rule_probe_passed")]

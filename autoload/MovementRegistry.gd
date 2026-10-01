@@ -186,18 +186,27 @@ func _register_builtin_strategies() -> void:
 		# normal speed until the first vaultable target enters scan range, then
 		# start the leap with a horizontal speed that lands the arc a fixed
 		# distance past that target. Specs without vault_trigger_tags keep the
-		# legacy spawn-time leap (dolphin).
+		# legacy spawn-time leap (dolphin). vault_trigger_after_x gates the
+		# scan behind a position line (original dolphin enters the pool near
+		# mX 700-720 before hunting plants, de-pvz Zombie.cpp:1762-1813), with
+		# an optional slower ride speed once past the line.
 		var trigger_tags := PackedStringArray(params.get("vault_trigger_tags", PackedStringArray()))
 		if not bool(blackboard.get("started", false)) and not trigger_tags.is_empty():
-			var vault_target := _find_vault_target(owner, params, direction)
+			var scanning := true
+			if params.has("vault_trigger_after_x") and owner is Node2D:
+				var trigger_x := float(params.get("vault_trigger_after_x"))
+				scanning = (owner.position.x <= trigger_x) if direction.x < 0.0 else (owner.position.x >= trigger_x)
+			var approach_speed := _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", fallback_speed)
+			if params.has("pre_leap_ride_speed_slots_per_sec") and not scanning:
+				approach_speed = _resolve_slots_speed(owner, params, "pre_leap_ride_speed_slots_per_sec", 0.3 * 96.0)
+			var vault_target: Node = _find_vault_target(owner, params, direction) if scanning else null
 			if vault_target == null:
 				# Approach run at the walking range (original PRE_VAULT runs at
 				# 0.66-0.68), never at the vaulting leap speed.
-				var run_speed := _resolve_slots_speed(owner, params, "move_speed_slots_per_sec", fallback_speed)
 				return {
 					"source_id": &"movement:core.leap_once",
 					"command_kind": &"base",
-					"ground_velocity": direction.normalized() * run_speed,
+					"ground_velocity": direction.normalized() * approach_speed,
 					"ground_contact": true,
 					"exposure_state": &"ground",
 					"interruptible": true,

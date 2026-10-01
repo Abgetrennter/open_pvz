@@ -118,6 +118,18 @@ func _process(_delta: float) -> void:
 			return
 		_emit_probe(probe_id, &"passed", {})
 		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_aquatic_cycle":
+		if not _validate_aquatic_cycle():
+			push_error("original zombie probe failed: aquatic cycle")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_digger_surface":
+		if not _validate_digger_surface():
+			push_error("original zombie probe failed: digger surface")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
 	elif probe_id == &"zombie_original_screen_door_directional":
 		if not _validate_screen_door_directional():
 			push_error("original zombie probe failed: screen door directional shield")
@@ -189,19 +201,19 @@ func _validate_slug(slug: StringName) -> bool:
 		&"pole_vaulter":
 			return _assert_movement_source(entity, &"core.leap_once") and _assert_vault_block_params(runtime_spec) and _assert_vault_formula_params(runtime_spec)
 		&"dolphin_rider":
-			return _assert_movement_source(entity, &"core.leap_once") and _assert_dolphin_post_landing_speed(runtime_spec) and _assert_vault_block_params(runtime_spec)
+			return _assert_movement_source(entity, &"core.leap_once") and _assert_dolphin_post_landing_speed(runtime_spec) and _assert_vault_block_params(runtime_spec) and _assert_dolphin_pool_entry_params(runtime_spec)
 		&"ducky_tube":
 			return _has_required_tags(archetype, PackedStringArray(["spawn.medium.water"]))
 		&"snorkel":
-			return StringName(entity.call("get_exposure_state")) == &"submerged" and _assert_hidden_exposure_filter(entity, &"submerged")
+			return StringName(entity.call("get_exposure_state")) == &"submerged" and _assert_hidden_exposure_filter(entity, &"submerged") and _assert_snorkel_cycle_params(entity)
 		&"zomboni":
 			return _assert_movement_source(entity, &"core.drive") and _assert_controller(entity, &"core.crush") and _assert_zomboni_decel_params(runtime_spec)
 		&"balloon":
-			return _assert_layer(entity, &"balloon", &"attachment", 20) and StringName(entity.call("get_exposure_state")) == &"flying" and _assert_balloon_grounding(entity)
+			return _assert_layer(entity, &"balloon", &"attachment", 20) and StringName(entity.call("get_exposure_state")) == &"flying" and _assert_balloon_grounding(entity) and _assert_balloon_water_death(runtime_spec)
 		&"jack_in_the_box":
 			return _assert_trigger_payload(runtime_spec, &"periodically", &"explode") and _assert_jack_explode_radius(runtime_spec) and _assert_jack_fuse_params(runtime_spec)
 		&"digger":
-			return _assert_movement_source(entity, &"core.tunnel") and StringName(entity.call("get_exposure_state")) == &"underground" and _assert_digger_surface_direction(runtime_spec)
+			return _assert_movement_source(entity, &"core.tunnel") and StringName(entity.call("get_exposure_state")) == &"underground" and _assert_digger_surface_direction(runtime_spec) and _assert_digger_rise_transition(runtime_spec)
 		&"pogo":
 			return _assert_movement_source(entity, &"core.hop_cycle")
 		&"yeti":
@@ -1335,6 +1347,181 @@ func _validate_wave_pool() -> bool:
 		if spend > budget:
 			push_error("wave pool probe: wave %d spent %d > budget %d" % [wave_index, spend, budget])
 			return false
+	return true
+
+
+func _assert_snorkel_cycle_params(entity: Node) -> bool:
+	# Z-07 (de-pvz UpdateZombieSnorkel :1936-1963): the snorkel stays
+	# submerged and only surfaces to chew - the bite controller suppresses
+	# chewing while submerged and the chew/dive trigger pair drives the
+	# surfaced window.
+	var controller_component: Variant = entity.get_node_or_null("ControllerComponent")
+	if controller_component == null:
+		return false
+	var suppressed := false
+	for spec in Array(controller_component.get("controller_specs")):
+		if spec is Dictionary and StringName(Dictionary(spec).get("controller_id", StringName())) == &"core.bite":
+			if PackedStringArray(Dictionary(spec).get("params", {}).get("suppress_exposure_states", PackedStringArray())).has("submerged"):
+				suppressed = true
+	return suppressed
+
+
+func _assert_dolphin_pool_entry_params(runtime_spec) -> bool:
+	var movement_spec: Variant = runtime_spec.get("movement_spec")
+	if not (movement_spec is Dictionary):
+		return false
+	var params: Dictionary = Dictionary(movement_spec).get("params", {})
+	# Z-10 (de-pvz Zombie.cpp:1762-1813): the dolphin walks the land stretch
+	# (0.66-0.68), crosses into the pool near mX 700-720, rides at 0.3, and
+	# only then hunts a plant to leap over.
+	return absf(float(params.get("vault_trigger_after_x", -1.0)) - 700.0) < 0.001 \
+		and absf(float(params.get("pre_leap_ride_speed_slots_per_sec", -1.0)) - 0.3) < 0.001 \
+		and PackedStringArray(params.get("vault_trigger_tags", PackedStringArray())).has("plant")
+
+
+func _assert_balloon_water_death(runtime_spec) -> bool:
+	# Z-15 (de-pvz Zombie.cpp:1591-1593): a popped balloon over a pool row
+	# dies outright instead of walking the pool lane.
+	for trigger_spec in Array(runtime_spec.get("trigger_specs")):
+		if trigger_spec == null or StringName(trigger_spec.get("trigger_id")) != &"when_layer_destroyed":
+			continue
+		var conditions: Dictionary = Dictionary(trigger_spec.get("condition_values"))
+		if StringName(conditions.get("required_layer_id", StringName())) == &"balloon" \
+				and PackedStringArray(conditions.get("required_lane_tags", PackedStringArray())).has("terrain.pool"):
+			return true
+	return false
+
+
+func _assert_digger_rise_transition(runtime_spec) -> bool:
+	# Z-03 (de-pvz Zombie.cpp:2678-2679): the digger tunnels to the left edge
+	# (mPosX < 10) before surfacing - a position-gated rise transition.
+	for state_spec in Array(runtime_spec.get("state_specs")):
+		if state_spec == null:
+			continue
+		for transition in Array(state_spec.get("transitions", [])):
+			if String(transition.get("trigger", "")) == "position" \
+					and StringName(transition.get("to_state", StringName())) == &"rising" \
+					and absf(float(transition.get("position_threshold", 0.0)) - 10.0) < 0.001:
+				return true
+	return false
+
+
+func _validate_aquatic_cycle() -> bool:
+	# Z-07/Z-08/Z-10/Z-15 behavior pass on a pool lane: the snorkel stays
+	# submerged until a plant is in chew range, surfaces to chew, dives when
+	# the plant dies; the dolphin walks the land stretch, rides after the
+	# pool line and leaps the first plant; the popped balloon dies over water.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var kelp_left := _spawn_archetype(&"archetype_original_wallnut", Vector2(400.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var kelp_right := _spawn_archetype(&"archetype_original_wallnut", Vector2(640.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var snorkel := _spawn_archetype(&"archetype_original_snorkel", Vector2(600.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var dolphin := _spawn_archetype(&"archetype_original_dolphin_rider", Vector2(750.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if kelp_left == null or kelp_right == null or snorkel == null or dolphin == null:
+		push_error("aquatic probe: spawn failed")
+		return false
+	# Snorkel: submerged approach, then surfacing once the kelp is in range.
+	var surfaced := false
+	for i in range(40):
+		_battle.call("step_simulation_ticks", 10)
+		if StringName(snorkel.call("get_exposure_state")) == &"ground":
+			surfaced = true
+			break
+	if not surfaced:
+		push_error("aquatic probe: snorkel never surfaced to chew")
+		return false
+	var state_ref: Variant = snorkel.call("get_entity_state_ref")
+	if StringName(state_ref.call("get_value", &"state_stage", StringName())) != &"surfaced":
+		push_error("aquatic probe: snorkel state is not surfaced")
+		return false
+	# Dive again once the plant is gone (de-pvz DOWN_FROM_EAT).
+	kelp_left.call("take_damage", 99999, null, PackedStringArray(["probe"]))
+	var submerged_again := false
+	for i in range(20):
+		_battle.call("step_simulation_ticks", 10)
+		if StringName(snorkel.call("get_exposure_state")) == &"submerged":
+			submerged_again = true
+			break
+	if not submerged_again:
+		push_error("aquatic probe: snorkel never dove back after the plant died")
+		return false
+	# Dolphin: past the pool line it leaps the first plant and lands past it.
+	var vaulted := false
+	for i in range(60):
+		_battle.call("step_simulation_ticks", 10)
+		if (dolphin as Node2D).position.x < 640.0 and StringName(dolphin.call("get_exposure_state")) == &"ground":
+			vaulted = true
+			break
+	if not vaulted:
+		push_error("aquatic probe: dolphin never vaulted the pool plant (x=%.1f)" % (dolphin as Node2D).position.x)
+		return false
+	# The landing frame flips exposure before the post-landing spec swap;
+	# wait until the walk spec is live before asserting its params.
+	for wait in range(30):
+		var mv: Variant = dolphin.call("get_entity_state_ref").call("get_value", &"movement_spec", {})
+		if mv is Dictionary and String(Dictionary(mv).get("movement_id", "")) == "core.walk":
+			break
+		_battle.call("step_simulation_ticks", 10)
+	var dolphin_movement: Variant = dolphin.call("get_entity_state_ref").call("get_value", &"movement_spec", {})
+	var dolphin_params: Dictionary = Dictionary(dolphin_movement).get("params", {}) if dolphin_movement is Dictionary else {}
+	if absf(float(dolphin_params.get("move_speed_slots_per_sec_min", -1.0)) - 0.89) > 0.001:
+		push_error("aquatic probe: dolphin did not resume the fast post-landing walk")
+		return false
+	# Balloon: popped over water dies outright (Zombie.cpp:1591-1593).
+	var balloon := _spawn_archetype(&"archetype_original_balloon", Vector2(520.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if balloon == null:
+		push_error("aquatic probe: balloon spawn failed")
+		return false
+	balloon.call("take_damage", 21, null, PackedStringArray(["probe"]))
+	_battle.call("step_simulation_ticks", 10)
+	if is_instance_valid(balloon) and bool(balloon.call("is_runtime_alive")):
+		push_error("aquatic probe: popped balloon survived over the pool lane")
+		return false
+	# Cleanup so late walkers never reach the defeat line after the probe.
+	snorkel.call("take_damage", 99999, null, PackedStringArray(["probe"]))
+	dolphin.call("take_damage", 99999, null, PackedStringArray(["probe"]))
+	return true
+
+
+func _validate_digger_surface() -> bool:
+	# Z-03 behavior pass (de-pvz UpdateZombieDigger :2676-2684): the digger
+	# tunnels underground past the defeat line without triggering the goal,
+	# rises at the left edge (mPosX < 10), and surfaces walking right.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var digger := _spawn_archetype(&"archetype_original_digger", Vector2(520.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if digger == null:
+		push_error("digger surface probe: digger spawn failed")
+		return false
+	var mid_state := StringName(digger.call("get_entity_state_ref").call("get_value", &"state_stage", StringName()))
+	if mid_state != &"tunneling" or StringName(digger.call("get_exposure_state")) != &"underground":
+		push_error("digger surface probe: digger not tunneling underground at mid-run")
+		return false
+	var surfaced := false
+	for i in range(120):
+		_battle.call("step_simulation_ticks", 10)
+		if StringName(digger.call("get_entity_state_ref").call("get_value", &"state_stage", StringName())) == &"surfaced":
+			surfaced = true
+			break
+	if not surfaced:
+		push_error("digger surface probe: digger never surfaced (state=%s)" % String(digger.call("get_entity_state_ref").call("get_value", &"state_stage", StringName())))
+		return false
+	if StringName(digger.call("get_exposure_state")) != &"ground":
+		push_error("digger surface probe: surfaced digger still underground")
+		return false
+	var movement_spec: Variant = digger.call("get_entity_state_ref").call("get_value", &"movement_spec", {})
+	if not (movement_spec is Dictionary):
+		return false
+	var params: Dictionary = Dictionary(movement_spec).get("params", {})
+	if Vector2(params.get("direction", Vector2.ZERO)).x <= 0.0:
+		push_error("digger surface probe: surfaced digger is not walking right")
+		return false
+	var x := (digger as Node2D).position.x
+	if x > 200.0 or x < -50.0:
+		push_error("digger surface probe: surfaced digger at unexpected x=%.1f" % x)
+		return false
 	return true
 
 

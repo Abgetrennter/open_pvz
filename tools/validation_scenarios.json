@@ -2094,5 +2094,21 @@
     "layers": [
       "core"
     ]
+  },
+  {
+    "id": "zombie_original_aquatic_cycle_validation",
+    "scenario": "res://scenes/validation/zombie_original_aquatic_cycle_validation.tres",
+    "description": "Z-07/Z-08/Z-10/Z-15: snorkel chew cycle, dolphin pool entry sequence, balloon water death on a pool lane (probe-driven).",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "zombie_original_digger_surface_validation",
+    "scenario": "res://scenes/validation/zombie_original_digger_surface_validation.tres",
+    "description": "Z-03: digger tunnels to the left edge, rises there, surfaces walking right; defeat line exempt while underground (probe-driven).",
+    "layers": [
+      "core"
+    ]
   }
 ]

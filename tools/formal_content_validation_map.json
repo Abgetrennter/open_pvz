@@ -155,6 +155,19 @@
       "showcases": []
     },
     {
+      "id": "original_zombies_batch_m",
+      "description": "Original zombie protocol gaps Batch M: digger edge surfacing (Z-03), snorkel chew cycle + shore exit (Z-07/Z-08), dolphin pool entry (Z-10), balloon water landing death (Z-15).",
+      "validations": [
+        "zombie_original_digger_validation",
+        "zombie_original_digger_surface_validation",
+        "zombie_original_snorkel_validation",
+        "zombie_original_dolphin_rider_validation",
+        "zombie_original_balloon_validation",
+        "zombie_original_aquatic_cycle_validation"
+      ],
+      "showcases": []
+    },
+    {
       "id": "board_and_battlefield_semantics_v1",
       "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
       "validations": [

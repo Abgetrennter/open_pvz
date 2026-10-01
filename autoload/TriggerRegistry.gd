@@ -134,6 +134,9 @@ func _register_builtin_defs() -> void:
 			"min": -400.0,
 			"max": 400.0,
 		}, {
+			"name": "required_lane_tags",
+			"type": "packed_string_array",
+		}, {
 			"name": "fuse_distance_min",
 			"type": "float",
 			"min": 1.0,
@@ -202,6 +205,9 @@ func _register_builtin_defs() -> void:
 		"type": "int",
 		"min": 0,
 		"max": 999,
+	}, {
+		"name": "required_lane_tags",
+		"type": "packed_string_array",
 	}]
 	when_layer_destroyed.id = &"when_layer_destroyed"
 	when_layer_destroyed.event_name = &"health.layer_destroyed"
@@ -324,6 +330,9 @@ func _register_builtin_strategies() -> void:
 			var fuse_seconds := fuse_distance * speed_factor / maxf(walk_speed * 96.0, 1.0)
 			return game_time + 0.0001 - instance.bind_time >= fuse_seconds
 
+		if not _lane_tags_match(instance, condition_values):
+			return false
+
 		var start_delay := float(condition_values.get("start_delay", 0.0))
 		var timing_uses_window := _condition_uses_windowed_schedule(condition_values)
 		var interval_min := float(condition_values.get("interval_min", -1.0))
@@ -434,6 +443,8 @@ func _register_builtin_strategies() -> void:
 	register_strategy(&"when_layer_destroyed", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
 		if event_data.core.get("target_node", null) != instance.owner_entity:
 			return false
+		if not _lane_tags_match(instance, condition_values):
+			return false
 		var required_layer_id := StringName(condition_values.get("required_layer_id", StringName()))
 		if required_layer_id != StringName() and StringName(event_data.core.get("layer_id", StringName())) != required_layer_id:
 			return false
@@ -539,6 +550,32 @@ func _on_def_registered(entry: Dictionary) -> void:
 			if strategy_owner != null and strategy_owner.has_method("evaluate"):
 				_trigger_strategy_owners[def.id] = strategy_owner
 				_trigger_strategies[def.id] = Callable(strategy_owner, "evaluate")
+
+
+func _lane_tags_match(instance, condition_values: Dictionary) -> bool:
+	# Lane-scoped gating (original Balloon water-landing death on pool rows):
+	# when required_lane_tags is set, the owner's lane traits must carry at
+	# least one of them; missing board/battle state fails closed to no-fire.
+	var required_tags := PackedStringArray(condition_values.get("required_lane_tags", PackedStringArray()))
+	if required_tags.is_empty():
+		return true
+	var owner: Variant = instance.owner_entity if instance != null else null
+	if owner == null or not is_instance_valid(owner):
+		return false
+	var lane_value: Variant = owner.get("lane_id")
+	if not (lane_value is int) or int(lane_value) < 0:
+		return false
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("get_board_state"):
+		return false
+	var board_state: Variant = battle.call("get_board_state")
+	if board_state == null or not board_state.has_method("get_lane_traits"):
+		return false
+	var lane_tags: PackedStringArray = board_state.call("get_lane_traits", int(lane_value))
+	for required_tag: String in required_tags:
+		if lane_tags.has(required_tag):
+			return true
+	return false
 
 
 func _condition_uses_windowed_schedule(condition_values: Dictionary) -> bool:

@@ -731,6 +731,21 @@ func _register_builtin_defs() -> void:
 	consume_self.allow_extra_children = false
 	register_def(consume_self)
 
+	var emit_event = EffectDefRef.new()
+	emit_event.id = &"emit_event"
+	emit_event.tags = PackedStringArray(["control", "signaling"])
+	var emit_event_param_defs: Array[Dictionary] = [{
+		"name": "event_name",
+		"type": "string_name",
+	}, {
+		"name": "event_tags",
+		"type": "packed_string_array",
+	}]
+	emit_event.param_defs = emit_event_param_defs
+	emit_event.allow_extra_params = false
+	emit_event.allow_extra_children = false
+	register_def(emit_event)
+
 	var reveal = EffectDefRef.new()
 	reveal.id = &"reveal"
 	reveal.tags = PackedStringArray(["hit_response", "control", "reveal"])
@@ -1313,6 +1328,23 @@ func _register_builtin_strategies() -> void:
 		reroute_event.core["to_lane"] = to_lane
 		reroute_event.core["reason"] = StringName(params.get("reason", &"lane_reroute"))
 		EventBus.push_event(&"entity.lane_changed", reroute_event)
+		return result
+	)
+
+	register_strategy(&"emit_event", func(context, params: Dictionary, _node) -> Variant:
+		var result: Variant = EffectResultRef.new()
+		var event_name := StringName(params.get("event_name", StringName()))
+		if event_name == StringName():
+			result.success = false
+			result.notes.append("emit_event requires event_name.")
+			return result
+		var tags := PackedStringArray(params.get("event_tags", PackedStringArray(["signal"])))
+		# Signals are owner-scoped: the state machines listening for them match
+		# events whose target is the listening entity itself.
+		var event_data: Variant = EventDataRef.create(context.owner_entity, context.owner_entity, null, tags)
+		event_data.core["signal_event"] = event_name
+		EventBus.push_event(event_name, event_data)
+		result.success = true
 		return result
 	)
 

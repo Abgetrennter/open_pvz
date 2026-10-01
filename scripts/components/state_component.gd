@@ -75,6 +75,7 @@ func physics_process_states() -> void:
 		return
 	var elapsed := GameState.current_time - bind_time
 	_process_time_transitions(owner, elapsed)
+	_process_position_transitions(owner)
 
 
 func _process_time_transitions(owner: Node, elapsed: float) -> void:
@@ -84,6 +85,39 @@ func _process_time_transitions(owner: Node, elapsed: float) -> void:
 			continue
 		if not _try_execute_transition(transition, elapsed):
 			break
+
+
+func _process_position_transitions(owner: Node) -> void:
+	# Position-gated transitions (original phase thresholds, e.g. Digger
+	# mPosX < 10 surfacing, de-pvz Zombie.cpp:2678-2679): fire once the
+	# owner crosses an axis threshold while in the transition's from_state.
+	if not (owner is Node2D):
+		return
+	for transition in transitions:
+		var trigger_type: String = String(transition.get("trigger", "time"))
+		if trigger_type != "position":
+			continue
+		var axis := String(transition.get("position_axis", "x"))
+		var value: float = (owner as Node2D).position.x if axis == "x" else (owner as Node2D).position.y
+		var threshold := float(transition.get("position_threshold", 0.0))
+		var compare := String(transition.get("position_compare", "below"))
+		var crossed := value <= threshold if compare == "below" else value >= threshold
+		if not crossed:
+			continue
+		if not _try_execute_position_transition(transition):
+			break
+
+
+func _try_execute_position_transition(transition: Dictionary) -> bool:
+	var transition_id := StringName(transition.get("transition_id", StringName("%s_%s" % [
+		String(transition.get("from_state", "")),
+		String(transition.get("to_state", "")),
+	])))
+	if _processed_transition_ids.has(transition_id):
+		return true
+	if current_state != StringName(transition.get("from_state", current_state)):
+		return true
+	return _execute_transition(transition, {"trigger": "position"})
 
 
 func _try_execute_transition(transition: Dictionary, elapsed: float = 0.0) -> bool:
