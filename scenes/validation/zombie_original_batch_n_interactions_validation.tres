@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"batch_n_probe_passed"
+description = "The batch N probe must pass: split-radius jack blast, pogo height sequence and Tall-nut spring break, bungee steal after the grab window, gargantuar throw gate."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_batch_n_interactions",
+"result": &"passed"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_batch_n_interactions_validation"
+display_name = "Original Zombie Batch N Interactions Validation"
+description = "Validates Z-16/Z-17/Z-22/Z-23/Z-30: escalating pogo bounces (40/90/170) with a Tall-nut spring break into a walk, jack split blast radii (plants 90px / zombies 115px), the bungee dive-grab-steal-leave chain, and the gargantuar throw gate past x=400."
+goals = PackedStringArray("Pogo reaches the 170px apex and breaks its spring on the Tall-nut, walking afterwards.", "Jack blast hits plants within 90px and zombies within 115px only.", "Bungee dives, grabs for 3s, steals the plant and leaves.", "Gargantuar below half HP near the house does not throw the imp.")
+validation_time_limit = 14.0
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed")]

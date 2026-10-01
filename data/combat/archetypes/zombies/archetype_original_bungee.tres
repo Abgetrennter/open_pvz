@@ -1,9 +1,12 @@
-[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/air_unit_medium.tres" id="2_height"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_zombie_flying_walk.tres" id="3_drive"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_drop_trigger.tres" id="4_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_dive_state.tres" id="4_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_hover_bite.tres" id="9_hbite"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_leave_trigger.tres" id="10_leave"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_steal_trigger.tres" id="4_trigger2"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_drop_damage.tres" id="5_damage"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bungee_consume_payload.tres" id="6_consume"]
 
@@ -21,4 +24,4 @@ hit_height_band = ExtResource("2_height")
 default_params = {
 "move_speed_slots_per_sec": 0.0
 }
-mechanics = [ExtResource("3_drive"), ExtResource("4_trigger"), ExtResource("5_damage"), ExtResource("6_consume")]
+mechanics = [ExtResource("3_drive"), ExtResource("4_trigger"), ExtResource("4_trigger2"), ExtResource("5_damage"), ExtResource("10_leave"), ExtResource("6_consume"), ExtResource("9_hbite")]

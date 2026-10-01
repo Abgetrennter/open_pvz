@@ -117,6 +117,17 @@ func snapshot() -> Dictionary:
 	}
 
 
+func remove_occupant(entity: Node) -> bool:
+	# Entity-keyed removal (original: a dying plant frees its cell at once).
+	var stale: Array[StringName] = []
+	for role: Variant in role_occupants.keys():
+		if role_occupants[role] == entity:
+			stale.append(StringName(role))
+	for role in stale:
+		remove_role_occupant(role)
+	return not stale.is_empty()
+
+
 func _prune_invalid_occupants() -> void:
 	var stale_roles: Array[StringName] = []
 	for role: Variant in role_occupants.keys():

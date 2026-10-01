@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.bungee_hover_bite"
+display_name = "Original Bungee Hover Bite Controller"
+family = &"Controller"
+type_id = &"core.bite"
+priority = 10
+tags = PackedStringArray("original", "zombie", "controller", "bite", "bungee")
+params = {
+"attack_damage": 10,
+"attack_interval": 0.3,
+"attack_range": 56.0,
+"detection_id": &"lane_backward",
+"suppress_exposure_states": PackedStringArray("flying")
+}

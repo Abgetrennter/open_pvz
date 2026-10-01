@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.pogo_break"
+display_name = "Original Pogo Break"
+family = &"State"
+type_id = &"core.rage"
+priority = 6
+tags = PackedStringArray("original", "zombie", "state", "pogo")
+params = {
+"event_name": &"health.layer_destroyed",
+"from_state": &"bouncing",
+"initial_state": &"bouncing",
+"required_layer_id": &"pogo_stick",
+"side_effects": [{
+"spec": {
+"movement_id": &"core.walk",
+"params": {
+"direction": Vector2(-1, 0),
+"move_speed_slots_per_sec_max": 0.32,
+"move_speed_slots_per_sec_min": 0.23
+}
+},
+"type": &"set_movement"
+}],
+"to_state": &"walking",
+"trigger": "event"
+}

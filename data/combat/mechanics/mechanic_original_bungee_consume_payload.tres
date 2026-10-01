@@ -11,6 +11,6 @@ type_id = &"core.consume_self"
 priority = 30
 tags = PackedStringArray("original", "zombie", "payload", "bungee")
 params = {
-"binding_group": &"bungee_drop",
+"binding_group": &"bungee_steal",
 "reason": &"bungee_leave"
 }

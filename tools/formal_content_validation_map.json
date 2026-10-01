@@ -168,6 +168,20 @@
       "showcases": []
     },
     {
+      "id": "original_zombies_batch_n",
+      "description": "Original zombie protocol gaps Batch N: pogo bounce sequence + spring break (Z-16/Z-17), jack split blast radii (Z-22), bungee steal chain (Z-23), gargantuar throw gate (Z-30).",
+      "validations": [
+        "zombie_original_pogo_validation",
+        "zombie_original_batch_n_interactions_validation",
+        "zombie_original_jack_in_the_box_validation",
+        "zombie_original_jack_distance_fuse_validation",
+        "zombie_original_bungee_validation",
+        "zombie_original_bungee_umbrella_validation",
+        "zombie_original_gargantuar_validation"
+      ],
+      "showcases": []
+    },
+    {
       "id": "board_and_battlefield_semantics_v1",
       "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
       "validations": [

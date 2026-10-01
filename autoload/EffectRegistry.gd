@@ -384,6 +384,16 @@ func _register_builtin_defs() -> void:
 		"name": "remove_grid_item_tags",
 		"type": "packed_string_array",
 	}, {
+		"name": "radius_slots_plant",
+		"type": "float",
+		"min": 0.0,
+		"max": 64.0,
+	}, {
+		"name": "radius_slots_zombie",
+		"type": "float",
+		"min": 0.0,
+		"max": 64.0,
+	}, {
 		"name": "crater_at_source_slot",
 		"type": "bool",
 		"default": false,
@@ -941,9 +951,23 @@ func _register_builtin_strategies() -> void:
 
 	register_strategy(&"explode", func(context, params: Dictionary, _node) -> Variant:
 		var result: Variant = EffectResultRef.new()
-		var targets: Array = _resolve_targets(context, params)
+		# Split-radius blasts (original Jack-in-the-Box, de-pvz Zombie.h:25-26:
+		# zombie radius 115 / plant radius 90): when the per-side keys are
+		# present, the enemy side uses the plant radius and a second ally-side
+		# pass uses the zombie radius; otherwise the single radius applies.
+		var enemy_params := params.duplicate(true)
+		if params.has("radius_slots_plant"):
+			enemy_params["radius_slots"] = float(params.get("radius_slots_plant"))
+		var targets: Array = _resolve_targets(context, enemy_params)
 		var amount := int(params.get("amount", 15))
 		var effect_source := _resolve_effect_source_node(context)
+		if params.has("radius_slots_zombie"):
+			var ally_params := params.duplicate(true)
+			ally_params["radius_slots"] = float(params.get("radius_slots_zombie"))
+			ally_params["blast_team_mode"] = &"allies"
+			for ally in _resolve_targets(context, ally_params):
+				if ally != null and not targets.has(ally):
+					targets.append(ally)
 		if targets.is_empty():
 			result.success = false
 			result.notes.append("Explosion targets missing or invalid.")
@@ -1550,8 +1574,10 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 	if not GameState.current_battle.has_method("spatial_query"):
 		return []
 
+	# Split-radius ally pass (original KillAllZombiesInRadius): the same blast
+	# sweeps the owner's own team when blast_team_mode=allies.
+	var blast_allies := StringName(params.get("blast_team_mode", &"enemies")) == &"allies"
 	var query := {
-		"team_exclude": source_team,
 		"center": center,
 		"radius": radius,
 		"filter": func(candidate):
@@ -1569,6 +1595,10 @@ func _resolve_targets(context, params: Dictionary) -> Array:
 	}
 	if lane_filter is int:
 		query["lane_ids"] = PackedInt32Array([int(lane_filter)])
+	if blast_allies:
+		query["team_include"] = source_team
+	else:
+		query["team_exclude"] = source_team
 	return GameState.current_battle.call("spatial_query", query)
 
 

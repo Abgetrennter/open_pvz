@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.doomshroom_consume"
+display_name = "Original Doom-shroom Consume"
+family = &"Payload"
+type_id = &"core.consume_self"
+priority = 30
+tags = PackedStringArray("original", "plant", "payload", "doomshroom")
+params = {
+"reason": &"doom_exploded"
+}

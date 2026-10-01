@@ -130,6 +130,12 @@ func _process(_delta: float) -> void:
 			return
 		_emit_probe(probe_id, &"passed", {})
 		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_batch_n_interactions":
+		if not _validate_batch_n_interactions():
+			push_error("original zombie probe failed: batch n interactions")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
 	elif probe_id == &"zombie_original_screen_door_directional":
 		if not _validate_screen_door_directional():
 			push_error("original zombie probe failed: screen door directional shield")
@@ -211,15 +217,15 @@ func _validate_slug(slug: StringName) -> bool:
 		&"balloon":
 			return _assert_layer(entity, &"balloon", &"attachment", 20) and StringName(entity.call("get_exposure_state")) == &"flying" and _assert_balloon_grounding(entity) and _assert_balloon_water_death(runtime_spec)
 		&"jack_in_the_box":
-			return _assert_trigger_payload(runtime_spec, &"periodically", &"explode") and _assert_jack_explode_radius(runtime_spec) and _assert_jack_fuse_params(runtime_spec)
+			return _assert_trigger_payload(runtime_spec, &"periodically", &"explode") and _assert_jack_explode_radius(runtime_spec) and _assert_jack_fuse_params(runtime_spec) and _assert_jack_split_radii(runtime_spec)
 		&"digger":
 			return _assert_movement_source(entity, &"core.tunnel") and StringName(entity.call("get_exposure_state")) == &"underground" and _assert_digger_surface_direction(runtime_spec) and _assert_digger_rise_transition(runtime_spec)
 		&"pogo":
-			return _assert_movement_source(entity, &"core.hop_cycle")
+			return _assert_movement_source(entity, &"core.hop_cycle") and _assert_pogo_break_kit(entity, runtime_spec)
 		&"yeti":
 			return _assert_yeti_flee(entity)
 		&"bungee":
-			return StringName(entity.call("get_exposure_state")) == &"flying" and _assert_trigger_payload(runtime_spec, &"on_spawned", &"damage") and _assert_bungee_attack_tags(runtime_spec)
+			return StringName(entity.call("get_exposure_state")) == &"flying" and _assert_bungee_steal_chain(runtime_spec) and _assert_bungee_attack_tags(runtime_spec)
 		&"ladder":
 			return _assert_layer(entity, &"ladder", &"attachment", 500)
 		&"catapult":
@@ -227,7 +233,7 @@ func _validate_slug(slug: StringName) -> bool:
 		&"dancing":
 			return _assert_dancing_spawn(entity)
 		&"gargantuar":
-			return _assert_controller(entity, &"core.crush") and _assert_threshold_imp_spawn(entity, 1500)
+			return _assert_controller(entity, &"core.crush") and _assert_threshold_imp_spawn(entity, 1500) and _assert_garg_throw_x_gate(runtime_spec)
 		&"redeye_gargantuar":
 			return _assert_controller(entity, &"core.crush") and _assert_threshold_imp_spawn(entity, 3000)
 		_:
@@ -1522,6 +1528,176 @@ func _validate_digger_surface() -> bool:
 	if x > 200.0 or x < -50.0:
 		push_error("digger surface probe: surfaced digger at unexpected x=%.1f" % x)
 		return false
+	return true
+
+
+func _assert_pogo_break_kit(entity: Node, runtime_spec) -> bool:
+	# Z-17 (de-pvz PogoBreak :1332-1360): the pogo rides a strip-metal spring
+	# layer; Tall-nut contact or the Magnet-shroom pulls it and the pogo walks.
+	var stick := _layer_snapshot(entity, &"pogo_stick")
+	if stick.is_empty() or StringName(stick.get("layer_kind", StringName())) != &"attachment" or int(stick.get("max_health", 0)) != 20:
+		push_error("pogo kit: pogo_stick layer missing")
+		return false
+	var movement_spec: Variant = runtime_spec.get("movement_spec")
+	var params: Dictionary = Dictionary(Dictionary(movement_spec).get("params", {})) if movement_spec is Dictionary else {}
+	if not PackedStringArray(params.get("vault_block_tags", PackedStringArray())).has("vault_blocker"):
+		push_error("pogo kit: hop cycle lacks vault blocker handling")
+		return false
+	if params.get("hop_height_sequence", null) is Array and Array(params.get("hop_height_sequence")).size() >= 3:
+		return true
+	push_error("pogo kit: no hop height sequence")
+	return false
+
+
+func _assert_bungee_steal_chain(runtime_spec) -> bool:
+	# Z-23 (de-pvz BungeeLanding :1220-1268): dive -> 300-tick grab -> steal
+	# the plant -> rise; the steal damage is gated on the grabbing state.
+	for state_spec in Array(runtime_spec.get("state_specs")):
+		if state_spec == null:
+			continue
+		for transition in Array(state_spec.get("transitions", [])):
+			if StringName(transition.get("from_state", StringName())) == &"diving" and StringName(transition.get("to_state", StringName())) == &"grabbing":
+				return true
+	return false
+
+
+func _assert_jack_split_radii(runtime_spec) -> bool:
+	for trigger_spec in Array(runtime_spec.get("trigger_specs")):
+		if trigger_spec == null:
+			continue
+		var effect_root: Variant = trigger_spec.get("effect_root")
+		if effect_root == null or StringName(effect_root.get("effect_id")) != &"explode":
+			continue
+		var params: Dictionary = Dictionary(effect_root.get("params"))
+		# Original jack radii (de-pvz Zombie.h:25-26): zombie 115px / plant 90px.
+		return absf(float(params.get("radius_slots_plant", -1.0)) - 0.9375) < 0.001 \
+			and absf(float(params.get("radius_slots_zombie", -1.0)) - 1.197917) < 0.001
+	return false
+
+
+func _assert_garg_throw_x_gate(runtime_spec) -> bool:
+	for trigger_spec in Array(runtime_spec.get("trigger_specs")):
+		if trigger_spec == null or StringName(trigger_spec.get("trigger_id")) != &"when_damaged":
+			continue
+		var conditions: Dictionary = Dictionary(trigger_spec.get("condition_values"))
+		if absf(float(conditions.get("min_owner_x", -1.0)) - 400.0) < 0.001:
+			return true
+	return false
+
+
+func _validate_batch_n_interactions() -> bool:
+	# Z-16/Z-17/Z-22/Z-23/Z-30 behavior pass: pogo height escalation, spring
+	# break on Tall-nut (walks afterwards), split-radius jack blast (plants
+	# 90px / zombies 115px), bungee steal after the grab window, gargantuar
+	# throw gate near the house.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	# Split-radius blast (effect level): the blast owner sits at the center;
+	# a plant ~72px away (inside the 90px plant radius) and an ally zombie
+	# ~105px away (outside 90, inside the 115px zombie radius) both take the
+	# blast; a plant ~168px away stays untouched. Plants snap to slot centers
+	# (+/-8px), so distances are asserted from the owner's live position.
+	var blast_zombie := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(520.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if blast_zombie == null:
+		push_error("batch n probe: blast spawn failed")
+		return false
+	_battle.call("step_simulation_ticks", 5)
+	var blast_center: Vector2 = (blast_zombie as Node2D).position
+	var blast_plant := _spawn_archetype(&"archetype_original_wallnut", Vector2(blast_center.x - 80.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var blast_ally := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(blast_center.x + 105.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var far_plant := _spawn_archetype(&"archetype_original_wallnut", Vector2(blast_center.x + 130.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if blast_plant == null or blast_ally == null or far_plant == null:
+		push_error("batch n probe: blast target spawn failed")
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	blast_center = (blast_zombie as Node2D).position
+	var blast_context = RuleContextRef.new()
+	blast_context.owner_entity = blast_zombie
+	blast_context.source_node = blast_zombie
+	blast_context.target_node = blast_zombie
+	blast_context.position = blast_center
+	blast_context.event_name = &"original_zombie.probe"
+	blast_context.runtime = {"chain_id": "original_zombie_probe", "depth": 1}
+	EffectExecutorRef.execute_node(EffectNodeRef.new(&"explode", {
+		"amount": 500,
+		"radius_slots_plant": 0.9375,
+		"radius_slots_zombie": 1.197917,
+		"target_mode": &"enemies_in_radius",
+	}), blast_context)
+	if _entity_health(blast_plant) >= 4000:
+		push_error("batch n probe: plant inside the 90px radius was not hit")
+		return false
+	if _entity_health(blast_ally) >= 270:
+		push_error("batch n probe: ally zombie inside the 115px radius was not hit")
+		return false
+	if _entity_health(far_plant) != 4000:
+		push_error("batch n probe: plant outside the 90px radius was hit")
+		return false
+	# Pogo vs Tall-nut: the spring strips and the pogo walks on foot.
+	var tallnut := _spawn_archetype(&"archetype_original_tallnut", Vector2(300.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var pogo := _spawn_archetype(&"archetype_original_pogo", Vector2(560.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if tallnut == null or pogo == null:
+		push_error("batch n probe: pogo spawn failed")
+		return false
+	# Track the highest hop apex while approaching.
+	var max_height := 0.0
+	var broken := false
+	for i in range(90):
+		_battle.call("step_simulation_ticks", 10)
+		if not is_instance_valid(pogo):
+			break
+		max_height = maxf(max_height, float(pogo.call("get_height")))
+		if not is_instance_valid(pogo) or int(_layer_snapshot(pogo, &"pogo_stick").get("current_health", 0)) <= 0:
+			broken = true
+			break
+	if not broken:
+		push_error("batch n probe: pogo spring never broke on the tall-nut (max_h=%.1f)" % max_height)
+		return false
+	if max_height < 170.0:
+		push_error("batch n probe: pogo apex %.1f never reached the 170px bounce" % max_height)
+		return false
+	# Pogo (still walking after the break, default range) also eats the brain
+	# line - clean it up before the steal segment.
+	# Bungee steal: hovering bungee takes the plant after the grab window.
+	var target_nut := _spawn_archetype(&"archetype_original_wallnut", Vector2(700.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	_battle.call("step_simulation_ticks", 5)
+	var nut_x: float = (target_nut as Node2D).position.x
+	var bungee := _spawn_archetype(&"archetype_original_bungee", Vector2(nut_x, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if target_nut == null or bungee == null:
+		push_error("batch n probe: bungee spawn failed")
+		return false
+	var bungee_state := StringName(bungee.call("get_entity_state_ref").call("get_value", &"state_stage", StringName()))
+	if bungee_state != &"diving":
+		push_error("batch n probe: bungee does not start diving")
+		return false
+	_battle.call("step_simulation_ticks", 220)
+	if not is_instance_valid(bungee):
+		push_error("batch n probe: bungee vanished before grabbing")
+		return false
+	if StringName(bungee.call("get_entity_state_ref").call("get_value", &"state_stage", StringName())) != &"grabbing":
+		push_error("batch n probe: bungee is not grabbing after the dive")
+		return false
+	_battle.call("step_simulation_ticks", 320)
+	if _entity_health(target_nut) != 0:
+		push_error("batch n probe: bungee did not steal the plant")
+		return false
+	# The leave trigger re-checks on a 0.5s cadence after the plant is gone.
+	_battle.call("step_simulation_ticks", 60)
+	# Gargantuar throw gate: damaged below half near the house -> no imp.
+	var close_garg := _spawn_archetype(&"archetype_original_gargantuar", Vector2(350.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if close_garg == null:
+		push_error("batch n probe: close gargantuar spawn failed")
+		return false
+	close_garg.call("take_damage", 1500, null, PackedStringArray(["probe"]))
+	_battle.call("step_simulation_ticks", 30)
+	if _count_archetype(&"archetype_original_imp") != 0:
+		push_error("batch n probe: gargantuar threw the imp inside the 400px line")
+		return false
+	# Cleanup remaining walkers so nothing reaches the defeat line later.
+	for entity in Array(_battle.call("get_runtime_combat_entities")):
+		if entity != null and is_instance_valid(entity) and entity.get("team") == &"zombie":
+			entity.call("take_damage", 99999, null, PackedStringArray(["probe"]))
 	return true
 
 
