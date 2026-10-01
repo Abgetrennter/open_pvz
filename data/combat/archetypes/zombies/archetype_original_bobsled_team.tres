@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="ZombieArchetype" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/zombie_archetype.gd" id="1_archetype"]
+[ext_resource type="Script" path="res://scripts/core/defs/health_layer_def.gd" id="2_layer_script"]
+[ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="3_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bobsled_sled_drive.tres" id="4_drive"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bobsled_disband_trigger.tres" id="5_trigger"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bobsled_rider_0_payload.tres" id="6_rider0"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bobsled_rider_1_payload.tres" id="7_rider1"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bobsled_rider_2_payload.tres" id="8_rider2"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bobsled_rider_3_payload.tres" id="9_rider3"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_bobsled_consume_payload.tres" id="10_consume"]
+
+[sub_resource type="Resource" id="Layer_sled"]
+script = ExtResource("2_layer_script")
+layer_id = &"sled"
+layer_kind = &"attachment"
+armor_type = &"bobsled"
+max_health = 300
+route_order = 10
+material_tags = PackedStringArray("bobsled", "wood")
+overflow_policy = &"spill_to_next"
+
+[resource]
+script = ExtResource("1_archetype")
+archetype_id = &"archetype_original_bobsled_team"
+entity_kind = &"zombie"
+display_name = "Original Bobsled Team Zombie"
+tags = PackedStringArray("archetype", "zombie", "original", "vehicle", "bobsled", "team")
+required_components = PackedStringArray("TriggerComponent", "MovementComponent")
+max_health = 270
+hitbox_size = Vector2(275, 96)
+hit_height_band = ExtResource("3_height")
+weight_class = &"heavy"
+health_layers = [SubResource("Layer_sled")]
+mechanics = [ExtResource("4_drive"), ExtResource("5_trigger"), ExtResource("6_rider0"), ExtResource("7_rider1"), ExtResource("8_rider2"), ExtResource("9_rider3"), ExtResource("10_consume")]

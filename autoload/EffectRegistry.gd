@@ -383,6 +383,16 @@ func _register_builtin_defs() -> void:
 	}, {
 		"name": "remove_grid_item_tags",
 		"type": "packed_string_array",
+	}, {
+		"name": "crater_at_source_slot",
+		"type": "bool",
+		"default": false,
+	}, {
+		"name": "crater_duration_ticks",
+		"type": "int",
+		"min": 1,
+		"max": 100000,
+		"default": 18000,
 	}]
 	explode.param_defs = explode_param_defs
 	explode.allow_extra_params = false
@@ -927,6 +937,11 @@ func _register_builtin_strategies() -> void:
 		var clear_tags := PackedStringArray(params.get("remove_grid_item_tags", PackedStringArray()))
 		if not clear_tags.is_empty():
 			_remove_lane_grid_items_with_tags(context, clear_tags)
+		# Crater left at the blast's source slot (original Doom-shroom,
+		# Plant.cpp:4372: AddACrater(mPlantCol, mRow)->mGridItemCounter = 18000);
+		# the blocker role of the existing archetype_crater blocks replanting.
+		if bool(params.get("crater_at_source_slot", false)):
+			_spawn_crater_at_source_slot(context, int(params.get("crater_duration_ticks", 18000)))
 		return result
 	)
 
@@ -1801,6 +1816,33 @@ func _remove_lane_grid_items_with_tags(context, clear_tags: PackedStringArray) -
 			if tag_set.has(clear_tag):
 				grid_item_state.call("remove_grid_item_for_entity", item, &"explode_cleared")
 				break
+
+
+func _spawn_crater_at_source_slot(context, duration_ticks: int) -> void:
+	# Doom-shroom crater (original Plant.cpp:4372): the blast leaves a crater
+	# grid item occupying the blocker role at the exploding plant's slot, so
+	# nothing can be replanted there until it expires.
+	var grid_item_state := _resolve_grid_item_state()
+	if grid_item_state == null or not grid_item_state.has_method("spawn_grid_item_at"):
+		return
+	var battle := GameState.current_battle
+	if battle == null or not battle.has_method("get_battlefield_metrics"):
+		return
+	var metrics: Variant = battle.call("get_battlefield_metrics")
+	if metrics == null or not metrics.has_method("world_to_slot_index"):
+		return
+	var source := _resolve_effect_source_node(context)
+	if source == null or not (source is Node2D):
+		return
+	var lane_id := int(source.get("lane_id")) if source.get("lane_id") is int else -1
+	if lane_id < 0:
+		lane_id = int(context.core.get("lane_id", -1)) if context != null else -1
+	if lane_id < 0:
+		return
+	var slot_index := int(metrics.call("world_to_slot_index", (source as Node2D).position.x))
+	var crater: Node = grid_item_state.call("spawn_grid_item_at", &"archetype_crater", lane_id, slot_index, {}, true)
+	if crater != null and grid_item_state.has_method("schedule_expiry"):
+		grid_item_state.call("schedule_expiry", crater, duration_ticks)
 
 
 func _resolve_entity_grid_slot(entity: Node) -> Dictionary:

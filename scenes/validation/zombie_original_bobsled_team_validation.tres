@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"bobsled_team_probe_passed"
+description = "The bobsled probe must pass: 300hp sled layer, 0.625 slots/s slide, off-ice grind breaks the sled and disbands four walking riders."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_bobsled_team",
+"result": &"passed"
+}
+
+[sub_resource type="Resource" id="Rule_team_consumed_once"]
+script = ExtResource("3_rule")
+rule_id = &"bobsled_team_consumed_once"
+description = "The team entity must be consumed exactly once by the sled-break disband."
+event_name = &"entity.consumed"
+min_count = 1
+max_count = 1
+required_core_values = {
+"target_archetype_id": &"archetype_original_bobsled_team",
+"reason": &"bobsled_crash"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_bobsled_team_validation"
+display_name = "Original Bobsled Team Validation"
+description = "Validates Z-14: the Bobsled team rides a 300hp sled layer at a constant slide speed, renews the ice timer under it, grinds the sled away once past the ice's left edge, and disbands into four independent walkers."
+goals = PackedStringArray("The sled is a 300hp attachment layer and the team slides at 0.625 slots/s.", "Sliding past the ice edge grinds the sled down.", "The broken sled disbands into four walking riders and the team entity consumes itself.")
+validation_time_limit = 14.0
+lane_count = 2
+validation_rules = [SubResource("Rule_probe_passed"), SubResource("Rule_team_consumed_once")]

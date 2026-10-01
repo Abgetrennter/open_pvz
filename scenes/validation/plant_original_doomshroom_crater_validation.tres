@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="3_rule_module"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_night_clear.tres" id="4_env"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_doomshroom.tres" id="6_doom_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="7_card_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_spawn_entry.gd" id="8_spawn"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("3_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("4_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Req_doomshroom"]
+script = ExtResource("7_card_request")
+at_time = 0.1
+card_id = &"card_original_doomshroom"
+lane_id = 0
+slot_index = 2
+
+[sub_resource type="Resource" id="Spawn_target"]
+script = ExtResource("8_spawn")
+archetype_id = &"archetype_basic_walker"
+lane_id = 0
+x_position = 320.0
+spawn_overrides = {
+"move_speed_slots_per_sec": 0.0
+}
+
+[sub_resource type="Resource" id="Rule_crater_spawned"]
+script = ExtResource("5_rule")
+rule_id = &"doomshroom_crater_spawned"
+description = "The Doom-shroom blast must leave a crater grid item on its slot."
+event_name = &"grid_item.spawned"
+min_count = 1
+required_core_values = {
+"grid_item_archetype_id": &"archetype_crater",
+"lane_id": 0
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_doomshroom_crater_validation"
+display_name = "Original Doom-shroom Crater Validation"
+description = "Validates G-29: the Doom-shroom blast leaves a crater grid item (18000-tick lifetime) occupying the blocker role on its slot, blocking replanting until it expires."
+goals = PackedStringArray("The night-awakened Doom-shroom explodes and leaves a crater on its slot.", "The crater lands on the exploding plant slot (blocker occupation is covered by grid_item_crater_validation).")
+validation_time_limit = 3.0
+initial_sun = 1000
+lane_count = 2
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+card_defs = [ExtResource("6_doom_card")]
+card_play_requests = [SubResource("Req_doomshroom")]
+validation_rules = [SubResource("Rule_crater_spawned")]
+spawns = [SubResource("Spawn_target")]

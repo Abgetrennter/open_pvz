@@ -12,6 +12,8 @@ priority = 20
 tags = PackedStringArray("original", "instant", "explode", "mushroom")
 params = {
 "amount": 1800,
+"crater_at_source_slot": true,
+"crater_duration_ticks": 18000,
 "radius_slots": 2.5,
 "target_mode": &"enemies_in_radius"
 }

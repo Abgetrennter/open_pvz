@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("3_rule")
+rule_id = &"ice_trail_probe_passed"
+description = "The ice trail probe must pass: zamboni lays a lane interval, walkers on it walk at half speed, other lanes are unaffected, intervals and craters expire on their tick budgets."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_ice_trail",
+"result": &"passed"
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_ice_trail_validation"
+display_name = "Original Ice Trail Field Modifier Validation"
+description = "Validates Z-11: the Zamboni leaves a row-interval ice field (3000-tick renewal) that halves walking speed, exempts vehicles, spares other lanes, and expires with its tick budget; grid-item crater lifetimes (G-29) expire the same way."
+goals = PackedStringArray("Zamboni lays a lane ice interval while driving.", "Walkers on the ice walk at half their sampled speed; control lane and the vehicle stay unaffected.", "Field intervals and scheduled craters expire after their tick budgets.")
+validation_time_limit = 10.0
+lane_count = 3
+validation_rules = [SubResource("Rule_probe_passed")]

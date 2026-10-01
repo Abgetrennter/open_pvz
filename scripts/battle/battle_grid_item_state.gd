@@ -9,11 +9,55 @@ const GridItemRootRef = preload("res://scripts/entities/grid_item_root.gd")
 var battle: Node = null
 var _entity_factory: RefCounted = EntityFactoryRef.new()
 var _grid_items: Array = []
+var _expiry_schedule: Dictionary = {}
 
 
 func setup(battle_node: Node, scenario: Resource) -> void:
 	battle = battle_node
 	_grid_items.clear()
+	_expiry_schedule.clear()
+	EventBus.subscribe(&"game.tick", Callable(self, "_on_game_tick"))
+
+
+func _exit_tree() -> void:
+	EventBus.unsubscribe(&"game.tick", Callable(self, "_on_game_tick"))
+
+
+func _on_game_tick(_event_data: Variant) -> void:
+	# Grid-item lifetimes (original craters: AddACrater(...)->mGridItemCounter
+	# = 18000 ticks, then the item fades and removes itself).
+	if _expiry_schedule.is_empty():
+		return
+	var expired: Array = []
+	for entity_id: Variant in _expiry_schedule.keys():
+		var remaining := int(_expiry_schedule[entity_id]) - 1
+		if remaining <= 0:
+			expired.append(entity_id)
+			continue
+		_expiry_schedule[entity_id] = remaining
+	for entity_id: Variant in expired:
+		_expiry_schedule.erase(entity_id)
+		var item := _find_grid_item_by_entity_id(int(entity_id))
+		if item != null:
+			remove_grid_item_for_entity(item, &"expired")
+
+
+func schedule_expiry(entity: Node, duration_ticks: int) -> void:
+	if entity == null or not is_instance_valid(entity) or duration_ticks <= 0:
+		return
+	var entity_id := int(entity.get("entity_id")) if entity.get("entity_id") is int else -1
+	if entity_id < 0:
+		return
+	_expiry_schedule[entity_id] = maxi(int(_expiry_schedule.get(entity_id, 0)), duration_ticks)
+
+
+func _find_grid_item_by_entity_id(entity_id: int) -> Node:
+	for item in get_all_grid_items():
+		if item != null and is_instance_valid(item):
+			var item_id: Variant = item.get("entity_id")
+			if item_id is int and int(item_id) == entity_id:
+				return item
+	return null
 
 
 func get_debug_name() -> String:

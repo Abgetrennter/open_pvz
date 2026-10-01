@@ -17,6 +17,7 @@ static func register_builtin_mechanic_types() -> void:
 	var type_specs := {
 		&"core.periodic": &"Trigger",
 		&"core.when_damaged": &"Trigger",
+		&"core.when_layer_destroyed": &"Trigger",
 		&"core.on_death": &"Trigger",
 		&"core.proximity": &"Trigger",
 		&"core.on_spawned": &"Lifecycle",
@@ -532,6 +533,11 @@ static func _map_trigger_type(type_id: StringName) -> Dictionary:
 			return {
 				"trigger_id": &"when_damaged",
 				"event_name": &"entity.damaged",
+			}
+		&"core.when_layer_destroyed":
+			return {
+				"trigger_id": &"when_layer_destroyed",
+				"event_name": &"health.layer_destroyed",
 			}
 		&"core.on_death":
 			return {

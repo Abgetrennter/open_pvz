@@ -193,6 +193,24 @@ func _register_builtin_defs() -> void:
 	when_damaged.allow_extra_conditions = false
 	register_def(when_damaged, {"kind": &"core", "source": &"core"})
 
+	var when_layer_destroyed = TriggerDefRef.new()
+	var when_layer_destroyed_params: Array[Dictionary] = [{
+		"name": "required_layer_id",
+		"type": "string_name",
+	}, {
+		"name": "max_trigger_count",
+		"type": "int",
+		"min": 0,
+		"max": 999,
+	}]
+	when_layer_destroyed.id = &"when_layer_destroyed"
+	when_layer_destroyed.event_name = &"health.layer_destroyed"
+	when_layer_destroyed.weight = 60
+	when_layer_destroyed.max_bound_effects = 1
+	when_layer_destroyed.param_defs = when_layer_destroyed_params
+	when_layer_destroyed.allow_extra_conditions = false
+	register_def(when_layer_destroyed, {"kind": &"core", "source": &"core"})
+
 	var on_death = TriggerDefRef.new()
 	on_death.id = &"on_death"
 	on_death.event_name = &"entity.died"
@@ -410,6 +428,15 @@ func _register_builtin_strategies() -> void:
 				used_keys.append(String(once_key))
 				if instance.owner_entity.has_method("set_state_value"):
 					instance.owner_entity.call("set_state_value", &"trigger_once_keys", used_keys)
+		return true
+	)
+
+	register_strategy(&"when_layer_destroyed", func(event_data, condition_values: Dictionary, _entity_state: Dictionary, instance) -> bool:
+		if event_data.core.get("target_node", null) != instance.owner_entity:
+			return false
+		var required_layer_id := StringName(condition_values.get("required_layer_id", StringName()))
+		if required_layer_id != StringName() and StringName(event_data.core.get("layer_id", StringName())) != required_layer_id:
+			return false
 		return true
 	)
 

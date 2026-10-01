@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.original.bobsled_sled_drive"
+display_name = "Original Bobsled Sled Drive"
+family = &"Movement"
+type_id = &"core.drive"
+priority = 5
+tags = PackedStringArray("original", "zombie", "movement", "vehicle", "bobsled")
+params = {
+"direction": Vector2(-1, 0),
+"ice_renewal_ticks": 500,
+"move_speed_slots_per_sec": 0.625,
+"off_ice_check_offset_px": 10.0,
+"off_ice_damage_per_tick": 6
+}

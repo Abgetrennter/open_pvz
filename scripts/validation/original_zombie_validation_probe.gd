@@ -98,6 +98,18 @@ func _process(_delta: float) -> void:
 			return
 		_emit_probe(probe_id, &"passed", {})
 		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_ice_trail":
+		if not _validate_ice_trail():
+			push_error("original zombie probe failed: ice trail field modifiers")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_bobsled_team":
+		if not _validate_bobsled_team():
+			push_error("original zombie probe failed: bobsled team")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
 	else:
 		_probe_single(probe_id)
 
@@ -1026,6 +1038,154 @@ func _validate_jack_distance_fuse() -> bool:
 		push_error("jack fuse probe: wall-nut untouched by chewing or the blast")
 		return false
 	return true
+
+
+func _validate_ice_trail() -> bool:
+	# Z-11 (de-pvz UpdateZombieZamboni :3908-3938 + Zombie::GetSpeedModifier):
+	# the Zamboni leaves a lane interval of ice that halves WALKING speed while
+	# vehicles pass untouched, other lanes are unaffected, the interval expires
+	# after its tick budget, and grid-item craters (G-29 lifetime channel)
+	# expire the same way.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	var field: Variant = _battle.call("get_field_state") if _battle.has_method("get_field_state") else null
+	if field == null or not field.has_method("apply_modifier") or not field.has_method("has_modifier"):
+		push_error("ice trail probe: field state subsystem missing")
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	# The Zamboni drives left of spawn, laying [x-4, x+4] per step.
+	var zamboni := _spawn_archetype(&"archetype_original_zomboni", Vector2(520.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if zamboni == null:
+		push_error("ice trail probe: zamboni spawn failed")
+		return false
+	_battle.call("step_simulation_ticks", 200)
+	if not bool(field.call("has_modifier", 0, &"ice_trail", 500.0)):
+		push_error("ice trail probe: no ice behind the zamboni")
+		return false
+	# A walker on the ice walks at half its sampled roll; the lane-1 control
+	# walker keeps full speed; the vehicle itself is exempt.
+	var zamboni_x_before := (zamboni as Node2D).position.x
+	var walker_on_ice := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(500.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var walker_control := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(500.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if walker_on_ice == null or walker_control == null:
+		push_error("ice trail probe: walker spawn failed")
+		return false
+	_battle.call("step_simulation_ticks", 20)
+	var ice_x_before := (walker_on_ice as Node2D).position.x
+	var control_x_before := (walker_control as Node2D).position.x
+	var zamboni_speed := (zamboni_x_before - (zamboni as Node2D).position.x) / 0.2
+	_battle.call("step_simulation_ticks", 30)
+	var ice_speed := (ice_x_before - (walker_on_ice as Node2D).position.x) / 0.3
+	var control_speed := (control_x_before - (walker_control as Node2D).position.x) / 0.3
+	var ice_roll: Variant = _read_range_roll(walker_on_ice, "move_speed_slots_per_sec")
+	var control_roll: Variant = _read_range_roll(walker_control, "move_speed_slots_per_sec")
+	if ice_roll == null or control_roll == null:
+		push_error("ice trail probe: walker speed roll missing")
+		return false
+	if absf(ice_speed - float(ice_roll) * 96.0 * 0.5) > 5.0:
+		push_error("ice trail probe: on-ice speed %.1f px/s, expected ~%.1f (half roll)" % [ice_speed, float(ice_roll) * 96.0 * 0.5])
+		return false
+	if absf(control_speed - float(control_roll) * 96.0) > 5.0:
+		push_error("ice trail probe: control speed %.1f px/s, expected ~%.1f" % [control_speed, float(control_roll) * 96.0])
+		return false
+	if absf(zamboni_speed - 0.25 * 96.0) > 4.0:
+		push_error("ice trail probe: zamboni slowed by its own ice (%.1f px/s)" % zamboni_speed)
+		return false
+	# Expiry: a short-lived lane-2 interval disappears after its tick budget.
+	field.call("apply_modifier", 2, &"ice_trail", 100.0, 800.0, 20, -1)
+	if not bool(field.call("has_modifier", 2, &"ice_trail", 500.0)):
+		push_error("ice trail probe: lane-2 ice missing after apply")
+		return false
+	_battle.call("step_simulation_ticks", 40)
+	if bool(field.call("has_modifier", 2, &"ice_trail", 500.0)):
+		push_error("ice trail probe: lane-2 ice did not expire")
+		return false
+	# Crater lifetime (G-29 channel): a scheduled crater grid item is removed
+	# after its tick budget (original mGridItemCounter countdown).
+	var grid_item_state: Variant = _battle.call("get_grid_item_state") if _battle.has_method("get_grid_item_state") else null
+	if grid_item_state == null or not grid_item_state.has_method("spawn_grid_item_at"):
+		push_error("ice trail probe: grid item state missing")
+		return false
+	var crater: Node = grid_item_state.call("spawn_grid_item_at", &"archetype_crater", 1, 2, {}, true)
+	if crater == null:
+		push_error("ice trail probe: crater spawn failed")
+		return false
+	grid_item_state.call("schedule_expiry", crater, 30)
+	_battle.call("step_simulation_ticks", 50)
+	if grid_item_state.call("get_grid_item_at", 1, 2) != null:
+		push_error("ice trail probe: crater did not expire")
+		return false
+	return true
+
+
+func _validate_bobsled_team() -> bool:
+	# Z-14 (de-pvz Zombie.cpp:450-500 + :2573-2655): the team rides a 300hp
+	# sled layer at a constant 0.625 slots/s, renews the ice timer under it,
+	# grinds the sled away (6/tick) once it slides past the ice's left edge,
+	# and the broken sled disbands into four independent walkers while the
+	# team entity consumes itself.
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	var field: Variant = _battle.call("get_field_state") if _battle.has_method("get_field_state") else null
+	if field == null or not field.has_method("apply_modifier"):
+		push_error("bobsled probe: field state subsystem missing")
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	field.call("apply_modifier", 0, &"ice_trail", 300.0, 820.0, 3000, -1)
+	var team := _spawn_archetype(&"archetype_original_bobsled_team", Vector2(700.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if team == null:
+		push_error("bobsled probe: team spawn failed")
+		return false
+	var sled := _layer_snapshot(team, &"sled")
+	if sled.is_empty() or StringName(sled.get("layer_kind", StringName())) != &"attachment" or int(sled.get("max_health", 0)) != 300:
+		push_error("bobsled probe: sled layer missing or malformed")
+		return false
+	if StringName(team.call("get_entity_state_ref").call("get_value", &"movement_spec", {}).get("movement_id", StringName())) != &"core.drive":
+		push_error("bobsled probe: team movement is not core.drive")
+		return false
+	_battle.call("step_simulation_ticks", 20)
+	var slide_x_before := (team as Node2D).position.x
+	_battle.call("step_simulation_ticks", 30)
+	var slide_speed := (slide_x_before - (team as Node2D).position.x) / 0.3
+	if absf(slide_speed - 0.625 * 96.0) > 4.0:
+		push_error("bobsled probe: slide speed %.1f px/s, expected ~60 (0.625 slots/s)" % slide_speed)
+		return false
+	var consumed_box := {"count": 0}
+	var consumed_listener := func(event_data):
+		if event_data.core.get("target_node", null) == team and StringName(event_data.core.get("reason", StringName())) == &"bobsled_crash":
+			consumed_box["count"] = int(consumed_box["count"]) + 1
+	EventBus.subscribe(&"entity.consumed", consumed_listener)
+	# ~6.8s of sliding to the ice edge (700 -> 290) + ~0.5s of grinding.
+	var riders_seen := 0
+	for i in range(16):
+		_battle.call("step_simulation_ticks", 60)
+		if int(consumed_box["count"]) > 0:
+			riders_seen = _count_archetype(&"archetype_original_bobsled")
+			break
+	EventBus.unsubscribe(&"entity.consumed", consumed_listener)
+	if int(consumed_box["count"]) != 1:
+		push_error("bobsled probe: team consumed %d times (expected 1 after sled grind)" % int(consumed_box["count"]))
+		return false
+	if riders_seen != 4:
+		push_error("bobsled probe: %d riders after disband (expected 4)" % riders_seen)
+		return false
+	var moving_riders := 0
+	for rider in Array(_battle.call("get_runtime_combat_entities")):
+		if rider == null or not is_instance_valid(rider) or rider.get("archetype_id") != &"archetype_original_bobsled":
+			continue
+		if float(rider.call("get_entity_state_ref").call("get_value", &"speed", 0.0)) > 10.0:
+			moving_riders += 1
+	if moving_riders < 4:
+		push_error("bobsled probe: only %d/4 riders walking after disband" % moving_riders)
+		return false
+	return true
+
+
+func _read_range_roll(entity: Node, key: String) -> Variant:
+	for meta_name in entity.get_meta_list():
+		if String(meta_name).begins_with("range_roll__%s__" % key):
+			return entity.get_meta(meta_name)
+	return null
 
 
 func _emit_probe(probe: StringName, result: StringName, extra_core: Dictionary = {}) -> void:

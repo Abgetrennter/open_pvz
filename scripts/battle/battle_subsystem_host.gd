@@ -10,6 +10,7 @@ const BattleEffectRequestStateRef = preload("res://scripts/battle/battle_effect_
 const BattleActionTimelineStateRef = preload("res://scripts/battle/battle_action_timeline_state.gd")
 const BattleFieldObjectStateRef = preload("res://scripts/battle/battle_field_object_state.gd")
 const BattleGridItemStateRef = preload("res://scripts/battle/battle_grid_item_state.gd")
+const BattleFieldStateRef = preload("res://scripts/battle/battle_field_state.gd")
 const WaveRunnerRef = preload("res://scripts/battle/wave_runner.gd")
 const BattleModeHostRef = preload("res://scripts/battle/mode/battle_mode_host.gd")
 
@@ -22,6 +23,7 @@ var _effect_request_state: Node = null
 var _action_timeline_state: Node = null
 var _field_object_state: Node = null
 var _grid_item_state: Node = null
+var _field_state: Node = null
 var _flow_state: Node = null
 var _wave_runner: Node = null
 var _mode_host: Node = null
@@ -55,7 +57,7 @@ func get_runtime_entities(entity_root: Node2D, collectible_root: Node2D) -> Arra
 		runtime_nodes.append_array(entity_root.get_children())
 	if collectible_root != null:
 		runtime_nodes.append_array(collectible_root.get_children())
-	for sub in [_economy_state, _board_state, _card_state, _status_state, _effect_request_state, _action_timeline_state, _field_object_state, _grid_item_state, _flow_state, _wave_runner, _mode_host]:
+	for sub in [_economy_state, _board_state, _card_state, _status_state, _effect_request_state, _action_timeline_state, _field_object_state, _grid_item_state, _field_state, _flow_state, _wave_runner, _mode_host]:
 		if sub != null and is_instance_valid(sub):
 			runtime_nodes.append(sub)
 	return runtime_nodes
@@ -110,6 +112,12 @@ func get_grid_item_state() -> Node:
 	return null
 
 
+func get_field_state() -> Node:
+	if _field_state != null and is_instance_valid(_field_state):
+		return _field_state
+	return null
+
+
 func get_flow_state() -> Node:
 	if _flow_state != null and is_instance_valid(_flow_state):
 		return _flow_state
@@ -129,7 +137,7 @@ func get_mode_host() -> Node:
 
 
 func _destroy_subsystems() -> void:
-	for sub in [_economy_state, _board_state, _card_state, _status_state, _effect_request_state, _action_timeline_state, _field_object_state, _grid_item_state, _flow_state, _wave_runner, _mode_host]:
+	for sub in [_economy_state, _board_state, _card_state, _status_state, _effect_request_state, _action_timeline_state, _field_object_state, _grid_item_state, _field_state, _flow_state, _wave_runner, _mode_host]:
 		if sub != null and is_instance_valid(sub):
 			_battle.remove_child(sub)
 			sub.free()
@@ -141,6 +149,7 @@ func _destroy_subsystems() -> void:
 	_action_timeline_state = null
 	_field_object_state = null
 	_grid_item_state = null
+	_field_state = null
 	_flow_state = null
 	_wave_runner = null
 	_mode_host = null
@@ -171,6 +180,9 @@ func _create_subsystems() -> void:
 	_grid_item_state = BattleGridItemStateRef.new()
 	_grid_item_state.name = "BattleGridItemState"
 	_battle.add_child(_grid_item_state)
+	_field_state = BattleFieldStateRef.new()
+	_field_state.name = "BattleFieldState"
+	_battle.add_child(_field_state)
 	_flow_state = BattleFlowStateRef.new()
 	_flow_state.name = "BattleFlowState"
 	_battle.add_child(_flow_state)
@@ -203,6 +215,8 @@ func _setup_subsystems() -> void:
 		_field_object_state.setup(_battle, active_scenario)
 	if _grid_item_state != null:
 		_grid_item_state.setup(_battle, active_scenario)
+	if _field_state != null:
+		_field_state.setup(_battle, active_scenario)
 	if _flow_state != null:
 		_flow_state.setup(_battle, active_scenario)
 	if _wave_runner != null:
