@@ -25,6 +25,7 @@ archetype_id = &"archetype_original_balloon"
 entity_kind = &"zombie"
 display_name = "Original Balloon Zombie"
 tags = PackedStringArray("archetype", "zombie", "original", "air", "flying", "attachment")
+status_immunities = PackedStringArray("frozen")
 required_components = PackedStringArray("TriggerComponent", "MovementComponent", "StateComponent")
 max_health = 270
 health_layers = [SubResource("Layer_balloon")]

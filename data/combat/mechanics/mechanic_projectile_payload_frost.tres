@@ -16,8 +16,8 @@ params = {
 "speed_slots_per_sec": 2.1875,
 "on_hit_effect_id": &"apply_status",
 "on_hit_effect_params": {
-"duration": 2.5,
-"movement_scale": 0.5,
+"duration": 10.0,
+"movement_scale": 0.4,
 "status_id": &"slowed",
 "target_mode": &"context_target"
 }

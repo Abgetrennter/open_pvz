@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="2_mechanic_0"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_projectile_payload_melon.tres" id="3_mechanic_1"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_projectile_payload_wintermelon.tres" id="3_mechanic_1"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
 [ext_resource type="Resource" path="res://data/combat/projectile_profiles/parabola_terminal_blast.tres" id="5_profile"]
 [ext_resource type="Resource" path="res://data/combat/projectile_templates/melon_blast.tres" id="6_projectile_template"]

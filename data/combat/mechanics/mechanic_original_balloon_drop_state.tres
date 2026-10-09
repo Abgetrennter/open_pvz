@@ -24,6 +24,9 @@ params = {
 },
 "type": &"set_height_band"
 }, {
+"ids": [],
+"type": &"set_status_immunities"
+}, {
 "spec": {
 "movement_id": &"core.walk",
 "params": {

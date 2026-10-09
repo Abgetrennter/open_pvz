@@ -79,6 +79,13 @@ func _instantiate_runtime_spec(spawn_entry: Resource, position: Vector2, runtime
 	if runtime_spec.source_archetype_id != StringName():
 		entity.set("archetype_id", runtime_spec.source_archetype_id)
 	entity.set("tags", PackedStringArray(runtime_spec.tags))
+	# Status immunity declarations ride the resolved archetype (original
+	# CanBeChilled/CanBeFrozen/ApplyButter exclusions), not the compiled
+	# runtime spec, so they apply on both root-scene and direct spawns.
+	if resolved_archetype is CombatArchetypeRef:
+		var status_immunities := PackedStringArray(resolved_archetype.status_immunities)
+		if not status_immunities.is_empty():
+			entity.set("status_immunities", status_immunities)
 	if entity.has_method("set_state_value") and runtime_spec.runtime_state_values is Dictionary:
 		for key: Variant in runtime_spec.runtime_state_values.keys():
 			entity.call("set_state_value", StringName(str(key)), runtime_spec.runtime_state_values[key])

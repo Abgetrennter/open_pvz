@@ -142,6 +142,12 @@ func _process(_delta: float) -> void:
 			return
 		_emit_probe(probe_id, &"passed", {})
 		_emitted[probe_id] = true
+	elif probe_id == &"zombie_original_chill_dimension":
+		if not _validate_chill_dimension():
+			push_error("original zombie probe failed: chill dimension")
+			return
+		_emit_probe(probe_id, &"passed", {})
+		_emitted[probe_id] = true
 	else:
 		_probe_single(probe_id)
 
@@ -1218,6 +1224,153 @@ func _read_range_roll(entity: Node, key: String) -> Variant:
 		if String(meta_name).begins_with("range_roll__%s__" % key):
 			return entity.get_meta(meta_name)
 	return null
+
+
+func _validate_chill_dimension() -> bool:
+	# Z-13 + chill/freeze precision (de-pvz Zombie.cpp CanBeChilled :7982,
+	# CanBeFrozen :8009, ApplyChill :7952, HitIceTrap :8345, ApplyButter :8477;
+	# Projectile.cpp:399-402 DAMAGE_FREEZE on snow pea / winter melon):
+	# vehicles refuse chill/freeze/butter while taking the damage; snow pea
+	# chills at 0.4x for 10s (CHILLED_SPEED_FACTOR, 1000 ticks); winter melon
+	# splash chills every zombie its blast damages, flying ones included;
+	# ice-shroom freezes 400-600 seeded ticks with a 20s residual chill plus
+	# 20 damage; the balloon drops its freeze immunity with the balloon layer
+	# (CanBeFrozen IsFlying gate).
+	if _battle == null or not _battle.has_method("step_simulation_ticks"):
+		return false
+	_battle.call("step_simulation_ticks", 10)
+	var px_per_slot := 96.0
+
+	# Stage A+B spawns: snow peas in both lanes, the Zamboni as the vehicle
+	# under the lane-0 pea, one walker as the lane-1 chill target, and the
+	# winter melon with two splash targets plus a flying balloon.
+	var snowpea_lane0 := _spawn_archetype(&"archetype_original_snowpea", Vector2(430.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var snowpea_lane1 := _spawn_archetype(&"archetype_original_snowpea", Vector2(430.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var zomboni := _spawn_archetype(&"archetype_original_zomboni", Vector2(790.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var frost_walker := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(790.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var wintermelon := _spawn_archetype(&"archetype_original_wintermelon", Vector2(526.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var melon_near := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(700.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var melon_far := _spawn_archetype(&"archetype_original_basic_zombie", Vector2(760.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	var balloon := _spawn_archetype(&"archetype_original_balloon", Vector2(740.0, 320.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if snowpea_lane0 == null or snowpea_lane1 == null or zomboni == null or frost_walker == null or wintermelon == null or melon_near == null or melon_far == null or balloon == null:
+		push_error("chill probe: stage A spawn failed")
+		return false
+	if not (bool(zomboni.call("is_immune_to_status", &"slowed")) and bool(zomboni.call("is_immune_to_status", &"frozen")) and bool(zomboni.call("is_immune_to_status", &"butter_stun"))):
+		push_error("chill probe: zomboni immunity declarations missing (entity immunities=%s)" % [str(zomboni.get("status_immunities"))])
+		return false
+	if bool(zomboni.call("apply_status", &"slowed", 10.0, {"movement_scale": 0.4})):
+		push_error("chill probe: zomboni accepted a direct slowed apply")
+		return false
+	if bool(zomboni.call("apply_status", &"butter_stun", 4.0, {"movement_scale": 0.0})):
+		push_error("chill probe: zomboni accepted a direct butter apply")
+		return false
+	# Pea leaves after the 0.5s start delay (~2.0s) and flies ~0.9s, landing
+	# near 2.9s; wait well past it, then measure a clean window.
+	_battle.call("step_simulation_ticks", 330)
+	if not bool(frost_walker.call("has_status", &"slowed")):
+		push_error("chill probe: snow pea did not chill the walker")
+		return false
+	if bool(zomboni.call("has_status", &"slowed")):
+		push_error("chill probe: zomboni carries slowed (CanBeChilled violated)")
+		return false
+	var walker_x_before := (frost_walker as Node2D).position.x
+	var zomboni_x_before := (zomboni as Node2D).position.x
+	_battle.call("step_simulation_ticks", 30)
+	var walker_speed := (walker_x_before - (frost_walker as Node2D).position.x) / 0.3
+	var zomboni_speed := (zomboni_x_before - (zomboni as Node2D).position.x) / 0.3
+	var walker_roll: Variant = _read_range_roll(frost_walker, "move_speed_slots_per_sec")
+	if walker_roll == null:
+		push_error("chill probe: walker speed roll missing")
+		return false
+	if absf(walker_speed - float(walker_roll) * px_per_slot * 0.4) > 4.0:
+		push_error("chill probe: chilled walker speed %.1f px/s, expected ~%.1f (0.4x roll)" % [walker_speed, float(walker_roll) * px_per_slot * 0.4])
+		return false
+	if absf(zomboni_speed - 0.25 * px_per_slot) > 3.0:
+		push_error("chill probe: zomboni speed %.1f px/s diverges from its drive rate" % zomboni_speed)
+		return false
+
+	# Stage B: winter melon splash chills both the impact target and the
+	# neighbor inside the 0.833-slot blast (original DAMAGE_FREEZE flag on
+	# every damaged zombie). First lob ~3.2s + parabola flight. The 40-damage
+	# splash also pops the 20hp balloon layer; the chilled zombie survives.
+	_battle.call("step_simulation_ticks", 480)
+	if not (bool(melon_near.call("has_status", &"slowed")) and bool(melon_far.call("has_status", &"slowed"))):
+		push_error("chill probe: winter melon splash did not chill both targets")
+		return false
+	if not bool(balloon.call("has_status", &"slowed")):
+		push_error("chill probe: balloon zombie not chilled by the melon splash")
+		return false
+	if _entity_health(balloon) >= 270:
+		push_error("chill probe: melon splash did not damage the balloon")
+		return false
+
+	# The fresh balloon rides in lane 0 BEHIND the driving Zamboni: lane-1
+	# peas would pop its 20hp layer (projectile direct hits do not check
+	# height bands yet - separate gap), and the vehicle body blocks every
+	# lane-0 pea. It must be airborne when the ice-shroom blast lands: the
+	# pre-damage freeze gate has to skip it even though the same blast pops
+	# its layer and grounds it (original HitIceTrap order).
+	var flying_balloon := _spawn_archetype(&"archetype_original_balloon", Vector2(740.0, 220.0), {"spawn_reason": &"original_zombie_probe"}, true)
+	if flying_balloon == null:
+		push_error("chill probe: stage C spawn failed")
+		return false
+	if not bool(flying_balloon.call("is_immune_to_status", &"frozen")):
+		push_error("chill probe: balloon missing frozen immunity AT SPAWN (immunities=%s exposure=%s hp=%d layer_hp=%s eid=%d)" % [str(flying_balloon.get("status_immunities")), str(flying_balloon.call("get_exposure_state")), _entity_health(flying_balloon), str(_layer_snapshot(flying_balloon, &"balloon").get("current_health", "none")), flying_balloon.get_entity_id()])
+		return false
+	var iceshroom: Variant = null
+	for _attempt in range(60):
+		iceshroom = _find_entity_by_archetype(&"archetype_original_iceshroom", 1)
+		if iceshroom != null:
+			break
+		_battle.call("step_simulation_ticks", 10)
+	if iceshroom == null:
+		push_error("chill probe: ice-shroom card placement missing")
+		return false
+	# The placement tick usually fires the whole wake-explode chain inside the
+	# loop's last step, so the balloon may already be grounded here; the
+	# post-blast asserts below cover the full original order either way.
+	var walker_hp_before := _entity_health(frost_walker)
+	var zomboni_hp_before := _entity_health(zomboni)
+	_battle.call("step_simulation_ticks", 170)
+	var frozen_roll: Variant = _read_range_roll(frost_walker, "frozen_duration")
+	if frozen_roll == null or float(frozen_roll) < 4.0 or float(frozen_roll) > 6.0:
+		push_error("chill probe: frozen duration roll %s outside 400-600 ticks (metas=%s frozen_entry_present=%s)" % [str(frozen_roll), str(frost_walker.get_meta_list()), str(frost_walker.has_status(&"frozen"))])
+		return false
+	if not (bool(frost_walker.call("has_status", &"frozen")) and bool(frost_walker.call("has_status", &"slowed"))):
+		push_error("chill probe: ice-shroom did not freeze + chill the walker")
+		return false
+	if absf(float(frost_walker.call("get_effective_movement_scale"))) > 0.001:
+		push_error("chill probe: frozen walker still moves")
+		return false
+	if _entity_health(frost_walker) > walker_hp_before - 20:
+		push_error("chill probe: walker missed the 20 ice-shroom damage")
+		return false
+	if bool(zomboni.call("has_status", &"frozen")) or bool(zomboni.call("has_status", &"slowed")):
+		push_error("chill probe: zomboni chilled by the ice-shroom blast")
+		return false
+	if _entity_health(zomboni) >= zomboni_hp_before:
+		push_error("chill probe: zomboni took no ice-shroom damage")
+		return false
+	if bool(flying_balloon.call("has_status", &"frozen")):
+		push_error("chill probe: flying balloon frozen despite the pre-damage gate")
+		return false
+	if not bool(flying_balloon.call("has_status", &"slowed")):
+		push_error("chill probe: balloon not chilled by the ice-shroom blast")
+		return false
+
+	# The blast popped the balloon layer: grounded, the zombie lost its
+	# freeze immunity (drop-state set_status_immunities side effect) and now
+	# accepts frozen directly.
+	if StringName(flying_balloon.call("get_exposure_state")) != &"ground":
+		push_error("chill probe: balloon did not ground after the ice-shroom blast")
+		return false
+	if bool(flying_balloon.call("is_immune_to_status", &"frozen")):
+		push_error("chill probe: grounded balloon keeps its freeze immunity")
+		return false
+	if not bool(flying_balloon.call("apply_status", &"frozen", 5.0, {"movement_scale": 0.0, "liveness_overrides": {"controllers": false, "movement": false}})):
+		push_error("chill probe: grounded balloon refused frozen")
+		return false
+	return true
 
 
 func _validate_screen_door_directional() -> bool:

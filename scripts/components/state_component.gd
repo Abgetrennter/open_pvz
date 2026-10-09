@@ -282,7 +282,7 @@ func _apply_transition_side_effects(owner: Node, transition: Dictionary) -> void
 func _apply_transition_side_effect(owner: Node, side_effect: Dictionary) -> void:
 	var effect_type := StringName(side_effect.get("type", StringName()))
 	if effect_type == StringName():
-		for key in [&"set_movement", &"set_height_band", &"set_runtime_params", &"emit_event", &"submit_movement_override"]:
+		for key in [&"set_movement", &"set_height_band", &"set_runtime_params", &"emit_event", &"submit_movement_override", &"set_status_immunities"]:
 			if side_effect.has(key):
 				effect_type = key
 				break
@@ -294,6 +294,12 @@ func _apply_transition_side_effect(owner: Node, side_effect: Dictionary) -> void
 				movement_spec = Dictionary(raw_spec).duplicate(true)
 			if owner.has_method("set_movement_spec"):
 				owner.call("set_movement_spec", movement_spec)
+		&"set_status_immunities":
+			# State-conditional immunity (original IsFlying gate inside
+			# Zombie::CanBeFrozen, Zombie.cpp:8016): the balloon is freeze-proof
+			# airborne and loses the immunity when it drops.
+			if owner.has_method("set_status_immunities"):
+				owner.call("set_status_immunities", PackedStringArray(side_effect.get("ids", PackedStringArray())))
 		&"submit_movement_override":
 			var command: Dictionary = {}
 			var raw_command: Variant = side_effect.get("command", side_effect.get("submit_movement_override", {}))

@@ -60,10 +60,12 @@ func _on_game_tick(event_data: Variant) -> void:
 		if target_entity == null:
 			continue
 		if target_entity.has_method("apply_status"):
-			target_entity.call("apply_status", StringName(request.get("status_id")), float(request.get("duration")), {
+			var applied: bool = target_entity.call("apply_status", StringName(request.get("status_id")), float(request.get("duration")), {
 				"movement_scale": float(request.get("movement_scale")),
 				"liveness_overrides": Dictionary(request.get("liveness_overrides")).duplicate(true),
 			})
+			if not applied:
+				continue
 		var applied_event: Variant = EventDataRef.create(null, target_entity, null, PackedStringArray(["status", "applied"]))
 		applied_event.core["status_id"] = StringName(request.get("status_id"))
 		applied_event.core["target_archetype_id"] = StringName(request.get("target_archetype_id"))

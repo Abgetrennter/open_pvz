@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="PlantArchetype" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="PlantArchetype" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_sleeping_state.tres" id="2_state"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_on_place_lifecycle.tres" id="3_lifecycle"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_iceshroom_explode.tres" id="4_payload"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="5_height"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_iceshroom_consume.tres" id="6_consume"]
 
 [resource]
 script = ExtResource("1_archetype")
@@ -23,4 +24,4 @@ default_params = {
 "radius_slots": 9.375,
 "target_mode": &"enemies_in_radius"
 }
-mechanics = [ExtResource("2_state"), ExtResource("3_lifecycle"), ExtResource("4_payload")]
+mechanics = [ExtResource("2_state"), ExtResource("3_lifecycle"), ExtResource("4_payload"), ExtResource("6_consume")]

@@ -2118,5 +2118,13 @@
     "layers": [
       "core"
     ]
+  },
+  {
+    "id": "zombie_original_chill_dimension_validation",
+    "scenario": "res://scenes/validation/zombie_original_chill_dimension_validation.tres",
+    "description": "Z-13 + chill/freeze precision: vehicles refuse slowed/frozen/butter, snow pea 0.4x/10s chill, winter melon splash chill, ice-shroom seeded freeze chain, balloon flight-gated freeze immunity (probe-driven).",
+    "layers": [
+      "core"
+    ]
   }
 ]

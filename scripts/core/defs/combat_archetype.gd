@@ -21,6 +21,9 @@ class_name CombatArchetype
 @export var health_layers: Array[Resource] = []
 @export var initial_exposure_state: StringName = &"ground"
 @export var weight_class: StringName = &"normal"
+# Status ids this archetype can never carry (original Zombie::CanBeChilled /
+# Zombie::CanBeFrozen / Zombie::ApplyButter exclusions, Zombie.cpp:7982/8009/8477).
+@export var status_immunities: PackedStringArray = PackedStringArray()
 @export var hitbox_size := Vector2.ZERO
 @export var hit_height_band: Resource = null
 @export var projectile_flight_profile: Resource = null

@@ -27,6 +27,7 @@ archetype_id = &"archetype_original_bobsled_team"
 entity_kind = &"zombie"
 display_name = "Original Bobsled Team Zombie"
 tags = PackedStringArray("archetype", "zombie", "original", "vehicle", "bobsled", "team")
+status_immunities = PackedStringArray("slowed", "frozen", "butter_stun")
 required_components = PackedStringArray("TriggerComponent", "MovementComponent")
 max_health = 270
 hitbox_size = Vector2(275, 96)

@@ -9,9 +9,25 @@ display_name = "Original Ice-shroom Explode"
 family = &"Payload"
 type_id = &"core.explode"
 priority = 20
-tags = PackedStringArray("original", "instant", "explode", "mushroom")
+tags = PackedStringArray("original", "instant", "explode", "mushroom", "freeze")
 params = {
 "amount": 20,
 "radius_slots": 9.375,
+"status_applications": {
+"frozen": {
+"duration_min": 4.0,
+"duration_max": 6.0,
+"liveness_overrides": {
+"controllers": false,
+"movement": false
+},
+"movement_scale": 0.0
+},
+"slowed": {
+"duration": 20.0,
+"movement_scale": 0.4
+}
+},
+"target_exposure_states": ["ground", "flying"],
 "target_mode": &"enemies_in_radius"
 }

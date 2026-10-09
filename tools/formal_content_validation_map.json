@@ -182,6 +182,14 @@
       "showcases": []
     },
     {
+      "id": "original_chill_dimension",
+      "description": "Chill/freeze dimension batch: vehicle chill immunity (Z-13), snow pea / winter melon DAMAGE_FREEZE chill channel, ice-shroom freeze chain, balloon flight-gated freeze immunity.",
+      "validations": [
+        "zombie_original_chill_dimension_validation"
+      ],
+      "showcases": []
+    },
+    {
       "id": "board_and_battlefield_semantics_v1",
       "description": "Formal slot, lane and placement semantics that should not be owned by showcase scenes.",
       "validations": [

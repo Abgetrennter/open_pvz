@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CombatMechanic" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/defs/combat_mechanic.gd" id="1_mechanic"]
+
+[resource]
+script = ExtResource("1_mechanic")
+mechanic_id = &"core.wintermelon.projectile_payload_wintermelon"
+display_name = "Projectile Payload Winter Melon"
+family = &"Payload"
+type_id = &"core.spawn_projectile"
+priority = 20
+tags = PackedStringArray("melon", "attack", "projectile", "lobber", "blast", "freeze")
+params = {
+"damage": 40,
+"direction": Vector2(1, 0),
+"speed_slots_per_sec": 2.291667,
+"on_hit_effect_id": &"explode",
+"on_hit_effect_params": {
+"amount": 40,
+"radius_slots": 0.833333,
+"status_applications": {
+"slowed": {
+"duration": 10.0,
+"movement_scale": 0.4
+}
+},
+"target_exposure_states": ["ground", "flying"],
+"target_mode": &"enemies_in_radius"
+}
+}

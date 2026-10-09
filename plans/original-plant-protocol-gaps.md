@@ -42,7 +42,7 @@
 | G-18 | 反隐机制 | 已覆盖最小语义 | Plantern | `reveal` effect 已覆盖；完整雾场/视野系统后置 |
 | G-19 | 金属吸附 | 部分覆盖并已验证升级依赖 | Magnet-shroom, Gold Magnet | metal targeting 已覆盖；`plant_original_goldmagnet_validation` 覆盖升级最小语义，collectible 吸附未完成 |
 | G-20 | 升级放置依赖 | 已覆盖最小语义 | E 批次升级植物 | `required_present_archetypes` 已覆盖依赖检查；替换/占位精确语义另见 G-26 |
-| G-21 | 黄油眩晕 | 已覆盖 | Kernel-pult | `apply_status` + `butter_stun` 已覆盖；原版概率精确值后置 |
+| G-21 | 黄油眩晕 | 已覆盖 | Kernel-pult | `apply_status` + `butter_stun` 已覆盖；时长 2026-10-09 校正为 4.0s（原版 mButteredCounter=400 ticks）；车辆/飞行黄油豁免随 Z-13 status_immunities 落地；原版概率精确值后置 |
 | G-22 | 换道 | 已覆盖 | Garlic | `Effect.lane_reroute` + `when_damaged(required_damage_tags)` + `entity.lane_changed` 已覆盖，无 zombie 特判；`plant_original_garlic_validation` |
 | G-23 | 防护特定攻击 | 已覆盖 | Umbrella Leaf | `Controller.core.protect_targets` + `attack.intercepted`（命中前取消，标签驱动）已覆盖；`plant_original_umbrellaleaf_validation`；Bungee 完整流程后置 |
 | G-24 | 金币资源 | 部分覆盖 | Marigold, Gold Magnet | Marigold `coin_generated` collectible 已覆盖；完整 coin/silver economy 与吸附后置 |
@@ -63,7 +63,8 @@
 
 - `Gloom-shroom`：`plant_original_gloomshroom_validation` 覆盖 radius_around / detected_targets 范围攻击。
 - `Cattail`：`plant_original_cattail_validation` 覆盖当前 track-air projectile；全场 global_track 精确语义后续单独评估。
-- `Winter Melon`：`plant_original_wintermelon_validation` 覆盖 upgrade dependency + terminal blast 伤害；slow/freeze 精确语义另列后续。
+- `Winter Melon`：`plant_original_wintermelon_validation` 覆盖 upgrade dependency + terminal blast 伤害；slow/freeze 精确语义已于 2026-10-09 冰冻维度批次落地（专属 payload：explode `status_applications` 溅射减速 10s ×0.4，含飞行目标；普通 Melon-pult 保持不减速）。
+- `Snow Pea / Ice-shroom`（2026-10-09 冰冻维度批次）：Snow Pea 减速校正为原版 1000 ticks ×0.4（`CHILLED_SPEED_FACTOR`，Zombie.h:33）；Ice-shroom 补冻结链（frozen 400-600 seeded ticks + slowed 20s + 20 伤 + 爆后自灭）并经 `zombie_original_chill_dimension_validation` 双侧验证。附带发现：直线投射物直撞不查高度带（雪豆可打到飞行气球，原版打不到），归投射物高度带缺口后续立项，暂以探针布局规避。
 - `Gold Magnet`：`plant_original_goldmagnet_validation` 覆盖升级依赖和最小待机语义；collectible 吸附另列后置。
 - `Spikerock`：`plant_original_spikerock_validation` 覆盖 ground_damage + upgrade dependency；特殊车辆交互后置。
 

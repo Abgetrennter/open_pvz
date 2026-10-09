@@ -23,6 +23,7 @@ const LIVENESS_PRIORITY_STATUS := 20
 @export var tags: PackedStringArray = PackedStringArray()
 @export var initial_exposure_state: StringName = &"ground"
 @export var weight_class: StringName = &"normal"
+@export var status_immunities: PackedStringArray = PackedStringArray()
 var entity_id := -1
 var entity_state: Variant = EntityStateRef.new()
 var _hit_height_range := Vector2(0.0, 24.0)
@@ -86,7 +87,19 @@ func sync_runtime_state() -> void:
 	_sync_entity_state()
 
 
-func apply_status(status_id: StringName, duration: float, properties: Dictionary = {}) -> void:
+func is_immune_to_status(status_id: StringName) -> bool:
+	return status_immunities.has(status_id)
+
+
+func set_status_immunities(ids: PackedStringArray) -> void:
+	status_immunities = ids
+
+
+func apply_status(status_id: StringName, duration: float, properties: Dictionary = {}) -> bool:
+	# Immunity gate (original CanBeChilled/CanBeFrozen/ApplyButter early-outs):
+	# immune entities refuse the status entirely, no event, no liveness change.
+	if is_immune_to_status(status_id):
+		return false
 	var expires_at := GameState.current_time + maxf(duration, 0.0)
 	var liveness_overrides := _normalize_liveness_profile(Dictionary(properties.get("liveness_overrides", {})))
 	_active_statuses[status_id] = {
@@ -98,6 +111,7 @@ func apply_status(status_id: StringName, duration: float, properties: Dictionary
 	if not liveness_overrides.is_empty():
 		push_liveness_override(_status_liveness_source(status_id), liveness_overrides, LIVENESS_PRIORITY_STATUS)
 	_sync_status_state()
+	return true
 
 
 func apply_mark(mark_id: StringName, duration: float, metadata: Dictionary = {}) -> void:

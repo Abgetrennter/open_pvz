@@ -11,6 +11,7 @@ archetype_id = &"archetype_original_zomboni"
 entity_kind = &"zombie"
 display_name = "Original Zomboni"
 tags = PackedStringArray("archetype", "zombie", "original", "vehicle", "crush", "massive")
+status_immunities = PackedStringArray("slowed", "frozen", "butter_stun")
 required_components = PackedStringArray("TriggerComponent", "MovementComponent", "ControllerComponent")
 max_health = 1350
 weight_class = &"massive"

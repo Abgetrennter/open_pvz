@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Resource" path="res://data/combat/modes/mode_standard_battle.tres" id="2_mode"]
+[ext_resource type="Resource" path="res://data/combat/environments/env_night_clear.tres" id="3_env"]
+[ext_resource type="Script" path="res://scripts/battle/mode/battle_rule_module.gd" id="4_rule_module"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="5_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_iceshroom.tres" id="6_ice_card"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="7_card_request"]
+
+[sub_resource type="Resource" id="RuleModule_environment"]
+script = ExtResource("4_rule_module")
+module_id = &"environment.core"
+display_name = "Environment Core"
+enabled = true
+priority = 20
+params = {
+"environment_profile": ExtResource("3_env")
+}
+tags = PackedStringArray("rule", "environment")
+
+[sub_resource type="Resource" id="Rule_probe_passed"]
+script = ExtResource("5_rule")
+rule_id = &"chill_dimension_probe_passed"
+description = "The chill dimension probe must pass: vehicle chill immunity, snow pea 0.4x/10s chill, winter melon splash chill, ice-shroom freeze chain and the balloon's flight-gated freeze immunity."
+event_name = &"original_zombie.validation_probe"
+required_core_values = {
+"probe": &"zombie_original_chill_dimension",
+"result": &"passed"
+}
+
+[sub_resource type="Resource" id="Req_iceshroom"]
+script = ExtResource("7_card_request")
+at_time = 12.0
+card_id = &"card_original_iceshroom"
+lane_id = 1
+slot_index = 2
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"zombie_original_chill_dimension_validation"
+display_name = "Original Chill Dimension Validation"
+description = "Validates Z-13 and the chill/freeze precision semantics: Zamboni/Bobsled-team refuse slowed/frozen/butter (CanBeChilled/CanBeFrozen/ApplyButter), snow pea chills 0.4x for 10s, winter melon splash chills every damaged zombie, ice-shroom freezes 400-600 seeded ticks with a 20s residual chill and 20 damage, and the balloon's freeze immunity drops with its balloon layer."
+goals = PackedStringArray("Zamboni refuses slowed/frozen/butter while taking ice-shroom damage.", "Snow pea chills a walker to 0.4x its sampled roll; the Zamboni keeps its drive rate.", "Winter melon splash chills both blast targets and the flying balloon.", "Ice-shroom freezes the walker with a 400-600 tick seeded duration and 20s residual chill.", "Popped balloon grounds and loses its freeze immunity.")
+validation_time_limit = 30.0
+initial_sun = 1000
+lane_count = 2
+mode_def = ExtResource("2_mode")
+mode_rule_modules = [SubResource("RuleModule_environment")]
+card_defs = [ExtResource("6_ice_card")]
+card_play_requests = [SubResource("Req_iceshroom")]
+validation_rules = [SubResource("Rule_probe_passed")]

@@ -403,6 +403,10 @@ func _register_builtin_defs() -> void:
 		"min": 1,
 		"max": 100000,
 		"default": 18000,
+	}, {
+		"name": "status_applications",
+		"type": "dictionary",
+		"default": {},
 	}]
 	explode.param_defs = explode_param_defs
 	explode.allow_extra_params = false
@@ -976,7 +980,13 @@ func _register_builtin_strategies() -> void:
 		for target in targets:
 			if target == null or not target.has_method("take_damage"):
 				continue
+			# Status eligibility is snapshotted BEFORE the damage (original
+			# HitIceTrap gates the freeze on the pre-damage state: a flying
+			# balloon is never frozen even though the same blast pops it), and
+			# application happens after, on survivors only.
+			var eligible_statuses := _snapshot_blast_status_eligibility(target, params)
 			target.call("take_damage", amount, effect_source, PackedStringArray(["explode", String(context.event_name)]), _build_damage_runtime(context, params))
+			_apply_blast_status_applications(target, params, effect_source, result, eligible_statuses)
 		# Fire clears lane grid items (original Plant.cpp:4286 / Zombie.cpp:2339:
 		# jalapeno and fire trails remove every ladder in the burned row).
 		var clear_tags := PackedStringArray(params.get("remove_grid_item_tags", PackedStringArray()))
@@ -1015,10 +1025,13 @@ func _register_builtin_strategies() -> void:
 				"chain_id": context.chain_id,
 				"origin_event_name": context.event_name,
 			})
-		target.call("apply_status", status_id, duration, {
+		var applied: bool = target.call("apply_status", status_id, duration, {
 			"movement_scale": movement_scale,
 			"liveness_overrides": liveness_overrides,
 		})
+		if not applied:
+			result.notes.append("Status %s rejected: target immune." % [String(status_id)])
+			return result
 
 		var applied_event: Variant = EventDataRef.create(effect_source, target, null, PackedStringArray(["status", "applied", "effect"]))
 		applied_event.core["status_id"] = status_id
@@ -1445,6 +1458,65 @@ func _register_builtin_strategies() -> void:
 		EventBus.push_event(&"environment.fog_clear_requested", clear_event)
 		return result
 	)
+
+
+func _snapshot_blast_status_eligibility(target: Node, params: Dictionary) -> Array[StringName]:
+	var applications: Dictionary = params.get("status_applications", {})
+	var eligible: Array[StringName] = []
+	if applications.is_empty() or not target.has_method("is_immune_to_status"):
+		return eligible
+	for status_name: Variant in applications.keys():
+		var status_id := StringName(String(status_name))
+		if not bool(target.call("is_immune_to_status", status_id)):
+			eligible.append(status_id)
+	return eligible
+
+
+func _apply_blast_status_applications(target: Node, params: Dictionary, effect_source: Node, result: Variant, eligible_statuses: Array[StringName]) -> void:
+	# Status riders on an area blast (original DAMAGE_FREEZE damage flag:
+	# Projectile.cpp:399-402 marks snow pea / winter melon hits, and the
+	# per-target ApplyChill happens inside TakeBodyDamage/TakeHelmDamage).
+	# Dead-or-dying targets are excluded, mirroring the CanBeChilled gate.
+	var applications: Dictionary = params.get("status_applications", {})
+	if applications.is_empty() or eligible_statuses.is_empty():
+		return
+	if not target.has_method("apply_status"):
+		return
+	if target.has_method("is_runtime_alive") and not bool(target.call("is_runtime_alive")):
+		return
+	for status_id in eligible_statuses:
+		var entry: Dictionary = Dictionary(applications.get(String(status_id), {}))
+		var duration := _resolve_blast_status_duration(target, status_id, entry)
+		var movement_scale := float(entry.get("movement_scale", 1.0))
+		var liveness_overrides := Dictionary(entry.get("liveness_overrides", {})).duplicate(true)
+		var applied: bool = target.call("apply_status", status_id, duration, {
+			"movement_scale": movement_scale,
+			"liveness_overrides": liveness_overrides,
+		})
+		if not applied:
+			result.notes.append("Blast status %s rejected: target immune." % [String(status_id)])
+			continue
+		var applied_event: Variant = EventDataRef.create(effect_source, target, null, PackedStringArray(["status", "applied", "effect"]))
+		applied_event.core["status_id"] = status_id
+		applied_event.core["duration"] = duration
+		applied_event.core["movement_scale"] = movement_scale
+		applied_event.core["liveness_overrides"] = liveness_overrides.duplicate(true)
+		EventBus.push_event(&"entity.status_applied", applied_event)
+
+
+func _resolve_blast_status_duration(target: Node, status_id: StringName, entry: Dictionary) -> float:
+	# Ranged durations sample once per entity+key via the deterministic
+	# per-mechanic RNG (original HitIceTrap RandRangeInt(400, 600) ticks).
+	var duration_key := String(status_id) + "_duration"
+	if not (entry.has("duration_min") and entry.has("duration_max")):
+		return float(entry.get("duration", 0.0))
+	var sampled: Variant = GameState.resolve_ranged_value(target, {
+		duration_key + "_min": float(entry.get("duration_min")),
+		duration_key + "_max": float(entry.get("duration_max")),
+	}, duration_key)
+	if sampled == null:
+		return float(entry.get("duration_min", 0.0))
+	return float(sampled)
 
 
 func _resolve_target(context, params: Dictionary) -> Node:
