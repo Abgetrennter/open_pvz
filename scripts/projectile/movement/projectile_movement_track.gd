@@ -45,6 +45,21 @@ func physics_process_projectile_move(delta: float):
 
 
 func _resolve_current_height(ground_position: Vector2) -> float:
+	if height_reference == &"target_follow" and is_instance_valid(target_node):
+		return _target_center_height_above_terrain(ground_position)
 	if height_reference == &"launch_absolute":
 		return _launch_absolute_height(ground_position)
 	return _terrain_follow_height(ground_position)
+
+
+func _target_center_height_above_terrain(ground_position: Vector2) -> float:
+	# Original homing spikes steer toward the zombie rect center in screen
+	# space (Projectile.cpp UpdateNormalMotion, MOTION_HOMING), so the flight
+	# height tracks the target's current altitude instead of a lane-fixed
+	# value — otherwise a lane-height spike overflies ground targets.
+	var target_center_absolute := 0.0
+	if target_node.has_method("get_hit_height_range"):
+		var hit_range: Vector2 = target_node.call("get_hit_height_range")
+		target_center_absolute = (hit_range.x + hit_range.y) * 0.5
+	var terrain_z := _terrain_elevation_at(ground_position)
+	return maxf(target_center_absolute - terrain_z, 0.0)

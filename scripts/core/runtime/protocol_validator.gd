@@ -1708,7 +1708,7 @@ static func _allowed_height_strategies() -> Array[String]:
 
 
 static func _allowed_height_references() -> Array[String]:
-	return ["terrain_follow", "launch_absolute", "ballistic_to_target"]
+	return ["terrain_follow", "launch_absolute", "ballistic_to_target", "target_follow"]
 
 
 static func _allowed_hit_strategies() -> Array[String]:

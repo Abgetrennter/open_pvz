@@ -10,6 +10,12 @@ var lane_id := -1
 var source_entity_id := -1
 var auto_collect_delay := -1.0
 var collected := false
+# Magnet-controller claim (core.collectible_magnet): a grabbed collectible
+# flies to its magnet and must not be re-targeted, click-collected, or
+# auto-collected mid-flight; the claim self-releases if the magnet dies
+# before arrival (original kills the Coin at grab time — the flight item
+# belongs to the plant).
+var attracted_by: Node = null
 
 var _age := 0.0
 var _economy_state: Node = null
@@ -53,6 +59,8 @@ func _setup_click_detection() -> void:
 func _on_click_area_input(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
 	if collected:
 		return
+	if attracted_by != null and is_instance_valid(attracted_by):
+		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		clicked.emit()
 		_collect()
@@ -74,6 +82,10 @@ func simulation_step(delta: float) -> void:
 	if collected:
 		return
 	_age += delta
+	if attracted_by != null and not is_instance_valid(attracted_by):
+		attracted_by = null
+	if attracted_by != null:
+		return
 	if auto_collect_delay < 0.0:
 		return
 	if _age < auto_collect_delay:

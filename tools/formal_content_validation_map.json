@@ -297,7 +297,7 @@
     },
     {
       "id": "original_plants_batch_e",
-      "description": "PVZ1 Batch E mechanism-first coverage: 14/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output, Gold Magnet coin-generated collectible collection, Cattail global tracking with air priority, Cob Cannon two-Kernel-pult footprint plus manual aimed area damage, available upgrade placement dependencies, Garlic bite-triggered lane reroute, Umbrella Leaf overhead-attack interception, Imitater card clone protocol, and existing E-resource single-plant validations are covered. Remaining refinement work is Cob Cannon projectile/reload precision and full coin/silver/gold source taxonomy.",
+      "description": "PVZ1 Batch E mechanism-first coverage: 14/14 resources/cards exist. Kernel-pult corn/butter cycle, Flower Pot roof support, Marigold coin-generated collectible output, Gold Magnet coin-generated collectible collection with whole-board attraction flight and arrival credit, Cattail global tracking with air priority plus original 20-damage spike on ground and flying targets, Cob Cannon two-Kernel-pult footprint plus manual aimed area damage, available upgrade placement dependencies, Garlic bite-triggered lane reroute, Umbrella Leaf overhead-attack interception, Imitater card clone protocol, and existing E-resource single-plant validations are covered. Remaining refinement work is Cob Cannon projectile/reload precision and full coin/silver/gold source taxonomy.",
       "validations": [
         "plant_original_kernelpult_validation",
         "plant_original_marigold_validation",
@@ -310,6 +310,8 @@
         "plant_original_wintermelon_validation",
         "plant_original_spikerock_validation",
         "plant_original_goldmagnet_validation",
+        "plant_original_goldmagnet_attraction_validation",
+        "plant_original_cattail_ground_damage_validation",
         "plant_original_cobcannon_validation",
         "plant_original_garlic_validation",
         "plant_original_umbrellaleaf_validation",

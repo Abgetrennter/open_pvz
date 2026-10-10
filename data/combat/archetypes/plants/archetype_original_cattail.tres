@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" path="res://scripts/core/defs/plant_archetype.gd" id="1_archetype"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/skeleton/mechanic_periodic_attack_lane_forward.tres" id="2_mechanic_0"]
-[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_projectile_payload_track.tres" id="3_mechanic_1"]
+[ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_projectile_payload_cattail.tres" id="3_mechanic_1"]
 [ext_resource type="Resource" path="res://data/combat/height_bands/ground_unit.tres" id="4_height"]
-[ext_resource type="Resource" path="res://data/combat/projectile_profiles/track_air.tres" id="5_profile"]
+[ext_resource type="Resource" path="res://data/combat/projectile_profiles/track_target_follow.tres" id="5_profile"]
 [ext_resource type="Resource" path="res://data/combat/projectile_templates/track_bomb.tres" id="6_projectile_template"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_cattail_global_track.tres" id="7_targeting"]
 [ext_resource type="Resource" path="res://data/combat/mechanics/mechanic_original_cattail_burst.tres" id="8_burst"]
@@ -28,10 +28,11 @@ hitbox_size = Vector2(44, 56)
 default_params = {
 "damage": 20,
 "interval": 1.5,
+"interval_min": 1.35,
+"interval_max": 1.5,
 "scan_range_slots": 20.833333,
-"speed_slots_per_sec": 3.333333,
+"speed_slots_per_sec": 2.083333,
 "start_delay": 0.2,
-"target_exposure_states": PackedStringArray("flying"),
-"turn_rate": 4.0
+"target_exposure_states": PackedStringArray("ground", "flying")
 }
 mechanics = [ExtResource("2_mechanic_0"), ExtResource("7_targeting"), ExtResource("8_burst"), ExtResource("3_mechanic_1")]

@@ -229,35 +229,92 @@ func _process_collectible_magnet(owner: Node, spec: Dictionary, delta: float, bl
 	if economy == null or not is_instance_valid(economy):
 		return
 	var params: Dictionary = spec.get("params", {}) if spec.get("params") is Dictionary else {}
+	# Attraction flight runs every frame; grabbed collectibles move toward the
+	# magnet and only credit their value on arrival (original
+	# UpdateGoldMagnetShroom: magnet items fly to the plant, crediting <20px).
+	_advance_attracted_collectibles(owner as Node2D, economy, delta, blackboard)
 	var interval: float = maxf(float(params.get("interval", 1.0)), 0.01)
 	var acc_time: float = float(blackboard.get("acc_time", 0.0)) + delta
 	if acc_time < interval:
 		blackboard["acc_time"] = acc_time
 		return
 	blackboard["acc_time"] = acc_time - interval
-	var collectible: Node = _find_collectible_magnet_target(owner as Node2D, economy, params)
-	if collectible == null:
+	# One suck grabs every eligible collectible, up to max_grabs concurrent
+	# flights (original GoldMagnetFindTargets loops until no coin or no free
+	# magnet item, MAX_MAGNET_ITEMS = 5).
+	var max_grabs := int(params.get("max_grabs", 5))
+	var grabbed_ids: Dictionary = {}
+	for grab_index in max_grabs:
+		var collectible: Node = _find_collectible_magnet_target(owner as Node2D, economy, params, grabbed_ids)
+		if collectible == null:
+			break
+		grabbed_ids[collectible.get_instance_id()] = true
+		_begin_collectible_attraction(owner as Node2D, collectible, blackboard)
+
+
+func _advance_attracted_collectibles(owner: Node2D, economy: Node, delta: float, blackboard: Dictionary) -> void:
+	var attracting: Array = []
+	var raw_attracting: Variant = blackboard.get("attracting", [])
+	if raw_attracting is Array:
+		attracting = raw_attracting
+	if attracting.is_empty():
 		return
+	var tick_factor := delta * 100.0
+	var remaining: Array = []
+	for entry in attracting:
+		var collectible: Node = entry.get("collectible") if entry is Dictionary else null
+		if collectible == null or not is_instance_valid(collectible) or bool(collectible.get("collected")):
+			continue
+		var collectible_2d := collectible as Node2D
+		var to_target := owner.global_position - collectible_2d.global_position
+		var distance := to_target.length()
+		# Original magnet-item flight speed: each tick closes lerp(0.02..0.05)
+		# of the remaining distance (far -> near), crediting within 20px
+		# (Plant.cpp UpdateGoldMagnetShroom, TodAnimateCurveFloatTime).
+		var approach_factor := lerpf(0.05, 0.02, clampf(distance / 30.0, 0.0, 1.0))
+		if distance <= 20.0:
+			var collected_value := int(collectible.get("sun_value"))
+			if not economy.call("collect_sun", collectible, owner):
+				continue
+			var collected_event: Variant = EventDataRef.create(owner, collectible, collected_value, PackedStringArray(["collectible", "magnet"]))
+			collected_event.core["collector_id"] = int(owner.call("get_entity_id")) if owner.has_method("get_entity_id") else -1
+			collected_event.core["collector_archetype_id"] = StringName(owner.get("archetype_id")) if owner.get("archetype_id") != null else StringName()
+			collected_event.core["sun_id"] = int(collectible.get("sun_id"))
+			collected_event.core["source_type"] = StringName(collectible.get("source_type"))
+			collected_event.core["value"] = collected_value
+			EventBus.push_event(&"collectible.magnet_collected", collected_event)
+			continue
+		collectible_2d.global_position += to_target * (approach_factor * tick_factor)
+		remaining.append(entry)
+	blackboard["attracting"] = remaining
+
+
+func _begin_collectible_attraction(owner: Node2D, collectible: Node, blackboard: Dictionary) -> void:
+	collectible.set("attracted_by", owner)
 	var collected_value := int(collectible.get("sun_value"))
-	var source_type := StringName(collectible.get("source_type"))
-	var sun_id := int(collectible.get("sun_id"))
-	if not economy.call("collect_sun", collectible, owner):
-		return
-	var collected_event: Variant = EventDataRef.create(owner, collectible, collected_value, PackedStringArray(["collectible", "magnet"]))
-	collected_event.core["collector_id"] = int(owner.call("get_entity_id")) if owner.has_method("get_entity_id") else -1
-	collected_event.core["collector_archetype_id"] = StringName(owner.get("archetype_id")) if owner.get("archetype_id") != null else StringName()
-	collected_event.core["sun_id"] = sun_id
-	collected_event.core["source_type"] = source_type
-	collected_event.core["value"] = collected_value
-	EventBus.push_event(&"collectible.magnet_collected", collected_event)
+	var attracted_event: Variant = EventDataRef.create(owner, collectible, collected_value, PackedStringArray(["collectible", "attracted"]))
+	attracted_event.core["collector_id"] = int(owner.call("get_entity_id")) if owner.has_method("get_entity_id") else -1
+	attracted_event.core["collector_archetype_id"] = StringName(owner.get("archetype_id")) if owner.get("archetype_id") != null else StringName()
+	attracted_event.core["sun_id"] = int(collectible.get("sun_id"))
+	attracted_event.core["source_type"] = StringName(collectible.get("source_type"))
+	attracted_event.core["value"] = collected_value
+	attracted_event.core["distance"] = owner.global_position.distance_to((collectible as Node2D).global_position)
+	EventBus.push_event(&"collectible.attracted", attracted_event)
+	var attracting: Array = []
+	var raw_attracting: Variant = blackboard.get("attracting", [])
+	if raw_attracting is Array:
+		attracting = raw_attracting
+	attracting.append({"collectible": collectible})
+	blackboard["attracting"] = attracting
 
 
-func _find_collectible_magnet_target(owner: Node2D, economy: Node, params: Dictionary) -> Node:
+func _find_collectible_magnet_target(owner: Node2D, economy: Node, params: Dictionary, exclude_ids: Dictionary = {}) -> Node:
 	var active_suns: Dictionary = Dictionary(economy.get("active_suns")) if economy.get("active_suns") is Dictionary else {}
 	if active_suns.is_empty():
 		return null
 	var scan_range: float = _resolve_slots_distance(params, "scan_range_slots", 4000.0)
 	var allowed_source_types := _resolve_source_type_filter(params.get("source_types", PackedStringArray(["coin_generated"])))
+	var min_age := maxf(float(params.get("min_age", 0.0)), 0.0)
 	var best_collectible: Node = null
 	var best_distance := INF
 	var best_sun_id := 9223372036854775807
@@ -268,6 +325,18 @@ func _find_collectible_magnet_target(owner: Node2D, economy: Node, params: Dicti
 			continue
 		if bool(candidate.get("collected")):
 			continue
+		# Already claimed by another magnet's in-flight grab (original kills
+		# the Coin at grab time, so it cannot be found twice).
+		if candidate.get("attracted_by") != null:
+			continue
+		if exclude_ids.has(candidate.get_instance_id()):
+			continue
+		# Coins must sit on the board briefly before becoming eligible
+		# (original FindGoldMagnetTarget requires mCoinAge >= 50 ticks).
+		if min_age > 0.0:
+			var age_variant: Variant = candidate.get("_age")
+			if age_variant != null and float(age_variant) < min_age:
+				continue
 		var source_type := StringName(candidate.get("source_type"))
 		if not allowed_source_types.is_empty() and not allowed_source_types.has(source_type):
 			continue

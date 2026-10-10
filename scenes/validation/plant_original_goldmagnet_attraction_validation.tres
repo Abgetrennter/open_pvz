@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="BattleScenario" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/battle_scenario.gd" id="1_scenario"]
+[ext_resource type="Script" path="res://scripts/battle/card_play_request.gd" id="2_request"]
+[ext_resource type="Script" path="res://scripts/battle/battle_validation_rule.gd" id="3_rule"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_magnetshroom.tres" id="4_magnet_card"]
+[ext_resource type="Resource" path="res://data/combat/cards/original/card_original_goldmagnet.tres" id="5_gold_card"]
+[ext_resource type="Script" path="res://scripts/battle/sun_drop_entry.gd" id="6_sun_drop"]
+
+[sub_resource type="Resource" id="Req_magnet"]
+script = ExtResource("2_request")
+at_time = 0.05
+card_id = &"card_original_magnetshroom"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Req_gold"]
+script = ExtResource("2_request")
+at_time = 0.3
+card_id = &"card_original_goldmagnet"
+lane_id = 0
+slot_index = 0
+
+[sub_resource type="Resource" id="Drop_coin_far"]
+script = ExtResource("6_sun_drop")
+at_time = 0.6
+lane_id = 0
+x_position = 650.0
+value = 50
+source_type = &"coin_generated"
+auto_collect_delay = -1.0
+
+[sub_resource type="Resource" id="Rule_coin_attracted"]
+script = ExtResource("3_rule")
+rule_id = &"goldmagnet_coin_attracted"
+description = "Gold Magnet should grab the far coin through an attraction flight (original FindGoldMagnetTarget scans the whole board; event fires at grab, not on arrival)."
+event_name = &"collectible.attracted"
+min_count = 1
+required_core_values = {
+"collector_archetype_id": &"archetype_original_goldmagnet",
+"source_type": &"coin_generated",
+"value": 50
+}
+
+[sub_resource type="Resource" id="Rule_coin_collected_on_arrival"]
+script = ExtResource("3_rule")
+rule_id = &"goldmagnet_coin_collected_on_arrival"
+description = "Gold Magnet should credit the coin value only when the attracted coin arrives (original UpdateGoldMagnetShroom credits within 20px)."
+event_name = &"collectible.magnet_collected"
+min_count = 1
+required_core_values = {
+"collector_archetype_id": &"archetype_original_goldmagnet",
+"source_type": &"coin_generated",
+"value": 50
+}
+
+[resource]
+script = ExtResource("1_scenario")
+scenario_id = &"plant_original_goldmagnet_attraction_validation"
+display_name = "Original Gold Magnet Attraction Validation"
+description = "Validates Gold Magnet whole-board attraction flight: far coin grab emits collectible.attracted, arrival credits value and emits collectible.magnet_collected."
+goals = PackedStringArray("Verify Gold Magnet grabs a coin spawned far outside the old 9-slot range.", "Verify the coin value credits on arrival after the attraction flight.")
+validation_time_limit = 5.0
+initial_sun = 1000
+lane_count = 1
+board_slot_count = 1
+sun_drop_entries = [SubResource("Drop_coin_far")]
+card_defs = [ExtResource("4_magnet_card"), ExtResource("5_gold_card")]
+card_play_requests = [SubResource("Req_magnet"), SubResource("Req_gold")]
+validation_rules = [SubResource("Rule_coin_attracted"), SubResource("Rule_coin_collected_on_arrival")]

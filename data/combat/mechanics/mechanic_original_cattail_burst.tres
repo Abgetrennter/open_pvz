@@ -12,5 +12,5 @@ priority = 16
 tags = PackedStringArray("original", "cattail", "double_fire")
 params = {
 "burst_count": 2,
-"burst_interval": 0.1
+"burst_interval": 0.5
 }

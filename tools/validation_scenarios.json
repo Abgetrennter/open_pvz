@@ -1144,6 +1144,22 @@
     ]
   },
   {
+    "id": "plant_original_goldmagnet_attraction_validation",
+    "scenario": "res://scenes/validation/plant_original_goldmagnet_attraction_validation.tres",
+    "description": "Validates Gold Magnet whole-board attraction flight: far coin grab emits collectible.attracted, arrival credits value and emits collectible.magnet_collected.",
+    "layers": [
+      "core"
+    ]
+  },
+  {
+    "id": "plant_original_cattail_ground_damage_validation",
+    "scenario": "res://scenes/validation/plant_original_cattail_ground_damage_validation.tres",
+    "description": "Validates Cattail ground-target damage at the original 20 per spike when no air target is present.",
+    "layers": [
+      "core"
+    ]
+  },
+  {
     "id": "plant_original_cobcannon_validation",
     "scenario": "res://scenes/validation/plant_original_cobcannon_validation.tres",
     "description": "Validates Cob Cannon two-Kernel-pult upgrade footprint and one manual aimed area-damage shot.",

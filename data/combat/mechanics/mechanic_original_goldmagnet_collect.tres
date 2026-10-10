@@ -12,6 +12,8 @@ priority = 5
 tags = PackedStringArray("original", "goldmagnet", "collectible", "magnet", "economy")
 params = {
 "interval": 0.5,
-"scan_range_slots": 9.0,
+"max_grabs": 5,
+"min_age": 0.5,
+"scan_range_slots": 20.833333,
 "source_types": PackedStringArray("coin_generated")
 }

@@ -137,6 +137,8 @@
 | 4 | `plant_original_spikerock_validation` | 验证升级依赖 + `ground_damage`，特殊车辆交互后置 |
 | 5 | `plant_original_goldmagnet_validation` | 验证升级依赖/最小语义，完整 collectible 吸附后置 |
 
+2026-10-10 植物部分覆盖批次补验：`plant_original_cattail_ground_damage_validation`（Cattail 地面 20 伤 + target_follow 飞行高度）、`plant_original_goldmagnet_attraction_validation`（Gold Magnet 全屏吸附飞行 grab+arrival 双事件）；G-13/G-19 的 collectible 吸附后置项就此关闭（见 `plans/original-plant-protocol-gaps.md`）。
+
 本批后仍不建议立即做对象池、碰撞矩阵或泛化 BoardSlot modifier。下一步若继续原版植物迁移，应优先评估 Garlic、Umbrella Leaf、Imitater、Cob Cannon 多格占用/手动发射这些明确内容缺口。
 
 ---
